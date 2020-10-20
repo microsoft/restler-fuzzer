@@ -1,0 +1,204 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: Current File",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}"
+        },
+        {
+            "name": "Python: Payload body checker",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}\\restler\\restler.py",
+            "args" :[
+                "--fuzzing_mode",
+                "directed-smoke-test",
+                "--restler_grammar",
+                "c:\\restler\\restlerpayloadbody\\compile\\grammar.py",
+                "--custom_mutations",
+                "c:\\restler\\restlerpayloadbody\\compile\\dict.json",
+                "--settings",
+                "c:\\restler\\restlerpayloadbody\\settings_custom.json",
+                "--enable_checkers",
+                "payloadbody",
+                "--garbage_collection_interval",
+                "30"
+            ]
+        },
+        {
+            "name": "Python: examples checker",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}\\restler\\restler.py",
+            "args" :[
+                "--fuzzing_mode",
+                "directed-smoke-test",
+                "--restler_grammar",
+                "c:\\restler\\restlerexampleschecker\\compile\\grammar.py",
+                "--custom_mutations",
+                "c:\\restler\\restlerexampleschecker\\compile\\dict.json",
+                "--settings",
+                "c:\\restler\\restlerexampleschecker\\settings.json",
+                "--enable_checkers",
+                "examples",
+                "--no_tokens_in_logs",
+                "t",
+                "--garbage_collection_interval",
+                "30"
+            ]
+        },
+        {
+            "name": "Python: unit test",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}\\restler\\restler.py",
+            "args" :[
+                "--fuzzing_mode",
+                "directed-smoke-test",
+                "--restler_grammar",
+                "restler\\unit_tests\\log_baseline_test_files\\test_grammar.py",
+                "--custom_mutations",
+                "restler\\unit_tests\\log_baseline_test_files\\test_dict.json",
+                "--settings",
+                "c:\\restler\\restlertest\\test_settings.json",
+                "--use_test_socket",
+                "--garbage_collection_interval", "30",
+                "--target_ip", "1", "--target_port", "1"
+            ]
+        },
+        {
+            "name": "Python: restler.py -h",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}\\restler\\restler.py",
+            "args" :[
+                "-h"
+            ],
+            "stopOnEntry": true,
+            "console": "externalTerminal",
+            "cwd": "c:\\temp\\restler"
+        },
+        {
+            "name": "Python: restler.py",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}\\restler\\restler.py",
+            "args" :[
+                "--swagger_specification",
+                "c:\\temp\\restler\\demo_server.json",
+                "--inspect_grammar",
+                "sdf"
+            ],
+            "stopOnEntry": true,
+            "console": "externalTerminal",
+            "cwd": "c:\\temp\\restler"
+        },
+        {
+            "name": "Python: Attach",
+            "type": "python",
+            "request": "attach",
+            "localRoot": "${workspaceFolder}",
+            "remoteRoot": "${workspaceFolder}",
+            "port": 3000,
+            "secret": "my_secret",
+            "host": "localhost"
+        },
+        {
+            "name": "Python: Terminal (integrated)",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Python: Terminal (external)",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "externalTerminal"
+        },
+        {
+            "name": "Python: Django",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/manage.py",
+            "args": [
+                "runserver",
+                "--noreload",
+                "--nothreading"
+            ],
+            "debugOptions": [
+                "RedirectOutput",
+                "Django"
+            ]
+        },
+        {
+            "name": "Python: Flask (0.11.x or later)",
+            "type": "python",
+            "request": "launch",
+            "module": "flask",
+            "env": {
+                "FLASK_APP": "${workspaceFolder}/app.py"
+            },
+            "args": [
+                "run",
+                "--no-debugger",
+                "--no-reload"
+            ]
+        },
+        {
+            "name": "Python: Module",
+            "type": "python",
+            "request": "launch",
+            "module": "module.name"
+        },
+        {
+            "name": "Python: Pyramid",
+            "type": "python",
+            "request": "launch",
+            "args": [
+                "${workspaceFolder}/development.ini"
+            ],
+            "debugOptions": [
+                "RedirectOutput",
+                "Pyramid"
+            ]
+        },
+        {
+            "name": "Python: Watson",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/console.py",
+            "args": [
+                "dev",
+                "runserver",
+                "--noreload=True"
+            ]
+        },
+        {
+            "name": "Python: All debug Options",
+            "type": "python",
+            "request": "launch",
+            "pythonPath": "${command:python.interpreterPath}",
+            "program": "${file}",
+            "module": "module.name",
+            "env": {
+                "VAR1": "1",
+                "VAR2": "2"
+            },
+            "envFile": "${workspaceFolder}/.env",
+            "args": [
+                "arg1",
+                "arg2"
+            ],
+            "debugOptions": [
+                "RedirectOutput"
+            ]
+        }
+    ]
+}

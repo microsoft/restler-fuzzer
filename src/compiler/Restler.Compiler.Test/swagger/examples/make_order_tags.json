@@ -1,0 +1,14 @@
+{
+  "parameters": {
+    "storeId": "23456",
+    "orderDetails": {
+      "tags": {
+        "tag1": "value1",
+       
+        "tag2": "value2"
+      }
+    }
+  },
+  "responses": {
+  }
+}

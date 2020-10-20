@@ -1,0 +1,24 @@
+{
+  "restler_fuzzable_string": [ "fuzz" ],
+  "restler_fuzzable_int": [ "1" ],
+  "restler_fuzzable_bool": [ "true" ],
+  "restler_custom_payload": {
+    "subscriptionId": [ "xxx" ],
+    "resourceGroupName": [ "restler-test" ],
+    "api-version": [ "xxx" ],
+    "location": [ "westus2" ]
+  },
+  "restler_custom_payload_uuid4_suffix": {
+    "publicIpAddressName": "ip-addr",
+    "networkInterfaceName": "netwk-intfc",
+    "tapConfigurationName": "tap-config",
+    "loadBalancerName": "load-balancer",
+    "inboundNatRuleName": "in-nat-rule",
+    "interfaceEndpointName": "int-endpt",
+    "applicationSecurityGroupName": "app-sec-group",
+    "virtualNetworkName": "vnet",
+    "subnetName": "subnet",
+    "virtualNetworkPeeringName": "vnet-peering",
+    "applicationGatewayName": "app-gateway"
+  }
+}

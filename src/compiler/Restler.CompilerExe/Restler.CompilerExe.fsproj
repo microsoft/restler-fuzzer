@@ -1,0 +1,23 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <NoWarn>NU1603</NoWarn>
+    <DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <OtherFlags></OtherFlags>
+    <Deterministic>false</Deterministic>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Program.fs" />
+    <Content Include="packages.lock.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Restler.Compiler\Restler.Compiler.fsproj" />
+    <PackageReference Include="Microsoft.FSharpLu.Json" Version="0.11.6" />
+    <PackageReference Include="NJsonSchema" Version="10.0.27" />
+    <PackageReference Include="NSwag.Core" Version="13.1.3" />
+  </ItemGroup>
+</Project>

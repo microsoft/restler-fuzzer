@@ -1,0 +1,246 @@
+{
+  "basePath": "/api",
+  "consumes": [
+    "application/json"
+  ],
+  "definitions": {
+    "ApplicationGatewayAvailableSslOptions": {
+      "properties": {
+        "properties": {
+          "x-ms-client-flatten": true,
+          "$ref": "#/definitions/ApplicationGatewayAvailableSslOptionsPropertiesFormat"
+        }
+      },
+      "allOf": [
+        {
+          "$ref": "#/definitions/Resource"
+        }
+      ],
+      "description": "Response for ApplicationGatewayAvailableSslOptions API service call."
+    },
+    "ApplicationGatewayAvailableSslOptionsPropertiesFormat": {
+      "properties": {
+        "predefinedPolicies": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/SubResource"
+          },
+          "description": "List of available Ssl predefined policy."
+        },
+        "defaultPolicy": {
+          "$ref": "#/definitions/PolicyNameEnum",
+          "description": "Name of the Ssl predefined policy applied by default to application gateway"
+        },
+        "availableCipherSuites": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/CipherSuitesEnum"
+          },
+          "description": "List of available Ssl cipher suites."
+        },
+        "availableProtocols": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ProtocolsEnum"
+          },
+          "description": "List of available Ssl protocols."
+        }
+      },
+      "description": "Properties of ApplicationGatewayAvailableSslOptions"
+    },
+    "ApplicationGatewayAvailableSslPredefinedPolicies": {
+      "properties": {
+        "value": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ApplicationGatewaySslPredefinedPolicy"
+          },
+          "description": "List of available Ssl predefined policy."
+        },
+        "nextLink": {
+          "type": "string",
+          "description": "URL to get the next set of results."
+        }
+      },
+      "description": "Response for ApplicationGatewayAvailableSslOptions API service call."
+    },
+    "ApplicationGatewaySslPredefinedPolicy": {
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Name of the Ssl predefined policy."
+        },
+        "properties": {
+          "x-ms-client-flatten": true,
+          "$ref": "#/definitions/ApplicationGatewaySslPredefinedPolicyPropertiesFormat"
+        }
+      },
+      "allOf": [
+        {
+          "$ref": "#/definitions/SubResource"
+        }
+      ],
+      "description": "An Ssl predefined policy"
+    },
+    "ApplicationGatewaySslPredefinedPolicyPropertiesFormat": {
+      "properties": {
+        "cipherSuites": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/CipherSuitesEnum"
+          },
+          "description": "Ssl cipher suites to be enabled in the specified order for application gateway."
+        },
+        "minProtocolVersion": {
+          "$ref": "#/definitions/ProtocolsEnum",
+          "description": "Minimum version of Ssl protocol to be supported on application gateway."
+        }
+      },
+      "description": "Properties of ApplicationGatewaySslPredefinedPolicy"
+    },
+    "ProtocolsEnum": {
+      "type": "string",
+      "description": "Ssl protocol enums.",
+      "enum": [
+        "TLSv1_2"
+      ],
+      "x-ms-enum": {
+        "name": "ApplicationGatewaySslProtocol",
+        "modelAsString": true
+      }
+    },
+    "CipherSuitesEnum": {
+      "type": "string",
+      "description": "Ssl cipher suites enums.",
+      "enum": [
+        "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384",
+        "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256"
+      ],
+      "x-ms-enum": {
+        "name": "ApplicationGatewaySslCipherSuite",
+        "modelAsString": true
+      }
+    },
+    "PolicyNameEnum": {
+      "type": "string",
+      "description": "Ssl predefined policy name enums.",
+      "enum": [
+        "AppGwSslPolicy20150501",
+        "AppGwSslPolicy20170401",
+        "AppGwSslPolicy20170401S"
+      ],
+      "x-ms-enum": {
+        "name": "ApplicationGatewaySslPolicyName",
+        "modelAsString": true
+      }
+    },
+    "SubResource": {
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Resource ID."
+        }
+      },
+      "description": "Reference to another subresource.",
+      "x-ms-azure-resource": true
+    },
+    "Resource": {
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Resource ID."
+        },
+        "name": {
+          "readOnly": true,
+          "type": "string",
+          "description": "Resource name."
+        },
+        "type": {
+          "readOnly": true,
+          "type": "string",
+          "description": "Resource type."
+        },
+        "location": {
+          "type": "string",
+          "description": "Resource location."
+        },
+        "tags": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "Resource tags."
+        }
+      },
+      "description": "Common resource representation.",
+      "x-ms-azure-resource": true
+    }
+
+
+
+  },
+  "host": "localhost:8888",
+  "info": {
+    "description": "",
+    "title": "Based on ApplicationGateway.json",
+    "version": "1.0"
+  },
+  "paths": {
+    "/Microsoft.Network/applicationGatewayAvailableSslOptions/default": {
+      "get": {
+        "description": "Lists available Ssl options for configuring Ssl policy.",
+        "parameters": [
+        ],
+        "responses": {
+          "200": {
+            "description": "Success. The operation returns all available Ssl options for configuring Ssl policy.",
+            "schema": {
+              "$ref": "#/definitions/ApplicationGatewayAvailableSslOptions"
+            }
+          }
+        }
+      }
+    },
+
+    "/Microsoft.Network/applicationGatewayAvailableSslOptions/default/predefinedPolicies": {
+      "get": {
+        "description": "Lists all SSL predefined policies for configuring Ssl policy.",
+        "parameters": [
+        ],
+        "responses": {
+          "200": {
+            "description": "Success. The operation returns a lists of all Ssl predefined policies for configuring Ssl policy.",
+            "schema": {
+              "$ref": "#/definitions/ApplicationGatewayAvailableSslPredefinedPolicies"
+            }
+          }
+        }
+      }
+    },
+
+    "/Microsoft.Network/applicationGatewayAvailableSslOptions/default/predefinedPolicies/{predefinedPolicyName}": {
+      "get": {
+        "description": "Gets Ssl predefined policy with the specified policy name.",
+        "parameters": [
+          {
+            "name": "predefinedPolicyName",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "Name of Ssl predefined policy."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success. The operation returns a Ssl predefined policy with the specified policy name.",
+            "schema": {
+              "$ref": "#/definitions/ApplicationGatewaySslPredefinedPolicy"
+            }
+          }
+        }
+      }
+    }
+  },
+  "swagger": "2.0"
+}
+

@@ -1,0 +1,98 @@
+{
+  "basePath": "/api",
+  "consumes": [
+    "application/json"
+  ],
+  "definitions": {
+    "SubResource": {
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Resource ID."
+        }
+      },
+      "description": "Reference to another subresource.",
+      "x-ms-azure-resource": true
+    }
+  },
+  "host": "localhost:8888",
+  "info": {
+    "description": "Small example for lowercase paths.",
+    "title": "Lowercase path dependencies regression test",
+    "version": "1.0"
+  },
+  "paths": {
+    "/sites/{name}/slots/{slot}": {
+      "delete": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "name",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "path",
+            "name": "slot",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      },
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "name",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "path",
+            "name": "slot",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/SubResource"
+            }
+          }
+        }
+      },
+      "put": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "name",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "path",
+            "name": "slot",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/SubResource"
+            }
+          }
+        }
+      }
+    }
+  },
+  "swagger": "2.0"
+}

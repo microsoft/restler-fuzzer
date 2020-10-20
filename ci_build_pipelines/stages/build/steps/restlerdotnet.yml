@@ -1,0 +1,46 @@
+steps:
+  - task: NuGetToolInstaller@1
+    displayName: 'Use NuGet 5.4'
+    inputs:
+      versionSpec: 5.4
+
+  - task: NuGetCommand@2
+    displayName: 'NuGet restore solution'
+    inputs:
+      restoreSolution: '**\Restler.sln'
+
+  - task: DotNetCoreCLI@2
+    displayName: 'Publish RESTler dotnet core projects'
+    inputs:
+      command: publish
+      publishWebProjects: false
+      projects: |
+        src/compiler/Restler.CompilerExe/Restler.CompilerExe.fsproj
+        src/driver/Restler.Driver.fsproj
+        src/ResultsAnalyzer/ResultsAnalyzer.fsproj
+      arguments: '--no-restore -c $(buildConfiguration) /p:version=$(versionNumber)'
+      zipAfterPublish: false
+
+  - task: DotNetCoreCLI@2
+    displayName: 'Build unit tests'
+    inputs:
+      command: build
+      projects: |
+        src/compiler/Restler.Compiler.Test/Restler.Compiler.Test.fsproj
+      arguments: '--no-restore -c $(buildConfiguration)'
+      
+  - task: PublishPipelineArtifact@1
+    inputs:
+      targetPath: src/compiler/Restler.CompilerExe/bin/release/netcoreapp3.1/publish/
+      artifactName: compiler
+
+  - task: PublishPipelineArtifact@1
+    inputs:
+      targetPath: src/driver/bin/release/netcoreapp3.1/publish/
+      artifactName: driver
+
+  - task: PublishPipelineArtifact@1
+    inputs:
+      targetPath: src/ResultsAnalyzer/bin/release/netcoreapp3.1/publish/
+      artifactName: resultsAnalyzer
+

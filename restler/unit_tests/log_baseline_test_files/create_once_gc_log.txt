@@ -1,0 +1,104 @@
+2020-07-30 07:17:07.479: Sending: 'DELETE /item/itemName<test!>-a1b4dc027e HTTP/1.1\r\nAccept: application/json\r\nHost: restler.unit.test.server.com\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
+
+2020-07-30 07:17:07.487: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"itemName<test!>-a1b4dc027e"'
+
+2020-07-30 07:17:07.497: Sending: 'DELETE /item/itemName<test!>-a6d2b181bc HTTP/1.1\r\nAccept: application/json\r\nHost: restler.unit.test.server.com\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
+
+2020-07-30 07:17:07.513: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"itemName<test!>-a6d2b181bc"'
+
+2020-07-30 07:17:07.528: Sending: 'DELETE /item/itemName<test!>-613bbb7ed6 HTTP/1.1\r\nAccept: application/json\r\nHost: restler.unit.test.server.com\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
+
+2020-07-30 07:17:07.544: Received: "HTTP/1.1 404 Not Found\r\nRestler Test\r\n\r\n{'Resource': ResourceDoesNotExist()}"
+
+2020-07-30 07:17:07.544: Sending: 'DELETE /item/itemName<test!>-cf1d2167c9 HTTP/1.1\r\nAccept: application/json\r\nHost: restler.unit.test.server.com\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
+
+2020-07-30 07:17:07.559: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"itemName<test!>-cf1d2167c9"'
+
+2020-07-30 07:17:07.559: Sending: 'DELETE /item/itemName<test!>-d5a097f480 HTTP/1.1\r\nAccept: application/json\r\nHost: restler.unit.test.server.com\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
+
+2020-07-30 07:17:07.575: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"itemName<test!>-d5a097f480"'
+
+2020-07-30 07:17:07.591: Sending: 'DELETE /item/itemName<test!>-a581a94350 HTTP/1.1\r\nAccept: application/json\r\nHost: restler.unit.test.server.com\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
+
+2020-07-30 07:17:07.597: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"itemName<test!>-a581a94350"'
+
+2020-07-30 07:17:07.613: Sending: 'DELETE /farm/farmName<test!>-9ac13e74d5 HTTP/1.1\r\nAccept: application/json\r\nHost: restler.unit.test.server.com\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
+
+2020-07-30 07:17:07.628: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"farmName<test!>-9ac13e74d5"'
+
+2020-07-30 07:17:07.628: Sending: 'DELETE /farm/farmName<test!>-ac4cef3f8c HTTP/1.1\r\nAccept: application/json\r\nHost: restler.unit.test.server.com\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
+
+2020-07-30 07:17:07.628: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"farmName<test!>-ac4cef3f8c"'
+
+2020-07-30 07:17:07.644: Sending: 'DELETE /farm/farmName<test!>-eeda66fc27 HTTP/1.1\r\nAccept: application/json\r\nHost: restler.unit.test.server.com\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
+
+2020-07-30 07:17:07.644: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"farmName<test!>-eeda66fc27"'
+
+2020-07-30 07:17:07.660: Sending: 'DELETE /farm/farmName<test!>-2746dbd59d HTTP/1.1\r\nAccept: application/json\r\nHost: restler.unit.test.server.com\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
+
+2020-07-30 07:17:07.660: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"farmName<test!>-2746dbd59d"'
+
+2020-07-30 07:17:07.675: Sending: 'DELETE /farm/farmName<test!>-db2a30425c HTTP/1.1\r\nAccept: application/json\r\nHost: restler.unit.test.server.com\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
+
+2020-07-30 07:17:07.675: Received: "HTTP/1.1 404 Not Found\r\nRestler Test\r\n\r\n{'Resource': ResourceDoesNotExist()}"
+
+2020-07-30 07:17:07.691: Sending: 'DELETE /farm/farmName<test!>-c7abda9f43 HTTP/1.1\r\nAccept: application/json\r\nHost: restler.unit.test.server.com\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
+
+2020-07-30 07:17:07.698: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"farmName<test!>-c7abda9f43"'
+
+2020-07-30 07:17:07.700: Sending: 'DELETE /farm/farmName<test!>-1f218e4ecb HTTP/1.1\r\nAccept: application/json\r\nHost: restler.unit.test.server.com\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
+
+2020-07-30 07:17:07.710: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"farmName<test!>-1f218e4ecb"'
+
+2020-07-30 07:17:07.720: Sending: 'DELETE /city/cityName<test!>-109b94c103/road/roadName<test!>-d2558bb239 HTTP/1.1\r\nAccept: application/json\r\nHost: restler.unit.test.server.com\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
+
+2020-07-30 07:17:07.730: Received: "HTTP/1.1 404 Not Found\r\nRestler Test\r\n\r\n{'Resource': ResourceDoesNotExist()}"
+
+2020-07-30 07:17:07.740: Sending: 'DELETE /city/cityName<test!>-109b94c103/road/roadName<test!>-7739c00688 HTTP/1.1\r\nAccept: application/json\r\nHost: restler.unit.test.server.com\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
+
+2020-07-30 07:17:07.748: Received: "HTTP/1.1 404 Not Found\r\nRestler Test\r\n\r\n{'Resource': ResourceDoesNotExist()}"
+
+2020-07-30 07:17:07.750: Sending: 'DELETE /city/cityName<test!>-109b94c103/road/roadName<test!>-a365b584fe HTTP/1.1\r\nAccept: application/json\r\nHost: restler.unit.test.server.com\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
+
+2020-07-30 07:17:07.760: Received: "HTTP/1.1 404 Not Found\r\nRestler Test\r\n\r\n{'Resource': ResourceDoesNotExist()}"
+
+2020-07-30 07:17:07.781: Sending: 'DELETE /city/cityName<test!>-109b94c103/house/houseName<test!>-84d7ce2728 HTTP/1.1\r\nAccept: application/json\r\nHost: restler.unit.test.server.com\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
+
+2020-07-30 07:17:07.789: Received: "HTTP/1.1 404 Not Found\r\nRestler Test\r\n\r\n{'Resource': ResourceDoesNotExist()}"
+
+2020-07-30 07:17:07.791: Sending: 'DELETE /city/cityName<test!>-109b94c103/house/houseName<test!>-808aecc11d HTTP/1.1\r\nAccept: application/json\r\nHost: restler.unit.test.server.com\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
+
+2020-07-30 07:17:07.801: Received: "HTTP/1.1 404 Not Found\r\nRestler Test\r\n\r\n{'Resource': ResourceDoesNotExist()}"
+
+2020-07-30 07:17:07.811: Sending: 'DELETE /city/cityName<test!>-109b94c103/house/houseName<test!>-376b441101 HTTP/1.1\r\nAccept: application/json\r\nHost: restler.unit.test.server.com\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
+
+2020-07-30 07:17:07.819: Received: "HTTP/1.1 404 Not Found\r\nRestler Test\r\n\r\n{'Resource': ResourceDoesNotExist()}"
+
+2020-07-30 07:17:07.821: Sending: 'DELETE /city/cityName<test!>-109b94c103/house/houseName<test!>-b80247a74e HTTP/1.1\r\nAccept: application/json\r\nHost: restler.unit.test.server.com\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
+
+2020-07-30 07:17:07.831: Received: "HTTP/1.1 404 Not Found\r\nRestler Test\r\n\r\n{'Resource': ResourceDoesNotExist()}"
+
+2020-07-30 07:17:07.839: Sending: 'DELETE /city/cityName<test!>-109b94c103/house/houseName<test!>-1ecb52ef7c HTTP/1.1\r\nAccept: application/json\r\nHost: restler.unit.test.server.com\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
+
+2020-07-30 07:17:07.841: Received: "HTTP/1.1 404 Not Found\r\nRestler Test\r\n\r\n{'Resource': ResourceDoesNotExist()}"
+
+2020-07-30 07:17:07.851: Sending: 'DELETE /city/cityName<test!>-109b94c103/house/houseName<test!>-dc88de98be HTTP/1.1\r\nAccept: application/json\r\nHost: restler.unit.test.server.com\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
+
+2020-07-30 07:17:07.862: Received: "HTTP/1.1 404 Not Found\r\nRestler Test\r\n\r\n{'Resource': ResourceDoesNotExist()}"
+
+2020-07-30 07:17:07.870: Sending: 'DELETE /city/cityName<test!>-109b94c103/house/houseName<test!>-eb935502af HTTP/1.1\r\nAccept: application/json\r\nHost: restler.unit.test.server.com\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
+
+2020-07-30 07:17:07.872: Received: "HTTP/1.1 404 Not Found\r\nRestler Test\r\n\r\n{'Resource': ResourceDoesNotExist()}"
+
+2020-07-30 07:17:07.901: Sending: 'DELETE /group/groupName<test!>-9712caef8b HTTP/1.1\r\nAccept: application/json\r\nHost: restler.unit.test.server.com\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
+
+2020-07-30 07:17:07.911: Received: "HTTP/1.1 404 Not Found\r\nRestler Test\r\n\r\n{'Resource': ResourceDoesNotExist()}"
+
+2020-07-30 07:17:07.911: Sending: 'DELETE /group/groupName<test!>-a83a100b0e HTTP/1.1\r\nAccept: application/json\r\nHost: restler.unit.test.server.com\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
+
+2020-07-30 07:17:07.926: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"groupName<test!>-a83a100b0e"'
+
+2020-07-30 07:17:07.926: Sending: 'DELETE /group/groupName<test!>-22070e1dac HTTP/1.1\r\nAccept: application/json\r\nHost: restler.unit.test.server.com\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
+
+2020-07-30 07:17:07.942: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"groupName<test!>-22070e1dac"'
+

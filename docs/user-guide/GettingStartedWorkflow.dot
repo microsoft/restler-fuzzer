@@ -1,0 +1,65 @@
+digraph {
+  rankdir=UD;
+  concentrate=true;
+
+    start[shape="box", style=rounded, 
+            label="Hello.  I'm new here."];
+    
+    background[shape="box", style="rounded",
+                fixedsize="true",
+                width="3.5",
+                height="1",
+                label=" Read the top-level README.\n  Then, follow TutorialDemoServer.md."]
+
+    quickstart[shape="box", style="rounded",
+                fixedsize="true",
+                width="3",
+                height="1",
+                label="Run RESTler.  \nYou need an OpenAPI spec, \nand of course your API.  \nSee QuickStart.md."]
+ 
+    troubleshoot[shape="box", style="rounded",
+                fixedsize="true",
+                width="3",
+                height="1",
+
+                label="There may be a problem\n with your setup.  \nRefer to Troubleshooting.md."]
+
+    testmode[shape="box", style="rounded",
+                fixedsize="true",
+                width="3",
+                height="1",
+                label="Configure your RESTler job further \nto get better coverage."]
+
+    improvecoverage[shape="box", style="rounded",
+                label="Refer to ImprovingCoverage.md"]
+
+    firstfuzz[shape="box", style="rounded",
+               fixedsize="true",
+                width="3",
+                height="1",
+
+                label="Save your 'Test' directory, \nand launch 'Fuzz-lean' or 'Fuzz' - \nrefer to Fuzzing.md."]
+
+    foundbugs[shape="box", style="rounded",
+                fixedsize="true",
+                width="3",
+                height="1",
+              label="Refer to BugAnalysis.md \nfor how to interpret the bug report \nand reproduce the bugs."]
+
+    morefuzz[shape="box", style="rounded",
+                label="Refer to Fuzzing.md and FAQ.md"]
+
+    start -> background[label="Tell me more about RESTler."];
+    start -> quickstart[label="I want to run RESTler right away."];
+
+    quickstart->improvecoverage[label="Is coverage very low?", fontcolor="red",color="red"]
+    quickstart->troubleshoot[label="Is coverage 0%?",fontcolor="red",color="red",style="dotted"]
+    quickstart->firstfuzz[label="Is coverage close to 100%?", fontcolor="darkgreen",color="darkgreen"]
+
+    troubleshoot->testmode
+    improvecoverage->testmode
+    testmode->firstfuzz
+    firstfuzz->foundbugs[label="Were bugs found?",fontcolor="darkgreen",color="darkgreen"]
+    firstfuzz->morefuzz[label="No bugs, or interested in\n more fuzzing modes?"]
+    
+}

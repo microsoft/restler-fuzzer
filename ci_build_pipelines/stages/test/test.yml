@@ -1,0 +1,20 @@
+stages:
+  - stage: Test
+    jobs:
+      - job: CompilerFunctionalTests
+        pool:
+          vmImage: 'windows-2019'
+        steps:
+          - template: steps/compilerFunctionalTests.yml
+
+      - job: EngineUnitTests
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          - template: steps/engineUnitTests.yml
+
+      - job: QuickStartTests
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          - template: steps/quickStartTests.yml

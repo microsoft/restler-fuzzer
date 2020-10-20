@@ -1,0 +1,260 @@
+{
+    "basePath": "/api",
+    "consumes": [
+        "application/json"
+    ],
+    "definitions": {
+        "A page of results": {
+            "properties": {
+                "page": {
+                    "description": "Number of this page of results",
+                    "type": "integer"
+                },
+                "per_page": {
+                    "description": "Number of items per page of results",
+                    "type": "integer"
+                },
+                "total": {
+                    "description": "Total number of results",
+                    "type": "integer"
+                }
+            },
+            "type": "object"
+        },
+        "Blog post": {
+            "properties": {
+                "body": {
+                    "description": "Article content",
+                    "type": "string"
+                },
+                "checksum": {
+                    "description": "The sha1 checksum of the body",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "The unique identifier of a blog post",
+                    "type": "integer"
+                }
+            },
+            "required": [
+                "body"
+            ],
+            "type": "object"
+        },
+        "Blog post public": {
+            "properties": {
+                "body": {
+                    "description": "Article content",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "The unique identifier of a blog post",
+                    "type": "integer"
+                }
+            },
+            "required": [
+                "body"
+            ],
+            "type": "object"
+        },
+        "Page of blog posts": {
+            "allOf": [
+                {
+                    "$ref": "#/definitions/A page of results"
+                },
+                {
+                    "properties": {
+                        "items": {
+                            "items": {
+                                "$ref": "#/definitions/Blog post public"
+                            },
+                            "type": "array"
+                        }
+                    },
+                    "type": "object"
+                }
+            ]
+        }
+    },
+    "host": "localhost:8888",
+    "info": {
+        "description": "A simple demonstration of a Flask RestPlus powered API",
+        "title": "My Blog API",
+        "version": "1.0"
+    },
+    "paths": {
+        "/blog/posts/": {
+            "get": {
+                "operationId": "get_posts_collection",
+                "parameters": [
+                    {
+                        "collectionFormat": "multi",
+                        "default": 10,
+                        "description": "Results per page {error_msg}",
+                        "enum": [
+                            2,
+                            10,
+                            50
+                        ],
+                        "in": "query",
+                        "name": "per_page",
+                        "type": "integer"
+                    },
+                    {
+                        "default": 1,
+                        "description": "Page number",
+                        "in": "query",
+                        "name": "page",
+                        "type": "integer"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "$ref": "#/definitions/Page of blog posts"
+                        }
+                    }
+                },
+                "summary": "Returns list of blog postSs",
+                "tags": [
+                    "blog/posts"
+                ]
+            },
+            "post": {
+                "operationId": "post_posts_collection",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "payload",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/Blog post public"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "$ref": "#/definitions/Blog post public"
+                        }
+                    }
+                },
+                "summary": "Creates a new blog post",
+                "tags": [
+                    "blog/posts"
+                ]
+            }
+        },
+        "/blog/posts/{id}": {
+            "delete": {
+                "operationId": "delete_post_item",
+                "responses": {
+                    "204": {
+                        "description": "Post successfully deleted."
+                    },
+                    "404": {
+                        "description": "Post not found."
+                    }
+                },
+                "summary": "Deletes blog post",
+                "tags": [
+                    "blog/posts"
+                ]
+            },
+            "get": {
+                "operationId": "get_post_item",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "$ref": "#/definitions/Blog post"
+                        }
+                    },
+                    "404": {
+                        "description": "Post not found."
+                    }
+                },
+                "summary": "Returns a blog post",
+                "tags": [
+                    "blog/posts"
+                ]
+            },
+            "parameters": [
+                {
+                    "in": "path",
+                    "name": "id",
+                    "required": true,
+                    "type": "integer"
+                }
+            ],
+            "put": {
+                "operationId": "put_post_item",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "payload",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/Blog post"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Post successfully updated."
+                    },
+                    "404": {
+                        "description": "Post not found."
+                    }
+                },
+                "summary": "Updates a blog post",
+                "tags": [
+                    "blog/posts"
+                ]
+            }
+        },
+        "/doc": {
+            "get": {
+                "operationId": "get_doc",
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    }
+                },
+                "summary": "Returns list of blog categories",
+                "tags": [
+                    "/"
+                ]
+            }
+        }
+    },
+    "produces": [
+        "application/json"
+    ],
+    "responses": {
+        "MaskError": {
+            "description": "When any error occurs on mask"
+        },
+        "NoResultFound": {},
+        "ParseError": {
+            "description": "When a mask can't be parsed"
+        }
+    },
+    "swagger": "2.0",
+    "tags": [
+        {
+            "description": "Default namespace",
+            "name": "default"
+        },
+        {
+            "description": "Operations related to blog posts",
+            "name": "blog/posts"
+        },
+        {
+            "description": "Operations related to blog categories",
+            "name": "/"
+        }
+    ]
+}

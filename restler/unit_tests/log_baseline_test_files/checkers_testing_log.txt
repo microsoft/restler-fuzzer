@@ -1,0 +1,2161 @@
+
+Generation-1: Rendering Sequence-1
+
+	Request: 1 (Remaining candidate combinations: 1)
+		- restler_static_string: 'PUT '
+		- restler_static_string: '/'
+		- restler_static_string: 'resourcehierarchytest'
+		- restler_static_string: '/'
+		+ restler_custom_payload_uuid4_suffix: resourcehierarchyTest<test!>-
+		- restler_static_string: ' HTTP/1.1\r\n'
+		- restler_static_string: '\r\n'
+		- restler_static_string: '{'
+		- restler_static_string: '}'
+		- restler_static_string: '\r\n'
+
+2020-09-23 13:54:50.118: Sending: 'PUT /resourcehierarchytest/resourcehierarchyTest<test!>-9da6d08a4b HTTP/1.1\r\nContent-Length: 4\r\n\r\n{}\r\n'
+
+2020-09-23 13:54:50.126: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "resourcehierarchyTest<test!>-9da6d08a4b"}'
+
+2020-09-23 13:54:50.133: Checker: LeakageRuleChecker kicks in
+
+2020-09-23 13:54:50.141: Checker: LeakageRuleChecker kicks out
+
+2020-09-23 13:54:50.149: Checker: ResourceHierarchyChecker kicks in
+
+2020-09-23 13:54:50.165: Checker: ResourceHierarchyChecker kicks out
+
+2020-09-23 13:54:50.175: Checker: UseAfterFreeChecker kicks in
+
+2020-09-23 13:54:50.184: Checker: UseAfterFreeChecker kicks out
+
+2020-09-23 13:54:50.193: Checker: NameSpaceRuleChecker kicks in
+
+2020-09-23 13:54:50.201: Checker: NameSpaceRuleChecker kicks out
+
+2020-09-23 13:54:50.209: Checker: InvalidDynamicObjectChecker kicks in
+
+2020-09-23 13:54:50.218: Checker: InvalidDynamicObjectChecker kicks out
+
+2020-09-23 13:54:50.226: Checker: PayloadBodyChecker kicks in
+
+2020-09-23 13:54:50.235: PayloadBodyChecker fuzzing valid True
+2020-09-23 13:54:50.246: PayloadBodyChecker fuzzing invalid True
+2020-09-23 13:54:50.254: PayloadBodyChecker start with examples True
+2020-09-23 13:54:50.267: PayloadBodyChecker size dep budget True
+2020-09-23 13:54:50.280: PayloadBodyChecker use feedback True
+2020-09-23 13:54:50.292: PayloadBodyChecker recipe None
+2020-09-23 13:54:50.300: Checker: PayloadBodyChecker kicks out
+
+2020-09-23 13:54:50.308: Checker: ExamplesChecker kicks in
+
+2020-09-23 13:54:50.317: Checker: ExamplesChecker kicks out
+
+
+Generation-1: Rendering Sequence-1
+
+	Request: 1 (Remaining candidate combinations: 1)
+		- restler_static_string: 'GET '
+		- restler_static_string: '/'
+		- restler_static_string: 'item'
+		- restler_static_string: ' HTTP/1.1\r\n'
+		- restler_static_string: '\r\n'
+
+2020-09-23 13:54:50.464: Sending: 'GET /item HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:54:50.472: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"item": {}}'
+
+2020-09-23 13:54:50.481: Checker: LeakageRuleChecker kicks in
+
+2020-09-23 13:54:50.490: Checker: LeakageRuleChecker kicks out
+
+2020-09-23 13:54:50.499: Checker: ResourceHierarchyChecker kicks in
+
+2020-09-23 13:54:50.507: Checker: ResourceHierarchyChecker kicks out
+
+2020-09-23 13:54:50.517: Checker: UseAfterFreeChecker kicks in
+
+2020-09-23 13:54:50.525: Checker: UseAfterFreeChecker kicks out
+
+2020-09-23 13:54:50.534: Checker: NameSpaceRuleChecker kicks in
+
+2020-09-23 13:54:50.542: Checker: NameSpaceRuleChecker kicks out
+
+2020-09-23 13:54:50.551: Checker: InvalidDynamicObjectChecker kicks in
+
+2020-09-23 13:54:50.562: Checker: InvalidDynamicObjectChecker kicks out
+
+2020-09-23 13:54:50.571: Checker: PayloadBodyChecker kicks in
+
+2020-09-23 13:54:50.580: Checker: PayloadBodyChecker kicks out
+
+2020-09-23 13:54:50.588: Checker: ExamplesChecker kicks in
+
+2020-09-23 13:54:50.597: Checker: ExamplesChecker kicks out
+
+
+Generation-1: Rendering Sequence-1
+
+	Request: 1 (Remaining candidate combinations: 1)
+		- restler_static_string: 'GET '
+		- restler_static_string: '/'
+		- restler_static_string: 'city'
+		- restler_static_string: ' HTTP/1.1\r\n'
+		- restler_static_string: '\r\n'
+
+2020-09-23 13:54:50.730: Sending: 'GET /city HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:54:50.739: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"city": {}}'
+
+2020-09-23 13:54:50.748: Checker: LeakageRuleChecker kicks in
+
+2020-09-23 13:54:50.757: Checker: LeakageRuleChecker kicks out
+
+2020-09-23 13:54:50.767: Checker: ResourceHierarchyChecker kicks in
+
+2020-09-23 13:54:50.775: Checker: ResourceHierarchyChecker kicks out
+
+2020-09-23 13:54:50.785: Checker: UseAfterFreeChecker kicks in
+
+2020-09-23 13:54:50.793: Checker: UseAfterFreeChecker kicks out
+
+2020-09-23 13:54:50.802: Checker: NameSpaceRuleChecker kicks in
+
+2020-09-23 13:54:50.810: Checker: NameSpaceRuleChecker kicks out
+
+2020-09-23 13:54:50.818: Checker: InvalidDynamicObjectChecker kicks in
+
+2020-09-23 13:54:50.827: Checker: InvalidDynamicObjectChecker kicks out
+
+2020-09-23 13:54:50.836: Checker: PayloadBodyChecker kicks in
+
+2020-09-23 13:54:50.845: Checker: PayloadBodyChecker kicks out
+
+2020-09-23 13:54:50.853: Checker: ExamplesChecker kicks in
+
+2020-09-23 13:54:50.862: Checker: ExamplesChecker kicks out
+
+
+Generation-1: Rendering Sequence-1
+
+	Request: 1 (Remaining candidate combinations: 1)
+		- restler_static_string: 'PUT '
+		- restler_static_string: '/'
+		- restler_static_string: 'useafterfreetest'
+		- restler_static_string: '/'
+		+ restler_custom_payload_uuid4_suffix: useafterfreeTest<test!>-
+		- restler_static_string: ' HTTP/1.1\r\n'
+		- restler_static_string: '\r\n'
+		- restler_static_string: '{'
+		- restler_static_string: '}'
+		- restler_static_string: '\r\n'
+
+2020-09-23 13:54:51.048: Sending: 'PUT /useafterfreetest/useafterfreeTest<test!>-fe5c3d514d HTTP/1.1\r\nContent-Length: 4\r\n\r\n{}\r\n'
+
+2020-09-23 13:54:51.057: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "useafterfreeTest<test!>-fe5c3d514d"}'
+
+2020-09-23 13:54:51.067: Checker: LeakageRuleChecker kicks in
+
+2020-09-23 13:54:51.076: Checker: LeakageRuleChecker kicks out
+
+2020-09-23 13:54:51.085: Checker: ResourceHierarchyChecker kicks in
+
+2020-09-23 13:54:51.095: Checker: ResourceHierarchyChecker kicks out
+
+2020-09-23 13:54:51.104: Checker: UseAfterFreeChecker kicks in
+
+2020-09-23 13:54:51.113: Checker: UseAfterFreeChecker kicks out
+
+2020-09-23 13:54:51.124: Checker: NameSpaceRuleChecker kicks in
+
+2020-09-23 13:54:51.134: Checker: NameSpaceRuleChecker kicks out
+
+2020-09-23 13:54:51.143: Checker: InvalidDynamicObjectChecker kicks in
+
+2020-09-23 13:54:51.152: Checker: InvalidDynamicObjectChecker kicks out
+
+2020-09-23 13:54:51.161: Checker: PayloadBodyChecker kicks in
+
+2020-09-23 13:54:51.170: Checker: PayloadBodyChecker kicks out
+
+2020-09-23 13:54:51.178: Checker: ExamplesChecker kicks in
+
+2020-09-23 13:54:51.187: Checker: ExamplesChecker kicks out
+
+
+Generation-1: Rendering Sequence-1
+
+	Request: 1 (Remaining candidate combinations: 1)
+		- restler_static_string: 'PUT '
+		- restler_static_string: '/'
+		- restler_static_string: 'leakageruletest'
+		- restler_static_string: '/'
+		+ restler_custom_payload_uuid4_suffix: leakageTest<test!>-
+		- restler_static_string: ' HTTP/1.1\r\n'
+		- restler_static_string: '\r\n'
+		- restler_static_string: '{'
+		- restler_static_string: '}'
+		- restler_static_string: '\r\n'
+
+2020-09-23 13:54:51.397: Sending: 'PUT /leakageruletest/leakageTest<test!>-00ea1603a0 HTTP/1.1\r\nContent-Length: 4\r\n\r\n{}\r\n'
+
+2020-09-23 13:54:51.406: Received: "HTTP/1.1 400 Bad Request\r\nRestler Test\r\n\r\n{'error': FailedToCreateResource()}"
+
+2020-09-23 13:54:51.415: 'Exception parsing response, data was not valid json: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)'
+2020-09-23 13:54:51.426: Checker: LeakageRuleChecker kicks in
+
+2020-09-23 13:54:51.436: LeakageRuleChecker 
+Target type: _leakageruletest_put_name
+2020-09-23 13:54:51.446: Sending: 'GET /leakageruletest/leakageTest<test!>-00ea1603a0 HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:54:51.455: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"name": "leakageTest<test!>-00ea1603a0"}'
+
+2020-09-23 13:54:51.470: LeakageRuleChecker 
+Suspect sequence: 200
+2020-09-23 13:54:51.483: LeakageRuleChecker PUT /leakageruletest/leakageTest
+2020-09-23 13:54:51.493: LeakageRuleChecker GET /leakageruletest/_READER_DELIM_leakageruletest_put_name_READER_DELIM
+2020-09-23 13:54:51.503: Attempting to reproduce bug...
+2020-09-23 13:54:51.512: Sending: 'PUT /leakageruletest/leakageTest<test!>-00ea1603a0 HTTP/1.1\r\nContent-Length: 4\r\n\r\n{}\r\n'
+
+2020-09-23 13:54:51.521: Received: "HTTP/1.1 400 Bad Request\r\nRestler Test\r\n\r\n{'error': FailedToCreateResource()}"
+
+2020-09-23 13:54:51.530: 'Exception parsing response, data was not valid json: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)'
+2020-09-23 13:54:51.539: Sending: 'GET /leakageruletest/leakageTest<test!>-00ea1603a0 HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:54:51.548: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"name": "leakageTest<test!>-00ea1603a0"}'
+
+2020-09-23 13:54:51.558: Done replaying sequence.
+2020-09-23 13:54:51.583: Checker: LeakageRuleChecker kicks out
+
+2020-09-23 13:54:51.594: Checker: ResourceHierarchyChecker kicks in
+
+2020-09-23 13:54:51.603: Checker: ResourceHierarchyChecker kicks out
+
+2020-09-23 13:54:51.612: Checker: UseAfterFreeChecker kicks in
+
+2020-09-23 13:54:51.621: Checker: UseAfterFreeChecker kicks out
+
+2020-09-23 13:54:51.632: Checker: NameSpaceRuleChecker kicks in
+
+2020-09-23 13:54:51.640: Checker: NameSpaceRuleChecker kicks out
+
+2020-09-23 13:54:51.650: Checker: InvalidDynamicObjectChecker kicks in
+
+2020-09-23 13:54:51.659: Checker: InvalidDynamicObjectChecker kicks out
+
+2020-09-23 13:54:51.668: Checker: PayloadBodyChecker kicks in
+
+2020-09-23 13:54:51.676: Checker: PayloadBodyChecker kicks out
+
+2020-09-23 13:54:51.686: Checker: ExamplesChecker kicks in
+
+2020-09-23 13:54:51.694: Checker: ExamplesChecker kicks out
+
+2020-09-23 13:54:51.704: Checker: LeakageRuleChecker kicks in
+
+2020-09-23 13:54:51.713: Checker: LeakageRuleChecker kicks out
+
+2020-09-23 13:54:51.723: Checker: ResourceHierarchyChecker kicks in
+
+2020-09-23 13:54:51.733: Checker: ResourceHierarchyChecker kicks out
+
+2020-09-23 13:54:51.741: Checker: UseAfterFreeChecker kicks in
+
+2020-09-23 13:54:51.751: Checker: UseAfterFreeChecker kicks out
+
+2020-09-23 13:54:51.760: Checker: NameSpaceRuleChecker kicks in
+
+2020-09-23 13:54:51.770: Checker: NameSpaceRuleChecker kicks out
+
+2020-09-23 13:54:51.778: Checker: InvalidDynamicObjectChecker kicks in
+
+2020-09-23 13:54:51.787: Checker: InvalidDynamicObjectChecker kicks out
+
+2020-09-23 13:54:51.796: Checker: PayloadBodyChecker kicks in
+
+2020-09-23 13:54:51.804: Checker: PayloadBodyChecker kicks out
+
+2020-09-23 13:54:51.813: Checker: ExamplesChecker kicks in
+
+2020-09-23 13:54:51.822: Checker: ExamplesChecker kicks out
+
+
+Generation-1: Rendering Sequence-1
+
+	Request: 1 (Remaining candidate combinations: 1)
+		- restler_static_string: 'PUT '
+		- restler_static_string: '/'
+		- restler_static_string: 'city'
+		- restler_static_string: '/'
+		+ restler_custom_payload_uuid4_suffix: cityName<test!>-
+		- restler_static_string: ' HTTP/1.1\r\n'
+		- restler_static_string: '\r\n'
+		- restler_static_string: '{'
+		- restler_static_string: '}'
+		- restler_static_string: '\r\n'
+
+2020-09-23 13:54:52.043: Sending: 'PUT /city/cityName<test!>-e9ade35073 HTTP/1.1\r\nContent-Length: 4\r\n\r\n{}\r\n'
+
+2020-09-23 13:54:52.053: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "cityName<test!>-e9ade35073", "properties": {}}'
+
+2020-09-23 13:54:52.061: Checker: LeakageRuleChecker kicks in
+
+2020-09-23 13:54:52.070: Checker: LeakageRuleChecker kicks out
+
+2020-09-23 13:54:52.078: Checker: ResourceHierarchyChecker kicks in
+
+2020-09-23 13:54:52.087: Checker: ResourceHierarchyChecker kicks out
+
+2020-09-23 13:54:52.098: Checker: UseAfterFreeChecker kicks in
+
+2020-09-23 13:54:52.106: Checker: UseAfterFreeChecker kicks out
+
+2020-09-23 13:54:52.115: Checker: NameSpaceRuleChecker kicks in
+
+2020-09-23 13:54:52.124: Checker: NameSpaceRuleChecker kicks out
+
+2020-09-23 13:54:52.134: Checker: InvalidDynamicObjectChecker kicks in
+
+2020-09-23 13:54:52.144: Checker: InvalidDynamicObjectChecker kicks out
+
+2020-09-23 13:54:52.152: Checker: PayloadBodyChecker kicks in
+
+2020-09-23 13:54:52.161: Checker: PayloadBodyChecker kicks out
+
+2020-09-23 13:54:52.170: Checker: ExamplesChecker kicks in
+
+2020-09-23 13:54:52.179: Checker: ExamplesChecker kicks out
+
+
+Generation-1: Rendering Sequence-1
+
+	Request: 1 (Remaining candidate combinations: 1)
+		- restler_static_string: 'GET '
+		- restler_static_string: '/'
+		- restler_static_string: 'farm'
+		- restler_static_string: ' HTTP/1.1\r\n'
+		- restler_static_string: '\r\n'
+
+2020-09-23 13:54:52.343: Sending: 'GET /farm HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:54:52.352: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"farm": {}}'
+
+2020-09-23 13:54:52.361: Checker: LeakageRuleChecker kicks in
+
+2020-09-23 13:54:52.372: Checker: LeakageRuleChecker kicks out
+
+2020-09-23 13:54:52.385: Checker: ResourceHierarchyChecker kicks in
+
+2020-09-23 13:54:52.394: Checker: ResourceHierarchyChecker kicks out
+
+2020-09-23 13:54:52.405: Checker: UseAfterFreeChecker kicks in
+
+2020-09-23 13:54:52.418: Checker: UseAfterFreeChecker kicks out
+
+2020-09-23 13:54:52.427: Checker: NameSpaceRuleChecker kicks in
+
+2020-09-23 13:54:52.438: Checker: NameSpaceRuleChecker kicks out
+
+2020-09-23 13:54:52.457: Checker: InvalidDynamicObjectChecker kicks in
+
+2020-09-23 13:54:52.468: Checker: InvalidDynamicObjectChecker kicks out
+
+2020-09-23 13:54:52.487: Checker: PayloadBodyChecker kicks in
+
+2020-09-23 13:54:52.496: Checker: PayloadBodyChecker kicks out
+
+2020-09-23 13:54:52.506: Checker: ExamplesChecker kicks in
+
+2020-09-23 13:54:52.514: Checker: ExamplesChecker kicks out
+
+
+Generation-2: Rendering Sequence-1
+
+	Request: 1 (Current combination: 1 / 1)
+		- restler_static_string: 'PUT '
+		- restler_static_string: '/'
+		- restler_static_string: 'city'
+		- restler_static_string: '/'
+		+ restler_custom_payload_uuid4_suffix: cityName<test!>-
+		- restler_static_string: ' HTTP/1.1\r\n'
+		- restler_static_string: '\r\n'
+		- restler_static_string: '{'
+		- restler_static_string: '}'
+		- restler_static_string: '\r\n'
+
+	Request: 2 (Remaining candidate combinations: 1)
+		- restler_static_string: 'GET '
+		- restler_static_string: '/'
+		- restler_static_string: 'city'
+		- restler_static_string: '/'
+		- restler_static_string: '_READER_DELIM_city_put_name_READER_DELIM'
+		- restler_static_string: ' HTTP/1.1\r\n'
+		- restler_static_string: '\r\n'
+
+2020-09-23 13:54:52.772: Sending: 'PUT /city/cityName<test!>-7c427e9955 HTTP/1.1\r\nContent-Length: 4\r\n\r\n{}\r\n'
+
+2020-09-23 13:54:52.780: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "cityName<test!>-7c427e9955", "properties": {}}'
+
+2020-09-23 13:54:52.790: Sending: 'GET /city/cityName<test!>-7c427e9955 HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:54:52.799: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"name": "cityName<test!>-7c427e9955", "properties": {}}'
+
+2020-09-23 13:54:52.808: Checker: LeakageRuleChecker kicks in
+
+2020-09-23 13:54:52.818: Checker: LeakageRuleChecker kicks out
+
+2020-09-23 13:54:52.827: Checker: ResourceHierarchyChecker kicks in
+
+2020-09-23 13:54:52.836: Checker: ResourceHierarchyChecker kicks out
+
+2020-09-23 13:54:52.846: Checker: UseAfterFreeChecker kicks in
+
+2020-09-23 13:54:52.855: Checker: UseAfterFreeChecker kicks out
+
+2020-09-23 13:54:52.864: Checker: NameSpaceRuleChecker kicks in
+
+2020-09-23 13:54:52.873: Checker: NameSpaceRuleChecker kicks out
+
+2020-09-23 13:54:52.882: Checker: InvalidDynamicObjectChecker kicks in
+
+2020-09-23 13:54:52.891: Re-rendering and sending start of sequence
+2020-09-23 13:54:52.901: Sending: 'PUT /city/cityName<test!>-cc68b7c76c HTTP/1.1\r\nContent-Length: 4\r\n\r\n{}\r\n'
+
+2020-09-23 13:54:52.911: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "cityName<test!>-cc68b7c76c", "properties": {}}'
+
+2020-09-23 13:54:52.920: InvalidDynamicObjectChecker 
+Sending invalid request(s):
+2020-09-23 13:54:52.930: Preparing requests with invalid objects
+2020-09-23 13:54:52.943: InvalidDynamicObjectChecker 'GET /city/cityName<test!>-cc68b7c76c?api-version=2019-01-01 HTTP/1.1\r\n\r\n'
+2020-09-23 13:54:52.953: Sending: 'GET /city/cityName<test!>-cc68b7c76c?api-version=2019-01-01 HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:54:52.962: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"name": "cityName<test!>-cc68b7c76c", "properties": {}}'
+
+2020-09-23 13:54:52.970: Attempting to reproduce bug...
+2020-09-23 13:54:52.979: Sending: 'PUT /city/cityName<test!>-cc68b7c76c HTTP/1.1\r\nContent-Length: 4\r\n\r\n{}\r\n'
+
+2020-09-23 13:54:52.989: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "cityName<test!>-cc68b7c76c", "properties": {}}'
+
+2020-09-23 13:54:52.999: Sending: 'GET /city/cityName<test!>-cc68b7c76c?api-version=2019-01-01 HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:54:53.008: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"name": "cityName<test!>-cc68b7c76c", "properties": {}}'
+
+2020-09-23 13:54:53.017: Done replaying sequence.
+2020-09-23 13:54:53.042: InvalidDynamicObjectChecker 
+Suspect sequence: 200
+2020-09-23 13:54:53.056: InvalidDynamicObjectChecker PUT /city/cityName
+2020-09-23 13:54:53.069: InvalidDynamicObjectChecker GET /city/_READER_DELIM_city_put_name_READER_DELIM
+2020-09-23 13:54:53.082: InvalidDynamicObjectChecker 'GET /city/cityName<test!>-cc68b7c76c/?/ HTTP/1.1\r\n\r\n'
+2020-09-23 13:54:53.090: Sending: 'GET /city/cityName<test!>-cc68b7c76c/?/ HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:54:53.100: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"name": "cityName<test!>-cc68b7c76c", "properties": {}}'
+
+2020-09-23 13:54:53.120: InvalidDynamicObjectChecker 
+Suspect sequence: 200
+2020-09-23 13:54:53.134: InvalidDynamicObjectChecker PUT /city/cityName
+2020-09-23 13:54:53.147: InvalidDynamicObjectChecker GET /city/_READER_DELIM_city_put_name_READER_DELIM
+2020-09-23 13:54:53.162: InvalidDynamicObjectChecker 'GET /city/cityName<test!>-cc68b7c76c?? HTTP/1.1\r\n\r\n'
+2020-09-23 13:54:53.171: Sending: 'GET /city/cityName<test!>-cc68b7c76c?? HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:54:53.179: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"name": "cityName<test!>-cc68b7c76c", "properties": {}}'
+
+2020-09-23 13:54:53.197: InvalidDynamicObjectChecker 
+Suspect sequence: 200
+2020-09-23 13:54:53.211: InvalidDynamicObjectChecker PUT /city/cityName
+2020-09-23 13:54:53.223: InvalidDynamicObjectChecker GET /city/_READER_DELIM_city_put_name_READER_DELIM
+2020-09-23 13:54:53.238: InvalidDynamicObjectChecker 'GET /city/cityName<test!>-cc68b7c76c/cityName<test!>-cc68b7c76c HTTP/1.1\r\n\r\n'
+2020-09-23 13:54:53.248: Sending: 'GET /city/cityName<test!>-cc68b7c76c/cityName<test!>-cc68b7c76c HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:54:53.257: Received: "HTTP/1.1 404 Not Found\r\nRestler Test\r\n\r\n{'Resource': ResourceDoesNotExist()}"
+
+2020-09-23 13:54:53.271: InvalidDynamicObjectChecker 'GET /city/{} HTTP/1.1\r\n\r\n'
+2020-09-23 13:54:53.280: Sending: 'GET /city/{} HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:54:53.290: Received: "HTTP/1.1 404 Not Found\r\nRestler Test\r\n\r\n{'Resource': ResourceDoesNotExist()}"
+
+2020-09-23 13:54:53.299: Checker: InvalidDynamicObjectChecker kicks out
+
+2020-09-23 13:54:53.308: Checker: PayloadBodyChecker kicks in
+
+2020-09-23 13:54:53.319: Checker: PayloadBodyChecker kicks out
+
+2020-09-23 13:54:53.328: Checker: ExamplesChecker kicks in
+
+2020-09-23 13:54:53.338: Checker: ExamplesChecker kicks out
+
+
+Generation-2: Rendering Sequence-1
+
+	Request: 1 (Current combination: 1 / 1)
+		- restler_static_string: 'PUT '
+		- restler_static_string: '/'
+		- restler_static_string: 'useafterfreetest'
+		- restler_static_string: '/'
+		+ restler_custom_payload_uuid4_suffix: useafterfreeTest<test!>-
+		- restler_static_string: ' HTTP/1.1\r\n'
+		- restler_static_string: '\r\n'
+		- restler_static_string: '{'
+		- restler_static_string: '}'
+		- restler_static_string: '\r\n'
+
+	Request: 2 (Remaining candidate combinations: 1)
+		- restler_static_string: 'DELETE '
+		- restler_static_string: '/'
+		- restler_static_string: 'useafterfreetest'
+		- restler_static_string: '/'
+		- restler_static_string: '_READER_DELIM_useafterfreetest_put_name_READER_DELIM'
+		- restler_static_string: ' HTTP/1.1\r\n'
+		- restler_static_string: '\r\n'
+
+2020-09-23 13:54:53.699: Sending: 'PUT /useafterfreetest/useafterfreeTest<test!>-4fc204be01 HTTP/1.1\r\nContent-Length: 4\r\n\r\n{}\r\n'
+
+2020-09-23 13:54:53.708: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "useafterfreeTest<test!>-4fc204be01"}'
+
+2020-09-23 13:54:53.717: Sending: 'DELETE /useafterfreetest/useafterfreeTest<test!>-4fc204be01 HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:54:53.727: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"useafterfreeTest<test!>-4fc204be01"'
+
+2020-09-23 13:54:53.736: Checker: LeakageRuleChecker kicks in
+
+2020-09-23 13:54:53.746: Checker: LeakageRuleChecker kicks out
+
+2020-09-23 13:54:53.755: Checker: ResourceHierarchyChecker kicks in
+
+2020-09-23 13:54:53.764: Checker: ResourceHierarchyChecker kicks out
+
+2020-09-23 13:54:53.773: Checker: UseAfterFreeChecker kicks in
+
+2020-09-23 13:54:53.783: UseAfterFreeChecker 
+Target types: {'_useafterfreetest_put_name'}
+2020-09-23 13:54:53.794: UseAfterFreeChecker Clean tlb: {'_city_put_name': None, '_city_house_put_name': None, '_city_house_color_put_name': None, '_leakageruletest_put_name': None, '_useafterfreetest_put_name': 'useafterfreeTest<test!>-4fc204be01', '_resourcehierarchytest_put_name': None, '_resourcehierarchychild_put_name': None}
+2020-09-23 13:54:53.807: UseAfterFreeChecker Found * 1 * consumers.
+2020-09-23 13:54:53.816: Sending: 'GET /useafterfreetest/useafterfreeTest<test!>-4fc204be01 HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:54:53.826: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"name": "useafterfreeTest<test!>-4fc204be01"}'
+
+2020-09-23 13:54:53.839: UseAfterFreeChecker 
+Suspect sequence: 200
+2020-09-23 13:54:53.851: UseAfterFreeChecker PUT /useafterfreetest/useafterfreeTest
+2020-09-23 13:54:53.866: UseAfterFreeChecker DELETE /useafterfreetest/_READER_DELIM_useafterfreetest_put_name_READER_DELIM
+2020-09-23 13:54:53.880: UseAfterFreeChecker GET /useafterfreetest/_READER_DELIM_useafterfreetest_put_name_READER_DELIM
+2020-09-23 13:54:53.888: Attempting to reproduce bug...
+2020-09-23 13:54:53.898: Sending: 'PUT /useafterfreetest/useafterfreeTest<test!>-4fc204be01 HTTP/1.1\r\nContent-Length: 4\r\n\r\n{}\r\n'
+
+2020-09-23 13:54:53.907: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "useafterfreeTest<test!>-4fc204be01"}'
+
+2020-09-23 13:54:53.916: Sending: 'DELETE /useafterfreetest/useafterfreeTest<test!>-4fc204be01 HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:54:53.926: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"useafterfreeTest<test!>-4fc204be01"'
+
+2020-09-23 13:54:53.936: Sending: 'GET /useafterfreetest/useafterfreeTest<test!>-4fc204be01 HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:54:53.944: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"name": "useafterfreeTest<test!>-4fc204be01"}'
+
+2020-09-23 13:54:53.953: Done replaying sequence.
+2020-09-23 13:54:53.969: Checker: UseAfterFreeChecker kicks out
+
+2020-09-23 13:54:53.979: Checker: NameSpaceRuleChecker kicks in
+
+2020-09-23 13:54:53.988: Checker: NameSpaceRuleChecker kicks out
+
+2020-09-23 13:54:53.997: Checker: InvalidDynamicObjectChecker kicks in
+
+2020-09-23 13:54:54.006: Re-rendering and sending start of sequence
+2020-09-23 13:54:54.014: Sending: 'PUT /useafterfreetest/useafterfreeTest<test!>-84f4629982 HTTP/1.1\r\nContent-Length: 4\r\n\r\n{}\r\n'
+
+2020-09-23 13:54:54.023: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "useafterfreeTest<test!>-84f4629982"}'
+
+2020-09-23 13:54:54.038: InvalidDynamicObjectChecker 
+Sending invalid request(s):
+2020-09-23 13:54:54.047: Preparing requests with invalid objects
+2020-09-23 13:54:54.062: InvalidDynamicObjectChecker 'DELETE /useafterfreetest/useafterfreeTest<test!>-84f4629982?api-version=2019-01-01 HTTP/1.1\r\n\r\n'
+2020-09-23 13:54:54.071: Sending: 'DELETE /useafterfreetest/useafterfreeTest<test!>-84f4629982?api-version=2019-01-01 HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:54:54.080: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"useafterfreeTest<test!>-84f4629982"'
+
+2020-09-23 13:54:54.089: Attempting to reproduce bug...
+2020-09-23 13:54:54.098: Sending: 'PUT /useafterfreetest/useafterfreeTest<test!>-84f4629982 HTTP/1.1\r\nContent-Length: 4\r\n\r\n{}\r\n'
+
+2020-09-23 13:54:54.106: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "useafterfreeTest<test!>-84f4629982"}'
+
+2020-09-23 13:54:54.115: Sending: 'DELETE /useafterfreetest/useafterfreeTest<test!>-84f4629982?api-version=2019-01-01 HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:54:54.124: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"useafterfreeTest<test!>-84f4629982"'
+
+2020-09-23 13:54:54.133: Done replaying sequence.
+2020-09-23 13:54:54.156: InvalidDynamicObjectChecker 
+Suspect sequence: 202
+2020-09-23 13:54:54.173: InvalidDynamicObjectChecker PUT /useafterfreetest/useafterfreeTest
+2020-09-23 13:54:54.195: InvalidDynamicObjectChecker DELETE /useafterfreetest/_READER_DELIM_useafterfreetest_put_name_READER_DELIM
+2020-09-23 13:54:54.211: InvalidDynamicObjectChecker 'DELETE /useafterfreetest/useafterfreeTest<test!>-84f4629982/?/ HTTP/1.1\r\n\r\n'
+2020-09-23 13:54:54.221: Sending: 'DELETE /useafterfreetest/useafterfreeTest<test!>-84f4629982/?/ HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:54:54.231: Received: 'HTTP/1.1 400 Bad Request\r\nRestler Test\r\n\r\n{"error": "Invalid resource: "}'
+
+2020-09-23 13:54:54.249: InvalidDynamicObjectChecker 'DELETE /useafterfreetest/useafterfreeTest<test!>-84f4629982?? HTTP/1.1\r\n\r\n'
+2020-09-23 13:54:54.259: Sending: 'DELETE /useafterfreetest/useafterfreeTest<test!>-84f4629982?? HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:54:54.270: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"useafterfreeTest<test!>-84f4629982"'
+
+2020-09-23 13:54:54.288: InvalidDynamicObjectChecker 
+Suspect sequence: 202
+2020-09-23 13:54:54.302: InvalidDynamicObjectChecker PUT /useafterfreetest/useafterfreeTest
+2020-09-23 13:54:54.324: InvalidDynamicObjectChecker DELETE /useafterfreetest/_READER_DELIM_useafterfreetest_put_name_READER_DELIM
+2020-09-23 13:54:54.343: InvalidDynamicObjectChecker 'DELETE /useafterfreetest/useafterfreeTest<test!>-84f4629982/useafterfreeTest<test!>-84f4629982 HTTP/1.1\r\n\r\n'
+2020-09-23 13:54:54.352: Sending: 'DELETE /useafterfreetest/useafterfreeTest<test!>-84f4629982/useafterfreeTest<test!>-84f4629982 HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:54:54.361: Received: 'HTTP/1.1 400 Bad Request\r\nRestler Test\r\n\r\n{"error": "Invalid resource: useafterfreeTest<test!>-84f4629982"}'
+
+2020-09-23 13:54:54.388: InvalidDynamicObjectChecker 'DELETE /useafterfreetest/{} HTTP/1.1\r\n\r\n'
+2020-09-23 13:54:54.400: Sending: 'DELETE /useafterfreetest/{} HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:54:54.408: Received: "HTTP/1.1 404 Not Found\r\nRestler Test\r\n\r\n{'Resource': ResourceDoesNotExist()}"
+
+2020-09-23 13:54:54.418: Checker: InvalidDynamicObjectChecker kicks out
+
+2020-09-23 13:54:54.426: Checker: PayloadBodyChecker kicks in
+
+2020-09-23 13:54:54.436: Checker: PayloadBodyChecker kicks out
+
+2020-09-23 13:54:54.446: Checker: ExamplesChecker kicks in
+
+2020-09-23 13:54:54.454: Checker: ExamplesChecker kicks out
+
+
+Generation-2: Rendering Sequence-1
+
+	Request: 1 (Current combination: 1 / 1)
+		- restler_static_string: 'PUT '
+		- restler_static_string: '/'
+		- restler_static_string: 'city'
+		- restler_static_string: '/'
+		+ restler_custom_payload_uuid4_suffix: cityName<test!>-
+		- restler_static_string: ' HTTP/1.1\r\n'
+		- restler_static_string: '\r\n'
+		- restler_static_string: '{'
+		- restler_static_string: '}'
+		- restler_static_string: '\r\n'
+
+	Request: 2 (Remaining candidate combinations: 1)
+		- restler_static_string: 'PUT '
+		- restler_static_string: '/'
+		- restler_static_string: 'city'
+		- restler_static_string: '/'
+		- restler_static_string: '_READER_DELIM_city_put_name_READER_DELIM'
+		- restler_static_string: '/'
+		- restler_static_string: 'house'
+		- restler_static_string: '/'
+		+ restler_custom_payload_uuid4_suffix: houseName<test!>-
+		- restler_static_string: ' HTTP/1.1\r\n'
+		- restler_static_string: '\r\n'
+		- restler_static_string: '{'
+		- restler_static_string: '}'
+		- restler_static_string: '\r\n'
+
+2020-09-23 13:54:54.861: Sending: 'PUT /city/cityName<test!>-85e2a1e71b HTTP/1.1\r\nContent-Length: 4\r\n\r\n{}\r\n'
+
+2020-09-23 13:54:54.870: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "cityName<test!>-85e2a1e71b", "properties": {}}'
+
+2020-09-23 13:54:54.879: Sending: 'PUT /city/cityName<test!>-85e2a1e71b/house/houseName<test!>-1bd9d5ff21 HTTP/1.1\r\nContent-Length: 4\r\n\r\n{}\r\n'
+
+2020-09-23 13:54:54.887: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "houseName<test!>-1bd9d5ff21"}'
+
+2020-09-23 13:54:54.896: Checker: LeakageRuleChecker kicks in
+
+2020-09-23 13:54:54.906: Checker: LeakageRuleChecker kicks out
+
+2020-09-23 13:54:54.915: Checker: ResourceHierarchyChecker kicks in
+
+2020-09-23 13:54:54.925: Checker: ResourceHierarchyChecker kicks out
+
+2020-09-23 13:54:54.935: Checker: UseAfterFreeChecker kicks in
+
+2020-09-23 13:54:54.943: Checker: UseAfterFreeChecker kicks out
+
+2020-09-23 13:54:54.953: Checker: NameSpaceRuleChecker kicks in
+
+2020-09-23 13:54:54.962: Checker: NameSpaceRuleChecker kicks out
+
+2020-09-23 13:54:54.971: Checker: InvalidDynamicObjectChecker kicks in
+
+2020-09-23 13:54:54.980: Re-rendering and sending start of sequence
+2020-09-23 13:54:54.989: Sending: 'PUT /city/cityName<test!>-41283b727a HTTP/1.1\r\nContent-Length: 4\r\n\r\n{}\r\n'
+
+2020-09-23 13:54:54.999: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "cityName<test!>-41283b727a", "properties": {}}'
+
+2020-09-23 13:54:55.013: InvalidDynamicObjectChecker 
+Sending invalid request(s):
+2020-09-23 13:54:55.022: Preparing requests with invalid objects
+2020-09-23 13:54:55.039: InvalidDynamicObjectChecker 'PUT /city/cityName<test!>-41283b727a?api-version=2019-01-01/house/houseName<test!>-e7cda1a31b HTTP/1.1\r\n\r\n{}\r\n'
+2020-09-23 13:54:55.050: Sending: 'PUT /city/cityName<test!>-41283b727a?api-version=2019-01-01/house/houseName<test!>-e7cda1a31b HTTP/1.1\r\nContent-Length: 4\r\n\r\n{}\r\n'
+
+2020-09-23 13:54:55.076: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "cityName<test!>-41283b727a", "properties": {}}'
+
+2020-09-23 13:54:55.092: Attempting to reproduce bug...
+2020-09-23 13:54:55.102: Sending: 'PUT /city/cityName<test!>-41283b727a HTTP/1.1\r\nContent-Length: 4\r\n\r\n{}\r\n'
+
+2020-09-23 13:54:55.112: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "cityName<test!>-41283b727a", "properties": {}}'
+
+2020-09-23 13:54:55.123: Sending: 'PUT /city/cityName<test!>-41283b727a?api-version=2019-01-01/house/houseName<test!>-e7cda1a31b HTTP/1.1\r\nContent-Length: 4\r\n\r\n{}\r\n'
+
+2020-09-23 13:54:55.134: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "cityName<test!>-41283b727a", "properties": {}}'
+
+2020-09-23 13:54:55.144: Done replaying sequence.
+2020-09-23 13:54:55.167: InvalidDynamicObjectChecker 
+Suspect sequence: 201
+2020-09-23 13:54:55.182: InvalidDynamicObjectChecker PUT /city/cityName
+2020-09-23 13:54:55.202: InvalidDynamicObjectChecker PUT /city/_READER_DELIM_city_put_name_READER_DELIM/house/houseName
+2020-09-23 13:54:55.218: InvalidDynamicObjectChecker 'PUT /city/cityName<test!>-41283b727a/?//house/houseName<test!>-e7cda1a31b HTTP/1.1\r\n\r\n{}\r\n'
+2020-09-23 13:54:55.229: Sending: 'PUT /city/cityName<test!>-41283b727a/?//house/houseName<test!>-e7cda1a31b HTTP/1.1\r\nContent-Length: 4\r\n\r\n{}\r\n'
+
+2020-09-23 13:54:55.242: Received: "HTTP/1.1 400 Bad Request\r\nRestler Test\r\n\r\n{'error': UnsupportedResource()}"
+
+2020-09-23 13:54:55.255: 'Exception parsing response, data was not valid json: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)'
+2020-09-23 13:54:55.271: InvalidDynamicObjectChecker 'PUT /city/cityName<test!>-41283b727a??/house/houseName<test!>-e7cda1a31b HTTP/1.1\r\n\r\n{}\r\n'
+2020-09-23 13:54:55.281: Sending: 'PUT /city/cityName<test!>-41283b727a??/house/houseName<test!>-e7cda1a31b HTTP/1.1\r\nContent-Length: 4\r\n\r\n{}\r\n'
+
+2020-09-23 13:54:55.290: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "cityName<test!>-41283b727a", "properties": {}}'
+
+2020-09-23 13:54:55.310: InvalidDynamicObjectChecker 
+Suspect sequence: 201
+2020-09-23 13:54:55.325: InvalidDynamicObjectChecker PUT /city/cityName
+2020-09-23 13:54:55.340: InvalidDynamicObjectChecker PUT /city/_READER_DELIM_city_put_name_READER_DELIM/house/houseName
+2020-09-23 13:54:55.355: InvalidDynamicObjectChecker 'PUT /city/cityName<test!>-41283b727a/cityName<test!>-41283b727a/house/houseName<test!>-e7cda1a31b HTTP/1.1\r\n\r\n{}\r\n'
+2020-09-23 13:54:55.366: Sending: 'PUT /city/cityName<test!>-41283b727a/cityName<test!>-41283b727a/house/houseName<test!>-e7cda1a31b HTTP/1.1\r\nContent-Length: 4\r\n\r\n{}\r\n'
+
+2020-09-23 13:54:55.377: Received: "HTTP/1.1 400 Bad Request\r\nRestler Test\r\n\r\n{'error': UnsupportedResource()}"
+
+2020-09-23 13:54:55.386: 'Exception parsing response, data was not valid json: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)'
+2020-09-23 13:54:55.399: InvalidDynamicObjectChecker 'PUT /city/{}/house/houseName<test!>-e7cda1a31b HTTP/1.1\r\n\r\n{}\r\n'
+2020-09-23 13:54:55.409: Sending: 'PUT /city/{}/house/houseName<test!>-e7cda1a31b HTTP/1.1\r\nContent-Length: 4\r\n\r\n{}\r\n'
+
+2020-09-23 13:54:55.418: Received: "HTTP/1.1 404 Not Found\r\nRestler Test\r\n\r\n{'Resource': ResourceDoesNotExist()}"
+
+2020-09-23 13:54:55.426: 'Exception parsing response, data was not valid json: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)'
+2020-09-23 13:54:55.434: Checker: InvalidDynamicObjectChecker kicks out
+
+2020-09-23 13:54:55.442: Checker: PayloadBodyChecker kicks in
+
+2020-09-23 13:54:55.450: Checker: PayloadBodyChecker kicks out
+
+2020-09-23 13:54:55.460: Checker: ExamplesChecker kicks in
+
+2020-09-23 13:54:55.469: Checker: ExamplesChecker kicks out
+
+
+Generation-2: Rendering Sequence-1
+
+	Request: 1 (Current combination: 1 / 1)
+		- restler_static_string: 'PUT '
+		- restler_static_string: '/'
+		- restler_static_string: 'useafterfreetest'
+		- restler_static_string: '/'
+		+ restler_custom_payload_uuid4_suffix: useafterfreeTest<test!>-
+		- restler_static_string: ' HTTP/1.1\r\n'
+		- restler_static_string: '\r\n'
+		- restler_static_string: '{'
+		- restler_static_string: '}'
+		- restler_static_string: '\r\n'
+
+	Request: 2 (Remaining candidate combinations: 1)
+		- restler_static_string: 'GET '
+		- restler_static_string: '/'
+		- restler_static_string: 'useafterfreetest'
+		- restler_static_string: '/'
+		- restler_static_string: '_READER_DELIM_useafterfreetest_put_name_READER_DELIM'
+		- restler_static_string: ' HTTP/1.1\r\n'
+		- restler_static_string: '\r\n'
+
+2020-09-23 13:54:55.802: Sending: 'PUT /useafterfreetest/useafterfreeTest<test!>-e49a67b565 HTTP/1.1\r\nContent-Length: 4\r\n\r\n{}\r\n'
+
+2020-09-23 13:54:55.811: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "useafterfreeTest<test!>-e49a67b565"}'
+
+2020-09-23 13:54:55.821: Sending: 'GET /useafterfreetest/useafterfreeTest<test!>-e49a67b565 HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:54:55.829: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"name": "useafterfreeTest<test!>-e49a67b565"}'
+
+2020-09-23 13:54:55.840: Checker: LeakageRuleChecker kicks in
+
+2020-09-23 13:54:55.859: Checker: LeakageRuleChecker kicks out
+
+2020-09-23 13:54:55.873: Checker: ResourceHierarchyChecker kicks in
+
+2020-09-23 13:54:55.884: Checker: ResourceHierarchyChecker kicks out
+
+2020-09-23 13:54:55.893: Checker: UseAfterFreeChecker kicks in
+
+2020-09-23 13:54:55.903: Checker: UseAfterFreeChecker kicks out
+
+2020-09-23 13:54:55.912: Checker: NameSpaceRuleChecker kicks in
+
+2020-09-23 13:54:55.922: Checker: NameSpaceRuleChecker kicks out
+
+2020-09-23 13:54:55.931: Checker: InvalidDynamicObjectChecker kicks in
+
+2020-09-23 13:54:55.941: Re-rendering and sending start of sequence
+2020-09-23 13:54:55.951: Sending: 'PUT /useafterfreetest/useafterfreeTest<test!>-5e7d2d19ec HTTP/1.1\r\nContent-Length: 4\r\n\r\n{}\r\n'
+
+2020-09-23 13:54:55.961: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "useafterfreeTest<test!>-5e7d2d19ec"}'
+
+2020-09-23 13:54:55.976: InvalidDynamicObjectChecker 
+Sending invalid request(s):
+2020-09-23 13:54:55.985: Preparing requests with invalid objects
+2020-09-23 13:54:56.000: InvalidDynamicObjectChecker 'GET /useafterfreetest/useafterfreeTest<test!>-5e7d2d19ec?api-version=2019-01-01 HTTP/1.1\r\n\r\n'
+2020-09-23 13:54:56.010: Sending: 'GET /useafterfreetest/useafterfreeTest<test!>-5e7d2d19ec?api-version=2019-01-01 HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:54:56.019: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"name": "useafterfreeTest<test!>-5e7d2d19ec"}'
+
+2020-09-23 13:54:56.027: Attempting to reproduce bug...
+2020-09-23 13:54:56.039: Sending: 'PUT /useafterfreetest/useafterfreeTest<test!>-5e7d2d19ec HTTP/1.1\r\nContent-Length: 4\r\n\r\n{}\r\n'
+
+2020-09-23 13:54:56.057: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "useafterfreeTest<test!>-5e7d2d19ec"}'
+
+2020-09-23 13:54:56.070: Sending: 'GET /useafterfreetest/useafterfreeTest<test!>-5e7d2d19ec?api-version=2019-01-01 HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:54:56.078: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"name": "useafterfreeTest<test!>-5e7d2d19ec"}'
+
+2020-09-23 13:54:56.088: Done replaying sequence.
+2020-09-23 13:54:56.112: InvalidDynamicObjectChecker 
+Suspect sequence: 200
+2020-09-23 13:54:56.126: InvalidDynamicObjectChecker PUT /useafterfreetest/useafterfreeTest
+2020-09-23 13:54:56.140: InvalidDynamicObjectChecker GET /useafterfreetest/_READER_DELIM_useafterfreetest_put_name_READER_DELIM
+2020-09-23 13:54:56.155: InvalidDynamicObjectChecker 'GET /useafterfreetest/useafterfreeTest<test!>-5e7d2d19ec/?/ HTTP/1.1\r\n\r\n'
+2020-09-23 13:54:56.164: Sending: 'GET /useafterfreetest/useafterfreeTest<test!>-5e7d2d19ec/?/ HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:54:56.173: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"name": "useafterfreeTest<test!>-5e7d2d19ec"}'
+
+2020-09-23 13:54:56.192: InvalidDynamicObjectChecker 
+Suspect sequence: 200
+2020-09-23 13:54:56.208: InvalidDynamicObjectChecker PUT /useafterfreetest/useafterfreeTest
+2020-09-23 13:54:56.223: InvalidDynamicObjectChecker GET /useafterfreetest/_READER_DELIM_useafterfreetest_put_name_READER_DELIM
+2020-09-23 13:54:56.248: InvalidDynamicObjectChecker 'GET /useafterfreetest/useafterfreeTest<test!>-5e7d2d19ec?? HTTP/1.1\r\n\r\n'
+2020-09-23 13:54:56.261: Sending: 'GET /useafterfreetest/useafterfreeTest<test!>-5e7d2d19ec?? HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:54:56.271: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"name": "useafterfreeTest<test!>-5e7d2d19ec"}'
+
+2020-09-23 13:54:56.298: InvalidDynamicObjectChecker 
+Suspect sequence: 200
+2020-09-23 13:54:56.314: InvalidDynamicObjectChecker PUT /useafterfreetest/useafterfreeTest
+2020-09-23 13:54:56.338: InvalidDynamicObjectChecker GET /useafterfreetest/_READER_DELIM_useafterfreetest_put_name_READER_DELIM
+2020-09-23 13:54:56.358: InvalidDynamicObjectChecker 'GET /useafterfreetest/useafterfreeTest<test!>-5e7d2d19ec/useafterfreeTest<test!>-5e7d2d19ec HTTP/1.1\r\n\r\n'
+2020-09-23 13:54:56.366: Sending: 'GET /useafterfreetest/useafterfreeTest<test!>-5e7d2d19ec/useafterfreeTest<test!>-5e7d2d19ec HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:54:56.375: Received: "HTTP/1.1 404 Not Found\r\nRestler Test\r\n\r\n{'Resource': ResourceDoesNotExist()}"
+
+2020-09-23 13:54:56.390: InvalidDynamicObjectChecker 'GET /useafterfreetest/{} HTTP/1.1\r\n\r\n'
+2020-09-23 13:54:56.397: Sending: 'GET /useafterfreetest/{} HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:54:56.406: Received: "HTTP/1.1 404 Not Found\r\nRestler Test\r\n\r\n{'Resource': ResourceDoesNotExist()}"
+
+2020-09-23 13:54:56.416: Checker: InvalidDynamicObjectChecker kicks out
+
+2020-09-23 13:54:56.424: Checker: PayloadBodyChecker kicks in
+
+2020-09-23 13:54:56.434: Checker: PayloadBodyChecker kicks out
+
+2020-09-23 13:54:56.442: Checker: ExamplesChecker kicks in
+
+2020-09-23 13:54:56.452: Checker: ExamplesChecker kicks out
+
+
+Generation-2: Rendering Sequence-1
+
+	Request: 1 (Current combination: 1 / 1)
+		- restler_static_string: 'PUT '
+		- restler_static_string: '/'
+		- restler_static_string: 'city'
+		- restler_static_string: '/'
+		+ restler_custom_payload_uuid4_suffix: cityName<test!>-
+		- restler_static_string: ' HTTP/1.1\r\n'
+		- restler_static_string: '\r\n'
+		- restler_static_string: '{'
+		- restler_static_string: '}'
+		- restler_static_string: '\r\n'
+
+	Request: 2 (Remaining candidate combinations: 1)
+		- restler_static_string: 'GET '
+		- restler_static_string: '/'
+		- restler_static_string: 'city'
+		- restler_static_string: '/'
+		- restler_static_string: '_READER_DELIM_city_put_name_READER_DELIM'
+		- restler_static_string: '/'
+		- restler_static_string: 'house'
+		- restler_static_string: ' HTTP/1.1\r\n'
+		- restler_static_string: '\r\n'
+
+2020-09-23 13:54:56.777: Sending: 'PUT /city/cityName<test!>-520975bbdf HTTP/1.1\r\nContent-Length: 4\r\n\r\n{}\r\n'
+
+2020-09-23 13:54:56.787: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "cityName<test!>-520975bbdf", "properties": {}}'
+
+2020-09-23 13:54:56.797: Sending: 'GET /city/cityName<test!>-520975bbdf/house HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:54:56.807: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"house": {}}'
+
+2020-09-23 13:54:56.817: Checker: LeakageRuleChecker kicks in
+
+2020-09-23 13:54:56.827: Checker: LeakageRuleChecker kicks out
+
+2020-09-23 13:54:56.837: Checker: ResourceHierarchyChecker kicks in
+
+2020-09-23 13:54:56.846: Checker: ResourceHierarchyChecker kicks out
+
+2020-09-23 13:54:56.855: Checker: UseAfterFreeChecker kicks in
+
+2020-09-23 13:54:56.865: Checker: UseAfterFreeChecker kicks out
+
+2020-09-23 13:54:56.874: Checker: NameSpaceRuleChecker kicks in
+
+2020-09-23 13:54:56.883: Checker: NameSpaceRuleChecker kicks out
+
+2020-09-23 13:54:56.893: Checker: InvalidDynamicObjectChecker kicks in
+
+2020-09-23 13:54:56.902: Re-rendering and sending start of sequence
+2020-09-23 13:54:56.912: Sending: 'PUT /city/cityName<test!>-ea1dbe530c HTTP/1.1\r\nContent-Length: 4\r\n\r\n{}\r\n'
+
+2020-09-23 13:54:56.920: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "cityName<test!>-ea1dbe530c", "properties": {}}'
+
+2020-09-23 13:54:56.937: InvalidDynamicObjectChecker 
+Sending invalid request(s):
+2020-09-23 13:54:56.948: Preparing requests with invalid objects
+2020-09-23 13:54:56.963: InvalidDynamicObjectChecker 'GET /city/cityName<test!>-ea1dbe530c?api-version=2019-01-01/house HTTP/1.1\r\n\r\n'
+2020-09-23 13:54:56.973: Sending: 'GET /city/cityName<test!>-ea1dbe530c?api-version=2019-01-01/house HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:54:56.982: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"name": "cityName<test!>-ea1dbe530c", "properties": {}}'
+
+2020-09-23 13:54:56.991: Attempting to reproduce bug...
+2020-09-23 13:54:57.000: Sending: 'PUT /city/cityName<test!>-ea1dbe530c HTTP/1.1\r\nContent-Length: 4\r\n\r\n{}\r\n'
+
+2020-09-23 13:54:57.010: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "cityName<test!>-ea1dbe530c", "properties": {}}'
+
+2020-09-23 13:54:57.019: Sending: 'GET /city/cityName<test!>-ea1dbe530c?api-version=2019-01-01/house HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:54:57.028: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"name": "cityName<test!>-ea1dbe530c", "properties": {}}'
+
+2020-09-23 13:54:57.038: Done replaying sequence.
+2020-09-23 13:54:57.060: InvalidDynamicObjectChecker 
+Suspect sequence: 200
+2020-09-23 13:54:57.075: InvalidDynamicObjectChecker PUT /city/cityName
+2020-09-23 13:54:57.090: InvalidDynamicObjectChecker GET /city/_READER_DELIM_city_put_name_READER_DELIM/house
+2020-09-23 13:54:57.105: InvalidDynamicObjectChecker 'GET /city/cityName<test!>-ea1dbe530c/?//house HTTP/1.1\r\n\r\n'
+2020-09-23 13:54:57.115: Sending: 'GET /city/cityName<test!>-ea1dbe530c/?//house HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:54:57.124: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"name": "cityName<test!>-ea1dbe530c", "properties": {}}'
+
+2020-09-23 13:54:57.144: InvalidDynamicObjectChecker 
+Suspect sequence: 200
+2020-09-23 13:54:57.160: InvalidDynamicObjectChecker PUT /city/cityName
+2020-09-23 13:54:57.176: InvalidDynamicObjectChecker GET /city/_READER_DELIM_city_put_name_READER_DELIM/house
+2020-09-23 13:54:57.191: InvalidDynamicObjectChecker 'GET /city/cityName<test!>-ea1dbe530c??/house HTTP/1.1\r\n\r\n'
+2020-09-23 13:54:57.200: Sending: 'GET /city/cityName<test!>-ea1dbe530c??/house HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:54:57.211: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"name": "cityName<test!>-ea1dbe530c", "properties": {}}'
+
+2020-09-23 13:54:57.231: InvalidDynamicObjectChecker 
+Suspect sequence: 200
+2020-09-23 13:54:57.246: InvalidDynamicObjectChecker PUT /city/cityName
+2020-09-23 13:54:57.261: InvalidDynamicObjectChecker GET /city/_READER_DELIM_city_put_name_READER_DELIM/house
+2020-09-23 13:54:57.277: InvalidDynamicObjectChecker 'GET /city/cityName<test!>-ea1dbe530c/cityName<test!>-ea1dbe530c/house HTTP/1.1\r\n\r\n'
+2020-09-23 13:54:57.287: Sending: 'GET /city/cityName<test!>-ea1dbe530c/cityName<test!>-ea1dbe530c/house HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:54:57.297: Received: "HTTP/1.1 404 Not Found\r\nRestler Test\r\n\r\n{'Resource': ResourceDoesNotExist()}"
+
+2020-09-23 13:54:57.314: InvalidDynamicObjectChecker 'GET /city/{}/house HTTP/1.1\r\n\r\n'
+2020-09-23 13:54:57.324: Sending: 'GET /city/{}/house HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:54:57.334: Received: "HTTP/1.1 404 Not Found\r\nRestler Test\r\n\r\n{'Resource': ResourceDoesNotExist()}"
+
+2020-09-23 13:54:57.344: Checker: InvalidDynamicObjectChecker kicks out
+
+2020-09-23 13:54:57.358: Checker: PayloadBodyChecker kicks in
+
+2020-09-23 13:54:57.369: Checker: PayloadBodyChecker kicks out
+
+2020-09-23 13:54:57.381: Checker: ExamplesChecker kicks in
+
+2020-09-23 13:54:57.392: Checker: ExamplesChecker kicks out
+
+
+Generation-2: Rendering Sequence-1
+
+	Request: 1 (Current combination: 1 / 1)
+		- restler_static_string: 'PUT '
+		- restler_static_string: '/'
+		- restler_static_string: 'resourcehierarchytest'
+		- restler_static_string: '/'
+		+ restler_custom_payload_uuid4_suffix: resourcehierarchyTest<test!>-
+		- restler_static_string: ' HTTP/1.1\r\n'
+		- restler_static_string: '\r\n'
+		- restler_static_string: '{'
+		- restler_static_string: '}'
+		- restler_static_string: '\r\n'
+
+	Request: 2 (Remaining candidate combinations: 1)
+		- restler_static_string: 'PUT '
+		- restler_static_string: '/'
+		- restler_static_string: 'resourcehierarchytest'
+		- restler_static_string: '/'
+		- restler_static_string: '_READER_DELIM_resourcehierarchytest_put_name_READER_DELIM'
+		- restler_static_string: '/'
+		- restler_static_string: 'resourcehierarchychild'
+		- restler_static_string: '/'
+		+ restler_custom_payload_uuid4_suffix: resourcehierarchyChild<test!>-
+		- restler_static_string: ' HTTP/1.1\r\n'
+		- restler_static_string: '\r\n'
+		- restler_static_string: '{'
+		- restler_static_string: '}'
+		- restler_static_string: '\r\n'
+
+2020-09-23 13:54:57.805: Sending: 'PUT /resourcehierarchytest/resourcehierarchyTest<test!>-aceea1339a HTTP/1.1\r\nContent-Length: 4\r\n\r\n{}\r\n'
+
+2020-09-23 13:54:57.817: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "resourcehierarchyTest<test!>-aceea1339a"}'
+
+2020-09-23 13:54:57.827: Sending: 'PUT /resourcehierarchytest/resourcehierarchyTest<test!>-aceea1339a/resourcehierarchychild/resourcehierarchyChild<test!>-70b7f17862 HTTP/1.1\r\nContent-Length: 4\r\n\r\n{}\r\n'
+
+2020-09-23 13:54:57.837: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "resourcehierarchyChild<test!>-70b7f17862"}'
+
+2020-09-23 13:54:57.846: Checker: LeakageRuleChecker kicks in
+
+2020-09-23 13:54:57.856: Checker: LeakageRuleChecker kicks out
+
+2020-09-23 13:54:57.866: Checker: ResourceHierarchyChecker kicks in
+
+2020-09-23 13:54:57.875: Checker: ResourceHierarchyChecker kicks out
+
+2020-09-23 13:54:57.884: Checker: UseAfterFreeChecker kicks in
+
+2020-09-23 13:54:57.895: Checker: UseAfterFreeChecker kicks out
+
+2020-09-23 13:54:57.904: Checker: NameSpaceRuleChecker kicks in
+
+2020-09-23 13:54:57.914: Checker: NameSpaceRuleChecker kicks out
+
+2020-09-23 13:54:57.924: Checker: InvalidDynamicObjectChecker kicks in
+
+2020-09-23 13:54:57.935: Re-rendering and sending start of sequence
+2020-09-23 13:54:57.943: Sending: 'PUT /resourcehierarchytest/resourcehierarchyTest<test!>-6e95610b31 HTTP/1.1\r\nContent-Length: 4\r\n\r\n{}\r\n'
+
+2020-09-23 13:54:57.953: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "resourcehierarchyTest<test!>-6e95610b31"}'
+
+2020-09-23 13:54:57.967: InvalidDynamicObjectChecker 
+Sending invalid request(s):
+2020-09-23 13:54:57.977: Preparing requests with invalid objects
+2020-09-23 13:54:57.992: InvalidDynamicObjectChecker 'PUT /resourcehierarchytest/resourcehierarchyTest<test!>-6e95610b31?api-version=2019-01-01/resourcehierarchychild/resourcehierarchyChild<test!>-0c81d698ee HTTP/1.1\r\n\r\n{}\r\n'
+2020-09-23 13:54:58.002: Sending: 'PUT /resourcehierarchytest/resourcehierarchyTest<test!>-6e95610b31?api-version=2019-01-01/resourcehierarchychild/resourcehierarchyChild<test!>-0c81d698ee HTTP/1.1\r\nContent-Length: 4\r\n\r\n{}\r\n'
+
+2020-09-23 13:54:58.011: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "resourcehierarchyTest<test!>-6e95610b31"}'
+
+2020-09-23 13:54:58.020: Attempting to reproduce bug...
+2020-09-23 13:54:58.030: Sending: 'PUT /resourcehierarchytest/resourcehierarchyTest<test!>-6e95610b31 HTTP/1.1\r\nContent-Length: 4\r\n\r\n{}\r\n'
+
+2020-09-23 13:54:58.040: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "resourcehierarchyTest<test!>-6e95610b31"}'
+
+2020-09-23 13:54:58.049: Sending: 'PUT /resourcehierarchytest/resourcehierarchyTest<test!>-6e95610b31?api-version=2019-01-01/resourcehierarchychild/resourcehierarchyChild<test!>-0c81d698ee HTTP/1.1\r\nContent-Length: 4\r\n\r\n{}\r\n'
+
+2020-09-23 13:54:58.059: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "resourcehierarchyTest<test!>-6e95610b31"}'
+
+2020-09-23 13:54:58.068: Done replaying sequence.
+2020-09-23 13:54:58.092: InvalidDynamicObjectChecker 
+Suspect sequence: 201
+2020-09-23 13:54:58.111: InvalidDynamicObjectChecker PUT /resourcehierarchytest/resourcehierarchyTest
+2020-09-23 13:54:58.129: InvalidDynamicObjectChecker PUT /resourcehierarchytest/_READER_DELIM_resourcehierarchytest_put_name_READER_DELIM/resourcehierarchychild/resourcehierarchyChild
+2020-09-23 13:54:58.146: InvalidDynamicObjectChecker 'PUT /resourcehierarchytest/resourcehierarchyTest<test!>-6e95610b31/?//resourcehierarchychild/resourcehierarchyChild<test!>-0c81d698ee HTTP/1.1\r\n\r\n{}\r\n'
+2020-09-23 13:54:58.155: Sending: 'PUT /resourcehierarchytest/resourcehierarchyTest<test!>-6e95610b31/?//resourcehierarchychild/resourcehierarchyChild<test!>-0c81d698ee HTTP/1.1\r\nContent-Length: 4\r\n\r\n{}\r\n'
+
+2020-09-23 13:54:58.165: Received: "HTTP/1.1 400 Bad Request\r\nRestler Test\r\n\r\n{'error': UnsupportedResource()}"
+
+2020-09-23 13:54:58.175: 'Exception parsing response, data was not valid json: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)'
+2020-09-23 13:54:58.191: InvalidDynamicObjectChecker 'PUT /resourcehierarchytest/resourcehierarchyTest<test!>-6e95610b31??/resourcehierarchychild/resourcehierarchyChild<test!>-0c81d698ee HTTP/1.1\r\n\r\n{}\r\n'
+2020-09-23 13:54:58.201: Sending: 'PUT /resourcehierarchytest/resourcehierarchyTest<test!>-6e95610b31??/resourcehierarchychild/resourcehierarchyChild<test!>-0c81d698ee HTTP/1.1\r\nContent-Length: 4\r\n\r\n{}\r\n'
+
+2020-09-23 13:54:58.210: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "resourcehierarchyTest<test!>-6e95610b31"}'
+
+2020-09-23 13:54:58.232: InvalidDynamicObjectChecker 
+Suspect sequence: 201
+2020-09-23 13:54:58.253: InvalidDynamicObjectChecker PUT /resourcehierarchytest/resourcehierarchyTest
+2020-09-23 13:54:58.269: InvalidDynamicObjectChecker PUT /resourcehierarchytest/_READER_DELIM_resourcehierarchytest_put_name_READER_DELIM/resourcehierarchychild/resourcehierarchyChild
+2020-09-23 13:54:58.287: InvalidDynamicObjectChecker 'PUT /resourcehierarchytest/resourcehierarchyTest<test!>-6e95610b31/resourcehierarchyTest<test!>-6e95610b31/resourcehierarchychild/resourcehierarchyChild<test!>-0c81d698ee HTTP/1.1\r\n\r\n{}\r\n'
+2020-09-23 13:54:58.296: Sending: 'PUT /resourcehierarchytest/resourcehierarchyTest<test!>-6e95610b31/resourcehierarchyTest<test!>-6e95610b31/resourcehierarchychild/resourcehierarchyChild<test!>-0c81d698ee HTTP/1.1\r\nContent-Length: 4\r\n\r\n{}\r\n'
+
+2020-09-23 13:54:58.309: Received: "HTTP/1.1 400 Bad Request\r\nRestler Test\r\n\r\n{'error': UnsupportedResource()}"
+
+2020-09-23 13:54:58.322: 'Exception parsing response, data was not valid json: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)'
+2020-09-23 13:54:58.342: InvalidDynamicObjectChecker 'PUT /resourcehierarchytest/{}/resourcehierarchychild/resourcehierarchyChild<test!>-0c81d698ee HTTP/1.1\r\n\r\n{}\r\n'
+2020-09-23 13:54:58.354: Sending: 'PUT /resourcehierarchytest/{}/resourcehierarchychild/resourcehierarchyChild<test!>-0c81d698ee HTTP/1.1\r\nContent-Length: 4\r\n\r\n{}\r\n'
+
+2020-09-23 13:54:58.366: Received: "HTTP/1.1 404 Not Found\r\nRestler Test\r\n\r\n{'Resource': ResourceDoesNotExist()}"
+
+2020-09-23 13:54:58.376: 'Exception parsing response, data was not valid json: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)'
+2020-09-23 13:54:58.385: Checker: InvalidDynamicObjectChecker kicks out
+
+2020-09-23 13:54:58.396: Checker: PayloadBodyChecker kicks in
+
+2020-09-23 13:54:58.405: Checker: PayloadBodyChecker kicks out
+
+2020-09-23 13:54:58.416: Checker: ExamplesChecker kicks in
+
+2020-09-23 13:54:58.425: Checker: ExamplesChecker kicks out
+
+
+Generation-2: Rendering Sequence-1
+
+	Request: 1 (Current combination: 1 / 1)
+		- restler_static_string: 'PUT '
+		- restler_static_string: '/'
+		- restler_static_string: 'resourcehierarchytest'
+		- restler_static_string: '/'
+		+ restler_custom_payload_uuid4_suffix: resourcehierarchyTest<test!>-
+		- restler_static_string: ' HTTP/1.1\r\n'
+		- restler_static_string: '\r\n'
+		- restler_static_string: '{'
+		- restler_static_string: '}'
+		- restler_static_string: '\r\n'
+
+	Request: 2 (Remaining candidate combinations: 1)
+		- restler_static_string: 'DELETE '
+		- restler_static_string: '/'
+		- restler_static_string: 'resourcehierarchytest'
+		- restler_static_string: '/'
+		- restler_static_string: '_READER_DELIM_resourcehierarchytest_put_name_READER_DELIM'
+		- restler_static_string: ' HTTP/1.1\r\n'
+		- restler_static_string: '\r\n'
+
+2020-09-23 13:54:58.939: Sending: 'PUT /resourcehierarchytest/resourcehierarchyTest<test!>-e0ac3b9834 HTTP/1.1\r\nContent-Length: 4\r\n\r\n{}\r\n'
+
+2020-09-23 13:54:58.968: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "resourcehierarchyTest<test!>-e0ac3b9834"}'
+
+2020-09-23 13:54:58.987: Sending: 'DELETE /resourcehierarchytest/resourcehierarchyTest<test!>-e0ac3b9834 HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:54:59.009: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"resourcehierarchyTest<test!>-e0ac3b9834"'
+
+2020-09-23 13:54:59.027: Checker: LeakageRuleChecker kicks in
+
+2020-09-23 13:54:59.042: Checker: LeakageRuleChecker kicks out
+
+2020-09-23 13:54:59.058: Checker: ResourceHierarchyChecker kicks in
+
+2020-09-23 13:54:59.074: Checker: ResourceHierarchyChecker kicks out
+
+2020-09-23 13:54:59.088: Checker: UseAfterFreeChecker kicks in
+
+2020-09-23 13:54:59.113: UseAfterFreeChecker 
+Target types: {'_resourcehierarchytest_put_name'}
+2020-09-23 13:54:59.135: UseAfterFreeChecker Clean tlb: {'_city_put_name': None, '_city_house_put_name': None, '_city_house_color_put_name': None, '_leakageruletest_put_name': None, '_useafterfreetest_put_name': None, '_resourcehierarchytest_put_name': 'resourcehierarchyTest<test!>-e0ac3b9834', '_resourcehierarchychild_put_name': None}
+2020-09-23 13:54:59.155: UseAfterFreeChecker Found * 2 * consumers.
+2020-09-23 13:54:59.168: Sending: 'GET /resourcehierarchytest/resourcehierarchyTest<test!>-e0ac3b9834 HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:54:59.181: Received: "HTTP/1.1 404 Not Found\r\nRestler Test\r\n\r\n{'Resource': ResourceDoesNotExist()}"
+
+2020-09-23 13:54:59.192: Checker: UseAfterFreeChecker kicks out
+
+2020-09-23 13:54:59.203: Checker: NameSpaceRuleChecker kicks in
+
+2020-09-23 13:54:59.220: Checker: NameSpaceRuleChecker kicks out
+
+2020-09-23 13:54:59.234: Checker: InvalidDynamicObjectChecker kicks in
+
+2020-09-23 13:54:59.246: Re-rendering and sending start of sequence
+2020-09-23 13:54:59.257: Sending: 'PUT /resourcehierarchytest/resourcehierarchyTest<test!>-c792612f6b HTTP/1.1\r\nContent-Length: 4\r\n\r\n{}\r\n'
+
+2020-09-23 13:54:59.268: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "resourcehierarchyTest<test!>-c792612f6b"}'
+
+2020-09-23 13:54:59.287: InvalidDynamicObjectChecker 
+Sending invalid request(s):
+2020-09-23 13:54:59.298: Preparing requests with invalid objects
+2020-09-23 13:54:59.317: InvalidDynamicObjectChecker 'DELETE /resourcehierarchytest/resourcehierarchyTest<test!>-c792612f6b?api-version=2019-01-01 HTTP/1.1\r\n\r\n'
+2020-09-23 13:54:59.329: Sending: 'DELETE /resourcehierarchytest/resourcehierarchyTest<test!>-c792612f6b?api-version=2019-01-01 HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:54:59.339: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"resourcehierarchyTest<test!>-c792612f6b"'
+
+2020-09-23 13:54:59.351: Attempting to reproduce bug...
+2020-09-23 13:54:59.362: Sending: 'PUT /resourcehierarchytest/resourcehierarchyTest<test!>-c792612f6b HTTP/1.1\r\nContent-Length: 4\r\n\r\n{}\r\n'
+
+2020-09-23 13:54:59.373: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "resourcehierarchyTest<test!>-c792612f6b"}'
+
+2020-09-23 13:54:59.383: Sending: 'DELETE /resourcehierarchytest/resourcehierarchyTest<test!>-c792612f6b?api-version=2019-01-01 HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:54:59.413: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"resourcehierarchyTest<test!>-c792612f6b"'
+
+2020-09-23 13:54:59.434: Done replaying sequence.
+2020-09-23 13:54:59.463: InvalidDynamicObjectChecker 
+Suspect sequence: 202
+2020-09-23 13:54:59.483: InvalidDynamicObjectChecker PUT /resourcehierarchytest/resourcehierarchyTest
+2020-09-23 13:54:59.502: InvalidDynamicObjectChecker DELETE /resourcehierarchytest/_READER_DELIM_resourcehierarchytest_put_name_READER_DELIM
+2020-09-23 13:54:59.522: InvalidDynamicObjectChecker 'DELETE /resourcehierarchytest/resourcehierarchyTest<test!>-c792612f6b/?/ HTTP/1.1\r\n\r\n'
+2020-09-23 13:54:59.534: Sending: 'DELETE /resourcehierarchytest/resourcehierarchyTest<test!>-c792612f6b/?/ HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:54:59.544: Received: 'HTTP/1.1 400 Bad Request\r\nRestler Test\r\n\r\n{"error": "Invalid resource: "}'
+
+2020-09-23 13:54:59.559: InvalidDynamicObjectChecker 'DELETE /resourcehierarchytest/resourcehierarchyTest<test!>-c792612f6b?? HTTP/1.1\r\n\r\n'
+2020-09-23 13:54:59.569: Sending: 'DELETE /resourcehierarchytest/resourcehierarchyTest<test!>-c792612f6b?? HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:54:59.578: Received: "HTTP/1.1 404 Not Found\r\nRestler Test\r\n\r\n{'Resource': ResourceDoesNotExist()}"
+
+2020-09-23 13:54:59.593: InvalidDynamicObjectChecker 'DELETE /resourcehierarchytest/resourcehierarchyTest<test!>-c792612f6b/resourcehierarchyTest<test!>-c792612f6b HTTP/1.1\r\n\r\n'
+2020-09-23 13:54:59.603: Sending: 'DELETE /resourcehierarchytest/resourcehierarchyTest<test!>-c792612f6b/resourcehierarchyTest<test!>-c792612f6b HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:54:59.612: Received: 'HTTP/1.1 400 Bad Request\r\nRestler Test\r\n\r\n{"error": "Invalid resource: resourcehierarchyTest<test!>-c792612f6b"}'
+
+2020-09-23 13:54:59.627: InvalidDynamicObjectChecker 'DELETE /resourcehierarchytest/{} HTTP/1.1\r\n\r\n'
+2020-09-23 13:54:59.635: Sending: 'DELETE /resourcehierarchytest/{} HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:54:59.645: Received: "HTTP/1.1 404 Not Found\r\nRestler Test\r\n\r\n{'Resource': ResourceDoesNotExist()}"
+
+2020-09-23 13:54:59.654: Checker: InvalidDynamicObjectChecker kicks out
+
+2020-09-23 13:54:59.663: Checker: PayloadBodyChecker kicks in
+
+2020-09-23 13:54:59.673: Checker: PayloadBodyChecker kicks out
+
+2020-09-23 13:54:59.683: Checker: ExamplesChecker kicks in
+
+2020-09-23 13:54:59.693: Checker: ExamplesChecker kicks out
+
+
+Generation-2: Rendering Sequence-1
+
+	Request: 1 (Current combination: 1 / 1)
+		- restler_static_string: 'PUT '
+		- restler_static_string: '/'
+		- restler_static_string: 'resourcehierarchytest'
+		- restler_static_string: '/'
+		+ restler_custom_payload_uuid4_suffix: resourcehierarchyTest<test!>-
+		- restler_static_string: ' HTTP/1.1\r\n'
+		- restler_static_string: '\r\n'
+		- restler_static_string: '{'
+		- restler_static_string: '}'
+		- restler_static_string: '\r\n'
+
+	Request: 2 (Remaining candidate combinations: 1)
+		- restler_static_string: 'GET '
+		- restler_static_string: '/'
+		- restler_static_string: 'resourcehierarchytest'
+		- restler_static_string: '/'
+		- restler_static_string: '_READER_DELIM_resourcehierarchytest_put_name_READER_DELIM'
+		- restler_static_string: ' HTTP/1.1\r\n'
+		- restler_static_string: '\r\n'
+
+2020-09-23 13:54:59.965: Sending: 'PUT /resourcehierarchytest/resourcehierarchyTest<test!>-6d9731d71b HTTP/1.1\r\nContent-Length: 4\r\n\r\n{}\r\n'
+
+2020-09-23 13:54:59.975: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "resourcehierarchyTest<test!>-6d9731d71b"}'
+
+2020-09-23 13:54:59.984: Sending: 'GET /resourcehierarchytest/resourcehierarchyTest<test!>-6d9731d71b HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:54:59.992: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"name": "resourcehierarchyTest<test!>-6d9731d71b"}'
+
+2020-09-23 13:55:00.003: Checker: LeakageRuleChecker kicks in
+
+2020-09-23 13:55:00.011: Checker: LeakageRuleChecker kicks out
+
+2020-09-23 13:55:00.022: Checker: ResourceHierarchyChecker kicks in
+
+2020-09-23 13:55:00.034: Checker: ResourceHierarchyChecker kicks out
+
+2020-09-23 13:55:00.042: Checker: UseAfterFreeChecker kicks in
+
+2020-09-23 13:55:00.053: Checker: UseAfterFreeChecker kicks out
+
+2020-09-23 13:55:00.062: Checker: NameSpaceRuleChecker kicks in
+
+2020-09-23 13:55:00.071: Checker: NameSpaceRuleChecker kicks out
+
+2020-09-23 13:55:00.081: Checker: InvalidDynamicObjectChecker kicks in
+
+2020-09-23 13:55:00.091: Re-rendering and sending start of sequence
+2020-09-23 13:55:00.102: Sending: 'PUT /resourcehierarchytest/resourcehierarchyTest<test!>-0ae3891b56 HTTP/1.1\r\nContent-Length: 4\r\n\r\n{}\r\n'
+
+2020-09-23 13:55:00.112: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "resourcehierarchyTest<test!>-0ae3891b56"}'
+
+2020-09-23 13:55:00.128: InvalidDynamicObjectChecker 
+Sending invalid request(s):
+2020-09-23 13:55:00.137: Preparing requests with invalid objects
+2020-09-23 13:55:00.157: InvalidDynamicObjectChecker 'GET /resourcehierarchytest/resourcehierarchyTest<test!>-0ae3891b56?api-version=2019-01-01 HTTP/1.1\r\n\r\n'
+2020-09-23 13:55:00.167: Sending: 'GET /resourcehierarchytest/resourcehierarchyTest<test!>-0ae3891b56?api-version=2019-01-01 HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:55:00.179: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"name": "resourcehierarchyTest<test!>-0ae3891b56"}'
+
+2020-09-23 13:55:00.191: Attempting to reproduce bug...
+2020-09-23 13:55:00.203: Sending: 'PUT /resourcehierarchytest/resourcehierarchyTest<test!>-0ae3891b56 HTTP/1.1\r\nContent-Length: 4\r\n\r\n{}\r\n'
+
+2020-09-23 13:55:00.218: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "resourcehierarchyTest<test!>-0ae3891b56"}'
+
+2020-09-23 13:55:00.231: Sending: 'GET /resourcehierarchytest/resourcehierarchyTest<test!>-0ae3891b56?api-version=2019-01-01 HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:55:00.244: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"name": "resourcehierarchyTest<test!>-0ae3891b56"}'
+
+2020-09-23 13:55:00.253: Done replaying sequence.
+2020-09-23 13:55:00.281: InvalidDynamicObjectChecker 
+Suspect sequence: 200
+2020-09-23 13:55:00.298: InvalidDynamicObjectChecker PUT /resourcehierarchytest/resourcehierarchyTest
+2020-09-23 13:55:00.314: InvalidDynamicObjectChecker GET /resourcehierarchytest/_READER_DELIM_resourcehierarchytest_put_name_READER_DELIM
+2020-09-23 13:55:00.340: InvalidDynamicObjectChecker 'GET /resourcehierarchytest/resourcehierarchyTest<test!>-0ae3891b56/?/ HTTP/1.1\r\n\r\n'
+2020-09-23 13:55:00.353: Sending: 'GET /resourcehierarchytest/resourcehierarchyTest<test!>-0ae3891b56/?/ HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:55:00.363: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"name": "resourcehierarchyTest<test!>-0ae3891b56"}'
+
+2020-09-23 13:55:00.395: InvalidDynamicObjectChecker 
+Suspect sequence: 200
+2020-09-23 13:55:00.415: InvalidDynamicObjectChecker PUT /resourcehierarchytest/resourcehierarchyTest
+2020-09-23 13:55:00.431: InvalidDynamicObjectChecker GET /resourcehierarchytest/_READER_DELIM_resourcehierarchytest_put_name_READER_DELIM
+2020-09-23 13:55:00.447: InvalidDynamicObjectChecker 'GET /resourcehierarchytest/resourcehierarchyTest<test!>-0ae3891b56?? HTTP/1.1\r\n\r\n'
+2020-09-23 13:55:00.455: Sending: 'GET /resourcehierarchytest/resourcehierarchyTest<test!>-0ae3891b56?? HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:55:00.464: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"name": "resourcehierarchyTest<test!>-0ae3891b56"}'
+
+2020-09-23 13:55:00.483: InvalidDynamicObjectChecker 
+Suspect sequence: 200
+2020-09-23 13:55:00.507: InvalidDynamicObjectChecker PUT /resourcehierarchytest/resourcehierarchyTest
+2020-09-23 13:55:00.526: InvalidDynamicObjectChecker GET /resourcehierarchytest/_READER_DELIM_resourcehierarchytest_put_name_READER_DELIM
+2020-09-23 13:55:00.541: InvalidDynamicObjectChecker 'GET /resourcehierarchytest/resourcehierarchyTest<test!>-0ae3891b56/resourcehierarchyTest<test!>-0ae3891b56 HTTP/1.1\r\n\r\n'
+2020-09-23 13:55:00.550: Sending: 'GET /resourcehierarchytest/resourcehierarchyTest<test!>-0ae3891b56/resourcehierarchyTest<test!>-0ae3891b56 HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:55:00.560: Received: "HTTP/1.1 404 Not Found\r\nRestler Test\r\n\r\n{'Resource': ResourceDoesNotExist()}"
+
+2020-09-23 13:55:00.575: InvalidDynamicObjectChecker 'GET /resourcehierarchytest/{} HTTP/1.1\r\n\r\n'
+2020-09-23 13:55:00.584: Sending: 'GET /resourcehierarchytest/{} HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:55:00.593: Received: "HTTP/1.1 404 Not Found\r\nRestler Test\r\n\r\n{'Resource': ResourceDoesNotExist()}"
+
+2020-09-23 13:55:00.604: Checker: InvalidDynamicObjectChecker kicks out
+
+2020-09-23 13:55:00.613: Checker: PayloadBodyChecker kicks in
+
+2020-09-23 13:55:00.622: Checker: PayloadBodyChecker kicks out
+
+2020-09-23 13:55:00.632: Checker: ExamplesChecker kicks in
+
+2020-09-23 13:55:00.643: Checker: ExamplesChecker kicks out
+
+
+Generation-3: Rendering Sequence-1
+
+	Request: 1 (Current combination: 1 / 1)
+		- restler_static_string: 'PUT '
+		- restler_static_string: '/'
+		- restler_static_string: 'city'
+		- restler_static_string: '/'
+		+ restler_custom_payload_uuid4_suffix: cityName<test!>-
+		- restler_static_string: ' HTTP/1.1\r\n'
+		- restler_static_string: '\r\n'
+		- restler_static_string: '{'
+		- restler_static_string: '}'
+		- restler_static_string: '\r\n'
+
+	Request: 2 (Current combination: 1 / 1)
+		- restler_static_string: 'PUT '
+		- restler_static_string: '/'
+		- restler_static_string: 'city'
+		- restler_static_string: '/'
+		- restler_static_string: '_READER_DELIM_city_put_name_READER_DELIM'
+		- restler_static_string: '/'
+		- restler_static_string: 'house'
+		- restler_static_string: '/'
+		+ restler_custom_payload_uuid4_suffix: houseName<test!>-
+		- restler_static_string: ' HTTP/1.1\r\n'
+		- restler_static_string: '\r\n'
+		- restler_static_string: '{'
+		- restler_static_string: '}'
+		- restler_static_string: '\r\n'
+
+	Request: 3 (Remaining candidate combinations: 1)
+		- restler_static_string: 'PUT '
+		- restler_static_string: '/'
+		- restler_static_string: 'city'
+		- restler_static_string: '/'
+		- restler_static_string: '_READER_DELIM_city_put_name_READER_DELIM'
+		- restler_static_string: '/'
+		- restler_static_string: 'house'
+		- restler_static_string: '/'
+		- restler_static_string: '_READER_DELIM_city_house_put_name_READER_DELIM'
+		- restler_static_string: '/'
+		- restler_static_string: 'color'
+		- restler_static_string: '/'
+		+ restler_custom_payload_uuid4_suffix: colorName<test!>-
+		- restler_static_string: ' HTTP/1.1\r\n'
+		- restler_static_string: '\r\n'
+		- restler_static_string: '{'
+		- restler_static_string: '{'
+		- restler_static_string: '\r\n'
+
+2020-09-23 13:55:01.178: Sending: 'PUT /city/cityName<test!>-57b5bfc4f7 HTTP/1.1\r\nContent-Length: 4\r\n\r\n{}\r\n'
+
+2020-09-23 13:55:01.188: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "cityName<test!>-57b5bfc4f7", "properties": {}}'
+
+2020-09-23 13:55:01.197: Sending: 'PUT /city/cityName<test!>-57b5bfc4f7/house/houseName<test!>-c7008a97b8 HTTP/1.1\r\nContent-Length: 4\r\n\r\n{}\r\n'
+
+2020-09-23 13:55:01.206: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "houseName<test!>-c7008a97b8"}'
+
+2020-09-23 13:55:01.215: Sending: 'PUT /city/cityName<test!>-57b5bfc4f7/house/houseName<test!>-c7008a97b8/color/colorName<test!>-58229c374a HTTP/1.1\r\nContent-Length: 4\r\n\r\n{{\r\n'
+
+2020-09-23 13:55:01.224: Received: 'HTTP/1.1 500 Internal Server Error\r\nRestler Test\r\n\r\n{"code": "InternalServerError", "message": "Expecting property name enclosed in double quotes: line 1 column 2 (char 1)"}'
+
+2020-09-23 13:55:01.238: Failed to parse _city_house_color_put_name; is now set to None.
+2020-09-23 13:55:01.246: Attempting to reproduce bug...
+2020-09-23 13:55:01.255: Sending: 'PUT /city/cityName<test!>-57b5bfc4f7 HTTP/1.1\r\nContent-Length: 4\r\n\r\n{}\r\n'
+
+2020-09-23 13:55:01.266: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "cityName<test!>-57b5bfc4f7", "properties": {}}'
+
+2020-09-23 13:55:01.274: Sending: 'PUT /city/cityName<test!>-57b5bfc4f7/house/houseName<test!>-c7008a97b8 HTTP/1.1\r\nContent-Length: 4\r\n\r\n{}\r\n'
+
+2020-09-23 13:55:01.285: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "houseName<test!>-c7008a97b8"}'
+
+2020-09-23 13:55:01.294: Sending: 'PUT /city/cityName<test!>-57b5bfc4f7/house/houseName<test!>-c7008a97b8/color/colorName<test!>-58229c374a HTTP/1.1\r\nContent-Length: 4\r\n\r\n{{\r\n'
+
+2020-09-23 13:55:01.303: Received: 'HTTP/1.1 500 Internal Server Error\r\nRestler Test\r\n\r\n{"code": "InternalServerError", "message": "Expecting property name enclosed in double quotes: line 1 column 2 (char 1)"}'
+
+2020-09-23 13:55:01.312: Done replaying sequence.
+2020-09-23 13:55:01.329: Checker: LeakageRuleChecker kicks in
+
+2020-09-23 13:55:01.340: LeakageRuleChecker 
+Target type: _city_house_color_put_name
+2020-09-23 13:55:01.352: Checker: LeakageRuleChecker kicks out
+
+2020-09-23 13:55:01.361: Checker: ResourceHierarchyChecker kicks in
+
+2020-09-23 13:55:01.369: Checker: ResourceHierarchyChecker kicks out
+
+2020-09-23 13:55:01.378: Checker: UseAfterFreeChecker kicks in
+
+2020-09-23 13:55:01.388: Checker: UseAfterFreeChecker kicks out
+
+2020-09-23 13:55:01.396: Checker: NameSpaceRuleChecker kicks in
+
+2020-09-23 13:55:01.406: Checker: NameSpaceRuleChecker kicks out
+
+2020-09-23 13:55:01.415: Checker: InvalidDynamicObjectChecker kicks in
+
+2020-09-23 13:55:01.424: Checker: InvalidDynamicObjectChecker kicks out
+
+2020-09-23 13:55:01.432: Checker: PayloadBodyChecker kicks in
+
+2020-09-23 13:55:01.441: Checker: PayloadBodyChecker kicks out
+
+2020-09-23 13:55:01.450: Checker: ExamplesChecker kicks in
+
+2020-09-23 13:55:01.459: Checker: ExamplesChecker kicks out
+
+2020-09-23 13:55:01.468: Checker: LeakageRuleChecker kicks in
+
+2020-09-23 13:55:01.477: Checker: LeakageRuleChecker kicks out
+
+2020-09-23 13:55:01.487: Checker: ResourceHierarchyChecker kicks in
+
+2020-09-23 13:55:01.497: Checker: ResourceHierarchyChecker kicks out
+
+2020-09-23 13:55:01.506: Checker: UseAfterFreeChecker kicks in
+
+2020-09-23 13:55:01.516: Checker: UseAfterFreeChecker kicks out
+
+2020-09-23 13:55:01.525: Checker: NameSpaceRuleChecker kicks in
+
+2020-09-23 13:55:01.533: Checker: NameSpaceRuleChecker kicks out
+
+2020-09-23 13:55:01.542: Checker: InvalidDynamicObjectChecker kicks in
+
+2020-09-23 13:55:01.552: Checker: InvalidDynamicObjectChecker kicks out
+
+2020-09-23 13:55:01.562: Checker: PayloadBodyChecker kicks in
+
+2020-09-23 13:55:01.570: Checker: PayloadBodyChecker kicks out
+
+2020-09-23 13:55:01.578: Checker: ExamplesChecker kicks in
+
+2020-09-23 13:55:01.587: Checker: ExamplesChecker kicks out
+
+
+Generation-3: Rendering Sequence-1
+
+	Request: 1 (Current combination: 1 / 1)
+		- restler_static_string: 'PUT '
+		- restler_static_string: '/'
+		- restler_static_string: 'city'
+		- restler_static_string: '/'
+		+ restler_custom_payload_uuid4_suffix: cityName<test!>-
+		- restler_static_string: ' HTTP/1.1\r\n'
+		- restler_static_string: '\r\n'
+		- restler_static_string: '{'
+		- restler_static_string: '}'
+		- restler_static_string: '\r\n'
+
+	Request: 2 (Current combination: 1 / 1)
+		- restler_static_string: 'PUT '
+		- restler_static_string: '/'
+		- restler_static_string: 'city'
+		- restler_static_string: '/'
+		- restler_static_string: '_READER_DELIM_city_put_name_READER_DELIM'
+		- restler_static_string: '/'
+		- restler_static_string: 'house'
+		- restler_static_string: '/'
+		+ restler_custom_payload_uuid4_suffix: houseName<test!>-
+		- restler_static_string: ' HTTP/1.1\r\n'
+		- restler_static_string: '\r\n'
+		- restler_static_string: '{'
+		- restler_static_string: '}'
+		- restler_static_string: '\r\n'
+
+	Request: 3 (Remaining candidate combinations: 1)
+		- restler_static_string: 'GET '
+		- restler_static_string: '/'
+		- restler_static_string: 'city'
+		- restler_static_string: '/'
+		- restler_static_string: '_READER_DELIM_city_put_name_READER_DELIM'
+		- restler_static_string: '/'
+		- restler_static_string: 'house'
+		- restler_static_string: '/'
+		- restler_static_string: '_READER_DELIM_city_house_put_name_READER_DELIM'
+		- restler_static_string: ' HTTP/1.1\r\n'
+		- restler_static_string: '\r\n'
+
+2020-09-23 13:55:02.154: Sending: 'PUT /city/cityName<test!>-b47a48ac85 HTTP/1.1\r\nContent-Length: 4\r\n\r\n{}\r\n'
+
+2020-09-23 13:55:02.163: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "cityName<test!>-b47a48ac85", "properties": {}}'
+
+2020-09-23 13:55:02.173: Sending: 'PUT /city/cityName<test!>-b47a48ac85/house/houseName<test!>-78484df907 HTTP/1.1\r\nContent-Length: 4\r\n\r\n{}\r\n'
+
+2020-09-23 13:55:02.182: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "houseName<test!>-78484df907"}'
+
+2020-09-23 13:55:02.190: Sending: 'GET /city/cityName<test!>-b47a48ac85/house/houseName<test!>-78484df907 HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:55:02.200: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"name": "houseName<test!>-78484df907"}'
+
+2020-09-23 13:55:02.210: Checker: LeakageRuleChecker kicks in
+
+2020-09-23 13:55:02.220: Checker: LeakageRuleChecker kicks out
+
+2020-09-23 13:55:02.229: Checker: ResourceHierarchyChecker kicks in
+
+2020-09-23 13:55:02.239: Sending: 'PUT /city/cityName<test!>-74bf6694c6 HTTP/1.1\r\nContent-Length: 4\r\n\r\n{}\r\n'
+
+2020-09-23 13:55:02.249: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "cityName<test!>-74bf6694c6", "properties": {}}'
+
+2020-09-23 13:55:02.259: ResourceHierarchyChecker 
+Target types: {'_city_house_put_name'}
+2020-09-23 13:55:02.274: ResourceHierarchyChecker Predecesor types: {'_city_put_name'}
+2020-09-23 13:55:02.285: ResourceHierarchyChecker Clean tlb: {'_city_put_name': 'cityName<test!>-74bf6694c6', '_city_house_put_name': None, '_city_house_color_put_name': None, '_leakageruletest_put_name': None, '_useafterfreetest_put_name': None, '_resourcehierarchytest_put_name': None, '_resourcehierarchychild_put_name': None}
+2020-09-23 13:55:02.299: ResourceHierarchyChecker Poluted tlb: {'_city_put_name': 'cityName<test!>-74bf6694c6', '_city_house_put_name': 'houseName<test!>-78484df907', '_city_house_color_put_name': None, '_leakageruletest_put_name': None, '_useafterfreetest_put_name': None, '_resourcehierarchytest_put_name': None, '_resourcehierarchychild_put_name': None}
+2020-09-23 13:55:02.309: Sending: 'GET /city/cityName<test!>-74bf6694c6/house/houseName<test!>-78484df907 HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:55:02.318: Received: "HTTP/1.1 404 Not Found\r\nRestler Test\r\n\r\n{'Resource': ResourceDoesNotExist()}"
+
+2020-09-23 13:55:02.327: Checker: ResourceHierarchyChecker kicks out
+
+2020-09-23 13:55:02.340: Checker: UseAfterFreeChecker kicks in
+
+2020-09-23 13:55:02.348: Checker: UseAfterFreeChecker kicks out
+
+2020-09-23 13:55:02.357: Checker: NameSpaceRuleChecker kicks in
+
+2020-09-23 13:55:02.369: Checker: NameSpaceRuleChecker kicks out
+
+2020-09-23 13:55:02.378: Checker: InvalidDynamicObjectChecker kicks in
+
+2020-09-23 13:55:02.387: Re-rendering and sending start of sequence
+2020-09-23 13:55:02.396: Sending: 'PUT /city/cityName<test!>-dc9866fb10 HTTP/1.1\r\nContent-Length: 4\r\n\r\n{}\r\n'
+
+2020-09-23 13:55:02.405: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "cityName<test!>-dc9866fb10", "properties": {}}'
+
+2020-09-23 13:55:02.416: Sending: 'PUT /city/cityName<test!>-dc9866fb10/house/houseName<test!>-7f52f3b164 HTTP/1.1\r\nContent-Length: 4\r\n\r\n{}\r\n'
+
+2020-09-23 13:55:02.426: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "houseName<test!>-7f52f3b164"}'
+
+2020-09-23 13:55:02.446: InvalidDynamicObjectChecker 
+Sending invalid request(s):
+2020-09-23 13:55:02.455: Preparing requests with invalid objects
+2020-09-23 13:55:02.472: InvalidDynamicObjectChecker 'GET /city/cityName<test!>-dc9866fb10?api-version=2019-01-01/house/houseName<test!>-7f52f3b164?api-version=2019-01-01 HTTP/1.1\r\n\r\n'
+2020-09-23 13:55:02.483: Sending: 'GET /city/cityName<test!>-dc9866fb10?api-version=2019-01-01/house/houseName<test!>-7f52f3b164?api-version=2019-01-01 HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:55:02.493: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"name": "cityName<test!>-dc9866fb10", "properties": {}}'
+
+2020-09-23 13:55:02.503: Attempting to reproduce bug...
+2020-09-23 13:55:02.514: Sending: 'PUT /city/cityName<test!>-dc9866fb10 HTTP/1.1\r\nContent-Length: 4\r\n\r\n{}\r\n'
+
+2020-09-23 13:55:02.525: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "cityName<test!>-dc9866fb10", "properties": {}}'
+
+2020-09-23 13:55:02.538: Sending: 'PUT /city/cityName<test!>-dc9866fb10/house/houseName<test!>-7f52f3b164 HTTP/1.1\r\nContent-Length: 4\r\n\r\n{}\r\n'
+
+2020-09-23 13:55:02.554: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "houseName<test!>-7f52f3b164"}'
+
+2020-09-23 13:55:02.567: Sending: 'GET /city/cityName<test!>-dc9866fb10?api-version=2019-01-01/house/houseName<test!>-7f52f3b164?api-version=2019-01-01 HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:55:02.580: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"name": "cityName<test!>-dc9866fb10", "properties": {}}'
+
+2020-09-23 13:55:02.592: Done replaying sequence.
+2020-09-23 13:55:02.618: InvalidDynamicObjectChecker 
+Suspect sequence: 200
+2020-09-23 13:55:02.634: InvalidDynamicObjectChecker PUT /city/cityName
+2020-09-23 13:55:02.650: InvalidDynamicObjectChecker PUT /city/_READER_DELIM_city_put_name_READER_DELIM/house/houseName
+2020-09-23 13:55:02.683: InvalidDynamicObjectChecker GET /city/_READER_DELIM_city_put_name_READER_DELIM/house/_READER_DELIM_city_house_put_name_READER_DELIM
+2020-09-23 13:55:02.706: InvalidDynamicObjectChecker 'GET /city/cityName<test!>-dc9866fb10/house/houseName<test!>-7f52f3b164?api-version=2019-01-01 HTTP/1.1\r\n\r\n'
+2020-09-23 13:55:02.717: Sending: 'GET /city/cityName<test!>-dc9866fb10/house/houseName<test!>-7f52f3b164?api-version=2019-01-01 HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:55:02.727: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"name": "houseName<test!>-7f52f3b164"}'
+
+2020-09-23 13:55:02.756: InvalidDynamicObjectChecker 
+Suspect sequence: 200
+2020-09-23 13:55:02.770: InvalidDynamicObjectChecker PUT /city/cityName
+2020-09-23 13:55:02.785: InvalidDynamicObjectChecker PUT /city/_READER_DELIM_city_put_name_READER_DELIM/house/houseName
+2020-09-23 13:55:02.799: InvalidDynamicObjectChecker GET /city/_READER_DELIM_city_put_name_READER_DELIM/house/_READER_DELIM_city_house_put_name_READER_DELIM
+2020-09-23 13:55:02.813: InvalidDynamicObjectChecker 'GET /city/cityName<test!>-dc9866fb10?api-version=2019-01-01/house/houseName<test!>-7f52f3b164 HTTP/1.1\r\n\r\n'
+2020-09-23 13:55:02.822: Sending: 'GET /city/cityName<test!>-dc9866fb10?api-version=2019-01-01/house/houseName<test!>-7f52f3b164 HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:55:02.831: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"name": "cityName<test!>-dc9866fb10", "properties": {}}'
+
+2020-09-23 13:55:02.861: InvalidDynamicObjectChecker 
+Suspect sequence: 200
+2020-09-23 13:55:02.876: InvalidDynamicObjectChecker PUT /city/cityName
+2020-09-23 13:55:02.891: InvalidDynamicObjectChecker PUT /city/_READER_DELIM_city_put_name_READER_DELIM/house/houseName
+2020-09-23 13:55:02.907: InvalidDynamicObjectChecker GET /city/_READER_DELIM_city_put_name_READER_DELIM/house/_READER_DELIM_city_house_put_name_READER_DELIM
+2020-09-23 13:55:02.923: InvalidDynamicObjectChecker 'GET /city/cityName<test!>-dc9866fb10/?//house/houseName<test!>-7f52f3b164/?/ HTTP/1.1\r\n\r\n'
+2020-09-23 13:55:02.932: Sending: 'GET /city/cityName<test!>-dc9866fb10/?//house/houseName<test!>-7f52f3b164/?/ HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:55:02.941: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"name": "cityName<test!>-dc9866fb10", "properties": {}}'
+
+2020-09-23 13:55:02.961: InvalidDynamicObjectChecker 
+Suspect sequence: 200
+2020-09-23 13:55:02.977: InvalidDynamicObjectChecker PUT /city/cityName
+2020-09-23 13:55:02.994: InvalidDynamicObjectChecker PUT /city/_READER_DELIM_city_put_name_READER_DELIM/house/houseName
+2020-09-23 13:55:03.010: InvalidDynamicObjectChecker GET /city/_READER_DELIM_city_put_name_READER_DELIM/house/_READER_DELIM_city_house_put_name_READER_DELIM
+2020-09-23 13:55:03.026: InvalidDynamicObjectChecker 'GET /city/cityName<test!>-dc9866fb10/house/houseName<test!>-7f52f3b164/?/ HTTP/1.1\r\n\r\n'
+2020-09-23 13:55:03.036: Sending: 'GET /city/cityName<test!>-dc9866fb10/house/houseName<test!>-7f52f3b164/?/ HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:55:03.045: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"name": "houseName<test!>-7f52f3b164"}'
+
+2020-09-23 13:55:03.070: InvalidDynamicObjectChecker 
+Suspect sequence: 200
+2020-09-23 13:55:03.089: InvalidDynamicObjectChecker PUT /city/cityName
+2020-09-23 13:55:03.109: InvalidDynamicObjectChecker PUT /city/_READER_DELIM_city_put_name_READER_DELIM/house/houseName
+2020-09-23 13:55:03.129: InvalidDynamicObjectChecker GET /city/_READER_DELIM_city_put_name_READER_DELIM/house/_READER_DELIM_city_house_put_name_READER_DELIM
+2020-09-23 13:55:03.147: InvalidDynamicObjectChecker 'GET /city/cityName<test!>-dc9866fb10/?//house/houseName<test!>-7f52f3b164 HTTP/1.1\r\n\r\n'
+2020-09-23 13:55:03.156: Sending: 'GET /city/cityName<test!>-dc9866fb10/?//house/houseName<test!>-7f52f3b164 HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:55:03.165: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"name": "cityName<test!>-dc9866fb10", "properties": {}}'
+
+2020-09-23 13:55:03.186: InvalidDynamicObjectChecker 
+Suspect sequence: 200
+2020-09-23 13:55:03.219: InvalidDynamicObjectChecker PUT /city/cityName
+2020-09-23 13:55:03.243: InvalidDynamicObjectChecker PUT /city/_READER_DELIM_city_put_name_READER_DELIM/house/houseName
+2020-09-23 13:55:03.260: InvalidDynamicObjectChecker GET /city/_READER_DELIM_city_put_name_READER_DELIM/house/_READER_DELIM_city_house_put_name_READER_DELIM
+2020-09-23 13:55:03.277: InvalidDynamicObjectChecker 'GET /city/cityName<test!>-dc9866fb10??/house/houseName<test!>-7f52f3b164?? HTTP/1.1\r\n\r\n'
+2020-09-23 13:55:03.286: Sending: 'GET /city/cityName<test!>-dc9866fb10??/house/houseName<test!>-7f52f3b164?? HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:55:03.304: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"name": "cityName<test!>-dc9866fb10", "properties": {}}'
+
+2020-09-23 13:55:03.329: InvalidDynamicObjectChecker 
+Suspect sequence: 200
+2020-09-23 13:55:03.354: InvalidDynamicObjectChecker PUT /city/cityName
+2020-09-23 13:55:03.377: InvalidDynamicObjectChecker PUT /city/_READER_DELIM_city_put_name_READER_DELIM/house/houseName
+2020-09-23 13:55:03.409: InvalidDynamicObjectChecker GET /city/_READER_DELIM_city_put_name_READER_DELIM/house/_READER_DELIM_city_house_put_name_READER_DELIM
+2020-09-23 13:55:03.436: InvalidDynamicObjectChecker 'GET /city/cityName<test!>-dc9866fb10/house/houseName<test!>-7f52f3b164?? HTTP/1.1\r\n\r\n'
+2020-09-23 13:55:03.448: Sending: 'GET /city/cityName<test!>-dc9866fb10/house/houseName<test!>-7f52f3b164?? HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:55:03.460: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"name": "houseName<test!>-7f52f3b164"}'
+
+2020-09-23 13:55:03.491: InvalidDynamicObjectChecker 
+Suspect sequence: 200
+2020-09-23 13:55:03.519: InvalidDynamicObjectChecker PUT /city/cityName
+2020-09-23 13:55:03.543: InvalidDynamicObjectChecker PUT /city/_READER_DELIM_city_put_name_READER_DELIM/house/houseName
+2020-09-23 13:55:03.570: InvalidDynamicObjectChecker GET /city/_READER_DELIM_city_put_name_READER_DELIM/house/_READER_DELIM_city_house_put_name_READER_DELIM
+2020-09-23 13:55:03.590: InvalidDynamicObjectChecker 'GET /city/cityName<test!>-dc9866fb10??/house/houseName<test!>-7f52f3b164 HTTP/1.1\r\n\r\n'
+2020-09-23 13:55:03.600: Sending: 'GET /city/cityName<test!>-dc9866fb10??/house/houseName<test!>-7f52f3b164 HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:55:03.610: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"name": "cityName<test!>-dc9866fb10", "properties": {}}'
+
+2020-09-23 13:55:03.633: InvalidDynamicObjectChecker 
+Suspect sequence: 200
+2020-09-23 13:55:03.650: InvalidDynamicObjectChecker PUT /city/cityName
+2020-09-23 13:55:03.671: InvalidDynamicObjectChecker PUT /city/_READER_DELIM_city_put_name_READER_DELIM/house/houseName
+2020-09-23 13:55:03.688: InvalidDynamicObjectChecker GET /city/_READER_DELIM_city_put_name_READER_DELIM/house/_READER_DELIM_city_house_put_name_READER_DELIM
+2020-09-23 13:55:03.711: InvalidDynamicObjectChecker 'GET /city/cityName<test!>-dc9866fb10/cityName<test!>-dc9866fb10/house/houseName<test!>-7f52f3b164/houseName<test!>-7f52f3b164 HTTP/1.1\r\n\r\n'
+2020-09-23 13:55:03.722: Sending: 'GET /city/cityName<test!>-dc9866fb10/cityName<test!>-dc9866fb10/house/houseName<test!>-7f52f3b164/houseName<test!>-7f52f3b164 HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:55:03.732: Received: "HTTP/1.1 404 Not Found\r\nRestler Test\r\n\r\n{'Resource': ResourceDoesNotExist()}"
+
+2020-09-23 13:55:03.749: InvalidDynamicObjectChecker 'GET /city/cityName<test!>-dc9866fb10/house/houseName<test!>-7f52f3b164/houseName<test!>-7f52f3b164 HTTP/1.1\r\n\r\n'
+2020-09-23 13:55:03.759: Sending: 'GET /city/cityName<test!>-dc9866fb10/house/houseName<test!>-7f52f3b164/houseName<test!>-7f52f3b164 HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:55:03.769: Received: "HTTP/1.1 404 Not Found\r\nRestler Test\r\n\r\n{'Resource': ResourceDoesNotExist()}"
+
+2020-09-23 13:55:03.787: InvalidDynamicObjectChecker 'GET /city/cityName<test!>-dc9866fb10/cityName<test!>-dc9866fb10/house/houseName<test!>-7f52f3b164 HTTP/1.1\r\n\r\n'
+2020-09-23 13:55:03.796: Sending: 'GET /city/cityName<test!>-dc9866fb10/cityName<test!>-dc9866fb10/house/houseName<test!>-7f52f3b164 HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:55:03.810: Received: "HTTP/1.1 404 Not Found\r\nRestler Test\r\n\r\n{'Resource': ResourceDoesNotExist()}"
+
+2020-09-23 13:55:03.826: InvalidDynamicObjectChecker 'GET /city/{}/house/{} HTTP/1.1\r\n\r\n'
+2020-09-23 13:55:03.836: Sending: 'GET /city/{}/house/{} HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:55:03.844: Received: "HTTP/1.1 404 Not Found\r\nRestler Test\r\n\r\n{'Resource': ResourceDoesNotExist()}"
+
+2020-09-23 13:55:03.861: InvalidDynamicObjectChecker 'GET /city/cityName<test!>-dc9866fb10/house/{} HTTP/1.1\r\n\r\n'
+2020-09-23 13:55:03.871: Sending: 'GET /city/cityName<test!>-dc9866fb10/house/{} HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:55:03.879: Received: "HTTP/1.1 404 Not Found\r\nRestler Test\r\n\r\n{'Resource': ResourceDoesNotExist()}"
+
+2020-09-23 13:55:03.894: InvalidDynamicObjectChecker 'GET /city/{}/house/houseName<test!>-7f52f3b164 HTTP/1.1\r\n\r\n'
+2020-09-23 13:55:03.904: Sending: 'GET /city/{}/house/houseName<test!>-7f52f3b164 HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:55:03.913: Received: "HTTP/1.1 404 Not Found\r\nRestler Test\r\n\r\n{'Resource': ResourceDoesNotExist()}"
+
+2020-09-23 13:55:03.922: Checker: InvalidDynamicObjectChecker kicks out
+
+2020-09-23 13:55:03.931: Checker: PayloadBodyChecker kicks in
+
+2020-09-23 13:55:03.940: Checker: PayloadBodyChecker kicks out
+
+2020-09-23 13:55:03.950: Checker: ExamplesChecker kicks in
+
+2020-09-23 13:55:03.959: Checker: ExamplesChecker kicks out
+
+
+Generation-3: Rendering Sequence-1
+
+	Request: 1 (Current combination: 1 / 1)
+		- restler_static_string: 'PUT '
+		- restler_static_string: '/'
+		- restler_static_string: 'resourcehierarchytest'
+		- restler_static_string: '/'
+		+ restler_custom_payload_uuid4_suffix: resourcehierarchyTest<test!>-
+		- restler_static_string: ' HTTP/1.1\r\n'
+		- restler_static_string: '\r\n'
+		- restler_static_string: '{'
+		- restler_static_string: '}'
+		- restler_static_string: '\r\n'
+
+	Request: 2 (Current combination: 1 / 1)
+		- restler_static_string: 'PUT '
+		- restler_static_string: '/'
+		- restler_static_string: 'resourcehierarchytest'
+		- restler_static_string: '/'
+		- restler_static_string: '_READER_DELIM_resourcehierarchytest_put_name_READER_DELIM'
+		- restler_static_string: '/'
+		- restler_static_string: 'resourcehierarchychild'
+		- restler_static_string: '/'
+		+ restler_custom_payload_uuid4_suffix: resourcehierarchyChild<test!>-
+		- restler_static_string: ' HTTP/1.1\r\n'
+		- restler_static_string: '\r\n'
+		- restler_static_string: '{'
+		- restler_static_string: '}'
+		- restler_static_string: '\r\n'
+
+	Request: 3 (Remaining candidate combinations: 1)
+		- restler_static_string: 'DELETE '
+		- restler_static_string: '/'
+		- restler_static_string: 'resourcehierarchytest'
+		- restler_static_string: '/'
+		- restler_static_string: '_READER_DELIM_resourcehierarchytest_put_name_READER_DELIM'
+		- restler_static_string: '/'
+		- restler_static_string: 'resourcehierarchychild'
+		- restler_static_string: '/'
+		- restler_static_string: '_READER_DELIM_resourcehierarchychild_put_name_READER_DELIM'
+		- restler_static_string: ' HTTP/1.1\r\n'
+		- restler_static_string: '\r\n'
+
+2020-09-23 13:55:04.483: Sending: 'PUT /resourcehierarchytest/resourcehierarchyTest<test!>-9e7a084912 HTTP/1.1\r\nContent-Length: 4\r\n\r\n{}\r\n'
+
+2020-09-23 13:55:04.492: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "resourcehierarchyTest<test!>-9e7a084912"}'
+
+2020-09-23 13:55:04.501: Sending: 'PUT /resourcehierarchytest/resourcehierarchyTest<test!>-9e7a084912/resourcehierarchychild/resourcehierarchyChild<test!>-35aad40d4d HTTP/1.1\r\nContent-Length: 4\r\n\r\n{}\r\n'
+
+2020-09-23 13:55:04.510: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "resourcehierarchyChild<test!>-35aad40d4d"}'
+
+2020-09-23 13:55:04.519: Sending: 'DELETE /resourcehierarchytest/resourcehierarchyTest<test!>-9e7a084912/resourcehierarchychild/resourcehierarchyChild<test!>-35aad40d4d HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:55:04.528: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"resourcehierarchyChild<test!>-35aad40d4d"'
+
+2020-09-23 13:55:04.537: Checker: LeakageRuleChecker kicks in
+
+2020-09-23 13:55:04.547: Checker: LeakageRuleChecker kicks out
+
+2020-09-23 13:55:04.556: Checker: ResourceHierarchyChecker kicks in
+
+2020-09-23 13:55:04.566: Checker: ResourceHierarchyChecker kicks out
+
+2020-09-23 13:55:04.576: Checker: UseAfterFreeChecker kicks in
+
+2020-09-23 13:55:04.590: UseAfterFreeChecker 
+Target types: {'_resourcehierarchychild_put_name', '_resourcehierarchytest_put_name'}
+2020-09-23 13:55:04.605: UseAfterFreeChecker Clean tlb: {'_city_put_name': None, '_city_house_put_name': None, '_city_house_color_put_name': None, '_leakageruletest_put_name': None, '_useafterfreetest_put_name': None, '_resourcehierarchytest_put_name': 'resourcehierarchyTest<test!>-9e7a084912', '_resourcehierarchychild_put_name': 'resourcehierarchyChild<test!>-35aad40d4d'}
+2020-09-23 13:55:04.618: UseAfterFreeChecker Found * 1 * consumers.
+2020-09-23 13:55:04.628: Sending: 'GET /resourcehierarchytest/resourcehierarchyTest<test!>-9e7a084912/resourcehierarchychild/resourcehierarchyChild<test!>-35aad40d4d HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:55:04.637: Received: "HTTP/1.1 404 Not Found\r\nRestler Test\r\n\r\n{'Resource': ResourceDoesNotExist()}"
+
+2020-09-23 13:55:04.645: Checker: UseAfterFreeChecker kicks out
+
+2020-09-23 13:55:04.656: Checker: NameSpaceRuleChecker kicks in
+
+2020-09-23 13:55:04.664: Checker: NameSpaceRuleChecker kicks out
+
+2020-09-23 13:55:04.674: Checker: InvalidDynamicObjectChecker kicks in
+
+2020-09-23 13:55:04.683: Re-rendering and sending start of sequence
+2020-09-23 13:55:04.691: Sending: 'PUT /resourcehierarchytest/resourcehierarchyTest<test!>-d571560137 HTTP/1.1\r\nContent-Length: 4\r\n\r\n{}\r\n'
+
+2020-09-23 13:55:04.701: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "resourcehierarchyTest<test!>-d571560137"}'
+
+2020-09-23 13:55:04.711: Sending: 'PUT /resourcehierarchytest/resourcehierarchyTest<test!>-d571560137/resourcehierarchychild/resourcehierarchyChild<test!>-eb4d9e3077 HTTP/1.1\r\nContent-Length: 4\r\n\r\n{}\r\n'
+
+2020-09-23 13:55:04.720: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "resourcehierarchyChild<test!>-eb4d9e3077"}'
+
+2020-09-23 13:55:04.734: InvalidDynamicObjectChecker 
+Sending invalid request(s):
+2020-09-23 13:55:04.743: Preparing requests with invalid objects
+2020-09-23 13:55:04.758: InvalidDynamicObjectChecker 'DELETE /resourcehierarchytest/resourcehierarchyTest<test!>-d571560137?api-version=2019-01-01/resourcehierarchychild/resourcehierarchyChild<test!>-eb4d9e3077?api-version=2019-01-01 HTTP/1.1\r\n\r\n'
+2020-09-23 13:55:04.768: Sending: 'DELETE /resourcehierarchytest/resourcehierarchyTest<test!>-d571560137?api-version=2019-01-01/resourcehierarchychild/resourcehierarchyChild<test!>-eb4d9e3077?api-version=2019-01-01 HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:55:04.776: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"resourcehierarchyTest<test!>-d571560137"'
+
+2020-09-23 13:55:04.785: Attempting to reproduce bug...
+2020-09-23 13:55:04.795: Sending: 'PUT /resourcehierarchytest/resourcehierarchyTest<test!>-d571560137 HTTP/1.1\r\nContent-Length: 4\r\n\r\n{}\r\n'
+
+2020-09-23 13:55:04.804: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "resourcehierarchyTest<test!>-d571560137"}'
+
+2020-09-23 13:55:04.813: Sending: 'PUT /resourcehierarchytest/resourcehierarchyTest<test!>-d571560137/resourcehierarchychild/resourcehierarchyChild<test!>-eb4d9e3077 HTTP/1.1\r\nContent-Length: 4\r\n\r\n{}\r\n'
+
+2020-09-23 13:55:04.823: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "resourcehierarchyChild<test!>-eb4d9e3077"}'
+
+2020-09-23 13:55:04.832: Sending: 'DELETE /resourcehierarchytest/resourcehierarchyTest<test!>-d571560137?api-version=2019-01-01/resourcehierarchychild/resourcehierarchyChild<test!>-eb4d9e3077?api-version=2019-01-01 HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:55:04.840: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"resourcehierarchyTest<test!>-d571560137"'
+
+2020-09-23 13:55:04.850: Done replaying sequence.
+2020-09-23 13:55:04.874: InvalidDynamicObjectChecker 
+Suspect sequence: 202
+2020-09-23 13:55:04.889: InvalidDynamicObjectChecker PUT /resourcehierarchytest/resourcehierarchyTest
+2020-09-23 13:55:04.904: InvalidDynamicObjectChecker PUT /resourcehierarchytest/_READER_DELIM_resourcehierarchytest_put_name_READER_DELIM/resourcehierarchychild/resourcehierarchyChild
+2020-09-23 13:55:04.919: InvalidDynamicObjectChecker DELETE /resourcehierarchytest/_READER_DELIM_resourcehierarchytest_put_name_READER_DELIM/resourcehierarchychild/_READER_DELIM_resourcehierarchychild_put_name_READER_DELIM
+2020-09-23 13:55:04.933: InvalidDynamicObjectChecker 'DELETE /resourcehierarchytest/resourcehierarchyTest<test!>-d571560137/resourcehierarchychild/resourcehierarchyChild<test!>-eb4d9e3077?api-version=2019-01-01 HTTP/1.1\r\n\r\n'
+2020-09-23 13:55:04.942: Sending: 'DELETE /resourcehierarchytest/resourcehierarchyTest<test!>-d571560137/resourcehierarchychild/resourcehierarchyChild<test!>-eb4d9e3077?api-version=2019-01-01 HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:55:04.951: Received: "HTTP/1.1 404 Not Found\r\nRestler Test\r\n\r\n{'Resource': ResourceDoesNotExist()}"
+
+2020-09-23 13:55:04.966: InvalidDynamicObjectChecker 'DELETE /resourcehierarchytest/resourcehierarchyTest<test!>-d571560137?api-version=2019-01-01/resourcehierarchychild/resourcehierarchyChild<test!>-eb4d9e3077 HTTP/1.1\r\n\r\n'
+2020-09-23 13:55:04.975: Sending: 'DELETE /resourcehierarchytest/resourcehierarchyTest<test!>-d571560137?api-version=2019-01-01/resourcehierarchychild/resourcehierarchyChild<test!>-eb4d9e3077 HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:55:04.985: Received: "HTTP/1.1 404 Not Found\r\nRestler Test\r\n\r\n{'Resource': ResourceDoesNotExist()}"
+
+2020-09-23 13:55:05.000: InvalidDynamicObjectChecker 'DELETE /resourcehierarchytest/resourcehierarchyTest<test!>-d571560137/?//resourcehierarchychild/resourcehierarchyChild<test!>-eb4d9e3077/?/ HTTP/1.1\r\n\r\n'
+2020-09-23 13:55:05.009: Sending: 'DELETE /resourcehierarchytest/resourcehierarchyTest<test!>-d571560137/?//resourcehierarchychild/resourcehierarchyChild<test!>-eb4d9e3077/?/ HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:55:05.019: Received: 'HTTP/1.1 400 Bad Request\r\nRestler Test\r\n\r\n{"error": "Invalid resource: "}'
+
+2020-09-23 13:55:05.034: InvalidDynamicObjectChecker 'DELETE /resourcehierarchytest/resourcehierarchyTest<test!>-d571560137/resourcehierarchychild/resourcehierarchyChild<test!>-eb4d9e3077/?/ HTTP/1.1\r\n\r\n'
+2020-09-23 13:55:05.042: Sending: 'DELETE /resourcehierarchytest/resourcehierarchyTest<test!>-d571560137/resourcehierarchychild/resourcehierarchyChild<test!>-eb4d9e3077/?/ HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:55:05.052: Received: 'HTTP/1.1 400 Bad Request\r\nRestler Test\r\n\r\n{"error": "Invalid resource: "}'
+
+2020-09-23 13:55:05.067: InvalidDynamicObjectChecker 'DELETE /resourcehierarchytest/resourcehierarchyTest<test!>-d571560137/?//resourcehierarchychild/resourcehierarchyChild<test!>-eb4d9e3077 HTTP/1.1\r\n\r\n'
+2020-09-23 13:55:05.075: Sending: 'DELETE /resourcehierarchytest/resourcehierarchyTest<test!>-d571560137/?//resourcehierarchychild/resourcehierarchyChild<test!>-eb4d9e3077 HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:55:05.084: Received: 'HTTP/1.1 400 Bad Request\r\nRestler Test\r\n\r\n{"error": "Invalid resource: "}'
+
+2020-09-23 13:55:05.099: InvalidDynamicObjectChecker 'DELETE /resourcehierarchytest/resourcehierarchyTest<test!>-d571560137??/resourcehierarchychild/resourcehierarchyChild<test!>-eb4d9e3077?? HTTP/1.1\r\n\r\n'
+2020-09-23 13:55:05.107: Sending: 'DELETE /resourcehierarchytest/resourcehierarchyTest<test!>-d571560137??/resourcehierarchychild/resourcehierarchyChild<test!>-eb4d9e3077?? HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:55:05.119: Received: "HTTP/1.1 404 Not Found\r\nRestler Test\r\n\r\n{'Resource': ResourceDoesNotExist()}"
+
+2020-09-23 13:55:05.137: InvalidDynamicObjectChecker 'DELETE /resourcehierarchytest/resourcehierarchyTest<test!>-d571560137/resourcehierarchychild/resourcehierarchyChild<test!>-eb4d9e3077?? HTTP/1.1\r\n\r\n'
+2020-09-23 13:55:05.146: Sending: 'DELETE /resourcehierarchytest/resourcehierarchyTest<test!>-d571560137/resourcehierarchychild/resourcehierarchyChild<test!>-eb4d9e3077?? HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:55:05.156: Received: "HTTP/1.1 404 Not Found\r\nRestler Test\r\n\r\n{'Resource': ResourceDoesNotExist()}"
+
+2020-09-23 13:55:05.172: InvalidDynamicObjectChecker 'DELETE /resourcehierarchytest/resourcehierarchyTest<test!>-d571560137??/resourcehierarchychild/resourcehierarchyChild<test!>-eb4d9e3077 HTTP/1.1\r\n\r\n'
+2020-09-23 13:55:05.181: Sending: 'DELETE /resourcehierarchytest/resourcehierarchyTest<test!>-d571560137??/resourcehierarchychild/resourcehierarchyChild<test!>-eb4d9e3077 HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:55:05.189: Received: "HTTP/1.1 404 Not Found\r\nRestler Test\r\n\r\n{'Resource': ResourceDoesNotExist()}"
+
+2020-09-23 13:55:05.204: InvalidDynamicObjectChecker 'DELETE /resourcehierarchytest/resourcehierarchyTest<test!>-d571560137/resourcehierarchyTest<test!>-d571560137/resourcehierarchychild/resourcehierarchyChild<test!>-eb4d9e3077/resourcehierarchyChild<test!>-eb4d9e3077 HTTP/1.1\r\n\r\n'
+2020-09-23 13:55:05.213: Sending: 'DELETE /resourcehierarchytest/resourcehierarchyTest<test!>-d571560137/resourcehierarchyTest<test!>-d571560137/resourcehierarchychild/resourcehierarchyChild<test!>-eb4d9e3077/resourcehierarchyChild<test!>-eb4d9e3077 HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:55:05.223: Received: "HTTP/1.1 404 Not Found\r\nRestler Test\r\n\r\n{'Resource': ResourceDoesNotExist()}"
+
+2020-09-23 13:55:05.241: InvalidDynamicObjectChecker 'DELETE /resourcehierarchytest/resourcehierarchyTest<test!>-d571560137/resourcehierarchychild/resourcehierarchyChild<test!>-eb4d9e3077/resourcehierarchyChild<test!>-eb4d9e3077 HTTP/1.1\r\n\r\n'
+2020-09-23 13:55:05.251: Sending: 'DELETE /resourcehierarchytest/resourcehierarchyTest<test!>-d571560137/resourcehierarchychild/resourcehierarchyChild<test!>-eb4d9e3077/resourcehierarchyChild<test!>-eb4d9e3077 HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:55:05.263: Received: 'HTTP/1.1 400 Bad Request\r\nRestler Test\r\n\r\n{"error": "Invalid resource: resourcehierarchyChild<test!>-eb4d9e3077"}'
+
+2020-09-23 13:55:05.283: InvalidDynamicObjectChecker 'DELETE /resourcehierarchytest/resourcehierarchyTest<test!>-d571560137/resourcehierarchyTest<test!>-d571560137/resourcehierarchychild/resourcehierarchyChild<test!>-eb4d9e3077 HTTP/1.1\r\n\r\n'
+2020-09-23 13:55:05.292: Sending: 'DELETE /resourcehierarchytest/resourcehierarchyTest<test!>-d571560137/resourcehierarchyTest<test!>-d571560137/resourcehierarchychild/resourcehierarchyChild<test!>-eb4d9e3077 HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:55:05.303: Received: 'HTTP/1.1 400 Bad Request\r\nRestler Test\r\n\r\n{"error": "Invalid resource: resourcehierarchyChild<test!>-eb4d9e3077"}'
+
+2020-09-23 13:55:05.336: InvalidDynamicObjectChecker 'DELETE /resourcehierarchytest/{}/resourcehierarchychild/{} HTTP/1.1\r\n\r\n'
+2020-09-23 13:55:05.352: Sending: 'DELETE /resourcehierarchytest/{}/resourcehierarchychild/{} HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:55:05.369: Received: "HTTP/1.1 404 Not Found\r\nRestler Test\r\n\r\n{'Resource': ResourceDoesNotExist()}"
+
+2020-09-23 13:55:05.391: InvalidDynamicObjectChecker 'DELETE /resourcehierarchytest/resourcehierarchyTest<test!>-d571560137/resourcehierarchychild/{} HTTP/1.1\r\n\r\n'
+2020-09-23 13:55:05.407: Sending: 'DELETE /resourcehierarchytest/resourcehierarchyTest<test!>-d571560137/resourcehierarchychild/{} HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:55:05.424: Received: "HTTP/1.1 404 Not Found\r\nRestler Test\r\n\r\n{'Resource': ResourceDoesNotExist()}"
+
+2020-09-23 13:55:05.460: InvalidDynamicObjectChecker 'DELETE /resourcehierarchytest/{}/resourcehierarchychild/resourcehierarchyChild<test!>-eb4d9e3077 HTTP/1.1\r\n\r\n'
+2020-09-23 13:55:05.497: Sending: 'DELETE /resourcehierarchytest/{}/resourcehierarchychild/resourcehierarchyChild<test!>-eb4d9e3077 HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:55:05.527: Received: "HTTP/1.1 404 Not Found\r\nRestler Test\r\n\r\n{'Resource': ResourceDoesNotExist()}"
+
+2020-09-23 13:55:05.547: Checker: InvalidDynamicObjectChecker kicks out
+
+2020-09-23 13:55:05.568: Checker: PayloadBodyChecker kicks in
+
+2020-09-23 13:55:05.594: Checker: PayloadBodyChecker kicks out
+
+2020-09-23 13:55:05.622: Checker: ExamplesChecker kicks in
+
+2020-09-23 13:55:05.659: Checker: ExamplesChecker kicks out
+
+
+Generation-3: Rendering Sequence-1
+
+	Request: 1 (Current combination: 1 / 1)
+		- restler_static_string: 'PUT '
+		- restler_static_string: '/'
+		- restler_static_string: 'resourcehierarchytest'
+		- restler_static_string: '/'
+		+ restler_custom_payload_uuid4_suffix: resourcehierarchyTest<test!>-
+		- restler_static_string: ' HTTP/1.1\r\n'
+		- restler_static_string: '\r\n'
+		- restler_static_string: '{'
+		- restler_static_string: '}'
+		- restler_static_string: '\r\n'
+
+	Request: 2 (Current combination: 1 / 1)
+		- restler_static_string: 'PUT '
+		- restler_static_string: '/'
+		- restler_static_string: 'resourcehierarchytest'
+		- restler_static_string: '/'
+		- restler_static_string: '_READER_DELIM_resourcehierarchytest_put_name_READER_DELIM'
+		- restler_static_string: '/'
+		- restler_static_string: 'resourcehierarchychild'
+		- restler_static_string: '/'
+		+ restler_custom_payload_uuid4_suffix: resourcehierarchyChild<test!>-
+		- restler_static_string: ' HTTP/1.1\r\n'
+		- restler_static_string: '\r\n'
+		- restler_static_string: '{'
+		- restler_static_string: '}'
+		- restler_static_string: '\r\n'
+
+	Request: 3 (Remaining candidate combinations: 1)
+		- restler_static_string: 'GET '
+		- restler_static_string: '/'
+		- restler_static_string: 'resourcehierarchytest'
+		- restler_static_string: '/'
+		- restler_static_string: '_READER_DELIM_resourcehierarchytest_put_name_READER_DELIM'
+		- restler_static_string: '/'
+		- restler_static_string: 'resourcehierarchychild'
+		- restler_static_string: '/'
+		- restler_static_string: '_READER_DELIM_resourcehierarchychild_put_name_READER_DELIM'
+		- restler_static_string: ' HTTP/1.1\r\n'
+		- restler_static_string: '\r\n'
+
+2020-09-23 13:55:06.272: Sending: 'PUT /resourcehierarchytest/resourcehierarchyTest<test!>-5ed421187d HTTP/1.1\r\nContent-Length: 4\r\n\r\n{}\r\n'
+
+2020-09-23 13:55:06.281: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "resourcehierarchyTest<test!>-5ed421187d"}'
+
+2020-09-23 13:55:06.291: Sending: 'PUT /resourcehierarchytest/resourcehierarchyTest<test!>-5ed421187d/resourcehierarchychild/resourcehierarchyChild<test!>-c17aa92d8d HTTP/1.1\r\nContent-Length: 4\r\n\r\n{}\r\n'
+
+2020-09-23 13:55:06.301: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "resourcehierarchyChild<test!>-c17aa92d8d"}'
+
+2020-09-23 13:55:06.310: Sending: 'GET /resourcehierarchytest/resourcehierarchyTest<test!>-5ed421187d/resourcehierarchychild/resourcehierarchyChild<test!>-c17aa92d8d HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:55:06.321: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"name": "resourcehierarchyChild<test!>-c17aa92d8d"}'
+
+2020-09-23 13:55:06.330: Checker: LeakageRuleChecker kicks in
+
+2020-09-23 13:55:06.339: Checker: LeakageRuleChecker kicks out
+
+2020-09-23 13:55:06.351: Checker: ResourceHierarchyChecker kicks in
+
+2020-09-23 13:55:06.360: Sending: 'PUT /resourcehierarchytest/resourcehierarchyTest<test!>-303026b7df HTTP/1.1\r\nContent-Length: 4\r\n\r\n{}\r\n'
+
+2020-09-23 13:55:06.370: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "resourcehierarchyTest<test!>-303026b7df"}'
+
+2020-09-23 13:55:06.385: ResourceHierarchyChecker 
+Target types: {'_resourcehierarchychild_put_name'}
+2020-09-23 13:55:06.399: ResourceHierarchyChecker Predecesor types: {'_resourcehierarchytest_put_name'}
+2020-09-23 13:55:06.414: ResourceHierarchyChecker Clean tlb: {'_city_put_name': None, '_city_house_put_name': None, '_city_house_color_put_name': None, '_leakageruletest_put_name': None, '_useafterfreetest_put_name': None, '_resourcehierarchytest_put_name': 'resourcehierarchyTest<test!>-303026b7df', '_resourcehierarchychild_put_name': None}
+2020-09-23 13:55:06.429: ResourceHierarchyChecker Poluted tlb: {'_city_put_name': None, '_city_house_put_name': None, '_city_house_color_put_name': None, '_leakageruletest_put_name': None, '_useafterfreetest_put_name': None, '_resourcehierarchytest_put_name': 'resourcehierarchyTest<test!>-303026b7df', '_resourcehierarchychild_put_name': 'resourcehierarchyChild<test!>-c17aa92d8d'}
+2020-09-23 13:55:06.438: Sending: 'GET /resourcehierarchytest/resourcehierarchyTest<test!>-303026b7df/resourcehierarchychild/resourcehierarchyChild<test!>-c17aa92d8d HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:55:06.447: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"name": "resourcehierarchyChild<test!>-c17aa92d8d"}'
+
+2020-09-23 13:55:06.462: ResourceHierarchyChecker 
+Suspect sequence: 200
+2020-09-23 13:55:06.479: ResourceHierarchyChecker PUT /resourcehierarchytest/resourcehierarchyTest
+2020-09-23 13:55:06.493: ResourceHierarchyChecker GET /resourcehierarchytest/_READER_DELIM_resourcehierarchytest_put_name_READER_DELIM/resourcehierarchychild/_READER_DELIM_resourcehierarchychild_put_name_READER_DELIM
+2020-09-23 13:55:06.503: Attempting to reproduce bug...
+2020-09-23 13:55:06.511: Sending: 'PUT /resourcehierarchytest/resourcehierarchyTest<test!>-303026b7df HTTP/1.1\r\nContent-Length: 4\r\n\r\n{}\r\n'
+
+2020-09-23 13:55:06.520: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "resourcehierarchyTest<test!>-303026b7df"}'
+
+2020-09-23 13:55:06.529: Sending: 'GET /resourcehierarchytest/resourcehierarchyTest<test!>-303026b7df/resourcehierarchychild/resourcehierarchyChild<test!>-c17aa92d8d HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:55:06.539: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"name": "resourcehierarchyChild<test!>-c17aa92d8d"}'
+
+2020-09-23 13:55:06.548: Done replaying sequence.
+2020-09-23 13:55:06.566: Checker: ResourceHierarchyChecker kicks out
+
+2020-09-23 13:55:06.575: Checker: UseAfterFreeChecker kicks in
+
+2020-09-23 13:55:06.584: Checker: UseAfterFreeChecker kicks out
+
+2020-09-23 13:55:06.593: Checker: NameSpaceRuleChecker kicks in
+
+2020-09-23 13:55:06.603: Checker: NameSpaceRuleChecker kicks out
+
+2020-09-23 13:55:06.612: Checker: InvalidDynamicObjectChecker kicks in
+
+2020-09-23 13:55:06.621: Re-rendering and sending start of sequence
+2020-09-23 13:55:06.630: Sending: 'PUT /resourcehierarchytest/resourcehierarchyTest<test!>-3d73fd77c3 HTTP/1.1\r\nContent-Length: 4\r\n\r\n{}\r\n'
+
+2020-09-23 13:55:06.639: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "resourcehierarchyTest<test!>-3d73fd77c3"}'
+
+2020-09-23 13:55:06.650: Sending: 'PUT /resourcehierarchytest/resourcehierarchyTest<test!>-3d73fd77c3/resourcehierarchychild/resourcehierarchyChild<test!>-7db0ceeb90 HTTP/1.1\r\nContent-Length: 4\r\n\r\n{}\r\n'
+
+2020-09-23 13:55:06.659: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "resourcehierarchyChild<test!>-7db0ceeb90"}'
+
+2020-09-23 13:55:06.674: InvalidDynamicObjectChecker 
+Sending invalid request(s):
+2020-09-23 13:55:06.683: Preparing requests with invalid objects
+2020-09-23 13:55:06.698: InvalidDynamicObjectChecker 'GET /resourcehierarchytest/resourcehierarchyTest<test!>-3d73fd77c3?api-version=2019-01-01/resourcehierarchychild/resourcehierarchyChild<test!>-7db0ceeb90?api-version=2019-01-01 HTTP/1.1\r\n\r\n'
+2020-09-23 13:55:06.707: Sending: 'GET /resourcehierarchytest/resourcehierarchyTest<test!>-3d73fd77c3?api-version=2019-01-01/resourcehierarchychild/resourcehierarchyChild<test!>-7db0ceeb90?api-version=2019-01-01 HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:55:06.716: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"name": "resourcehierarchyTest<test!>-3d73fd77c3"}'
+
+2020-09-23 13:55:06.725: Attempting to reproduce bug...
+2020-09-23 13:55:06.734: Sending: 'PUT /resourcehierarchytest/resourcehierarchyTest<test!>-3d73fd77c3 HTTP/1.1\r\nContent-Length: 4\r\n\r\n{}\r\n'
+
+2020-09-23 13:55:06.743: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "resourcehierarchyTest<test!>-3d73fd77c3"}'
+
+2020-09-23 13:55:06.752: Sending: 'PUT /resourcehierarchytest/resourcehierarchyTest<test!>-3d73fd77c3/resourcehierarchychild/resourcehierarchyChild<test!>-7db0ceeb90 HTTP/1.1\r\nContent-Length: 4\r\n\r\n{}\r\n'
+
+2020-09-23 13:55:06.762: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "resourcehierarchyChild<test!>-7db0ceeb90"}'
+
+2020-09-23 13:55:06.771: Sending: 'GET /resourcehierarchytest/resourcehierarchyTest<test!>-3d73fd77c3?api-version=2019-01-01/resourcehierarchychild/resourcehierarchyChild<test!>-7db0ceeb90?api-version=2019-01-01 HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:55:06.780: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"name": "resourcehierarchyTest<test!>-3d73fd77c3"}'
+
+2020-09-23 13:55:06.789: Done replaying sequence.
+2020-09-23 13:55:06.813: InvalidDynamicObjectChecker 
+Suspect sequence: 200
+2020-09-23 13:55:06.829: InvalidDynamicObjectChecker PUT /resourcehierarchytest/resourcehierarchyTest
+2020-09-23 13:55:06.845: InvalidDynamicObjectChecker PUT /resourcehierarchytest/_READER_DELIM_resourcehierarchytest_put_name_READER_DELIM/resourcehierarchychild/resourcehierarchyChild
+2020-09-23 13:55:06.860: InvalidDynamicObjectChecker GET /resourcehierarchytest/_READER_DELIM_resourcehierarchytest_put_name_READER_DELIM/resourcehierarchychild/_READER_DELIM_resourcehierarchychild_put_name_READER_DELIM
+2020-09-23 13:55:06.878: InvalidDynamicObjectChecker 'GET /resourcehierarchytest/resourcehierarchyTest<test!>-3d73fd77c3/resourcehierarchychild/resourcehierarchyChild<test!>-7db0ceeb90?api-version=2019-01-01 HTTP/1.1\r\n\r\n'
+2020-09-23 13:55:06.889: Sending: 'GET /resourcehierarchytest/resourcehierarchyTest<test!>-3d73fd77c3/resourcehierarchychild/resourcehierarchyChild<test!>-7db0ceeb90?api-version=2019-01-01 HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:55:06.898: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"name": "resourcehierarchyChild<test!>-7db0ceeb90"}'
+
+2020-09-23 13:55:06.918: InvalidDynamicObjectChecker 
+Suspect sequence: 200
+2020-09-23 13:55:06.933: InvalidDynamicObjectChecker PUT /resourcehierarchytest/resourcehierarchyTest
+2020-09-23 13:55:06.947: InvalidDynamicObjectChecker PUT /resourcehierarchytest/_READER_DELIM_resourcehierarchytest_put_name_READER_DELIM/resourcehierarchychild/resourcehierarchyChild
+2020-09-23 13:55:06.963: InvalidDynamicObjectChecker GET /resourcehierarchytest/_READER_DELIM_resourcehierarchytest_put_name_READER_DELIM/resourcehierarchychild/_READER_DELIM_resourcehierarchychild_put_name_READER_DELIM
+2020-09-23 13:55:06.979: InvalidDynamicObjectChecker 'GET /resourcehierarchytest/resourcehierarchyTest<test!>-3d73fd77c3?api-version=2019-01-01/resourcehierarchychild/resourcehierarchyChild<test!>-7db0ceeb90 HTTP/1.1\r\n\r\n'
+2020-09-23 13:55:06.988: Sending: 'GET /resourcehierarchytest/resourcehierarchyTest<test!>-3d73fd77c3?api-version=2019-01-01/resourcehierarchychild/resourcehierarchyChild<test!>-7db0ceeb90 HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:55:07.002: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"name": "resourcehierarchyTest<test!>-3d73fd77c3"}'
+
+2020-09-23 13:55:07.023: InvalidDynamicObjectChecker 
+Suspect sequence: 200
+2020-09-23 13:55:07.041: InvalidDynamicObjectChecker PUT /resourcehierarchytest/resourcehierarchyTest
+2020-09-23 13:55:07.058: InvalidDynamicObjectChecker PUT /resourcehierarchytest/_READER_DELIM_resourcehierarchytest_put_name_READER_DELIM/resourcehierarchychild/resourcehierarchyChild
+2020-09-23 13:55:07.077: InvalidDynamicObjectChecker GET /resourcehierarchytest/_READER_DELIM_resourcehierarchytest_put_name_READER_DELIM/resourcehierarchychild/_READER_DELIM_resourcehierarchychild_put_name_READER_DELIM
+2020-09-23 13:55:07.096: InvalidDynamicObjectChecker 'GET /resourcehierarchytest/resourcehierarchyTest<test!>-3d73fd77c3/?//resourcehierarchychild/resourcehierarchyChild<test!>-7db0ceeb90/?/ HTTP/1.1\r\n\r\n'
+2020-09-23 13:55:07.109: Sending: 'GET /resourcehierarchytest/resourcehierarchyTest<test!>-3d73fd77c3/?//resourcehierarchychild/resourcehierarchyChild<test!>-7db0ceeb90/?/ HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:55:07.121: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"name": "resourcehierarchyTest<test!>-3d73fd77c3"}'
+
+2020-09-23 13:55:07.150: InvalidDynamicObjectChecker 
+Suspect sequence: 200
+2020-09-23 13:55:07.172: InvalidDynamicObjectChecker PUT /resourcehierarchytest/resourcehierarchyTest
+2020-09-23 13:55:07.189: InvalidDynamicObjectChecker PUT /resourcehierarchytest/_READER_DELIM_resourcehierarchytest_put_name_READER_DELIM/resourcehierarchychild/resourcehierarchyChild
+2020-09-23 13:55:07.206: InvalidDynamicObjectChecker GET /resourcehierarchytest/_READER_DELIM_resourcehierarchytest_put_name_READER_DELIM/resourcehierarchychild/_READER_DELIM_resourcehierarchychild_put_name_READER_DELIM
+2020-09-23 13:55:07.227: InvalidDynamicObjectChecker 'GET /resourcehierarchytest/resourcehierarchyTest<test!>-3d73fd77c3/resourcehierarchychild/resourcehierarchyChild<test!>-7db0ceeb90/?/ HTTP/1.1\r\n\r\n'
+2020-09-23 13:55:07.241: Sending: 'GET /resourcehierarchytest/resourcehierarchyTest<test!>-3d73fd77c3/resourcehierarchychild/resourcehierarchyChild<test!>-7db0ceeb90/?/ HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:55:07.252: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"name": "resourcehierarchyChild<test!>-7db0ceeb90"}'
+
+2020-09-23 13:55:07.275: InvalidDynamicObjectChecker 
+Suspect sequence: 200
+2020-09-23 13:55:07.293: InvalidDynamicObjectChecker PUT /resourcehierarchytest/resourcehierarchyTest
+2020-09-23 13:55:07.311: InvalidDynamicObjectChecker PUT /resourcehierarchytest/_READER_DELIM_resourcehierarchytest_put_name_READER_DELIM/resourcehierarchychild/resourcehierarchyChild
+2020-09-23 13:55:07.332: InvalidDynamicObjectChecker GET /resourcehierarchytest/_READER_DELIM_resourcehierarchytest_put_name_READER_DELIM/resourcehierarchychild/_READER_DELIM_resourcehierarchychild_put_name_READER_DELIM
+2020-09-23 13:55:07.354: InvalidDynamicObjectChecker 'GET /resourcehierarchytest/resourcehierarchyTest<test!>-3d73fd77c3/?//resourcehierarchychild/resourcehierarchyChild<test!>-7db0ceeb90 HTTP/1.1\r\n\r\n'
+2020-09-23 13:55:07.367: Sending: 'GET /resourcehierarchytest/resourcehierarchyTest<test!>-3d73fd77c3/?//resourcehierarchychild/resourcehierarchyChild<test!>-7db0ceeb90 HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:55:07.376: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"name": "resourcehierarchyTest<test!>-3d73fd77c3"}'
+
+2020-09-23 13:55:07.399: InvalidDynamicObjectChecker 
+Suspect sequence: 200
+2020-09-23 13:55:07.416: InvalidDynamicObjectChecker PUT /resourcehierarchytest/resourcehierarchyTest
+2020-09-23 13:55:07.433: InvalidDynamicObjectChecker PUT /resourcehierarchytest/_READER_DELIM_resourcehierarchytest_put_name_READER_DELIM/resourcehierarchychild/resourcehierarchyChild
+2020-09-23 13:55:07.451: InvalidDynamicObjectChecker GET /resourcehierarchytest/_READER_DELIM_resourcehierarchytest_put_name_READER_DELIM/resourcehierarchychild/_READER_DELIM_resourcehierarchychild_put_name_READER_DELIM
+2020-09-23 13:55:07.468: InvalidDynamicObjectChecker 'GET /resourcehierarchytest/resourcehierarchyTest<test!>-3d73fd77c3??/resourcehierarchychild/resourcehierarchyChild<test!>-7db0ceeb90?? HTTP/1.1\r\n\r\n'
+2020-09-23 13:55:07.477: Sending: 'GET /resourcehierarchytest/resourcehierarchyTest<test!>-3d73fd77c3??/resourcehierarchychild/resourcehierarchyChild<test!>-7db0ceeb90?? HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:55:07.488: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"name": "resourcehierarchyTest<test!>-3d73fd77c3"}'
+
+2020-09-23 13:55:07.509: InvalidDynamicObjectChecker 
+Suspect sequence: 200
+2020-09-23 13:55:07.526: InvalidDynamicObjectChecker PUT /resourcehierarchytest/resourcehierarchyTest
+2020-09-23 13:55:07.544: InvalidDynamicObjectChecker PUT /resourcehierarchytest/_READER_DELIM_resourcehierarchytest_put_name_READER_DELIM/resourcehierarchychild/resourcehierarchyChild
+2020-09-23 13:55:07.562: InvalidDynamicObjectChecker GET /resourcehierarchytest/_READER_DELIM_resourcehierarchytest_put_name_READER_DELIM/resourcehierarchychild/_READER_DELIM_resourcehierarchychild_put_name_READER_DELIM
+2020-09-23 13:55:07.578: InvalidDynamicObjectChecker 'GET /resourcehierarchytest/resourcehierarchyTest<test!>-3d73fd77c3/resourcehierarchychild/resourcehierarchyChild<test!>-7db0ceeb90?? HTTP/1.1\r\n\r\n'
+2020-09-23 13:55:07.588: Sending: 'GET /resourcehierarchytest/resourcehierarchyTest<test!>-3d73fd77c3/resourcehierarchychild/resourcehierarchyChild<test!>-7db0ceeb90?? HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:55:07.597: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"name": "resourcehierarchyChild<test!>-7db0ceeb90"}'
+
+2020-09-23 13:55:07.620: InvalidDynamicObjectChecker 
+Suspect sequence: 200
+2020-09-23 13:55:07.639: InvalidDynamicObjectChecker PUT /resourcehierarchytest/resourcehierarchyTest
+2020-09-23 13:55:07.660: InvalidDynamicObjectChecker PUT /resourcehierarchytest/_READER_DELIM_resourcehierarchytest_put_name_READER_DELIM/resourcehierarchychild/resourcehierarchyChild
+2020-09-23 13:55:07.679: InvalidDynamicObjectChecker GET /resourcehierarchytest/_READER_DELIM_resourcehierarchytest_put_name_READER_DELIM/resourcehierarchychild/_READER_DELIM_resourcehierarchychild_put_name_READER_DELIM
+2020-09-23 13:55:07.698: InvalidDynamicObjectChecker 'GET /resourcehierarchytest/resourcehierarchyTest<test!>-3d73fd77c3??/resourcehierarchychild/resourcehierarchyChild<test!>-7db0ceeb90 HTTP/1.1\r\n\r\n'
+2020-09-23 13:55:07.709: Sending: 'GET /resourcehierarchytest/resourcehierarchyTest<test!>-3d73fd77c3??/resourcehierarchychild/resourcehierarchyChild<test!>-7db0ceeb90 HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:55:07.722: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"name": "resourcehierarchyTest<test!>-3d73fd77c3"}'
+
+2020-09-23 13:55:07.747: InvalidDynamicObjectChecker 
+Suspect sequence: 200
+2020-09-23 13:55:07.766: InvalidDynamicObjectChecker PUT /resourcehierarchytest/resourcehierarchyTest
+2020-09-23 13:55:07.786: InvalidDynamicObjectChecker PUT /resourcehierarchytest/_READER_DELIM_resourcehierarchytest_put_name_READER_DELIM/resourcehierarchychild/resourcehierarchyChild
+2020-09-23 13:55:07.807: InvalidDynamicObjectChecker GET /resourcehierarchytest/_READER_DELIM_resourcehierarchytest_put_name_READER_DELIM/resourcehierarchychild/_READER_DELIM_resourcehierarchychild_put_name_READER_DELIM
+2020-09-23 13:55:07.829: InvalidDynamicObjectChecker 'GET /resourcehierarchytest/resourcehierarchyTest<test!>-3d73fd77c3/resourcehierarchyTest<test!>-3d73fd77c3/resourcehierarchychild/resourcehierarchyChild<test!>-7db0ceeb90/resourcehierarchyChild<test!>-7db0ceeb90 HTTP/1.1\r\n\r\n'
+2020-09-23 13:55:07.842: Sending: 'GET /resourcehierarchytest/resourcehierarchyTest<test!>-3d73fd77c3/resourcehierarchyTest<test!>-3d73fd77c3/resourcehierarchychild/resourcehierarchyChild<test!>-7db0ceeb90/resourcehierarchyChild<test!>-7db0ceeb90 HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:55:07.856: Received: "HTTP/1.1 404 Not Found\r\nRestler Test\r\n\r\n{'Resource': ResourceDoesNotExist()}"
+
+2020-09-23 13:55:07.878: InvalidDynamicObjectChecker 'GET /resourcehierarchytest/resourcehierarchyTest<test!>-3d73fd77c3/resourcehierarchychild/resourcehierarchyChild<test!>-7db0ceeb90/resourcehierarchyChild<test!>-7db0ceeb90 HTTP/1.1\r\n\r\n'
+2020-09-23 13:55:07.892: Sending: 'GET /resourcehierarchytest/resourcehierarchyTest<test!>-3d73fd77c3/resourcehierarchychild/resourcehierarchyChild<test!>-7db0ceeb90/resourcehierarchyChild<test!>-7db0ceeb90 HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:55:07.904: Received: "HTTP/1.1 404 Not Found\r\nRestler Test\r\n\r\n{'Resource': ResourceDoesNotExist()}"
+
+2020-09-23 13:55:07.925: InvalidDynamicObjectChecker 'GET /resourcehierarchytest/resourcehierarchyTest<test!>-3d73fd77c3/resourcehierarchyTest<test!>-3d73fd77c3/resourcehierarchychild/resourcehierarchyChild<test!>-7db0ceeb90 HTTP/1.1\r\n\r\n'
+2020-09-23 13:55:07.938: Sending: 'GET /resourcehierarchytest/resourcehierarchyTest<test!>-3d73fd77c3/resourcehierarchyTest<test!>-3d73fd77c3/resourcehierarchychild/resourcehierarchyChild<test!>-7db0ceeb90 HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:55:07.948: Received: "HTTP/1.1 404 Not Found\r\nRestler Test\r\n\r\n{'Resource': ResourceDoesNotExist()}"
+
+2020-09-23 13:55:07.967: InvalidDynamicObjectChecker 'GET /resourcehierarchytest/{}/resourcehierarchychild/{} HTTP/1.1\r\n\r\n'
+2020-09-23 13:55:07.976: Sending: 'GET /resourcehierarchytest/{}/resourcehierarchychild/{} HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:55:07.986: Received: "HTTP/1.1 404 Not Found\r\nRestler Test\r\n\r\n{'Resource': ResourceDoesNotExist()}"
+
+2020-09-23 13:55:08.007: InvalidDynamicObjectChecker 'GET /resourcehierarchytest/resourcehierarchyTest<test!>-3d73fd77c3/resourcehierarchychild/{} HTTP/1.1\r\n\r\n'
+2020-09-23 13:55:08.017: Sending: 'GET /resourcehierarchytest/resourcehierarchyTest<test!>-3d73fd77c3/resourcehierarchychild/{} HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:55:08.026: Received: "HTTP/1.1 404 Not Found\r\nRestler Test\r\n\r\n{'Resource': ResourceDoesNotExist()}"
+
+2020-09-23 13:55:08.043: InvalidDynamicObjectChecker 'GET /resourcehierarchytest/{}/resourcehierarchychild/resourcehierarchyChild<test!>-7db0ceeb90 HTTP/1.1\r\n\r\n'
+2020-09-23 13:55:08.053: Sending: 'GET /resourcehierarchytest/{}/resourcehierarchychild/resourcehierarchyChild<test!>-7db0ceeb90 HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-09-23 13:55:08.062: Received: "HTTP/1.1 404 Not Found\r\nRestler Test\r\n\r\n{'Resource': ResourceDoesNotExist()}"
+
+2020-09-23 13:55:08.072: Checker: InvalidDynamicObjectChecker kicks out
+
+2020-09-23 13:55:08.082: Checker: PayloadBodyChecker kicks in
+
+2020-09-23 13:55:08.091: Checker: PayloadBodyChecker kicks out
+
+2020-09-23 13:55:08.101: Checker: ExamplesChecker kicks in
+
+2020-09-23 13:55:08.111: Checker: ExamplesChecker kicks out
+

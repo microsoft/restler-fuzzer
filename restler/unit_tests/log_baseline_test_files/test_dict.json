@@ -1,0 +1,39 @@
+{
+  "restler_fuzzable_string": [
+    "fuzzstring",
+    "enable"
+  ],
+  "restler_fuzzable_int": [
+    "0",
+    "1"
+  ],
+  "restler_fuzzable_bool": [
+    "true",
+    "false"
+  ],
+  "restler_custom_payload": {
+    "api-version": [
+      "2019-04-01"
+    ],
+    "location": [
+      "centralus"
+    ]
+  },
+  "restler_custom_payload_uuid4_suffix": {
+    "cityName": "cityName<test!>-",
+    "houseName": "houseName<test!>-",
+    "colorName": "colorName<test!>-",
+    "itemName": "itemName<test!>-",
+    "farmName": "farmName<test!>-",
+    "animalName": "animalName<test!>-",
+    "roadName": "roadName<test!>-",
+    "groupName": "groupName<test!>-",
+    "leakageTest": "leakageTest<test!>-",
+    "useafterfreeTest": "useafterfreeTest<test!>-",
+    "resourcehierarchyTest": "resourcehierarchyTest<test!>-",
+    "resourcehierarchyChild": "resourcehierarchyChild<test!>-"
+  },
+  "args": {
+    "max_combinations": 20
+  }
+}

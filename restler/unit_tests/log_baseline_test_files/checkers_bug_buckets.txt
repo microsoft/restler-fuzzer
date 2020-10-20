@@ -1,0 +1,72 @@
+main_driver_500: 1
+LeakageRuleChecker_20x: 1
+InvalidDynamicObjectChecker_20x: 11
+UseAfterFreeChecker_20x: 1
+ResourceHierarchyChecker_20x: 1
+Total Buckets: 15
+-------------
+main_driver_500 - Bug was reproduced - main_driver_500_1.txt
+PUT /city/cityName HTTP/1.1\r\n\r\n{}\r\n
+PUT /city/_READER_DELIM_city_put_name_READER_DELIM/house/houseName HTTP/1.1\r\n\r\n{}\r\n
+PUT /city/_READER_DELIM_city_put_name_READER_DELIM/house/_READER_DELIM_city_house_put_name_READER_DELIM/color/colorName HTTP/1.1\r\n\r\n{{\r\n
+--------------------------------------------------------------------------------
+LeakageRuleChecker_20x - Bug was reproduced - LeakageRuleChecker_20x_1.txt
+PUT /leakageruletest/leakageTest HTTP/1.1\r\n\r\n{}\r\n
+GET /leakageruletest/_READER_DELIM_leakageruletest_put_name_READER_DELIM HTTP/1.1\r\n\r\n
+--------------------------------------------------------------------------------
+InvalidDynamicObjectChecker_20x - Bug was reproduced - InvalidDynamicObjectChecker_20x_1.txt
+PUT /city/cityName HTTP/1.1\r\n\r\n{}\r\n
+GET /city/_READER_DELIM_city_put_name_READER_DELIM HTTP/1.1\r\n\r\n
+--------------------------------------------------------------------------------
+InvalidDynamicObjectChecker_20x - Bug was reproduced - InvalidDynamicObjectChecker_20x_2.txt
+PUT /useafterfreetest/useafterfreeTest HTTP/1.1\r\n\r\n{}\r\n
+DELETE /useafterfreetest/_READER_DELIM_useafterfreetest_put_name_READER_DELIM HTTP/1.1\r\n\r\n
+--------------------------------------------------------------------------------
+InvalidDynamicObjectChecker_20x - Bug was reproduced - InvalidDynamicObjectChecker_20x_3.txt
+PUT /city/cityName HTTP/1.1\r\n\r\n{}\r\n
+PUT /city/_READER_DELIM_city_put_name_READER_DELIM/house/houseName HTTP/1.1\r\n\r\n{}\r\n
+--------------------------------------------------------------------------------
+InvalidDynamicObjectChecker_20x - Bug was reproduced - InvalidDynamicObjectChecker_20x_4.txt
+PUT /useafterfreetest/useafterfreeTest HTTP/1.1\r\n\r\n{}\r\n
+GET /useafterfreetest/_READER_DELIM_useafterfreetest_put_name_READER_DELIM HTTP/1.1\r\n\r\n
+--------------------------------------------------------------------------------
+InvalidDynamicObjectChecker_20x - Bug was reproduced - InvalidDynamicObjectChecker_20x_5.txt
+PUT /city/cityName HTTP/1.1\r\n\r\n{}\r\n
+GET /city/_READER_DELIM_city_put_name_READER_DELIM/house HTTP/1.1\r\n\r\n
+--------------------------------------------------------------------------------
+InvalidDynamicObjectChecker_20x - Bug was reproduced - InvalidDynamicObjectChecker_20x_6.txt
+PUT /resourcehierarchytest/resourcehierarchyTest HTTP/1.1\r\n\r\n{}\r\n
+PUT /resourcehierarchytest/_READER_DELIM_resourcehierarchytest_put_name_READER_DELIM/resourcehierarchychild/resourcehierarchyChild HTTP/1.1\r\n\r\n{}\r\n
+--------------------------------------------------------------------------------
+InvalidDynamicObjectChecker_20x - Bug was reproduced - InvalidDynamicObjectChecker_20x_7.txt
+PUT /resourcehierarchytest/resourcehierarchyTest HTTP/1.1\r\n\r\n{}\r\n
+DELETE /resourcehierarchytest/_READER_DELIM_resourcehierarchytest_put_name_READER_DELIM HTTP/1.1\r\n\r\n
+--------------------------------------------------------------------------------
+InvalidDynamicObjectChecker_20x - Bug was reproduced - InvalidDynamicObjectChecker_20x_8.txt
+PUT /resourcehierarchytest/resourcehierarchyTest HTTP/1.1\r\n\r\n{}\r\n
+GET /resourcehierarchytest/_READER_DELIM_resourcehierarchytest_put_name_READER_DELIM HTTP/1.1\r\n\r\n
+--------------------------------------------------------------------------------
+InvalidDynamicObjectChecker_20x - Bug was reproduced - InvalidDynamicObjectChecker_20x_9.txt
+PUT /city/cityName HTTP/1.1\r\n\r\n{}\r\n
+PUT /city/_READER_DELIM_city_put_name_READER_DELIM/house/houseName HTTP/1.1\r\n\r\n{}\r\n
+GET /city/_READER_DELIM_city_put_name_READER_DELIM/house/_READER_DELIM_city_house_put_name_READER_DELIM HTTP/1.1\r\n\r\n
+--------------------------------------------------------------------------------
+InvalidDynamicObjectChecker_20x - Bug was reproduced - InvalidDynamicObjectChecker_20x_10.txt
+PUT /resourcehierarchytest/resourcehierarchyTest HTTP/1.1\r\n\r\n{}\r\n
+PUT /resourcehierarchytest/_READER_DELIM_resourcehierarchytest_put_name_READER_DELIM/resourcehierarchychild/resourcehierarchyChild HTTP/1.1\r\n\r\n{}\r\n
+DELETE /resourcehierarchytest/_READER_DELIM_resourcehierarchytest_put_name_READER_DELIM/resourcehierarchychild/_READER_DELIM_resourcehierarchychild_put_name_READER_DELIM HTTP/1.1\r\n\r\n
+--------------------------------------------------------------------------------
+InvalidDynamicObjectChecker_20x - Bug was reproduced - InvalidDynamicObjectChecker_20x_11.txt
+PUT /resourcehierarchytest/resourcehierarchyTest HTTP/1.1\r\n\r\n{}\r\n
+PUT /resourcehierarchytest/_READER_DELIM_resourcehierarchytest_put_name_READER_DELIM/resourcehierarchychild/resourcehierarchyChild HTTP/1.1\r\n\r\n{}\r\n
+GET /resourcehierarchytest/_READER_DELIM_resourcehierarchytest_put_name_READER_DELIM/resourcehierarchychild/_READER_DELIM_resourcehierarchychild_put_name_READER_DELIM HTTP/1.1\r\n\r\n
+--------------------------------------------------------------------------------
+UseAfterFreeChecker_20x - Bug was reproduced - UseAfterFreeChecker_20x_1.txt
+PUT /useafterfreetest/useafterfreeTest HTTP/1.1\r\n\r\n{}\r\n
+DELETE /useafterfreetest/_READER_DELIM_useafterfreetest_put_name_READER_DELIM HTTP/1.1\r\n\r\n
+GET /useafterfreetest/_READER_DELIM_useafterfreetest_put_name_READER_DELIM HTTP/1.1\r\n\r\n
+--------------------------------------------------------------------------------
+ResourceHierarchyChecker_20x - Bug was reproduced - ResourceHierarchyChecker_20x_1.txt
+PUT /resourcehierarchytest/resourcehierarchyTest HTTP/1.1\r\n\r\n{}\r\n
+GET /resourcehierarchytest/_READER_DELIM_resourcehierarchytest_put_name_READER_DELIM/resourcehierarchychild/_READER_DELIM_resourcehierarchychild_put_name_READER_DELIM HTTP/1.1\r\n\r\n
+--------------------------------------------------------------------------------

@@ -1,0 +1,58 @@
+{
+    "max_combinations": 20,
+    "max_request_execution_time": 90,
+    "global_producer_timing_delay": 2,
+    "dyn_objects_cache_size": 200,
+    "fuzzing_jobs": 2,
+    "fuzzing_mode": "directed-smoke-test",
+    "garbage_collection_interval": 30,
+    "ignore_dependencies": true,
+    "ignore_feedback": true,
+    "include_user_agent": true,
+    "max_async_resource_creation_time": 45,
+    "max_sequence_length": 11,
+    "no_ssl": true,
+    "no_tokens_in_logs": true,
+    "path_regex": "(\\w*)/ddosProtectionPlans(\\w*)",
+    "request_throttle_ms": 500,
+    "target_ip": "100.100.100.100",
+    "target_port": 500,
+    "time_budget": 12,
+    "token_refresh_cmd": "some refresh command",
+    "token_refresh_interval": 60,
+    "wait_for_async_resource_creation": false,
+    "per_resource_settings": {
+        "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Network/dnsZones/{zoneName}/{recordType}/{relativeRecordSetName}": {
+            "producer_timing_delay": 1,
+            "create_once": 1,
+            "custom_dictionary": "c:\\restler\\custom_dict1.json"
+        },
+        "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Network/dnsZones/{zoneName}": {
+            "producer_timing_delay": 5,
+            "custom_dictionary": "c:\\restler\\custom_dict2.json"
+        }
+    },
+    "checkers": {
+        "namespacerule" : {
+            "mode" : "exhaustive"
+        },
+        "useafterfree" : {
+            "mode" : "exhaustive"
+        },
+        "leakagerule" : {
+            "mode" : "exhaustive"
+        },
+        "resourcehierarchy" : {
+            "mode" : "exhaustive"
+        },
+        "payloadbody" : {
+            "mode" : "normal",
+            "start_with_valid" : true,
+            "start_with_examples" : true,
+            "size_dep_budget" : false,
+            "use_feedback" : true,
+            "recipe_file" : "C:\\restler\\restlerpayloadbody\\recipe_custom.json",
+            "grammar_file" : "C:\\restler\\restlerpayloadbody\\compile\\grammar.json"
+        }
+    }
+}

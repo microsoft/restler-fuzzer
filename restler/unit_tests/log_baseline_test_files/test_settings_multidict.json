@@ -1,0 +1,23 @@
+{
+    "checkers": {
+        "invaliddynamicobject": {
+            "no_defaults": false
+        }
+    },
+
+    "per_resource_settings": {
+        "/item/{itemName}": {
+            "producer_timing_delay": 0,
+            "create_once": 0,
+            "custom_dictionary": "test_dict2.json"
+        },
+        "/city/{cityName}": {
+            "producer_timing_delay": 0,
+            "create_once": 0,
+            "custom_dictionary": "test_dict2.json"
+        },
+        "/farm/{farmName}/animal/{animalName}": {
+            "create_once": 0
+        }
+    }
+}

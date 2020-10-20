@@ -1,0 +1,48 @@
+
+Generation-1: Rendering Sequence-1
+
+	Request: 1 (Remaining candidate combinations: 8)
+		- restler_static_string: 'PUT '
+		- restler_static_string: '/'
+		- restler_static_string: 'city'
+		- restler_static_string: '/'
+		+ restler_custom_payload_uuid4_suffix: cityName<test!>-
+		- restler_static_string: ' HTTP/1.1\r\n'
+		- restler_static_string: 'Accept: application/json\r\n'
+		- restler_static_string: 'Host: restler.unit.test.server.com\r\n'
+		- restler_static_string: 'Content-Type: application/json\r\n'
+		- restler_static_string: '\r\n'
+		- restler_static_string: '{'
+		- restler_static_string: '"population":"'
+		+ restler_fuzzable_int: ['0', '1']
+		- restler_static_string: '", "area": "5000","'
+		+ restler_fuzzable_string: ['fuzzstring', 'enable']
+		- restler_static_string: '":"'
+		+ restler_fuzzable_bool: ['true', 'false']
+		- restler_static_string: '"'
+		- restler_static_string: '}'
+		- restler_static_string: '\r\n'
+
+2020-07-30 07:16:55.026: Sending: 'PUT /city/cityName<test!>-109b94c103 HTTP/1.1\r\nAccept: application/json\r\nHost: restler.unit.test.server.com\r\nContent-Type: application/json\r\nContent-Length: 56\r\n\r\n{"population":"0", "area": "5000","fuzzstring":"true"}\r\n'
+
+2020-07-30 07:16:55.032: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "cityName<test!>-109b94c103", "properties": {"population": "0", "area": "5000"}}'
+
+
+Generation-1: Rendering Sequence-1
+
+	Request: 1 (Remaining candidate combinations: 1)
+		- restler_static_string: 'DELETE '
+		- restler_static_string: '/'
+		- restler_static_string: 'city'
+		- restler_static_string: '/'
+		- restler_static_string: 'cityName<test!>-109b94c103'
+		- restler_static_string: ' HTTP/1.1\r\n'
+		- restler_static_string: 'Accept: application/json\r\n'
+		- restler_static_string: 'Host: restler.unit.test.server.com\r\n'
+		- restler_static_string: 'Content-Type: application/json\r\n'
+		- restler_static_string: '\r\n'
+
+2020-07-30 07:17:07.397: Sending: 'DELETE /city/cityName<test!>-109b94c103 HTTP/1.1\r\nAccept: application/json\r\nHost: restler.unit.test.server.com\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
+
+2020-07-30 07:17:07.406: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"cityName<test!>-109b94c103"'
+

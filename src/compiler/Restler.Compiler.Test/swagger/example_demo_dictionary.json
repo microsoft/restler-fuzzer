@@ -1,0 +1,7 @@
+{
+  "restler_fuzzable_datetime": [ "invalid date format" ],
+  "restler_fuzzable_object": [ "{}", "{invalid object}", "{\"tags\": {}}" ],
+  "restler_custom_payload": {
+    "bagType": [ "plasticplain" ]
+  }
+}

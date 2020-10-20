@@ -1,0 +1,12 @@
+{
+  "parameters": {
+    "storeId": "23456",
+    "orderDetails": {
+        "storeId": "23456",
+        "rush": "True",
+        "bagType": "paperfestive"
+    }
+  },
+  "responses": {
+  }
+}

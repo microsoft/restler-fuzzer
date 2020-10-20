@@ -1,0 +1,371 @@
+
+Generation-2: Rendering Sequence-1
+
+	Request: 1 (Current combination: 1 / 1)
+		- restler_static_string: 'PUT '
+		- restler_static_string: '/'
+		- restler_static_string: 'city'
+		- restler_static_string: '/'
+		- restler_static_string: 'cityName-63a4e53554'
+		- restler_static_string: '/'
+		- restler_static_string: 'house'
+		- restler_static_string: '/'
+		+ restler_custom_payload_uuid4_suffix: houseName-
+		- restler_static_string: ' HTTP/1.1\r\n'
+		- restler_static_string: '\r\n'
+		- restler_static_string: '{'
+		- restler_static_string: '}'
+		- restler_static_string: '\r\n'
+
+	Request: 2 (Remaining candidate combinations: 1)
+		- restler_static_string: 'PUT '
+		- restler_static_string: '/'
+		- restler_static_string: 'city'
+		- restler_static_string: '/'
+		- restler_static_string: 'cityName-63a4e53554'
+		- restler_static_string: '/'
+		- restler_static_string: 'house'
+		- restler_static_string: '/'
+		- restler_static_string: '_READER_DELIM_city_house_put_name_READER_DELIM'
+		- restler_static_string: '/'
+		- restler_static_string: 'color'
+		- restler_static_string: '/'
+		+ restler_custom_payload_uuid4_suffix: colorName-
+		- restler_static_string: ' HTTP/1.1\r\n'
+		- restler_static_string: '\r\n'
+		- restler_static_string: '{'
+		- restler_static_string: '{'
+		- restler_static_string: '\r\n'
+
+2020-07-21 08:00:14.112: Sending: 'PUT /city/cityName-63a4e53554/house/houseName-31cdd4b5e6 HTTP/1.1\r\nContent-Length: 4\r\n\r\n{}\r\n'
+
+2020-07-21 08:00:14.123: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "houseName-31cdd4b5e6"}'
+
+2020-07-21 08:00:14.132: Sending: 'PUT /city/cityName-63a4e53554/house/houseName-31cdd4b5e6/color/colorName-34782542d1 HTTP/1.1\r\nContent-Length: 4\r\n\r\n{{\r\n'
+
+2020-07-21 08:00:22.546: Received: 'HTTP/1.1 500 Internal Server Error\r\nRestler Test\r\n\r\n{"code": "InternalServerError", "message": "Expecting property name enclosed in double quotes: line 1 column 2 (char 1)"}'
+
+2020-07-21 08:00:22.563: Failed to parse _city_house_color_put_name; is now set to None.
+2020-07-21 08:00:22.574: Attempting to reproduce bug...
+2020-07-21 08:00:22.584: Sending: 'PUT /city/cityName-63a4e53554/house/houseName-31cdd4b5e6 HTTP/1.1\r\nContent-Length: 4\r\n\r\n{}\r\n'
+
+2020-07-21 08:00:22.597: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "houseName-31cdd4b5e6"}'
+
+2020-07-21 08:00:22.608: Sending: 'PUT /city/cityName-63a4e53554/house/houseName-31cdd4b5e6/color/colorName-34782542d1 HTTP/1.1\r\nContent-Length: 4\r\n\r\n{{\r\n'
+
+2020-07-21 08:00:22.618: Received: 'HTTP/1.1 500 Internal Server Error\r\nRestler Test\r\n\r\n{"code": "InternalServerError", "message": "Expecting property name enclosed in double quotes: line 1 column 2 (char 1)"}'
+
+2020-07-21 08:00:22.628: Done replaying sequence.
+2020-07-21 08:00:22.656: Checker: LeakageRuleChecker kicks in
+
+2020-07-21 08:00:22.671: LeakageRuleChecker
+Target type: _city_house_color_put_name
+2020-07-21 08:00:22.682: Checker: LeakageRuleChecker kicks out
+
+2020-07-21 08:00:22.694: Checker: ResourceHierarchyChecker kicks in
+
+2020-07-21 08:00:22.704: Checker: ResourceHierarchyChecker kicks out
+
+2020-07-21 08:00:22.712: Checker: UseAfterFreeChecker kicks in
+
+2020-07-21 08:00:22.720: Checker: UseAfterFreeChecker kicks out
+
+2020-07-21 08:00:22.728: Checker: NameSpaceRuleChecker kicks in
+
+2020-07-21 08:00:22.737: Checker: NameSpaceRuleChecker kicks out
+
+2020-07-21 08:00:22.745: Checker: InvalidDynamicObjectChecker kicks in
+
+2020-07-21 08:00:22.754: Checker: InvalidDynamicObjectChecker kicks out
+
+2020-07-21 08:00:22.762: Checker: PayloadBodyChecker kicks in
+
+2020-07-21 08:00:22.773: Checker: PayloadBodyChecker kicks out
+
+2020-07-21 08:00:22.782: Checker: ExamplesChecker kicks in
+
+2020-07-21 08:00:22.791: Checker: ExamplesChecker kicks out
+
+2020-07-21 08:00:22.800: Checker: LeakageRuleChecker kicks in
+
+2020-07-21 08:00:22.809: Checker: LeakageRuleChecker kicks out
+
+2020-07-21 08:00:22.817: Checker: ResourceHierarchyChecker kicks in
+
+2020-07-21 08:00:22.826: Checker: ResourceHierarchyChecker kicks out
+
+2020-07-21 08:00:22.836: Checker: UseAfterFreeChecker kicks in
+
+2020-07-21 08:00:22.844: Checker: UseAfterFreeChecker kicks out
+
+2020-07-21 08:00:22.853: Checker: NameSpaceRuleChecker kicks in
+
+2020-07-21 08:00:22.869: Checker: NameSpaceRuleChecker kicks out
+
+2020-07-21 08:00:22.880: Checker: InvalidDynamicObjectChecker kicks in
+
+2020-07-21 08:00:22.889: Checker: InvalidDynamicObjectChecker kicks out
+
+2020-07-21 08:00:22.898: Checker: PayloadBodyChecker kicks in
+
+2020-07-21 08:00:22.915: Checker: PayloadBodyChecker kicks out
+
+2020-07-21 08:00:22.926: Checker: ExamplesChecker kicks in
+
+2020-07-21 08:00:22.935: Checker: ExamplesChecker kicks out
+
+
+Generation-2: Rendering Sequence-1
+
+	Request: 1 (Current combination: 1 / 1)
+		- restler_static_string: 'PUT '
+		- restler_static_string: '/'
+		- restler_static_string: 'city'
+		- restler_static_string: '/'
+		- restler_static_string: 'cityName-63a4e53554'
+		- restler_static_string: '/'
+		- restler_static_string: 'house'
+		- restler_static_string: '/'
+		+ restler_custom_payload_uuid4_suffix: houseName-
+		- restler_static_string: ' HTTP/1.1\r\n'
+		- restler_static_string: '\r\n'
+		- restler_static_string: '{'
+		- restler_static_string: '}'
+		- restler_static_string: '\r\n'
+
+	Request: 2 (Remaining candidate combinations: 1)
+		- restler_static_string: 'GET '
+		- restler_static_string: '/'
+		- restler_static_string: 'city'
+		- restler_static_string: '/'
+		- restler_static_string: 'cityName-63a4e53554'
+		- restler_static_string: '/'
+		- restler_static_string: 'house'
+		- restler_static_string: '/'
+		- restler_static_string: '_READER_DELIM_city_house_put_name_READER_DELIM'
+		- restler_static_string: ' HTTP/1.1\r\n'
+		- restler_static_string: '\r\n'
+
+2020-07-21 08:00:23.330: Sending: 'PUT /city/cityName-63a4e53554/house/houseName-ac5a89e704 HTTP/1.1\r\nContent-Length: 4\r\n\r\n{}\r\n'
+
+2020-07-21 08:00:23.338: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "houseName-ac5a89e704"}'
+
+2020-07-21 08:00:23.349: Sending: 'GET /city/cityName-63a4e53554/house/houseName-ac5a89e704 HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-07-21 08:00:23.358: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"name": "houseName-ac5a89e704"}'
+
+2020-07-21 08:00:23.368: Checker: LeakageRuleChecker kicks in
+
+2020-07-21 08:00:23.377: Checker: LeakageRuleChecker kicks out
+
+2020-07-21 08:00:23.385: Checker: ResourceHierarchyChecker kicks in
+
+2020-07-21 08:00:23.393: Checker: ResourceHierarchyChecker kicks out
+
+2020-07-21 08:00:23.402: Checker: UseAfterFreeChecker kicks in
+
+2020-07-21 08:00:23.410: Checker: UseAfterFreeChecker kicks out
+
+2020-07-21 08:00:23.418: Checker: NameSpaceRuleChecker kicks in
+
+2020-07-21 08:00:23.426: Checker: NameSpaceRuleChecker kicks out
+
+2020-07-21 08:00:23.435: Checker: InvalidDynamicObjectChecker kicks in
+
+2020-07-21 08:00:23.444: Re-rendering and sending start of sequence
+2020-07-21 08:00:23.452: Sending: 'PUT /city/cityName-63a4e53554/house/houseName-7db9fa94c7 HTTP/1.1\r\nContent-Length: 4\r\n\r\n{}\r\n'
+
+2020-07-21 08:00:23.460: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "houseName-7db9fa94c7"}'
+
+2020-07-21 08:00:23.470: InvalidDynamicObjectChecker
+Sending invalid request(s):
+2020-07-21 08:00:23.478: Preparing requests with invalid objects
+2020-07-21 08:00:23.491: InvalidDynamicObjectChecker 'GET /city/cityName-63a4e53554/house/houseName-7db9fa94c7?api-version=2019-01-01 HTTP/1.1\r\n\r\n'
+2020-07-21 08:00:23.499: Sending: 'GET /city/cityName-63a4e53554/house/houseName-7db9fa94c7?api-version=2019-01-01 HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-07-21 08:00:23.507: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"name": "houseName-7db9fa94c7"}'
+
+2020-07-21 08:00:23.517: Attempting to reproduce bug...
+2020-07-21 08:00:23.526: Sending: 'PUT /city/cityName-63a4e53554/house/houseName-7db9fa94c7 HTTP/1.1\r\nContent-Length: 4\r\n\r\n{}\r\n'
+
+2020-07-21 08:00:23.535: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "houseName-7db9fa94c7"}'
+
+2020-07-21 08:00:23.543: Sending: 'GET /city/cityName-63a4e53554/house/houseName-7db9fa94c7?api-version=2019-01-01 HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-07-21 08:00:23.552: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"name": "houseName-7db9fa94c7"}'
+
+2020-07-21 08:00:23.561: Done replaying sequence.
+2020-07-21 08:00:23.584: InvalidDynamicObjectChecker
+Suspect sequence: 200
+2020-07-21 08:00:23.597: InvalidDynamicObjectChecker PUT /city/cityName-63a4e53554/house/houseName
+2020-07-21 08:00:23.611: InvalidDynamicObjectChecker GET /city/cityName-63a4e53554/house/_READER_DELIM_city_house_put_name_READER_DELIM
+2020-07-21 08:00:23.627: InvalidDynamicObjectChecker 'GET /city/cityName-63a4e53554/house/houseName-7db9fa94c7/?/ HTTP/1.1\r\n\r\n'
+2020-07-21 08:00:23.636: Sending: 'GET /city/cityName-63a4e53554/house/houseName-7db9fa94c7/?/ HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-07-21 08:00:23.644: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"name": "houseName-7db9fa94c7"}'
+
+2020-07-21 08:00:23.664: InvalidDynamicObjectChecker
+Suspect sequence: 200
+2020-07-21 08:00:23.677: InvalidDynamicObjectChecker PUT /city/cityName-63a4e53554/house/houseName
+2020-07-21 08:00:23.690: InvalidDynamicObjectChecker GET /city/cityName-63a4e53554/house/_READER_DELIM_city_house_put_name_READER_DELIM
+2020-07-21 08:00:23.705: InvalidDynamicObjectChecker 'GET /city/cityName-63a4e53554/house/houseName-7db9fa94c7?? HTTP/1.1\r\n\r\n'
+2020-07-21 08:00:23.714: Sending: 'GET /city/cityName-63a4e53554/house/houseName-7db9fa94c7?? HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-07-21 08:00:23.723: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"name": "houseName-7db9fa94c7"}'
+
+2020-07-21 08:00:23.743: InvalidDynamicObjectChecker
+Suspect sequence: 200
+2020-07-21 08:00:23.756: InvalidDynamicObjectChecker PUT /city/cityName-63a4e53554/house/houseName
+2020-07-21 08:00:23.769: InvalidDynamicObjectChecker GET /city/cityName-63a4e53554/house/_READER_DELIM_city_house_put_name_READER_DELIM
+2020-07-21 08:00:23.783: InvalidDynamicObjectChecker 'GET /city/cityName-63a4e53554/house/houseName-7db9fa94c7/houseName-7db9fa94c7 HTTP/1.1\r\n\r\n'
+2020-07-21 08:00:23.791: Sending: 'GET /city/cityName-63a4e53554/house/houseName-7db9fa94c7/houseName-7db9fa94c7 HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-07-21 08:00:23.801: Received: "HTTP/1.1 404 Not Found\r\nRestler Test\r\n\r\n{'Resource': ResourceDoesNotExist()}"
+
+2020-07-21 08:00:23.816: InvalidDynamicObjectChecker 'GET /city/cityName-63a4e53554/house/{} HTTP/1.1\r\n\r\n'
+2020-07-21 08:00:23.824: Sending: 'GET /city/cityName-63a4e53554/house/{} HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-07-21 08:00:23.834: Received: "HTTP/1.1 404 Not Found\r\nRestler Test\r\n\r\n{'Resource': ResourceDoesNotExist()}"
+
+2020-07-21 08:00:23.842: Checker: InvalidDynamicObjectChecker kicks out
+
+2020-07-21 08:00:23.850: Checker: PayloadBodyChecker kicks in
+
+2020-07-21 08:00:23.858: Checker: PayloadBodyChecker kicks out
+
+2020-07-21 08:00:23.866: Checker: ExamplesChecker kicks in
+
+2020-07-21 08:00:23.874: Checker: ExamplesChecker kicks out
+
+
+Generation-2: Rendering Sequence-1
+
+	Request: 1 (Current combination: 1 / 1)
+		- restler_static_string: 'PUT '
+		- restler_static_string: '/'
+		- restler_static_string: 'useafterfreetest'
+		- restler_static_string: '/'
+		+ restler_custom_payload_uuid4_suffix: useafterfreeTest-
+		- restler_static_string: ' HTTP/1.1\r\n'
+		- restler_static_string: '\r\n'
+		- restler_static_string: '{'
+		- restler_static_string: '}'
+		- restler_static_string: '\r\n'
+
+	Request: 2 (Remaining candidate combinations: 1)
+		- restler_static_string: 'DELETE '
+		- restler_static_string: '/'
+		- restler_static_string: 'useafterfreetest'
+		- restler_static_string: '/'
+		- restler_static_string: '_READER_DELIM_useafterfreetest_put_name_READER_DELIM'
+		- restler_static_string: ' HTTP/1.1\r\n'
+		- restler_static_string: '\r\n'
+
+2020-07-21 08:00:24.166: Sending: 'PUT /useafterfreetest/useafterfreeTest-87c1bb88f2 HTTP/1.1\r\nContent-Length: 4\r\n\r\n{}\r\n'
+
+2020-07-21 08:00:24.175: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "useafterfreeTest-87c1bb88f2"}'
+
+2020-07-21 08:00:24.186: Sending: 'DELETE /useafterfreetest/useafterfreeTest-87c1bb88f2 HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-07-21 08:00:24.194: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"useafterfreeTest-87c1bb88f2"'
+
+2020-07-21 08:00:24.204: Checker: LeakageRuleChecker kicks in
+
+2020-07-21 08:00:24.212: Checker: LeakageRuleChecker kicks out
+
+2020-07-21 08:00:24.221: Checker: ResourceHierarchyChecker kicks in
+
+2020-07-21 08:00:24.230: Checker: ResourceHierarchyChecker kicks out
+
+2020-07-21 08:00:24.239: Checker: UseAfterFreeChecker kicks in
+
+2020-07-21 08:00:24.248: UseAfterFreeChecker
+Target types: {'_useafterfreetest_put_name'}
+2020-07-21 08:00:24.261: UseAfterFreeChecker Clean tlb: {'_city_put_name': None, '_city_house_put_name': None, '_city_house_color_put_name': None, '_leakageruletest_put_name': None, '_useafterfreetest_put_name': 'useafterfreeTest-87c1bb88f2', '_resourcehierarchytest_put_name': None, '_resourcehierarchychild_put_name': None}
+2020-07-21 08:00:24.274: UseAfterFreeChecker Found * 1 * consumers.
+2020-07-21 08:00:24.283: Sending: 'GET /useafterfreetest/useafterfreeTest-87c1bb88f2 HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-07-21 08:00:24.292: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"name": "useafterfreeTest-87c1bb88f2"}'
+
+2020-07-21 08:00:24.305: UseAfterFreeChecker
+Suspect sequence: 200
+2020-07-21 08:00:24.318: UseAfterFreeChecker PUT /useafterfreetest/useafterfreeTest
+2020-07-21 08:00:24.331: UseAfterFreeChecker DELETE /useafterfreetest/_READER_DELIM_useafterfreetest_put_name_READER_DELIM
+2020-07-21 08:00:24.345: UseAfterFreeChecker GET /useafterfreetest/_READER_DELIM_useafterfreetest_put_name_READER_DELIM
+2020-07-21 08:00:24.354: Attempting to reproduce bug...
+2020-07-21 08:00:24.363: Sending: 'PUT /useafterfreetest/useafterfreeTest-87c1bb88f2 HTTP/1.1\r\nContent-Length: 4\r\n\r\n{}\r\n'
+
+2020-07-21 08:00:24.375: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "useafterfreeTest-87c1bb88f2"}'
+
+2020-07-21 08:00:24.384: Sending: 'DELETE /useafterfreetest/useafterfreeTest-87c1bb88f2 HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-07-21 08:00:24.394: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"useafterfreeTest-87c1bb88f2"'
+
+2020-07-21 08:00:24.403: Sending: 'GET /useafterfreetest/useafterfreeTest-87c1bb88f2 HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-07-21 08:00:24.411: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"name": "useafterfreeTest-87c1bb88f2"}'
+
+2020-07-21 08:00:24.421: Done replaying sequence.
+2020-07-21 08:00:24.442: Checker: UseAfterFreeChecker kicks out
+
+2020-07-21 08:00:24.452: Checker: NameSpaceRuleChecker kicks in
+
+2020-07-21 08:00:24.461: Checker: NameSpaceRuleChecker kicks out
+
+2020-07-21 08:00:24.470: Checker: InvalidDynamicObjectChecker kicks in
+
+2020-07-21 08:00:24.481: Re-rendering and sending start of sequence
+2020-07-21 08:00:24.495: Sending: 'PUT /useafterfreetest/useafterfreeTest-268f5f47d2 HTTP/1.1\r\nContent-Length: 4\r\n\r\n{}\r\n'
+
+2020-07-21 08:00:24.513: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "useafterfreeTest-268f5f47d2"}'
+
+2020-07-21 08:00:24.536: InvalidDynamicObjectChecker
+Sending invalid request(s):
+2020-07-21 08:00:24.546: Preparing requests with invalid objects
+2020-07-21 08:00:24.565: InvalidDynamicObjectChecker 'DELETE /useafterfreetest/useafterfreeTest-268f5f47d2?api-version=2019-01-01 HTTP/1.1\r\n\r\n'
+2020-07-21 08:00:24.575: Sending: 'DELETE /useafterfreetest/useafterfreeTest-268f5f47d2?api-version=2019-01-01 HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-07-21 08:00:24.584: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"useafterfreeTest-268f5f47d2"'
+
+2020-07-21 08:00:24.595: Attempting to reproduce bug...
+2020-07-21 08:00:24.604: Sending: 'PUT /useafterfreetest/useafterfreeTest-268f5f47d2 HTTP/1.1\r\nContent-Length: 4\r\n\r\n{}\r\n'
+
+2020-07-21 08:00:24.613: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "useafterfreeTest-268f5f47d2"}'
+
+2020-07-21 08:00:24.623: Sending: 'DELETE /useafterfreetest/useafterfreeTest-268f5f47d2?api-version=2019-01-01 HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-07-21 08:00:24.632: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"useafterfreeTest-268f5f47d2"'
+
+2020-07-21 08:00:24.641: Done replaying sequence.
+2020-07-21 08:00:24.665: InvalidDynamicObjectChecker
+Suspect sequence: 202
+2020-07-21 08:00:24.682: InvalidDynamicObjectChecker PUT /useafterfreetest/useafterfreeTest
+2020-07-21 08:00:24.699: InvalidDynamicObjectChecker DELETE /useafterfreetest/_READER_DELIM_useafterfreetest_put_name_READER_DELIM
+2020-07-21 08:00:24.713: InvalidDynamicObjectChecker 'DELETE /useafterfreetest/useafterfreeTest-268f5f47d2/?/ HTTP/1.1\r\n\r\n'
+2020-07-21 08:00:24.723: Sending: 'DELETE /useafterfreetest/useafterfreeTest-268f5f47d2/?/ HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-07-21 08:00:24.732: Received: 'HTTP/1.1 400 Bad Request\r\nRestler Test\r\n\r\n{"error": "Invalid resource: "}'
+
+2020-07-21 08:00:24.749: InvalidDynamicObjectChecker 'DELETE /useafterfreetest/useafterfreeTest-268f5f47d2?? HTTP/1.1\r\n\r\n'
+2020-07-21 08:00:24.759: Sending: 'DELETE /useafterfreetest/useafterfreeTest-268f5f47d2?? HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-07-21 08:00:24.768: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"useafterfreeTest-268f5f47d2"'
+
+2020-07-21 08:00:24.793: InvalidDynamicObjectChecker
+Suspect sequence: 202
+2020-07-21 08:00:24.812: InvalidDynamicObjectChecker PUT /useafterfreetest/useafterfreeTest
+2020-07-21 08:00:24.829: InvalidDynamicObjectChecker DELETE /useafterfreetest/_READER_DELIM_useafterfreetest_put_name_READER_DELIM
+2020-07-21 08:00:24.845: InvalidDynamicObjectChecker 'DELETE /useafterfreetest/useafterfreeTest-268f5f47d2/useafterfreeTest-268f5f47d2 HTTP/1.1\r\n\r\n'
+2020-07-21 08:00:24.853: Sending: 'DELETE /useafterfreetest/useafterfreeTest-268f5f47d2/useafterfreeTest-268f5f47d2 HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-07-21 08:00:24.865: Received: 'HTTP/1.1 400 Bad Request\r\nRestler Test\r\n\r\n{"error": "Invalid resource: useafterfreeTest-268f5f47d2"}'
+
+2020-07-21 08:00:24.911: Checker: InvalidDynamicObjectChecker kicks out
+
+2020-07-21 08:00:24.919: Checker: PayloadBodyChecker kicks in
+
+2020-07-21 08:00:24.930: Checker: PayloadBodyChecker kicks out
+
+2020-07-21 08:00:24.939: Checker: ExamplesChecker kicks in
+
+2020-07-21 08:00:24.949: Checker: ExamplesChecker kicks out

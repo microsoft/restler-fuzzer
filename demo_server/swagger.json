@@ -1,0 +1,265 @@
+{
+    "swagger": "2.0",
+    "basePath": "/api",
+    "paths": {
+        "/blog/posts": {
+            "get": {
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "$ref": "#/definitions/Page of blog posts"
+                        }
+                    }
+                },
+                "summary": "Returns a list of blog posts",
+                "operationId": "get_posts_collection",
+                "parameters": [
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "type": "integer",
+                        "description": "Results per page {error_msg}",
+                        "default": 10,
+                        "enum": [
+                            2,
+                            10,
+                            50
+                        ],
+                        "collectionFormat": "multi"
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "type": "integer",
+                        "description": "Page number",
+                        "default": 1
+                    }
+                ],
+                "tags": [
+                    "blog/posts"
+                ]
+            },
+            "post": {
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "$ref": "#/definitions/Blog post public"
+                        }
+                    }
+                },
+                "summary": "Creates a new blog post",
+                "operationId": "post_posts_collection",
+                "parameters": [
+                    {
+                        "name": "payload",
+                        "required": true,
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/Blog post public"
+                        }
+                    }
+                ],
+                "tags": [
+                    "blog/posts"
+                ]
+            }
+        },
+        "/blog/posts/{postId}": {
+            "parameters": [
+                {
+                    "name": "postId",
+                    "in": "path",
+                    "required": true,
+                    "type": "integer"
+                }
+            ],
+            "delete": {
+                "responses": {
+                    "201": {
+                        "description": "Post found."
+                    },
+                    "404": {
+                        "description": "Post not found."
+                    },
+                    "204": {
+                        "description": "Post successfully deleted."
+                    }
+                },
+                "summary": "Deletes a blog post with mathcing \"postId\"",
+                "operationId": "delete_post_item",
+                "tags": [
+                    "blog/posts"
+                ]
+            },
+            "put": {
+                "responses": {
+                    "201": {
+                        "description": "Post found."
+                    },
+                    "404": {
+                        "description": "Post not found."
+                    },
+                    "204": {
+                        "description": "Post successfully updated."
+                    }
+                },
+                "summary": "Updates a blog post with matching \"postId\" and \"checksum\"",
+                "operationId": "put_post_item",
+                "parameters": [
+                    {
+                        "name": "payload",
+                        "required": true,
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/Blog post"
+                        }
+                    }
+                ],
+                "tags": [
+                    "blog/posts"
+                ]
+            },
+            "get": {
+                "responses": {
+                    "201": {
+                        "description": "Post found."
+                    },
+                    "404": {
+                        "description": "Post not found."
+                    },
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "$ref": "#/definitions/Blog post"
+                        }
+                    }
+                },
+                "summary": "Returns a blog post with matching \"postId\"",
+                "operationId": "get_post_item",
+                "tags": [
+                    "blog/posts"
+                ]
+            }
+        },
+        "/doc": {
+            "get": {
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    }
+                },
+                "summary": "Returns list of blog categories",
+                "operationId": "get_doc",
+                "tags": [
+                    "/"
+                ]
+            }
+        }
+    },
+    "info": {
+        "title": "My Blog API",
+        "version": "1.0",
+        "description": "A simple demonstration of a Flask RestPlus powered API"
+    },
+    "produces": [
+        "application/json"
+    ],
+    "consumes": [
+        "application/json"
+    ],
+    "tags": [
+        {
+            "name": "blog/posts",
+            "description": "Operations related to blog posts"
+        },
+        {
+            "name": "/",
+            "description": "Operations related to blog categories"
+        }
+    ],
+    "definitions": {
+        "Blog post public": {
+            "required": [
+                "body"
+            ],
+            "properties": {
+                "id": {
+                    "type": "integer",
+                    "description": "The unique identifier of a blog post"
+                },
+                "body": {
+                    "type": "string",
+                    "description": "Article content"
+                }
+            },
+            "type": "object"
+        },
+        "Page of blog posts": {
+            "allOf": [
+                {
+                    "$ref": "#/definitions/A page of results"
+                },
+                {
+                    "properties": {
+                        "items": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/Blog post public"
+                            }
+                        }
+                    },
+                    "type": "object"
+                }
+            ]
+        },
+        "A page of results": {
+            "properties": {
+                "per_page": {
+                    "type": "integer",
+                    "description": "Number of items per page of results"
+                },
+                "page": {
+                    "type": "integer",
+                    "description": "Number of this page of results"
+                },
+                "total": {
+                    "type": "integer",
+                    "description": "Total number of results"
+                }
+            },
+            "type": "object"
+        },
+        "Blog post": {
+            "required": [
+                "body"
+            ],
+            "properties": {
+                "id": {
+                    "type": "integer",
+                    "description": "The unique identifier of a blog post"
+                },
+                "checksum": {
+                    "type": "string",
+                    "description": "The sha1 checksum of the body"
+                },
+                "body": {
+                    "type": "string",
+                    "description": "Article content"
+                }
+            },
+            "type": "object"
+        }
+    },
+    "responses": {
+        "ParseError": {
+            "description": "When a mask can't be parsed"
+        },
+        "MaskError": {
+            "description": "When any error occurs on mask"
+        },
+        "NoResultFound": {}
+    },
+    "host": "localhost:8888"
+}

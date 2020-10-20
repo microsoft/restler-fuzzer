@@ -1,0 +1,31 @@
+steps:
+  - task: UsePythonVersion@0
+    displayName: Use Python version 3.8.
+    inputs:
+      versionSpec: '3.8'
+    name: pyTools
+
+  - script: |
+      pip install -r ./restler/requirements.txt
+      pip install -r ./demo_server/requirements.txt
+    displayName: Install requirements
+
+  - script: |
+      python ./build-restler.py --dest_dir $(Agent.BuildDirectory)/restler_test_drop
+    failOnStderr: true
+    displayName: Build RESTler drop
+
+  - script: |
+      python ./restler/end_to_end_tests/test_quick_start.py $(Agent.BuildDirectory)/restler_test_drop
+    failOnStderr: true
+    displayName: Run quick start
+
+  - task: DeleteFiles@1
+    displayName: Delete restler test drop directory
+    condition: always()
+    inputs:
+      SourceFolder: $(Agent.BuildDirectory)
+      contents: |
+        restler_test_drop
+
+

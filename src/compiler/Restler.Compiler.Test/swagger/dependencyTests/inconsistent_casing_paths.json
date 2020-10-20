@@ -1,0 +1,138 @@
+{
+  "basePath": "/api",
+  "consumes": [
+    "application/json"
+  ],
+  "definitions": {
+    "SubResource": {
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Resource name."
+        },
+        "id": {
+          "type": "string",
+          "description": "Resource name."
+        }
+      },
+      "description": "Reference to another subresource.",
+      "x-ms-azure-resource": true
+    }
+  },
+  "host": "localhost:8888",
+  "info": {
+    "description": "Small example for inconsistent casing paths.",
+    "title": "Inconsistent casing path dependencies regression test",
+    "version": "1.0"
+  },
+  "paths": {
+    "/api/dataItem/{dataITEMName}/dataPoints/{dataPOIntName}/metadata/{id}": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "dataITEMName",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "path",
+            "name": "dataPOIntName",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/SubResource"
+
+            }
+          }
+        }
+      }
+    },
+    "/api/dataItem/{dataIteMName}/dataPoints/{dataPointName}/metadata": {
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "dataIteMName",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "path",
+            "name": "dataPointName",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/SubResource"
+
+            }
+          }
+        }
+      }
+    },
+    "/api/dataItem/{dataITeMName}/dataPoints/{dataPOInTName}": {
+      "put": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "dataITeMName",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "path",
+            "name": "dataPOInTName",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/SubResource"
+
+            }
+          }
+        }
+      }
+    },
+    "/api/dataItem/{dataItemName}": {
+      "put": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "dataItemName",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/SubResource"
+            }
+          }
+        }
+      }
+    }
+  },
+  "swagger": "2.0"
+}

@@ -1,0 +1,148 @@
+2020-07-30 07:13:23.666: Sending: 'DELETE /item/itemName<test!>-772f7ece5a HTTP/1.1\r\nAccept: application/json\r\nHost: restler.unit.test.server.com\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
+
+2020-07-30 07:13:23.682: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"itemName<test!>-772f7ece5a"'
+
+2020-07-30 07:13:23.682: Sending: 'DELETE /item/itemName<test!>-78f20bd241 HTTP/1.1\r\nAccept: application/json\r\nHost: restler.unit.test.server.com\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
+
+2020-07-30 07:13:23.697: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"itemName<test!>-78f20bd241"'
+
+2020-07-30 07:13:23.697: Sending: 'DELETE /item/itemName<test!>-f4091c1569 HTTP/1.1\r\nAccept: application/json\r\nHost: restler.unit.test.server.com\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
+
+2020-07-30 07:13:23.713: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"itemName<test!>-f4091c1569"'
+
+2020-07-30 07:13:23.713: Sending: 'DELETE /item/itemName<test!>-ed4195d9d6 HTTP/1.1\r\nAccept: application/json\r\nHost: restler.unit.test.server.com\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
+
+2020-07-30 07:13:23.729: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"itemName<test!>-ed4195d9d6"'
+
+2020-07-30 07:13:23.735: Sending: 'DELETE /item/itemName<test!>-10fd141559 HTTP/1.1\r\nAccept: application/json\r\nHost: restler.unit.test.server.com\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
+
+2020-07-30 07:13:23.735: Received: "HTTP/1.1 404 Not Found\r\nRestler Test\r\n\r\n{'Resource': ResourceDoesNotExist()}"
+
+2020-07-30 07:13:23.751: Sending: 'DELETE /item/itemName<test!>-b642cf4eab HTTP/1.1\r\nAccept: application/json\r\nHost: restler.unit.test.server.com\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
+
+2020-07-30 07:13:23.751: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"itemName<test!>-b642cf4eab"'
+
+2020-07-30 07:13:23.766: Sending: 'DELETE /item/itemName<test!>-f9e31dee63 HTTP/1.1\r\nAccept: application/json\r\nHost: restler.unit.test.server.com\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
+
+2020-07-30 07:13:23.766: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"itemName<test!>-f9e31dee63"'
+
+2020-07-30 07:13:23.782: Sending: 'DELETE /farm/farmName<test!>-54b95358a0 HTTP/1.1\r\nAccept: application/json\r\nHost: restler.unit.test.server.com\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
+
+2020-07-30 07:13:23.798: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"farmName<test!>-54b95358a0"'
+
+2020-07-30 07:13:23.798: Sending: 'DELETE /farm/farmName<test!>-f2fb36b9c0 HTTP/1.1\r\nAccept: application/json\r\nHost: restler.unit.test.server.com\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
+
+2020-07-30 07:13:23.813: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"farmName<test!>-f2fb36b9c0"'
+
+2020-07-30 07:13:23.813: Sending: 'DELETE /farm/farmName<test!>-d2b9eef6ea HTTP/1.1\r\nAccept: application/json\r\nHost: restler.unit.test.server.com\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
+
+2020-07-30 07:13:23.813: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"farmName<test!>-d2b9eef6ea"'
+
+2020-07-30 07:13:23.836: Sending: 'DELETE /farm/farmName<test!>-390a095a76 HTTP/1.1\r\nAccept: application/json\r\nHost: restler.unit.test.server.com\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
+
+2020-07-30 07:13:23.836: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"farmName<test!>-390a095a76"'
+
+2020-07-30 07:13:23.851: Sending: 'DELETE /farm/farmName<test!>-5ee316f1b5 HTTP/1.1\r\nAccept: application/json\r\nHost: restler.unit.test.server.com\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
+
+2020-07-30 07:13:23.851: Received: "HTTP/1.1 404 Not Found\r\nRestler Test\r\n\r\n{'Resource': ResourceDoesNotExist()}"
+
+2020-07-30 07:13:23.867: Sending: 'DELETE /farm/farmName<test!>-d4db319b43 HTTP/1.1\r\nAccept: application/json\r\nHost: restler.unit.test.server.com\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
+
+2020-07-30 07:13:23.882: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"farmName<test!>-d4db319b43"'
+
+2020-07-30 07:13:23.898: Sending: 'DELETE /farm/farmName<test!>-a9ad83cc8f HTTP/1.1\r\nAccept: application/json\r\nHost: restler.unit.test.server.com\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
+
+2020-07-30 07:13:23.898: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"farmName<test!>-a9ad83cc8f"'
+
+2020-07-30 07:13:23.936: Sending: 'DELETE /city/cityName<test!>-8db9fa8476 HTTP/1.1\r\nAccept: application/json\r\nHost: restler.unit.test.server.com\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
+
+2020-07-30 07:13:23.952: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"cityName<test!>-8db9fa8476"'
+
+2020-07-30 07:13:23.952: Sending: 'DELETE /city/cityName<test!>-eeab1a5920 HTTP/1.1\r\nAccept: application/json\r\nHost: restler.unit.test.server.com\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
+
+2020-07-30 07:13:23.967: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"cityName<test!>-eeab1a5920"'
+
+2020-07-30 07:13:23.983: Sending: 'DELETE /city/cityName<test!>-e4c4cf518c HTTP/1.1\r\nAccept: application/json\r\nHost: restler.unit.test.server.com\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
+
+2020-07-30 07:13:23.983: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"cityName<test!>-e4c4cf518c"'
+
+2020-07-30 07:13:23.998: Sending: 'DELETE /city/cityName<test!>-6f5bd8ce7e HTTP/1.1\r\nAccept: application/json\r\nHost: restler.unit.test.server.com\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
+
+2020-07-30 07:13:24.014: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"cityName<test!>-6f5bd8ce7e"'
+
+2020-07-30 07:13:24.030: Sending: 'DELETE /city/cityName<test!>-51af0ebd1f HTTP/1.1\r\nAccept: application/json\r\nHost: restler.unit.test.server.com\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
+
+2020-07-30 07:13:24.036: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"cityName<test!>-51af0ebd1f"'
+
+2020-07-30 07:13:24.052: Sending: 'DELETE /city/cityName<test!>-b78077997f HTTP/1.1\r\nAccept: application/json\r\nHost: restler.unit.test.server.com\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
+
+2020-07-30 07:13:24.052: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"cityName<test!>-b78077997f"'
+
+2020-07-30 07:13:24.068: Sending: 'DELETE /city/cityName<test!>-345dce6340 HTTP/1.1\r\nAccept: application/json\r\nHost: restler.unit.test.server.com\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
+
+2020-07-30 07:13:24.083: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"cityName<test!>-345dce6340"'
+
+2020-07-30 07:13:24.107: Sending: 'DELETE /city/cityName<test!>-8adda109af HTTP/1.1\r\nAccept: application/json\r\nHost: restler.unit.test.server.com\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
+
+2020-07-30 07:13:24.115: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"cityName<test!>-8adda109af"'
+
+2020-07-30 07:13:24.123: Sending: 'DELETE /city/cityName<test!>-8d75b5922d HTTP/1.1\r\nAccept: application/json\r\nHost: restler.unit.test.server.com\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
+
+2020-07-30 07:13:24.131: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"cityName<test!>-8d75b5922d"'
+
+2020-07-30 07:13:24.146: Sending: 'DELETE /city/cityName<test!>-38e035f697 HTTP/1.1\r\nAccept: application/json\r\nHost: restler.unit.test.server.com\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
+
+2020-07-30 07:13:24.156: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"cityName<test!>-38e035f697"'
+
+2020-07-30 07:13:24.164: Sending: 'DELETE /city/cityName<test!>-f402f5d26c HTTP/1.1\r\nAccept: application/json\r\nHost: restler.unit.test.server.com\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
+
+2020-07-30 07:13:24.180: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"cityName<test!>-f402f5d26c"'
+
+2020-07-30 07:13:24.196: Sending: 'DELETE /city/cityName<test!>-1f272aeb1b HTTP/1.1\r\nAccept: application/json\r\nHost: restler.unit.test.server.com\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
+
+2020-07-30 07:13:24.206: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"cityName<test!>-1f272aeb1b"'
+
+2020-07-30 07:13:24.215: Sending: 'DELETE /city/cityName<test!>-dbfed2dbd3 HTTP/1.1\r\nAccept: application/json\r\nHost: restler.unit.test.server.com\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
+
+2020-07-30 07:13:24.223: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"cityName<test!>-dbfed2dbd3"'
+
+2020-07-30 07:13:24.231: Sending: 'DELETE /city/cityName<test!>-66a1e3959a HTTP/1.1\r\nAccept: application/json\r\nHost: restler.unit.test.server.com\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
+
+2020-07-30 07:13:24.239: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"cityName<test!>-66a1e3959a"'
+
+2020-07-30 07:13:24.246: Sending: 'DELETE /city/cityName<test!>-70cedfb8b4 HTTP/1.1\r\nAccept: application/json\r\nHost: restler.unit.test.server.com\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
+
+2020-07-30 07:13:24.255: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"cityName<test!>-70cedfb8b4"'
+
+2020-07-30 07:13:24.273: Sending: 'DELETE /city/cityName<test!>-e04ed7f74b HTTP/1.1\r\nAccept: application/json\r\nHost: restler.unit.test.server.com\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
+
+2020-07-30 07:13:24.284: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"cityName<test!>-e04ed7f74b"'
+
+2020-07-30 07:13:24.292: Sending: 'DELETE /city/cityName<test!>-d79282d2be HTTP/1.1\r\nAccept: application/json\r\nHost: restler.unit.test.server.com\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
+
+2020-07-30 07:13:24.300: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"cityName<test!>-d79282d2be"'
+
+2020-07-30 07:13:24.316: Sending: 'DELETE /city/cityName<test!>-d441318a34 HTTP/1.1\r\nAccept: application/json\r\nHost: restler.unit.test.server.com\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
+
+2020-07-30 07:13:24.326: Received: "HTTP/1.1 404 Not Found\r\nRestler Test\r\n\r\n{'Resource': ResourceDoesNotExist()}"
+
+2020-07-30 07:13:24.335: Sending: 'DELETE /city/cityName<test!>-1f07435f32 HTTP/1.1\r\nAccept: application/json\r\nHost: restler.unit.test.server.com\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
+
+2020-07-30 07:13:24.351: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"cityName<test!>-1f07435f32"'
+
+2020-07-30 07:13:24.361: Sending: 'DELETE /city/cityName<test!>-2f714d49b1 HTTP/1.1\r\nAccept: application/json\r\nHost: restler.unit.test.server.com\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
+
+2020-07-30 07:13:24.370: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"cityName<test!>-2f714d49b1"'
+
+2020-07-30 07:13:24.385: Sending: 'DELETE /group/groupName<test!>-0354f7edd8 HTTP/1.1\r\nAccept: application/json\r\nHost: restler.unit.test.server.com\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
+
+2020-07-30 07:13:24.392: Received: "HTTP/1.1 404 Not Found\r\nRestler Test\r\n\r\n{'Resource': ResourceDoesNotExist()}"
+
+2020-07-30 07:13:24.400: Sending: 'DELETE /group/groupName<test!>-ec073072bc HTTP/1.1\r\nAccept: application/json\r\nHost: restler.unit.test.server.com\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
+
+2020-07-30 07:13:24.416: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"groupName<test!>-ec073072bc"'
+
+2020-07-30 07:13:24.426: Sending: 'DELETE /group/groupName<test!>-d939637503 HTTP/1.1\r\nAccept: application/json\r\nHost: restler.unit.test.server.com\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
+
+2020-07-30 07:13:24.435: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"groupName<test!>-d939637503"'
+

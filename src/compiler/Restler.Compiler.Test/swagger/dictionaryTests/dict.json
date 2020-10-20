@@ -1,0 +1,9 @@
+{
+  "restler_fuzzable_string": ["global"],
+  "restler_fuzzable_int": ["0", "1"],
+  "restler_fuzzable_bool": [ "true", "false" ],
+  "restler_custom_payload": {
+    "/storeProperties/tags": ["custom2"],
+    "/items/[0]/deliveryTags": [ "custom1" ]
+  }
+}

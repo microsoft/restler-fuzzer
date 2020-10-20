@@ -1,0 +1,15 @@
+steps:
+  - task: UsePythonVersion@0
+    displayName: Use Python version 3.8.
+    inputs:
+      versionSpec: '3.8'
+    name: pyTools
+
+  - script: pip install -r ./restler/requirements.txt
+    displayName: Install requirements
+
+  - script: |
+      python -m pytest ./unit_tests/
+    workingDirectory: ./restler
+    failOnStderr: true
+    displayName: Run unit tests

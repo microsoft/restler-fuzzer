@@ -1,0 +1,36 @@
+main_driver_500: 1
+LeakageRuleChecker: 1
+ResourceHierarchyChecker: 1
+UseAfterFreeChecker: 1
+NameSpaceRuleChecker: 0
+InvalidDynamicObjectChecker: 8
+PayloadBodyChecker: 0
+ExamplesChecker: 0
+Total Buckets: 12
+-------------
+main_driver_500 - Bug was reproduced
+PUT /city/cityName-63a4e53554/house/houseName HTTP/1.1\r\n\r\n{}\r\n
+PUT /city/cityName-63a4e53554/house/_READER_DELIM_city_house_put_name_READER_DELIM/color/colorName HTTP/1.1\r\n\r\n{{\r\n
+--------------------------------------------------------------------------------
+LeakageRuleChecker - Bug was reproduced
+PUT /leakageruletest/leakageTest HTTP/1.1\r\n\r\n{}\r\n
+GET /leakageruletest/_READER_DELIM_leakageruletest_put_name_READER_DELIM HTTP/1.1\r\n\r\n
+--------------------------------------------------------------------------------
+ResourceHierarchyChecker - Bug was reproduced
+PUT /resourcehierarchytest/resourcehierarchyTest HTTP/1.1\r\n\r\n{}\r\n
+GET /resourcehierarchytest/_READER_DELIM_resourcehierarchytest_put_name_READER_DELIM/resourcehierarchychild/_READER_DELIM_resourcehierarchychild_put_name_READER_DELIM HTTP/1.1\r\n\r\n
+--------------------------------------------------------------------------------
+UseAfterFreeChecker - Bug was reproduced
+PUT /useafterfreetest/useafterfreeTest HTTP/1.1\r\n\r\n{}\r\n
+DELETE /useafterfreetest/_READER_DELIM_useafterfreetest_put_name_READER_DELIM HTTP/1.1\r\n\r\n
+GET /useafterfreetest/_READER_DELIM_useafterfreetest_put_name_READER_DELIM HTTP/1.1\r\n\r\n
+--------------------------------------------------------------------------------
+InvalidDynamicObjectChecker - Bug was reproduced
+PUT /resourcehierarchytest/resourcehierarchyTest HTTP/1.1\r\n\r\n{}\r\n
+PUT /resourcehierarchytest/_READER_DELIM_resourcehierarchytest_put_name_READER_DELIM/resourcehierarchychild/resourcehierarchyChild HTTP/1.1\r\n\r\n{}\r\n
+--------------------------------------------------------------------------------
+InvalidDynamicObjectChecker - Bug was reproduced
+PUT /resourcehierarchytest/resourcehierarchyTest HTTP/1.1\r\n\r\n{}\r\n
+PUT /resourcehierarchytest/_READER_DELIM_resourcehierarchytest_put_name_READER_DELIM/resourcehierarchychild/resourcehierarchyChild HTTP/1.1\r\n\r\n{}\r\n
+DELETE /resourcehierarchytest/_READER_DELIM_resourcehierarchytest_put_name_READER_DELIM/resourcehierarchychild/_READER_DELIM_resourcehierarchychild_put_name_READER_DELIM HTTP/1.1\r\n\r\n
+--------------------------------------------------------------------------------

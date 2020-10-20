@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Restler.CompilerExe": {
+      "commandName": "Project",
+      "commandLineArgs": "d:\\test\\nrp\\config2.json"
+    }
+  }
+}

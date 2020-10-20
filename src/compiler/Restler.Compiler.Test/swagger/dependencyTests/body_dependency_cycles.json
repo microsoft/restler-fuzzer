@@ -1,0 +1,143 @@
+{
+  "basePath": "/api",
+  "consumes": [
+    "application/json"
+  ],
+  "definitions": {
+    "PrivateAccess": {
+      "description": "Description of the parameters of Private Access for a Web Site.",
+      "type": "object",
+      "properties": {
+        "properties": {
+          "description": "PrivateAccess resource specific properties",
+          "properties": {
+            "enabled": {
+              "description": "Whether private access is enabled or not.",
+              "type": "boolean"
+            },
+            "virtualNetworks": {
+              "description": "The Virtual Networks (and subnets) allowed to access the site privately.",
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/PrivateAccessVirtualNetwork"
+              }
+            }
+          },
+          "x-ms-client-flatten": true
+        }
+      }
+    },
+    "PrivateAccessVirtualNetwork": {
+      "description": "Description of a Virtual Network that is useable for private site access.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "description": "The name of the Virtual Network.",
+          "type": "string"
+        },
+        "key": {
+          "format": "int32",
+          "description": "The key (ID) of the Virtual Network.",
+          "type": "integer"
+        },
+        "resourceId": {
+          "description": "The ARM uri of the Virtual Network",
+          "type": "string"
+        },
+        "subnets": {
+          "description": "A List of subnets that access is allowed to on this Virtual Network. An empty array (but not null) is interpreted to mean that all subnets are allowed within this Virtual Network.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/PrivateAccessSubnet"
+          }
+        }
+      }
+    },
+    "PrivateAccessSubnet": {
+      "description": "Description of a Virtual Network subnet that is useable for private site access.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "description": "The name of the subnet.",
+          "type": "string"
+        },
+        "key": {
+          "format": "int32",
+          "description": "The key (ID) of the subnet.",
+          "type": "integer"
+        }
+      }
+    }
+  },
+  "host": "localhost:8888",
+  "info": {
+    "description": "Small example that produces cycles due to body dependencies.",
+    "title": "Cycle body dependencies regression test",
+    "version": "1.0"
+  },
+  "paths": {
+    "/sites/{name}/slots/{slot}/privateAccess/virtualNetworks": {
+      "put": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "name",
+            "required": true,
+            "type": "String"
+          },
+          {
+            "in": "path",
+            "name": "slot",
+            "required": true,
+            "type": "String"
+          },
+          {
+            "in": "body",
+            "name": "access",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/PrivateAccess"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/PrivateAccess"
+            }
+          }
+        }
+      }
+    },
+    "/Microsoft.Web/sites/{name}/privateAccess/virtualNetworks": {
+      "put": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "name",
+            "required": true,
+            "type": "String"
+          },
+          {
+            "in": "body",
+            "name": "access",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/PrivateAccess"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/PrivateAccess"
+            }
+          }
+        }
+      }
+    }
+  },
+  "swagger": "2.0"
+}

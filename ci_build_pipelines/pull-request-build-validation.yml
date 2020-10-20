@@ -1,0 +1,16 @@
+trigger:
+  batch : true
+  branches:
+    include:
+      - '*'
+
+variables:
+  - template: 'variables/version-variables.yml'
+  - name: version.revision
+    value: $[counter(variables['devRevision'], 1)]
+  - name: versionNumber
+    value: $(version.major).$(version.minor).$(version.revision)
+
+stages:
+  - template: stages/build/build.yml
+  - template: stages/test/test.yml

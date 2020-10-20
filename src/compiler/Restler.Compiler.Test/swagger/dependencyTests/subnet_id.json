@@ -1,0 +1,254 @@
+{
+  "basePath": "/api",
+  "consumes": [
+    "application/json"
+  ],
+  "definitions": {
+    "SubResource": {
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Resource ID."
+        }
+      },
+      "description": "Reference to another subresource.",
+      "x-ms-azure-resource": true
+    },
+    "ApplicationGateway": {
+      "properties": {
+        "properties": {
+          "x-ms-client-flatten": true,
+          "$ref": "#/definitions/ApplicationGatewayPropertiesFormat"
+        }
+      }
+    },
+    "ApplicationGatewayPropertiesFormat": {
+      "properties": {
+        "gatewayIPConfigurations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ApplicationGatewayIPConfiguration"
+          },
+          "description": "Subnets of application the gateway resource."
+        }
+
+      }
+    },
+    "ApplicationGatewayIPConfigurationPropertiesFormat": {
+      "properties": {
+        "subnet": {
+          "$ref": "#/definitions/SubResource",
+          "description": "Reference of the subnet resource. A subnet from where application gateway gets its private address."
+        },
+        "provisioningState": {
+          "type": "string",
+          "description": "Provisioning state of the application gateway subnet resource. Possible values are: 'Updating', 'Deleting', and 'Failed'."
+        }
+
+      },
+
+      "description": "Properties of IP configuration of an application gateway."
+    },
+    "ApplicationGatewayIPConfiguration": {
+      "properties": {
+        "properties": {
+          "x-ms-client-flatten": true,
+          "$ref": "#/definitions/ApplicationGatewayIPConfigurationPropertiesFormat"
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the IP configuration that is unique within an Application Gateway."
+        },
+        "etag": {
+          "type": "string",
+          "description": "A unique read-only string that changes whenever the resource is updated."
+        },
+        "type": {
+          "type": "string",
+          "description": "Type of the resource."
+        }
+      }
+    },
+    "SubnetPropertiesFormat": {
+      "properties": {
+        "addressPrefix": {
+          "type": "string",
+          "description": "The address prefix for the subnet."
+        },
+        "nullProperty": {
+          "type": "string",
+          "description": "This should always be set to null."
+        },
+        "intProperty": {
+          "type": "integer",
+          "format":  "int32",
+          "description": "An integer."
+        },
+        "emptyProperty": {
+          "type": "string",
+          "description": "This should always be set to empty."
+        }
+      }
+    },
+    "Subnet": {
+      "properties": {
+        "properties": {
+          "x-ms-client-flatten": true,
+          "$ref": "#/definitions/SubnetPropertiesFormat",
+          "description": "Properties of the subnet."
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the resource that is unique within a resource group. This name can be used to access the resource."
+        }
+      },
+      "allOf": [
+        {
+          "$ref": "#/definitions/SubResource"
+        }
+      ]
+    },
+    "VirtualNetwork": {
+      "properties": {
+        "subnets": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Subnet"
+          },
+          "description": "A list of subnets in a Virtual Network."
+        }
+      }
+    }
+  },
+
+  "host": "localhost:8888",
+  "info": {
+    "description": "Small example for object with embedded consumer.",
+    "title": "Subnet dependencies regression test",
+    "version": "1.0"
+  },
+  "paths": {
+    "/subnets/{subnetName}": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "subnetName",
+            "required": true,
+            "type": "String"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Subnet"
+            }
+          }
+
+        }
+      },
+      "put": {
+          "parameters": [
+            {
+              "in": "path",
+              "name": "subnetName",
+              "required": true,
+              "type": "String"
+            },
+            {
+              "in": "body",
+              "name": "subnetParameters",
+              "required": true,
+              "schema": {
+                "$ref": "#/definitions/Subnet"
+              }
+            }
+          ],
+          "x-ms-examples": {
+            "Create subnet": {
+              "$ref": "./examples/create_subnet.json"
+            }
+          },
+          "responses": {
+            "201": {
+              "description": "Success",
+              "schema": {
+                "$ref": "#/definitions/Subnet"
+              }
+            }
+          }
+        }
+      },
+    "/applicationGateways/{applicationGatewayName}": {
+        "put": {
+          "parameters": [
+            {
+              "in": "path",
+              "name": "applicationGatewayName",
+              "required": true,
+              "type": "String"
+            },
+            {
+              "name": "parameters",
+              "in": "body",
+              "required": true,
+              "schema": {
+                "$ref": "#/definitions/ApplicationGateway"
+              }
+            }
+          ],
+          "x-ms-examples": {
+            "Create vnet": {
+              "$ref": "./examples/create_application_gateway.json"
+            }
+          },
+          "responses": {
+            "201": {
+              "description": "Success",
+              "schema": {
+                "$ref": "#/definitions/ApplicationGateway"
+              }
+            }
+          }
+        }
+      },
+    "/virtualNetworks/{virtualNetworkName}": {
+        "put": {
+          "parameters": [
+            {
+              "in": "path",
+              "name": "virtualNetworkName",
+              "required": true,
+              "type": "String"
+            },
+            {
+              "name": "parameters",
+              "in": "body",
+              "required": true,
+              "schema": {
+                "$ref": "#/definitions/VirtualNetwork"
+              }
+            }
+          ],
+          "x-ms-examples": {
+            "Create vnet": {
+              "$ref": "./examples/create_vnet_with_subnet.json"
+            }
+          },
+          "responses": {
+            "201": {
+              "description": "Success",
+              "schema": {
+                "$ref": "#/definitions/VirtualNetwork"
+              }
+            },
+            "404": {
+              "description": "Store not found."
+            }
+          }
+        }
+      }
+    },
+  "swagger": "2.0"
+}

@@ -1,0 +1,237 @@
+{
+  "basePath": "/api",
+  "consumes": [
+    "application/json"
+  ],
+  "x-restler-global-annotations": [
+    {
+      "producer_resource_name": "metadata",
+      "producer_method": "POST",
+      "consumer_param": "/storeProperties/tags",
+      "producer_endpoint": "/stores"
+    },
+    {
+      "producer_resource_name": "/delivery/metadata/",
+      "producer_method": "POST",
+      "consumer_param": "/items/[0]/deliveryTags",
+      "producer_endpoint": "/stores"
+    }
+  ],
+  "definitions": {
+    "DeliveryMetadata": {
+      "properties": {
+        "metadata": {
+          "description": "The metadata tags of the store.",
+          "type": "object"
+        }
+      }
+    },
+    "Store": {
+      "properties": {
+        "metadata": {
+          "description": "The metadata tags of the store.",
+          "type": "object"
+        },
+        "delivery": {
+          "$ref": "#/definitions/DeliveryMetadata"
+        },
+        "id": {
+          "description": "The unique identifier of a store",
+          "type": "integer"
+        },
+        "name": {
+          "description": "The name of the store",
+          "type": "integer"
+        }
+      }
+    },
+    "Order": {
+      "properties": {
+        "tags": {
+          "description": "The order tags",
+          "type": "object"
+        },
+        "id": {
+          "description": "The unique identifier of an order",
+          "type": "integer",
+          "readonly":  true
+        },
+        "eta": {
+          "description": "The date the order will be ready",
+          "type": "string"
+        },
+        "status": {
+          "description": "The order status",
+          "type": "string"
+        }
+      }
+    },
+    "StoreProperties": {
+      "properties": {
+        "tags": {
+          "description": "The unique identifier of the store",
+          "type": "object"
+        }
+      }
+    },
+    "DeliveryProperties": {
+      "properties": {
+        "tags": {
+          "description": "The unique identifier of the store",
+          "type": "object"
+        }
+      }
+    },
+    "GroceryList": {
+      "properties": {
+        "tags": {
+          "description": "The unique identifier of the store",
+          "type": "object"
+        },
+        "storeId": {
+          "description": "The unique identifier of the store",
+          "type": "integer"
+        },
+        "storeProperties": {
+          "$ref": "#/definitions/StoreProperties"
+        },
+        "deliveryProperties": {
+          "$ref": "#/definitions/DeliveryProperties"
+        },
+        "rush": {
+          "description": "Is it a rush order",
+          "type": "boolean"
+        },
+        "bagType": {
+          "description": "The type of bags to use",
+          "type": "string"
+        },
+        "items": {
+          "description": "The type of bags to use",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/GroceryListItem"
+          }
+        },
+        "useDoubleBags": {
+          "description": "Whether to use double bags",
+          "type": "boolean"
+        },
+        "bannedBrands": {
+          "description": "do not use these brands",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "GroceryListItem": {
+      "properties": {
+        "name": {
+          "description": "The name of the item",
+          "type": "string"
+        },
+        "deliveryTags": {
+          "description": "The delivery tags",
+          "type": "object"
+        },
+
+        "code": {
+          "description": "The code of the item",
+          "type": "integer"
+        },
+        "storeId": {
+          "description": "The unique identifier of the store",
+          "type": "integer"
+        },
+        "expirationMaxDate": {
+          "description": "The maximum date that this item should expire",
+          "type": "string"
+        }
+      }
+    },
+    "KeyType": {
+      "type": "string",
+      "enum": [
+        "NotSpecified",
+        "Primary",
+        "Secondary"
+      ],
+      "x-ms-enum": {
+        "name": "KeyType",
+        "modelAsString": false
+      }
+    },
+    "GetCallbackUrlParameters": {
+      "type": "object",
+      "properties": {
+        "notAfter": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The expiry time."
+        },
+        "keyType": {
+          "$ref": "#/definitions/KeyType",
+          "description": "The key type."
+        }
+      },
+      "description": "The callback url parameters."
+    }
+
+  },
+  "host": "localhost:8888",
+  "info": {
+    "description": "A simple swagger spec that uses examples",
+    "title": "My Grocery API",
+    "version": "1.0"
+  },
+  "paths": {
+    "/stores": {
+      "post": {
+        "operationId": "post_stores",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Store"
+            }
+          }
+        }
+      }
+    },
+    "/stores/{storeId}/order": {
+      "post": {
+        "operationId": "make_an_order",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "storeId",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "orderDetails",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/GroceryList"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Order"
+            }
+          },
+          "404": {
+            "description": "Store not found."
+          }
+        }
+      }
+    }
+  },
+  "swagger": "2.0"
+}

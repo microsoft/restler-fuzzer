@@ -1,0 +1,16 @@
+2020-07-21 08:00:32.901: Sending: 'DELETE /resourcehierarchytest/resourcehierarchyTest-ed70be9d51 HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-07-21 08:00:32.908: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"resourcehierarchyTest-ed70be9d51"'
+
+2020-07-21 08:00:32.918: Sending: 'DELETE /resourcehierarchytest/resourcehierarchyTest-ed70be9d51 HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-07-21 08:00:32.931: Received: "HTTP/1.1 404 Not Found\r\nRestler Test\r\n\r\n{'Resource': ResourceDoesNotExist()}"
+
+2020-07-21 08:00:32.942: Sending: 'DELETE /resourcehierarchytest/resourcehierarchyTest-ef837e2d50 HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-07-21 08:00:32.953: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"resourcehierarchyTest-ef837e2d50"'
+
+2020-07-21 08:00:32.961: Sending: 'DELETE /resourcehierarchytest/resourcehierarchyTest-ef837e2d50 HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+
+2020-07-21 08:00:32.968: Received: "HTTP/1.1 404 Not Found\r\nRestler Test\r\n\r\n{'Resource': ResourceDoesNotExist()}"
+

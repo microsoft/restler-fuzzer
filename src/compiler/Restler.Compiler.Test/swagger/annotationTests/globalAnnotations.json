@@ -1,0 +1,16 @@
+{
+  "x-restler-global-annotations": [
+    {
+      "producer_resource_name": "metadata",
+      "producer_method": "POST",
+      "consumer_param": "/storeProperties/tags",
+      "producer_endpoint": "/stores"
+    },
+    {
+      "producer_resource_name": "/delivery/metadata",
+      "producer_method": "POST",
+      "consumer_param": "/items/[0]/deliveryTags",
+      "producer_endpoint": "/stores"
+    }
+  ]
+}

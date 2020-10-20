@@ -1,0 +1,499 @@
+{
+  "basePath": "/api",
+  "consumes": [
+    "application/json"
+  ],
+  "definitions": {
+    "Resource": {
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Resource ID."
+        },
+        "name": {
+          "readOnly": true,
+          "type": "string",
+          "description": "Resource name."
+        },
+        "type": {
+          "readOnly": true,
+          "type": "string",
+          "description": "Resource type."
+        },
+        "location": {
+          "type": "string",
+          "description": "Resource location."
+        },
+        "tags": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "Resource tags."
+        }
+      },
+      "description": "Common resource representation.",
+      "x-ms-azure-resource": true
+    },
+
+    "SubResource": {
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Resource ID."
+        }
+      },
+      "description": "Reference to another subresource.",
+      "x-ms-azure-resource": true
+    },
+    "NetworkInterface": {
+      "properties": {
+        "properties": {
+          "x-ms-client-flatten": true,
+          "$ref": "#/definitions/NetworkInterfacePropertiesFormat",
+          "description": "Properties of the network interface."
+        },
+        "etag": {
+          "type": "string",
+          "description": "A unique read-only string that changes whenever the resource is updated."
+        }
+      },
+      "allOf": [
+        {
+          "$ref": "#/definitions/Resource"
+        }
+      ],
+      "description": "A network interface in a resource group."
+    },
+    "NetworkInterfacePropertiesFormat": {
+      "properties": {
+        "virtualMachine": {
+          "$ref": "#/definitions/SubResource",
+          "description": "The reference of a virtual machine.",
+          "readOnly": true
+        },
+        "ipConfigurations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/NetworkInterfaceIPConfiguration"
+          },
+          "description": "A list of IPConfigurations of the network interface."
+        },
+        "macAddress": {
+          "type": "string",
+          "description": "The MAC address of the network interface."
+        },
+        "primary": {
+          "type": "boolean",
+          "description": "Gets whether this is a primary network interface on a virtual machine."
+        },
+        "enableAcceleratedNetworking": {
+          "type": "boolean",
+          "description": "If the network interface is accelerated networking enabled."
+        },
+        "enableIPForwarding": {
+          "type": "boolean",
+          "description": "Indicates whether IP forwarding is enabled on this network interface."
+        },
+        "hostedWorkloads": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "readOnly": true,
+          "description": "A list of references to linked BareMetal resources"
+        },
+        "resourceGuid": {
+          "type": "string",
+          "description": "The resource GUID property of the network interface resource."
+        },
+        "provisioningState": {
+          "type": "string",
+          "description": "The provisioning state of the public IP resource. Possible values are: 'Updating', 'Deleting', and 'Failed'."
+        }
+      },
+      "description": "NetworkInterface properties. "
+    },
+
+    "ApplicationGateway": {
+      "properties": {
+        "properties": {
+          "x-ms-client-flatten": true,
+          "$ref": "#/definitions/ApplicationGatewayPropertiesFormat"
+        }
+      }
+    },
+    "ApplicationGatewayPropertiesFormat": {
+      "properties": {
+        "gatewayIPConfigurations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ApplicationGatewayIPConfiguration"
+          },
+          "description": "Subnets of application the gateway resource."
+        }
+
+      }
+    },
+    "ApplicationGatewayIPConfigurationPropertiesFormat": {
+      "properties": {
+        "subnet": {
+          "$ref": "#/definitions/SubResource",
+          "description": "Reference of the subnet resource. A subnet from where application gateway gets its private address."
+        },
+        "provisioningState": {
+          "type": "string",
+          "description": "Provisioning state of the application gateway subnet resource. Possible values are: 'Updating', 'Deleting', and 'Failed'."
+        }
+
+      },
+
+      "description": "Properties of IP configuration of an application gateway."
+    },
+    "ApplicationGatewayIPConfiguration": {
+      "properties": {
+        "properties": {
+          "x-ms-client-flatten": true,
+          "$ref": "#/definitions/ApplicationGatewayIPConfigurationPropertiesFormat"
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the IP configuration that is unique within an Application Gateway."
+        },
+        "etag": {
+          "type": "string",
+          "description": "A unique read-only string that changes whenever the resource is updated."
+        },
+        "type": {
+          "type": "string",
+          "description": "Type of the resource."
+        }
+      }
+    },
+    "NetworkInterfaceIPConfiguration": {
+      "properties": {
+        "properties": {
+          "x-ms-client-flatten": true,
+          "$ref": "#/definitions/NetworkInterfaceIPConfigurationPropertiesFormat",
+          "description": "Network interface IP configuration properties."
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the resource that is unique within a resource group. This name can be used to access the resource."
+        },
+        "etag": {
+          "type": "string",
+          "description": "A unique read-only string that changes whenever the resource is updated."
+        }
+      },
+      "allOf": [
+        {
+          "$ref": "#/definitions/SubResource"
+        }
+      ],
+      "description": "IPConfiguration in a network interface."
+    },
+    "NetworkInterfaceIPConfigurationPropertiesFormat": {
+      "properties": {
+        "privateIPAddress": {
+          "type": "string",
+          "description": "Private IP address of the IP configuration."
+        },
+        "privateIPAllocationMethod": {
+          "type": "string",
+          "description": "Defines how a private IP address is assigned. Possible values are: 'Static' and 'Dynamic'.",
+          "enum": [
+            "Static",
+            "Dynamic"
+          ],
+          "x-ms-enum": {
+            "name": "IPAllocationMethod",
+            "modelAsString": true
+          }
+        },
+        "privateIPAddressVersion": {
+          "type": "string",
+          "description": "Available from Api-Version 2016-03-30 onwards, it represents whether the specific ipconfiguration is IPv4 or IPv6. Default is taken as IPv4.  Possible values are: 'IPv4' and 'IPv6'.",
+          "enum": [
+            "IPv4",
+            "IPv6"
+          ],
+          "x-ms-enum": {
+            "name": "IPVersion",
+            "modelAsString": true
+          }
+        },
+        "subnet": {
+          "$ref": "#/definitions/Subnet",
+          "description": "Subnet bound to the IP configuration."
+        },
+        "primary": {
+          "type": "boolean",
+          "description": "Gets whether this is a primary customer address on the network interface."
+        },
+        "provisioningState": {
+          "type": "string",
+          "description": "The provisioning state of the network interface IP configuration. Possible values are: 'Updating', 'Deleting', and 'Failed'."
+        }
+      },
+      "description": "Properties of IP configuration."
+    },
+    "SubnetPropertiesFormat": {
+      "properties": {
+        "addressPrefix": {
+          "type": "string",
+          "description": "The address prefix for the subnet."
+        }
+      }
+    },
+        "Subnet": {
+          "properties": {
+            "properties": {
+              "x-ms-client-flatten": true,
+              "$ref": "#/definitions/SubnetPropertiesFormat",
+              "description": "Properties of the subnet."
+            },
+
+            "name": {
+              "type": "string",
+              "description": "The name of the resource that is unique within a resource group. This name can be used to access the resource."
+            }
+          },
+          "allOf": [
+            {
+              "$ref": "#/definitions/SubResource"
+            }
+          ]
+        },
+        "VirtualNetwork": {
+          "properties": {
+            "subnets": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Subnet"
+              },
+              "description": "A list of subnets in a Virtual Network."
+            }
+          }
+        }
+      },
+
+      "host": "localhost:8888",
+      "info": {
+        "description": "Small example for object with embedded consumer.",
+        "title": "Subnet dependencies regression test",
+        "version": "1.0"
+      },
+      "paths": {
+        "/networkInterfaces/{networkInterfaceName}": {
+          "put": {
+            "tags": [
+              "NetworkInterfaces"
+            ],
+            "operationId": "NetworkInterfaces_CreateOrUpdate",
+            "description": "Creates or updates a network interface.",
+            "parameters": [
+              {
+                "name": "resourceGroupName",
+                "in": "path",
+                "required": true,
+                "type": "string",
+                "description": "The name of the resource group."
+              },
+              {
+                "name": "networkInterfaceName",
+                "in": "path",
+                "required": true,
+                "type": "string",
+                "description": "The name of the network interface."
+              },
+              {
+                "name": "parameters",
+                "in": "body",
+                "required": true,
+                "schema": {
+                  "$ref": "#/definitions/NetworkInterface"
+                },
+                "description": "Parameters supplied to the create or update network interface operation."
+              }
+            ],
+            "responses": {
+              "201": {
+                "description": "Create successful. The operation returns the resulting NetworkInterface resource.",
+                "schema": {
+                  "$ref": "#/definitions/NetworkInterface"
+                }
+              },
+              "200": {
+                "description": "Update successful. The operation returns the resulting NetworkInterface resource.",
+                "schema": {
+                  "$ref": "#/definitions/NetworkInterface"
+                }
+              }
+            },
+            "x-ms-examples": {
+              "Create network interface": { "$ref": "./examples/create_network_interface.json" }
+            },
+            "x-ms-long-running-operation": true
+          }
+
+        },
+
+        "/networkInterfaces/{networkInterfaceName}/ipConfigurations/{ipConfigurationName}": {
+          "get": {
+            "tags": [
+              "NetworkInterfaces"
+            ],
+            "operationId": "NetworkInterfaceIPConfigurations_Get",
+            "description": "Gets the specified network interface ip configuration.",
+            "parameters": [
+              {
+                "name": "networkInterfaceName",
+                "in": "path",
+                "required": true,
+                "type": "string",
+                "description": "The name of the network interface."
+              },
+              {
+                "name": "ipConfigurationName",
+                "in": "path",
+                "required": true,
+                "type": "string",
+                "description": "The name of the ip configuration name."
+              }
+            ],
+            "responses": {
+              "200": {
+                "description": "Request successful. The operation returns the resulting NetworkInterface IPConfiguration resource.",
+                "schema": {
+                  "$ref": "#/definitions/NetworkInterfaceIPConfiguration"
+                }
+              }
+            }
+          }
+        },
+
+        "/subnets/{subnetName}": {
+          "get": {
+            "parameters": [
+              {
+                "in": "path",
+                "name": "subnetName",
+                "required": true,
+                "type": "String"
+              }
+            ],
+            "responses": {
+              "200": {
+                "description": "Success",
+                "schema": {
+                  "$ref": "#/definitions/Subnet"
+                }
+              }
+
+            }
+          },
+          "put": {
+            "parameters": [
+              {
+                "in": "path",
+                "name": "subnetName",
+                "required": true,
+                "type": "String"
+              },
+              {
+                "in": "body",
+                "name": "subnetParameters",
+                "required": true,
+                "schema": {
+                  "$ref": "#/definitions/Subnet"
+                }
+              }
+            ],
+            "x-ms-examples": {
+              "Create subnet": {
+                "$ref": "./examples/create_subnet.json"
+              }
+            },
+            "responses": {
+              "201": {
+                "description": "Success",
+                "schema": {
+                  "$ref": "#/definitions/Subnet"
+                }
+              }
+            }
+          }
+        },
+        "/applicationGateways/{applicationGatewayName}": {
+          "put": {
+            "parameters": [
+              {
+                "in": "path",
+                "name": "applicationGatewayName",
+                "required": true,
+                "type": "String"
+              },
+              {
+                "name": "parameters",
+                "in": "body",
+                "required": true,
+                "schema": {
+                  "$ref": "#/definitions/ApplicationGateway"
+                }
+              }
+            ],
+            "x-ms-examples": {
+              "Create vnet": {
+                "$ref": "./examples/create_application_gateway.json"
+              }
+            },
+            "responses": {
+              "201": {
+                "description": "Success",
+                "schema": {
+                  "$ref": "#/definitions/ApplicationGateway"
+                }
+              }
+            }
+          }
+        },
+        "/virtualNetworks/{virtualNetworkName}": {
+          "put": {
+            "parameters": [
+              {
+                "in": "path",
+                "name": "virtualNetworkName",
+                "required": true,
+                "type": "String"
+              },
+              {
+                "name": "parameters",
+                "in": "body",
+                "required": true,
+                "schema": {
+                  "$ref": "#/definitions/VirtualNetwork"
+                }
+              }
+            ],
+            "x-ms-examples": {
+              "Create vnet": {
+                "$ref": "./examples/create_vnet_with_subnet.json"
+              }
+            },
+            "responses": {
+              "201": {
+                "description": "Success",
+                "schema": {
+                  "$ref": "#/definitions/VirtualNetwork"
+                }
+              },
+              "404": {
+                "description": "Store not found."
+              }
+            }
+          }
+        }
+      },
+      "swagger": "2.0"
+    }

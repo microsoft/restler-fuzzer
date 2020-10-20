@@ -1,0 +1,35 @@
+{
+  "restler_fuzzable_string": [
+    "customfuzz"
+  ],
+  "restler_fuzzable_int": [
+    "0",
+    "1"
+  ],
+  "restler_fuzzable_bool": [
+    "true",
+    "false"
+  ],
+  "restler_custom_payload": {
+    "location": [
+      "Redmond"
+    ]
+  },
+  "restler_custom_payload_uuid4_suffix": {
+    "cityName": "cityName<test!>-",
+    "houseName": "houseName<test!>-",
+    "colorName": "colorName<test!>-",
+    "itemName": "Thing<test!>-",
+    "farmName": "farmName<test!>-",
+    "animalName": "animalName<test!>-",
+    "roadName": "roadName<test!>-",
+    "groupName": "groupName<test!>-",
+    "leakageTest": "leakageTest<test!>-",
+    "useafterfreeTest": "useafterfreeTest<test!>-",
+    "resourcehierarchyTest": "resourcehierarchyTest<test!>-",
+    "resourcehierarchyChild": "resourcehierarchyChild<test!>-"
+  },
+  "args": {
+    "max_combinations": 20
+  }
+}

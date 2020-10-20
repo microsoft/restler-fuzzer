@@ -1,0 +1,39 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+
+    <AssemblyName>Restler.ResultsAnalyzer</AssemblyName>
+    <NoWarn>NU1603</NoWarn>
+    <DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="Common\Utilities.fs" />
+    <Compile Include="Common\Http.fs" />
+    <Compile Include="Common\Log.fs" />
+    <Compile Include="Common\Abstractions.fs" />
+    <Compile Include="Diff\Diff.fs" />
+    <Compile Include="Diff\DiffHttp.fs" />
+    <Compile Include="Diff\DiffLines.fs" />
+    <Compile Include="Diff\Main.fs" />
+    <Compile Include="Analyze\Types.fs" />
+    <Compile Include="Analyze\Buckets.fs" />
+    <Compile Include="Analyze\Main.fs" />
+    <Compile Include="Overview.fs" />
+    <Compile Include="OverviewDiff.fs" />
+    <Compile Include="Timing.fs" />
+    <Compile Include="Convert.fs" />
+    <Compile Include="Program.fs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\compiler\Restler.Compiler\Restler.Compiler.fsproj" />
+    <PackageReference Include="DiffPlex" Version="1.4.4" />
+    <PackageReference Include="Microsoft.FSharpLu" Version="0.11.6" />
+    <PackageReference Include="Microsoft.FSharpLu.Json" Version="0.11.6" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\compiler\Restler.Compiler\Restler.Compiler.fsproj" />
+  </ItemGroup>
+</Project>

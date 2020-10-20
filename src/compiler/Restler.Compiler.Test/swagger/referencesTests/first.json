@@ -1,0 +1,23 @@
+{
+  "definitions": {
+    "Group1": {
+      "properties": {
+        "group1Properties": {
+          "$ref": "#/definitions/Group1PropertiesFormat"
+
+        }
+      }
+    },
+    "Group1PropertiesFormat": {
+      "properties": {
+        "second": {
+          "type": "array",
+          "items": {
+            "$ref": "./second.json#/definitions/Group2"
+          }
+        }
+      }
+    }
+  }
+}
+

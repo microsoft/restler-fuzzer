@@ -1,0 +1,19 @@
+{
+  "definitions": {
+    "Group2": {
+      "properties": {
+        "group2Properties": {
+          "$ref": "#/definitions/Group2PropertiesFormat"
+        }
+      }
+    },
+    "Group2PropertiesFormat": {
+      "properties": {
+        "first": {
+          "$ref": "./first.json#/definitions/Group1"
+        }
+      },
+      "description": "Properties of the subnet."
+    }
+  }
+}
