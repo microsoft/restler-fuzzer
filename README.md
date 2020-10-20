@@ -13,6 +13,8 @@ RESTler is described in these peer-reviewed research papers:
 3. [Differential Regression Testing for REST APIs​](https://patricegodefroid.github.io/public_psfiles/issta2020.pdf) (ISSTA'2020)
 4. [Intelligent REST API Data Fuzzing​​](https://patricegodefroid.github.io/public_psfiles/fse2020.pdf) (FSE'2020)
 
+If you use RESTler in your research, please cite the (default) ICSE'2019 paper ([BibTeX](./docs/user-guide/icse2019.bib)).
+
 RESTler was created at Microsoft Research and is still under active development.
 
 ![RESTler architecture](./docs/user-guide/RESTler-arch.png)
