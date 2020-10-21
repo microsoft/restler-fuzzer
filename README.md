@@ -13,6 +13,8 @@ RESTler is described in these peer-reviewed research papers:
 3. [Differential Regression Testing for REST APIs​](https://patricegodefroid.github.io/public_psfiles/issta2020.pdf) (ISSTA'2020)
 4. [Intelligent REST API Data Fuzzing​​](https://patricegodefroid.github.io/public_psfiles/fse2020.pdf) (FSE'2020)
 
+If you use RESTler in your research, please cite the (default) ICSE'2019 paper ([BibTeX](./docs/user-guide/icse2019.bib)).
+
 RESTler was created at Microsoft Research and is still under active development.
 
 ![RESTler architecture](./docs/user-guide/RESTler-arch.png)
@@ -20,31 +22,31 @@ RESTler was created at Microsoft Research and is still under active development.
 
 ## Setting up RESTler
 
-RESTler was designed to run on 64-bit machines.
+RESTler was designed to run on 64-bit machines with Windows or Linux.
 
 ### **Build instructions**
 
-#### Prerequisites
-
-- Windows: [.NET core SDK 3.1](https://dotnet.microsoft.com/download/dotnet-core?utm_source=getdotnetcorecli&utm_medium=referral) or higher, Powershell 5.1 or higher
-- Linux: [.NET core SDK 3.1](https://dotnet.microsoft.com/download/dotnet-core?utm_source=getdotnetcorecli&utm_medium=referral) or higher, [PowerShell 7 Core](https://docs.microsoft.com/en-us/powershell/scripting/install/installing-powershell-core-on-linux?view=powershell-7)
+Install [Python 3.8.2](https://www.python.org/downloads/) and
+[.NET core SDK 3.1](https://dotnet.microsoft.com/download/dotnet-core?utm_source=getdotnetcorecli&utm_medium=referral) or higher, for your appropriate OS
 
 Create a directory where you'd like to place the RESTler binaries:
 
 ```mkdir restler_bin```
 
-Switch to the repo root directory and run the following PowerShell script:
+Switch to the repo root directory and run the following Python script:
 
-```./build_restler.ps1 -destDir <full path to RESTler bin above>```
+```python ./build-restler.py --dest_dir <full path to restler_bin above>```
+
+Note: if you get nuget error NU1403 when building, a quick workaround is to clear your cache with this command
+
+```dotnet nuget locals all --clear```
 
 ### **Binary-drop instructions**
 
 RESTler binary drops are coming soon.
 
-#### Prerequisites
-
-* Windows: [.NET core SDK 3.1](https://dotnet.microsoft.com/download/dotnet-core?utm_source=getdotnetcorecli&utm_medium=referral) or higher, [Python 3.8.2](https://www.python.org/downloads/windows/) or higher.
-* Linux: [.NET core SDK 3.1](https://dotnet.microsoft.com/download/dotnet-core?utm_source=getdotnetcorecli&utm_medium=referral) or higher, Python 3.8.2 or higher.
+Prerequisites: Install [Python 3.8.2](https://www.python.org/downloads/) and
+[.NET core SDK 3.1](https://dotnet.microsoft.com/download/dotnet-core?utm_source=getdotnetcorecli&utm_medium=referral) or higher, for your appropriate OS
 
 
 ## Using RESTler
