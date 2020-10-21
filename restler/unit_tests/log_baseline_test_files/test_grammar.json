@@ -1,0 +1,1930 @@
+{
+    "Requests": [
+      {
+        "id": {
+          "endpoint": "/",
+          "method": "Get"
+        },
+        "method": "Get",
+        "path": [
+        ],
+        "queryParameters": [
+          [
+            "Schema",
+            {
+              "ParameterList": []
+            }
+          ]
+        ],
+        "bodyParameters": [
+            [
+              "Schema",
+              {
+                "ParameterList": []
+              }
+            ]
+        ],
+        "headers": [
+            [
+              "Accept",
+              "application/json"
+            ],
+            [
+              "Host",
+              "restler.unit.test.server.com"
+            ]
+          ],
+          "httpVersion": "1.1",
+          "requestMetadata": {
+            "isLongRunningOperation": false
+          }
+      },
+      {
+        "id": {
+          "endpoint": "/city",
+          "method": "Get"
+        },
+        "method": "Get",
+        "path": [
+          {
+            "Constant": [
+              "String",
+              "city"
+            ]
+          }
+        ],
+        "queryParameters": [
+          [
+            "Schema",
+            {
+              "ParameterList": [
+              ]
+            }
+          ]
+        ],
+        "bodyParameters": [
+          [
+            "Schema",
+            {
+              "ParameterList": []
+            }
+          ]
+        ],
+        "headers": [
+          [
+            "Accept",
+            "application/json"
+          ],
+          [
+            "Host",
+            "restler.unit.test.server.com"
+          ]
+        ],
+        "httpVersion": "1.1",
+        "requestMetadata": {
+          "isLongRunningOperation": false
+        }
+      },
+      {
+        "id": {
+          "endpoint": "/city/{cityName}",
+          "method": "Put"
+        },
+        "method": "Put",
+        "path": [
+          {
+            "Constant": [
+              "String",
+              "city"
+            ]
+          },
+          {
+            "Custom": [
+                "UuidSuffix",
+                "cityName",
+                false
+            ]
+          }
+        ],
+        "queryParameters": [
+          [
+            "Schema",
+            {
+              "ParameterList": []
+            }
+          ]
+        ],
+        "bodyParameters": [
+          [
+            "Schema",
+            {
+              "ParameterList": [
+                [
+                  "payload",
+                  {
+                    "InternalNode": [
+                      {
+                        "name": "",
+                        "propertyType": "Object",
+                        "isRequired": true,
+                        "isReadOnly": false
+                      },
+                      [
+                        {
+                          "LeafNode": {
+                            "name": "population",
+                            "payload": {
+                              "Fuzzable": [
+                                  "Int",
+                                  "1000"
+                              ]
+                            },
+                            "isRequired": false,
+                            "isReadOnly": false
+                          }
+                        },
+                        {
+                          "LeafNode": {
+                            "name": "area",
+                            "payload": {
+                              "Fuzzable": [
+                                "Int",
+                                "5000"
+                              ]
+                            },
+                            "isRequired": false,
+                            "isReadOnly": false
+                          }
+                        },
+                        {
+                          "LeafNode": {
+                            "name": "enable",
+                            "payload": {
+                                "Fuzzable": [
+                                    "Bool",
+                                    "true"
+                                ]
+                            },
+                            "isRequired": true,
+                            "isReadOnly": false
+                          }
+                        }
+                      ]
+                    ]
+                  }
+                ]
+              ]
+            }
+          ]
+        ],
+        "headers": [
+            [
+              "Accept",
+              "application/json"
+            ],
+            [
+              "Host",
+              "restler.unit.test.server.com"
+            ]
+          ],
+          "httpVersion": "1.1",
+          "requestMetadata": {
+            "isLongRunningOperation": false
+          }
+      },
+      {
+        "id": {
+          "endpoint": "/city/{cityName}",
+          "method": "Get"
+        },
+        "method": "Get",
+        "path": [
+          {
+            "Constant": [
+              "String",
+              "city"
+            ]
+          },
+          {
+            "DynamicObject": "_city_put_name"
+          }
+        ],
+        "queryParameters": [
+          [
+            "Schema",
+            {
+              "ParameterList": []
+            }
+          ]
+        ],
+        "bodyParameters": [
+          [
+            "Schema",
+            {
+              "ParameterList": []
+            }
+          ]
+        ],
+        "headers": [
+            [
+              "Accept",
+              "application/json"
+            ],
+            [
+              "Host",
+              "restler.unit.test.server.com"
+            ]
+          ],
+          "httpVersion": "1.1",
+          "requestMetadata": {
+            "isLongRunningOperation": false
+          }
+      },
+      {
+        "id": {
+          "endpoint": "/city/{cityName}",
+          "method": "Delete"
+        },
+        "method": "Delete",
+        "path": [
+          {
+            "Constant": [
+              "String",
+              "city"
+            ]
+          },
+          {
+            "DynamicObject": "_city_put_name"
+          }
+        ],
+        "queryParameters": [
+          [
+            "Schema",
+            {
+              "ParameterList": []
+            }
+          ]
+        ],
+        "bodyParameters": [
+          [
+            "Schema",
+            {
+              "ParameterList": []
+            }
+          ]
+        ],
+        "headers": [
+            [
+              "Accept",
+              "application/json"
+            ],
+            [
+              "Host",
+              "restler.unit.test.server.com"
+            ]
+          ],
+          "httpVersion": "1.1",
+          "requestMetadata": {
+            "isLongRunningOperation": false
+          }
+      },
+      {
+        "id": {
+          "endpoint": "/city/{cityName}/house",
+          "method": "Get"
+        },
+        "method": "Get",
+        "path": [
+          {
+            "Constant": [
+              "String",
+              "city"
+            ]
+          },
+          {
+            "DynamicObject": "_city_put_name"
+          },
+          {
+              "Constant": [
+                  "String",
+                  "house"
+              ]
+          }
+        ],
+        "queryParameters": [
+          [
+            "Schema",
+            {
+              "ParameterList": []
+            }
+          ]
+        ],
+        "bodyParameters": [
+          [
+            "Schema",
+            {
+              "ParameterList": []
+            }
+          ]
+        ],
+        "headers": [
+            [
+              "Accept",
+              "application/json"
+            ],
+            [
+              "Host",
+              "restler.unit.test.server.com"
+            ]
+          ],
+          "httpVersion": "1.1",
+          "requestMetadata": {
+            "isLongRunningOperation": false
+          }
+      },
+      {
+        "id": {
+          "endpoint": "/city/{cityName}/house/{houseName}",
+          "method": "Put"
+        },
+        "method": "Put",
+        "path": [
+          {
+            "Constant": [
+              "String",
+              "city"
+            ]
+          },
+          {
+            "DynamicObject": "_city_put_name"
+          },
+          {
+              "Constant": [
+                  "String",
+                  "house"
+              ]
+          },
+          {
+            "Custom": [
+                "UuidSuffix",
+                "houseName",
+                false
+            ]
+          }
+        ],
+        "queryParameters": [
+          [
+            "Schema",
+            {
+              "ParameterList": []
+            }
+          ]
+        ],
+        "bodyParameters": [
+            [
+              "Schema",
+              {
+                "ParameterList": [
+                  [
+                    "payload",
+                    {
+                      "InternalNode": [
+                        {
+                          "name": "",
+                          "propertyType": "Object",
+                          "isRequired": true,
+                          "isReadOnly": false
+                        },
+                        [
+                        ]
+                      ]
+                    }
+                  ]
+                ]
+              }
+            ]
+          ],
+        "headers": [
+            [
+              "Accept",
+              "application/json"
+            ],
+            [
+              "Host",
+              "restler.unit.test.server.com"
+            ]
+          ],
+          "httpVersion": "1.1",
+          "requestMetadata": {
+            "isLongRunningOperation": false
+          }
+      },
+      {
+        "id": {
+          "endpoint": "/city/{cityName}/house/{houseName}",
+          "method": "Get"
+        },
+        "method": "Get",
+        "path": [
+          {
+            "Constant": [
+              "String",
+              "city"
+            ]
+          },
+          {
+            "DynamicObject": "_city_put_name"
+          },
+          {
+              "Constant": [
+                  "String",
+                  "house"
+              ]
+          },
+          {
+              "DynamicObject": "_city_house_put_name"
+          }
+        ],
+        "queryParameters": [
+          [
+            "Schema",
+            {
+              "ParameterList": []
+            }
+          ]
+        ],
+        "bodyParameters": [
+          [
+            "Schema",
+            {
+              "ParameterList": []
+            }
+          ]
+        ],
+        "headers": [
+            [
+              "Accept",
+              "application/json"
+            ],
+            [
+              "Host",
+              "restler.unit.test.server.com"
+            ]
+          ],
+          "httpVersion": "1.1",
+          "requestMetadata": {
+            "isLongRunningOperation": false
+          }
+      },
+      {
+        "id": {
+          "endpoint": "/city/{cityName}/house/{houseName}",
+          "method": "Delete"
+        },
+        "method": "Delete",
+        "path": [
+          {
+            "Constant": [
+              "String",
+              "city"
+            ]
+          },
+          {
+            "DynamicObject": "_city_put_name"
+          },
+          {
+              "Constant": [
+                  "String",
+                  "house"
+              ]
+          },
+          {
+              "DynamicObject": "_city_house_put_name"
+          }
+        ],
+        "queryParameters": [
+          [
+            "Schema",
+            {
+              "ParameterList": []
+            }
+          ]
+        ],
+        "bodyParameters": [
+          [
+            "Schema",
+            {
+              "ParameterList": []
+            }
+          ]
+        ],
+        "headers": [
+            [
+              "Accept",
+              "application/json"
+            ],
+            [
+              "Host",
+              "restler.unit.test.server.com"
+            ]
+          ],
+          "httpVersion": "1.1",
+          "requestMetadata": {
+            "isLongRunningOperation": false
+          }
+      },
+      {
+        "id": {
+          "endpoint": "/city/{cityName}/house/{houseName}/color",
+          "method": "Get"
+        },
+        "method": "Get",
+        "path": [
+          {
+            "Constant": [
+              "String",
+              "city"
+            ]
+          },
+          {
+            "DynamicObject": "_city_put_name"
+          },
+          {
+              "Constant": [
+                  "String",
+                  "house"
+              ]
+          },
+          {
+              "DynamicObject": "_city_house_put_name"
+          },
+          {
+            "Constant": [
+                "String",
+                "color"
+            ]
+          }
+        ],
+        "queryParameters": [
+          [
+            "Schema",
+            {
+              "ParameterList": []
+            }
+          ]
+        ],
+        "bodyParameters": [
+          [
+            "Schema",
+            {
+              "ParameterList": []
+            }
+          ]
+        ],
+        "headers": [
+            [
+              "Accept",
+              "application/json"
+            ],
+            [
+              "Host",
+              "restler.unit.test.server.com"
+            ]
+          ],
+          "httpVersion": "1.1",
+          "requestMetadata": {
+            "isLongRunningOperation": false
+          }
+      },
+      {
+        "id": {
+          "endpoint": "/city/{cityName}/house/{houseName}/color/{colorName}",
+          "method": "Put"
+        },
+        "method": "Put",
+        "path": [
+          {
+            "Constant": [
+              "String",
+              "city"
+            ]
+          },
+          {
+            "DynamicObject": "_city_put_name"
+          },
+          {
+              "Constant": [
+                  "String",
+                  "house"
+              ]
+          },
+          {
+              "DynamicObject": "_city_house_put_name"
+          },
+          {
+            "Constant": [
+                "String",
+                "color"
+            ]
+          },
+          {
+            "Custom": [
+                "UuidSuffix",
+                "colorName",
+                false
+            ]
+          }
+        ],
+        "queryParameters": [
+          [
+            "Schema",
+            {
+              "ParameterList": []
+            }
+          ]
+        ],
+        "bodyParameters": [
+          [
+            "Schema",
+            {
+              "ParameterList": []
+            }
+          ]
+        ],
+        "headers": [
+            [
+              "Accept",
+              "application/json"
+            ],
+            [
+              "Host",
+              "restler.unit.test.server.com"
+            ]
+          ],
+          "httpVersion": "1.1",
+          "requestMetadata": {
+            "isLongRunningOperation": false
+          }
+      },
+      {
+        "id": {
+          "endpoint": "/city/{cityName}/house/{houseName}/color/{colorName}",
+          "method": "Get"
+        },
+        "method": "Get",
+        "path": [
+          {
+            "Constant": [
+              "String",
+              "city"
+            ]
+          },
+          {
+            "DynamicObject": "_city_put_name"
+          },
+          {
+              "Constant": [
+                  "String",
+                  "house"
+              ]
+          },
+          {
+              "DynamicObject": "_city_house_put_name"
+          },
+          {
+            "Constant": [
+                "String",
+                "color"
+            ]
+          },
+          {
+            "DynamicObject": "_city_house_color_put_name"
+          }
+        ],
+        "queryParameters": [
+          [
+            "Schema",
+            {
+              "ParameterList": []
+            }
+          ]
+        ],
+        "bodyParameters": [
+          [
+            "Schema",
+            {
+              "ParameterList": []
+            }
+          ]
+        ],
+        "headers": [
+            [
+              "Accept",
+              "application/json"
+            ],
+            [
+              "Host",
+              "restler.unit.test.server.com"
+            ]
+          ],
+          "httpVersion": "1.1",
+          "requestMetadata": {
+            "isLongRunningOperation": false
+          }
+      },
+      {
+        "id": {
+          "endpoint": "/city/{cityName}/house/{houseName}/color/{colorName}",
+          "method": "Delete"
+        },
+        "method": "Delete",
+        "path": [
+          {
+            "Constant": [
+              "String",
+              "city"
+            ]
+          },
+          {
+            "DynamicObject": "_city_put_name"
+          },
+          {
+              "Constant": [
+                  "String",
+                  "house"
+              ]
+          },
+          {
+              "DynamicObject": "_city_house_put_name"
+          },
+          {
+            "Constant": [
+                "String",
+                "color"
+            ]
+          },
+          {
+            "DynamicObject": "_city_house_color_put_name"
+          }
+        ],
+        "queryParameters": [
+          [
+            "Schema",
+            {
+              "ParameterList": []
+            }
+          ]
+        ],
+        "bodyParameters": [
+          [
+            "Schema",
+            {
+              "ParameterList": []
+            }
+          ]
+        ],
+        "headers": [
+            [
+              "Accept",
+              "application/json"
+            ],
+            [
+              "Host",
+              "restler.unit.test.server.com"
+            ]
+          ],
+          "httpVersion": "1.1",
+          "requestMetadata": {
+            "isLongRunningOperation": false
+          }
+      },
+      {
+        "id": {
+          "endpoint": "/city/{cityName}/road",
+          "method": "Get"
+        },
+        "method": "Get",
+        "path": [
+          {
+            "Constant": [
+              "String",
+              "city"
+            ]
+          },
+          {
+            "DynamicObject": "_city_put_name"
+          },
+          {
+              "Constant": [
+                  "String",
+                  "road"
+              ]
+          }
+        ],
+        "queryParameters": [
+          [
+            "Schema",
+            {
+              "ParameterList": []
+            }
+          ]
+        ],
+        "bodyParameters": [
+          [
+            "Schema",
+            {
+              "ParameterList": []
+            }
+          ]
+        ],
+        "headers": [
+            [
+              "Accept",
+              "application/json"
+            ],
+            [
+              "Host",
+              "restler.unit.test.server.com"
+            ]
+          ],
+          "httpVersion": "1.1",
+          "requestMetadata": {
+            "isLongRunningOperation": false
+          }
+      },
+      {
+        "id": {
+          "endpoint": "/city/{cityName}/road/{roadName}",
+          "method": "Put"
+        },
+        "method": "Put",
+        "path": [
+          {
+            "Constant": [
+              "String",
+              "city"
+            ]
+          },
+          {
+            "DynamicObject": "_city_put_name"
+          },
+          {
+              "Constant": [
+                  "String",
+                  "road"
+              ]
+          },
+          {
+            "Custom": [
+                "UuidSuffix",
+                "roadName",
+                false
+            ]
+          }
+        ],
+        "queryParameters": [
+          [
+            "Schema",
+            {
+              "ParameterList": []
+            }
+          ]
+        ],
+        "bodyParameters": [
+          [
+            "Schema",
+            {
+              "ParameterList": []
+            }
+          ]
+        ],
+        "headers": [
+            [
+              "Accept",
+              "application/json"
+            ],
+            [
+              "Host",
+              "restler.unit.test.server.com"
+            ]
+          ],
+          "httpVersion": "1.1",
+          "requestMetadata": {
+            "isLongRunningOperation": false
+          }
+      },
+      {
+        "id": {
+          "endpoint": "/city/{cityName}/road/{roadName}",
+          "method": "Get"
+        },
+        "method": "Get",
+        "path": [
+          {
+            "Constant": [
+              "String",
+              "city"
+            ]
+          },
+          {
+            "DynamicObject": "_city_put_name"
+          },
+          {
+              "Constant": [
+                  "String",
+                  "road"
+              ]
+          },
+          {
+              "DynamicObject": "_city_road_put_name"
+          }
+        ],
+        "queryParameters": [
+          [
+            "Schema",
+            {
+              "ParameterList": []
+            }
+          ]
+        ],
+        "bodyParameters": [
+          [
+            "Schema",
+            {
+              "ParameterList": []
+            }
+          ]
+        ],
+        "headers": [
+            [
+              "Accept",
+              "application/json"
+            ],
+            [
+              "Host",
+              "restler.unit.test.server.com"
+            ]
+          ],
+          "httpVersion": "1.1",
+          "requestMetadata": {
+            "isLongRunningOperation": false
+          }
+      },
+      {
+        "id": {
+          "endpoint": "/city/{cityName}/road/{roadName}",
+          "method": "Delete"
+        },
+        "method": "Delete",
+        "path": [
+          {
+            "Constant": [
+              "String",
+              "city"
+            ]
+          },
+          {
+            "DynamicObject": "_city_put_name"
+          },
+          {
+              "Constant": [
+                  "String",
+                  "road"
+              ]
+          },
+          {
+              "DynamicObject": "_city_road_put_name"
+          }
+        ],
+        "queryParameters": [
+          [
+            "Schema",
+            {
+              "ParameterList": []
+            }
+          ]
+        ],
+        "bodyParameters": [
+          [
+            "Schema",
+            {
+              "ParameterList": []
+            }
+          ]
+        ],
+        "headers": [
+            [
+              "Accept",
+              "application/json"
+            ],
+            [
+              "Host",
+              "restler.unit.test.server.com"
+            ]
+          ],
+          "httpVersion": "1.1",
+          "requestMetadata": {
+            "isLongRunningOperation": false
+          }
+      },
+      {
+        "id": {
+          "endpoint": "/farm",
+          "method": "Get"
+        },
+        "method": "Get",
+        "path": [
+          {
+            "Constant": [
+              "String",
+              "farm"
+            ]
+          }
+        ],
+        "queryParameters": [
+          [
+            "Schema",
+            {
+              "ParameterList": [
+              ]
+            }
+          ]
+        ],
+        "bodyParameters": [
+          [
+            "Schema",
+            {
+              "ParameterList": []
+            }
+          ]
+        ],
+        "headers": [
+          [
+            "Accept",
+            "application/json"
+          ],
+          [
+            "Host",
+            "restler.unit.test.server.com"
+          ]
+        ],
+        "httpVersion": "1.1",
+        "requestMetadata": {
+          "isLongRunningOperation": false
+        }
+      },
+      {
+        "id": {
+          "endpoint": "/farm/{farmName}",
+          "method": "Put"
+        },
+        "method": "Put",
+        "path": [
+          {
+            "Constant": [
+              "String",
+              "farm"
+            ]
+          },
+          {
+            "Custom": [
+                "UuidSuffix",
+                "farmName",
+                false
+            ]
+          }
+        ],
+        "queryParameters": [
+          [
+            "Schema",
+            {
+              "ParameterList": []
+            }
+          ]
+        ],
+        "bodyParameters": [
+            [
+              "Schema",
+              {
+                "ParameterList": [
+                  [
+                    "payload",
+                    {
+                      "InternalNode": [
+                        {
+                          "name": "",
+                          "propertyType": "Object",
+                          "isRequired": true,
+                          "isReadOnly": false
+                        },
+                        [
+                        ]
+                      ]
+                    }
+                  ]
+                ]
+              }
+            ]
+          ],
+        "headers": [
+            [
+              "Accept",
+              "application/json"
+            ],
+            [
+              "Host",
+              "restler.unit.test.server.com"
+            ]
+          ],
+          "httpVersion": "1.1",
+          "requestMetadata": {
+            "isLongRunningOperation": false
+          }
+      },
+      {
+        "id": {
+          "endpoint": "/farm/{farmName}",
+          "method": "Get"
+        },
+        "method": "Get",
+        "path": [
+          {
+            "Constant": [
+              "String",
+              "farm"
+            ]
+          },
+          {
+            "DynamicObject": "_farm_put_name"
+          }
+        ],
+        "queryParameters": [
+          [
+            "Schema",
+            {
+              "ParameterList": []
+            }
+          ]
+        ],
+        "bodyParameters": [
+          [
+            "Schema",
+            {
+              "ParameterList": []
+            }
+          ]
+        ],
+        "headers": [
+            [
+              "Accept",
+              "application/json"
+            ],
+            [
+              "Host",
+              "restler.unit.test.server.com"
+            ]
+          ],
+          "httpVersion": "1.1",
+          "requestMetadata": {
+            "isLongRunningOperation": false
+          }
+      },
+      {
+        "id": {
+          "endpoint": "/farm/{farmName}",
+          "method": "Delete"
+        },
+        "method": "Delete",
+        "path": [
+          {
+            "Constant": [
+              "String",
+              "farm"
+            ]
+          },
+          {
+            "DynamicObject": "_farm_put_name"
+          }
+        ],
+        "queryParameters": [
+          [
+            "Schema",
+            {
+              "ParameterList": []
+            }
+          ]
+        ],
+        "bodyParameters": [
+          [
+            "Schema",
+            {
+              "ParameterList": []
+            }
+          ]
+        ],
+        "headers": [
+            [
+              "Accept",
+              "application/json"
+            ],
+            [
+              "Host",
+              "restler.unit.test.server.com"
+            ]
+          ],
+          "httpVersion": "1.1",
+          "requestMetadata": {
+            "isLongRunningOperation": false
+          }
+      },
+      {
+        "id": {
+          "endpoint": "/farm/{farmName}/animal",
+          "method": "Get"
+        },
+        "method": "Get",
+        "path": [
+          {
+            "Constant": [
+              "String",
+              "farm"
+            ]
+          },
+          {
+            "DynamicObject": "_farm_put_name"
+          },
+          {
+              "Constant": [
+                  "String",
+                  "animal"
+              ]
+          }
+        ],
+        "queryParameters": [
+          [
+            "Schema",
+            {
+              "ParameterList": []
+            }
+          ]
+        ],
+        "bodyParameters": [
+          [
+            "Schema",
+            {
+              "ParameterList": []
+            }
+          ]
+        ],
+        "headers": [
+            [
+              "Accept",
+              "application/json"
+            ],
+            [
+              "Host",
+              "restler.unit.test.server.com"
+            ]
+          ],
+          "httpVersion": "1.1",
+          "requestMetadata": {
+            "isLongRunningOperation": false
+          }
+      },
+      {
+        "id": {
+          "endpoint": "/farm/{farmName}/animal/{animalName}",
+          "method": "Put"
+        },
+        "method": "Put",
+        "path": [
+          {
+            "Constant": [
+              "String",
+              "farm"
+            ]
+          },
+          {
+            "DynamicObject": "_farm_put_name"
+          },
+          {
+              "Constant": [
+                  "String",
+                  "animal"
+              ]
+          },
+          {
+            "Custom": [
+                "UuidSuffix",
+                "animalName",
+                false
+            ]
+          }
+        ],
+        "queryParameters": [
+          [
+            "Schema",
+            {
+              "ParameterList": []
+            }
+          ]
+        ],
+        "bodyParameters": [
+            [
+              "Schema",
+              {
+                "ParameterList": [
+                  [
+                    "payload",
+                    {
+                      "InternalNode": [
+                        {
+                          "name": "",
+                          "propertyType": "Object",
+                          "isRequired": true,
+                          "isReadOnly": false
+                        },
+                        [
+                        ]
+                      ]
+                    }
+                  ]
+                ]
+              }
+            ]
+          ],
+        "headers": [
+            [
+              "Accept",
+              "application/json"
+            ],
+            [
+              "Host",
+              "restler.unit.test.server.com"
+            ]
+          ],
+          "httpVersion": "1.1",
+          "requestMetadata": {
+            "isLongRunningOperation": false
+          }
+      },
+      {
+        "id": {
+          "endpoint": "/farm/{farmName}/animal/{animalName}",
+          "method": "Get"
+        },
+        "method": "Get",
+        "path": [
+          {
+            "Constant": [
+              "String",
+              "farm"
+            ]
+          },
+          {
+            "DynamicObject": "_farm_put_name"
+          },
+          {
+              "Constant": [
+                  "String",
+                  "animal"
+              ]
+          },
+          {
+              "DynamicObject": "_farm_animal_put_name"
+          }
+        ],
+        "queryParameters": [
+          [
+            "Schema",
+            {
+              "ParameterList": []
+            }
+          ]
+        ],
+        "bodyParameters": [
+          [
+            "Schema",
+            {
+              "ParameterList": []
+            }
+          ]
+        ],
+        "headers": [
+            [
+              "Accept",
+              "application/json"
+            ],
+            [
+              "Host",
+              "restler.unit.test.server.com"
+            ]
+          ],
+          "httpVersion": "1.1",
+          "requestMetadata": {
+            "isLongRunningOperation": false
+          }
+      },
+      {
+        "id": {
+          "endpoint": "/farm/{farmName}/animal/{animalName}",
+          "method": "Delete"
+        },
+        "method": "Delete",
+        "path": [
+          {
+            "Constant": [
+              "String",
+              "farm"
+            ]
+          },
+          {
+            "DynamicObject": "_farm_put_name"
+          },
+          {
+              "Constant": [
+                  "String",
+                  "animal"
+              ]
+          },
+          {
+              "DynamicObject": "_farm_animal_put_name"
+          }
+        ],
+        "queryParameters": [
+          [
+            "Schema",
+            {
+              "ParameterList": []
+            }
+          ]
+        ],
+        "bodyParameters": [
+          [
+            "Schema",
+            {
+              "ParameterList": []
+            }
+          ]
+        ],
+        "headers": [
+            [
+              "Accept",
+              "application/json"
+            ],
+            [
+              "Host",
+              "restler.unit.test.server.com"
+            ]
+          ],
+          "httpVersion": "1.1",
+          "requestMetadata": {
+            "isLongRunningOperation": false
+          }
+      },
+      {
+        "id": {
+          "endpoint": "/item",
+          "method": "Get"
+        },
+        "method": "Get",
+        "path": [
+          {
+            "Constant": [
+              "String",
+              "item"
+            ]
+          }
+        ],
+        "queryParameters": [
+          [
+            "Schema",
+            {
+              "ParameterList": [
+              ]
+            }
+          ]
+        ],
+        "bodyParameters": [
+          [
+            "Schema",
+            {
+              "ParameterList": []
+            }
+          ]
+        ],
+        "headers": [
+          [
+            "Accept",
+            "application/json"
+          ],
+          [
+            "Host",
+            "restler.unit.test.server.com"
+          ]
+        ],
+        "httpVersion": "1.1",
+        "requestMetadata": {
+          "isLongRunningOperation": false
+        }
+      },
+      {
+        "id": {
+          "endpoint": "/item/{itemName}",
+          "method": "Get"
+        },
+        "method": "Get",
+        "path": [
+          {
+            "Constant": [
+              "String",
+              "item"
+            ]
+          },
+          {
+            "DynamicObject": "_item_put_name"
+          }
+        ],
+        "queryParameters": [
+          [
+            "Schema",
+            {
+              "ParameterList": [
+              ]
+            }
+          ]
+        ],
+        "bodyParameters": [
+          [
+            "Schema",
+            {
+              "ParameterList": []
+            }
+          ]
+        ],
+        "headers": [
+          [
+            "Accept",
+            "application/json"
+          ],
+          [
+            "Host",
+            "restler.unit.test.server.com"
+          ]
+        ],
+        "httpVersion": "1.1",
+        "requestMetadata": {
+          "isLongRunningOperation": false
+        }
+      },
+      {
+        "id": {
+          "endpoint": "/item/{itemName}",
+          "method": "Delete"
+        },
+        "method": "Delete",
+        "path": [
+          {
+            "Constant": [
+              "String",
+              "item"
+            ]
+          },
+          {
+            "DynamicObject": "_item_put_name"
+          }
+        ],
+        "queryParameters": [
+          [
+            "Schema",
+            {
+              "ParameterList": [
+              ]
+            }
+          ]
+        ],
+        "bodyParameters": [
+          [
+            "Schema",
+            {
+              "ParameterList": []
+            }
+          ]
+        ],
+        "headers": [
+          [
+            "Accept",
+            "application/json"
+          ],
+          [
+            "Host",
+            "restler.unit.test.server.com"
+          ]
+        ],
+        "httpVersion": "1.1",
+        "requestMetadata": {
+          "isLongRunningOperation": false
+        }
+      },
+      {
+        "id": {
+          "endpoint": "/item/{itemName}",
+          "method": "Put"
+        },
+        "method": "Put",
+        "path": [
+          {
+            "Constant": [
+              "String",
+              "item"
+            ]
+          },
+          {
+            "Custom": [
+                "UuidSuffix",
+                "itemName",
+                false
+            ]
+          }
+        ],
+        "queryParameters": [
+          [
+            "Schema",
+            {
+              "ParameterList": []
+            }
+          ]
+        ],
+        "bodyParameters": [
+            [
+              "Schema",
+              {
+                "ParameterList": [
+                  [
+                    "payload",
+                    {
+                      "InternalNode": [
+                        {
+                          "name": "",
+                          "propertyType": "Object",
+                          "isRequired": true,
+                          "isReadOnly": false
+                        },
+                        [
+                        ]
+                      ]
+                    }
+                  ]
+                ]
+              }
+            ]
+          ],
+        "headers": [
+            [
+              "Accept",
+              "application/json"
+            ],
+            [
+              "Host",
+              "restler.unit.test.server.com"
+            ]
+          ],
+          "httpVersion": "1.1",
+          "requestMetadata": {
+            "isLongRunningOperation": false
+          }
+      },
+      {
+        "id": {
+          "endpoint": "/group",
+          "method": "Get"
+        },
+        "method": "Get",
+        "path": [
+          {
+            "Constant": [
+              "String",
+              "group"
+            ]
+          }
+        ],
+        "queryParameters": [
+          [
+            "Schema",
+            {
+              "ParameterList": [
+              ]
+            }
+          ]
+        ],
+        "bodyParameters": [
+          [
+            "Schema",
+            {
+              "ParameterList": []
+            }
+          ]
+        ],
+        "headers": [
+          [
+            "Accept",
+            "application/json"
+          ],
+          [
+            "Host",
+            "restler.unit.test.server.com"
+          ]
+        ],
+        "httpVersion": "1.1",
+        "requestMetadata": {
+          "isLongRunningOperation": false
+        }
+      },
+      {
+        "id": {
+          "endpoint": "/group/{groupName}",
+          "method": "Get"
+        },
+        "method": "Get",
+        "path": [
+          {
+            "Constant": [
+              "String",
+              "group"
+            ]
+          },
+          {
+            "DynamicObject": "_group_put_name"
+          }
+        ],
+        "queryParameters": [
+          [
+            "Schema",
+            {
+              "ParameterList": [
+              ]
+            }
+          ]
+        ],
+        "bodyParameters": [
+          [
+            "Schema",
+            {
+              "ParameterList": []
+            }
+          ]
+        ],
+        "headers": [
+          [
+            "Accept",
+            "application/json"
+          ],
+          [
+            "Host",
+            "restler.unit.test.server.com"
+          ]
+        ],
+        "httpVersion": "1.1",
+        "requestMetadata": {
+          "isLongRunningOperation": false
+        }
+      },
+      {
+        "id": {
+          "endpoint": "/group/{groupName}",
+          "method": "Delete"
+        },
+        "method": "Delete",
+        "path": [
+          {
+            "Constant": [
+              "String",
+              "group"
+            ]
+          },
+          {
+            "DynamicObject": "_group_put_name"
+          }
+        ],
+        "queryParameters": [
+          [
+            "Schema",
+            {
+              "ParameterList": [
+              ]
+            }
+          ]
+        ],
+        "bodyParameters": [
+          [
+            "Schema",
+            {
+              "ParameterList": []
+            }
+          ]
+        ],
+        "headers": [
+          [
+            "Accept",
+            "application/json"
+          ],
+          [
+            "Host",
+            "restler.unit.test.server.com"
+          ]
+        ],
+        "httpVersion": "1.1",
+        "requestMetadata": {
+          "isLongRunningOperation": false
+        }
+      },
+      {
+        "id": {
+          "endpoint": "/group/{groupName}",
+          "method": "Put"
+        },
+        "method": "Put",
+        "path": [
+          {
+            "Constant": [
+              "String",
+              "group"
+            ]
+          },
+          {
+            "Custom": [
+                "UuidSuffix",
+                "groupName",
+                false
+            ]
+          }
+        ],
+        "queryParameters": [
+          [
+            "Schema",
+            {
+              "ParameterList": []
+            }
+          ]
+        ],
+        "bodyParameters": [
+          [
+            "Schema",
+            {
+              "ParameterList": [
+                [
+                  "payload",
+                  {
+                    "InternalNode": [
+                      {
+                        "name": "",
+                        "propertyType": "Object",
+                        "isRequired": true,
+                        "isReadOnly": false
+                      },
+                      [
+                        {
+                          "LeafNode": {
+                            "name": "city",
+                            "payload": {
+                                "DynamicObject": "_city_put_name"
+                            },
+                            "isRequired": false,
+                            "isReadOnly": false
+                          }
+                        },
+                        {
+                          "LeafNode": {
+                            "name": "item",
+                            "payload": {
+                                "DynamicObject": "_item_put_name"
+                            },
+                            "isRequired": false,
+                            "isReadOnly": false
+                          }
+                        }
+                      ]
+                    ]
+                  }
+                ]
+              ]
+            }
+          ]
+        ],
+        "headers": [
+            [
+              "Accept",
+              "application/json"
+            ],
+            [
+              "Host",
+              "restler.unit.test.server.com"
+            ]
+          ],
+          "httpVersion": "1.1",
+          "requestMetadata": {
+            "isLongRunningOperation": false
+          }
+      }
+    ]
+  }

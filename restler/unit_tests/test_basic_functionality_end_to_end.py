@@ -91,14 +91,14 @@ class FunctionalityTests(unittest.TestCase):
             test_parser = FuzzingLogParser(self.get_network_log_path(experiments_dir, logger.LOG_TYPE_TESTING))
             self.assertTrue(default_parser.diff_log(test_parser))
         except TestFailedException:
-            self.assertTrue(False)
+            self.fail("Smoke test failed: Fuzzing")
 
         try:
             default_parser = GarbageCollectorLogParser(os.path.join(Test_File_Directory, "smoke_test_gc_log.txt"))
             test_parser = GarbageCollectorLogParser(self.get_network_log_path(experiments_dir, logger.LOG_TYPE_GC))
             self.assertTrue(default_parser.diff_log(test_parser))
         except TestFailedException:
-            self.assertTrue(False)
+            self.fail("Smoke test failed: Garbage Collector")
 
     def test_create_once(self):
         """ This checks that a directed smoke test, using create once endpoints,
@@ -126,21 +126,21 @@ class FunctionalityTests(unittest.TestCase):
             test_parser = FuzzingLogParser(self.get_network_log_path(experiments_dir, logger.LOG_TYPE_TESTING))
             self.assertTrue(default_parser.diff_log(test_parser))
         except TestFailedException:
-            self.assertTrue(False)
+            self.fail("Create-once failed: Fuzzing")
 
         try:
             default_parser = FuzzingLogParser(os.path.join(Test_File_Directory, "create_once_pre_log.txt"))
             test_parser = FuzzingLogParser(self.get_network_log_path(experiments_dir, logger.LOG_TYPE_PREPROCESSING))
             self.assertTrue(default_parser.diff_log(test_parser))
         except TestFailedException:
-            self.assertTrue(False)
+            self.fail("Create-once failed: Preprocessing")
 
         try:
             default_parser = GarbageCollectorLogParser(os.path.join(Test_File_Directory, "create_once_gc_log.txt"))
             test_parser = GarbageCollectorLogParser(self.get_network_log_path(experiments_dir, logger.LOG_TYPE_GC))
             self.assertTrue(default_parser.diff_log(test_parser))
         except TestFailedException:
-            self.assertTrue(False)
+            self.fail("Create-once failed: Garbage Collector")
 
     def test_checkers(self):
         """ This checks that a directed smoke test, with checkers enabled (sans namespacerule,
@@ -168,21 +168,21 @@ class FunctionalityTests(unittest.TestCase):
             test_parser = FuzzingLogParser(self.get_network_log_path(experiments_dir, logger.LOG_TYPE_TESTING))
             self.assertTrue(default_parser.diff_log(test_parser))
         except TestFailedException:
-            self.assertTrue(False)
+            self.fail("Checkers failed: Fuzzing")
 
         try:
             default_parser = BugLogParser(os.path.join(Test_File_Directory, "checkers_bug_buckets.txt"))
             test_parser = BugLogParser(os.path.join(experiments_dir, 'bug_buckets', 'bug_buckets.txt'))
             self.assertTrue(default_parser.diff_log(test_parser))
         except TestFailedException:
-            self.assertTrue(False)
+            self.fail("Checkers failed: Bug Buckets")
 
         try:
             default_parser = GarbageCollectorLogParser(os.path.join(Test_File_Directory, "checkers_gc_log.txt"))
             test_parser = GarbageCollectorLogParser(self.get_network_log_path(experiments_dir, logger.LOG_TYPE_GC))
             self.assertTrue(default_parser.diff_log(test_parser))
         except TestFailedException:
-            self.assertTrue(False)
+            self.fail("Checkers failed: Garbage Collector")
 
     def test_multi_dict(self):
         """ This checks that the directed smoke test executes all of the expected
@@ -210,14 +210,14 @@ class FunctionalityTests(unittest.TestCase):
             test_parser = FuzzingLogParser(self.get_network_log_path(experiments_dir, logger.LOG_TYPE_TESTING))
             self.assertTrue(default_parser.diff_log(test_parser))
         except TestFailedException:
-            self.assertTrue(False)
+            self.fail("Multi-dict failed: Fuzzing")
 
         try:
             default_parser = GarbageCollectorLogParser(os.path.join(Test_File_Directory, "multidict_gc_log.txt"))
             test_parser = GarbageCollectorLogParser(self.get_network_log_path(experiments_dir, logger.LOG_TYPE_GC))
             self.assertTrue(default_parser.diff_log(test_parser))
         except TestFailedException:
-            self.assertTrue(False)
+            self.fail("Multi-dict failed: Garbage Collector")
 
     def test_fuzz(self):
         """ This checks that a bfs-cheap fuzzing run executes all of the expected
@@ -247,4 +247,43 @@ class FunctionalityTests(unittest.TestCase):
             test_parser = FuzzingLogParser(self.get_network_log_path(experiments_dir, logger.LOG_TYPE_TESTING), max_seq=Num_Sequences)
             self.assertTrue(default_parser.diff_log(test_parser))
         except TestFailedException:
-            self.assertTrue(False)
+            self.fail("Fuzz failed: Fuzzing")
+
+    def test_payload_body_checker(self):
+        """
+        """
+        args = Common_Settings + [
+            '--fuzzing_mode', 'directed-smoke-test',
+            '--restler_grammar', f'{os.path.join(Test_File_Directory, "test_grammar.py")}',
+            '--enable_checkers', 'payloadbody'
+        ]
+
+        result = subprocess.run(args, capture_output=True)
+        if result.stderr:
+            self.fail(result.stderr)
+        try:
+            result.check_returncode()
+        except subprocess.CalledProcessError:
+            self.fail(f"Restler returned non-zero exit code: {result.returncode}")
+
+        experiments_dir = self.get_experiments_dir()
+
+        try:
+            default_parser = FuzzingLogParser(os.path.join(Test_File_Directory, "payloadbody_testing_log.txt"))
+            test_parser = FuzzingLogParser(self.get_network_log_path(experiments_dir, logger.LOG_TYPE_TESTING))
+        except TestFailedException:
+            self.fail("Payload body failed: Fuzzing")
+
+        try:
+            default_parser = BugLogParser(os.path.join(Test_File_Directory, "payloadbody_bug_buckets.txt"))
+            test_parser = BugLogParser(os.path.join(experiments_dir, 'bug_buckets', 'bug_buckets.txt'))
+            self.assertTrue(default_parser.diff_log(test_parser))
+        except TestFailedException:
+            self.fail("Payload body failed: Bug Buckets")
+
+        try:
+            default_parser = GarbageCollectorLogParser(os.path.join(Test_File_Directory, "payloadbody_gc_log.txt"))
+            test_parser = GarbageCollectorLogParser(self.get_network_log_path(experiments_dir, logger.LOG_TYPE_GC))
+            self.assertTrue(default_parser.diff_log(test_parser))
+        except TestFailedException:
+            self.fail("Payload body failed: Garbage Collector")
