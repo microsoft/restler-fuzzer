@@ -37,7 +37,7 @@ Switch to the repo root directory and run the following Python script:
 
 ```python ./build-restler.py --dest_dir <full path to restler_bin above>```
 
-Note: if you get NUget errors when building, clear your cache with this command
+Note: if you get nuget error NU1403 when building, a quick workaround is to clear your cache with this command
 
 ```dotnet nuget locals all --clear```
 
