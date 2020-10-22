@@ -79,12 +79,14 @@ There are currently two categories of bugs found by RESTler.
 When a bug is found, RESTler reports bugs triaged in bug buckets, and provides a replay log that can be used to reproduce the bug (see [Replay](./docs/user-guide/Replay.md)).
 
 
-## Best Practices​ (Advanced Topics)
+## Advanced Topics
 
 For tips on using RESTler effectively, please see [Best Practices](./docs/user-guide/BestPractices.md) and [Improving Swagger Coverage](./docs/user-guide/ImprovingCoverage.md).
 
 See also these [Frequently Asked Questions](./docs/user-guide/FAQ.md).
 
+If you're interested in using RESTler at scale as part of your CI/CD pipeline, check out
+the [REST API Fuzz Testing self-hosted service](https://github.com/microsoft/rest-api-fuzz-testing).
 
 ## Contributing
 
