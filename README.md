@@ -26,8 +26,8 @@ RESTler was designed to run on 64-bit machines with Windows or Linux.
 
 ### **Build instructions**
 
-Install [Python 3.8.2](https://www.python.org/downloads/) and
-[.NET core SDK 3.1](https://dotnet.microsoft.com/download/dotnet-core?utm_source=getdotnetcorecli&utm_medium=referral) or higher, for your appropriate OS
+Prerequisites: Install [Python 3.8.2](https://www.python.org/downloads/) and
+[.NET core SDK 3.1](https://dotnet.microsoft.com/download/dotnet-core?utm_source=getdotnetcorecli&utm_medium=referral) or higher, for your appropriate OS.
 
 Create a directory where you'd like to place the RESTler binaries:
 
@@ -41,12 +41,15 @@ Note: if you get nuget error NU1403 when building, a quick workaround is to clea
 
 ```dotnet nuget locals all --clear```
 
+
+[![Build Status](https://dev.azure.com/ms/restler-fuzzer/_apis/build/status/restler-build-validation?branchName=main)](https://dev.azure.com/ms/restler-fuzzer/_build/latest?definitionId=422&branchName=main)
+
 ### **Binary-drop instructions**
 
 RESTler binary drops are coming soon.
 
 Prerequisites: Install [Python 3.8.2](https://www.python.org/downloads/) and
-[.NET core SDK 3.1](https://dotnet.microsoft.com/download/dotnet-core?utm_source=getdotnetcorecli&utm_medium=referral) or higher, for your appropriate OS
+[.NET core SDK 3.1](https://dotnet.microsoft.com/download/dotnet-core?utm_source=getdotnetcorecli&utm_medium=referral) or higher, for your appropriate OS.
 
 
 ## Using RESTler
