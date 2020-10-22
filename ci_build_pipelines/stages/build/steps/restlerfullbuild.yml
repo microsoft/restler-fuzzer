@@ -28,19 +28,33 @@ steps:
       projects: |
         src/compiler/Restler.Compiler.Test/Restler.Compiler.Test.fsproj
       arguments: '--no-restore -c $(buildConfiguration)'
-      
-  - task: PublishPipelineArtifact@1
-    inputs:
-      targetPath: src/compiler/Restler.CompilerExe/bin/release/netcoreapp3.1/publish/
-      artifactName: compiler
 
-  - task: PublishPipelineArtifact@1
+  - task: UsePythonVersion@0
+    displayName: Use Python version 3.8.
     inputs:
-      targetPath: src/driver/bin/release/netcoreapp3.1/publish/
-      artifactName: driver
+      versionSpec: '3.8'
+    name: pyTools
 
-  - task: PublishPipelineArtifact@1
+  - script: |
+      pip install -r ./restler/requirements.txt
+      pip install -r ./demo_server/requirements.txt
+    displayName: Install requirements
+
+  - script: |
+      python ./build-restler.py --dest_dir $(Agent.BuildDirectory)/restler_drop
+    failOnStderr: true
+    displayName: Build RESTler drop
+
+  - task: ArchiveFiles@2
+    displayName: Archive RESTler drop
     inputs:
-      targetPath: src/ResultsAnalyzer/bin/release/netcoreapp3.1/publish/
-      artifactName: resultsAnalyzer
+      rootFolderOrFile: $(Agent.BuildDirectory)/restler_drop/
+      includeRootFolder: false
+      archiveFile: $(Build.ArtifactStagingDirectory)/restler-fuzzer-drop-$(versionNumber).zip
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      pathToPublish: '$(Build.ArtifactStagingDirectory)/restler-fuzzer-drop-$(versionNumber).zip'
+      artifactName: 'restler-fuzzer-drop-$(versionNumber)'
+      publishLocation: 'Container'
 

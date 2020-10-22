@@ -1,9 +1,9 @@
 stages:
   - stage: Build
     jobs:
-      - job: RESTlerDotNetComponents
+      - job: RESTlerFullBuild
         pool:
           vmImage: 'windows-2019'
         steps:
-          - template: steps/restlerdotnet.yml      
-          
+          - template: steps/restlerfullbuild.yml
+
