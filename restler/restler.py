@@ -25,7 +25,6 @@ import atexit
 from threading import Thread
 
 import utils.logger as logger
-import utils.telemetry as telemetry
 import engine.dependencies as dependencies
 import engine.core.preprocessing as preprocessing
 import engine.core.postprocessing as postprocessing
@@ -174,11 +173,6 @@ def signal_handler(sig, frame):
         sys.exit(0)
 
 if __name__ == '__main__':
-
-    telemetry.restler_telemetry.restler_started('Restler 5.0.3', 'Restler task IDK', 'execution id : 123', {'feature1': 'true', 'feature2': 'false'})
-    atexit.register(
-        lambda: telemetry.restler_telemetry.flush()
-    )
 
     # the following intercepts Ctrl+C (tested on Windows only! but should work on Linux)
     # the next line works in powershell (but not in bash on Windows!)
