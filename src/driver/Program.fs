@@ -18,7 +18,8 @@ let CurrentVersion = "6.1.0"
 
 let usage() =
     Logging.logWarning <| sprintf
-        "Usage: restler --version [compile <compile options> | test <test options> | fuzz-lean <test options> | fuzz <fuzz options>|]
+        "Usage: restler --version [--disable_log_upload] [--logsUploadRootDirPath <log upload directory>]
+                        [compile <compile options> | test <test options> | fuzz-lean <test options> | fuzz <fuzz options>|]
               compile options:
                  <compiler config file>
                  OR
@@ -401,7 +402,7 @@ let rec parseArgs (args:DriverArgs) = function
     | "--version"::_ ->
         printfn "RESTler version: %s" CurrentVersion
         exit 0
-    | "--disable_logging"::rest ->
+    | "--disable_log_upload"::rest ->
         Logging.logWarning "Log upload will be disabled.  Logs will only be written locally in the working directory."
         parseArgs { args with logsUploadRootDirectoryPath = None } rest
     | "--logsUploadRootDirPath"::logsUploadDirPath::rest ->
