@@ -17,43 +17,73 @@ open Restler.Telemetry
 let CurrentVersion = "6.1.0"
 
 let usage() =
+    // Usage instructions should be formatted to ~100 characters per line.
     Logging.logWarning <| sprintf
-        "Usage: restler --version [--disable_log_upload] [--logsUploadRootDirPath <log upload directory>]
-                        [compile <compile options> | test <test options> | fuzz-lean <test options> | fuzz <fuzz options>|]
-              compile options:
-                 <compiler config file>
-                 OR
-                 --api_spec <path to Swagger specification>
-                    (a default compiler config file will be auto-generated - you must change it later to fit your needs)
+        "Usage:
 
-              test -> --grammar_file <grammar file> --dictionary_file <dictionary file> --target_ip <ip> --target_port <port>
-                      --token_refresh_interval <refresh interval> <token refresh options>
-                      --producer_timing_delay <delay in seconds after invoking an API that creates a new resource>
-                      --path_regex <path regex>
-                                <path regex> - a regular expression that will be used to filter which requests are fuzzed
-                                               See Python regex for documentation: https://docs.python.org/2/howto/regex.html.
-                                               Example: (\w*)/virtualNetworks/(\w*)
-                      --no_ssl
-                      --host <Host string> - If specified, this string will override the Host in each request.
-                      --settings <engine settings file>
-                      --enable_checkers <list of checkers>
-                      --disable_checkers <list of checkers>
-                            <list of checkers> - A comma-separated list of checker names without spaces.
-                            Supported checkers: leakagerule, resourcehierarchy, useafterfree, namespacerule, invaliddynamicobject, payloadbody
-                            Note: some checkers are enabled by default in fuzz mode.
-                      token refresh options:
-                        --token_refresh_command <full command line to refresh token.  Must be enclosed in double quotes. Paths must be absolute.
-                      --no_results_analyzer - If specified, do not run results analyzer on the network logs.
-                                              Results analyzer may be run separately.>
-              fuzz-lean ->  <The same options as 'test'.  This task runs test mode with a subset of checkers, which performs some limited fuzzing.>
-              fuzz ->  <The same options as 'test'>
-                        --time_budget <maximum duration in hours>
-              replay ->
-                        <Required options from 'test' mode as above:
-                            --target_ip
-                            --target_port
-                            --token_refresh_cmd. >
-                        --replay_log <path to the RESTler bug bucket repro file>. "
+  restler --version
+          [--disable_log_upload] [--logsUploadRootDirPath <log upload directory>]
+          [ compile <compile options> |
+            test <test options> |
+            fuzz-lean <test options> |
+            fuzz <fuzz options> ]
+
+    global options:
+        --disable_log_upload
+            Disable uploading full logs to the configured log upload directory.
+        --logsUploadRootDirPath
+            Upload full logs to this upload directory
+
+    compile options:
+        <compiler config file>
+        OR
+        --api_spec <path to Swagger specification>
+            A default compiler config file will be auto-generated.
+            You must change it later to fit your needs.
+
+    test options:
+        --grammar_file <grammar file>
+        --dictionary_file <dictionary file>
+        --target_ip <ip>
+        --target_port <port>
+        --token_refresh_interval <refresh interval> <token refresh options>
+        --producer_timing_delay <delay in seconds after invoking an API that creates a new resource>
+        --path_regex <path regex>
+            <path regex> is a regular expression used to filter which requests are fuzzed.
+            See Python regex for documentation: https://docs.python.org/2/howto/regex.html.
+            Example: (\w*)/virtualNetworks/(\w*)
+        --no_ssl
+            When connecting to the service, do not use SSL.  The default is to connect with SSL.
+        --host <Host string>
+            If specified, this string will override the Host in each request.
+        --settings <engine settings file>
+        --enable_checkers <list of checkers>
+        --disable_checkers <list of checkers>
+            <list of checkers> - A comma-separated list of checker names without spaces.
+            Supported checkers: leakagerule, resourcehierarchy, useafterfree,
+                                namespacerule, invaliddynamicobject, payloadbody.
+            Note: some checkers are enabled by default in fuzz mode.
+        token refresh options:
+        --token_refresh_command <full command line to refresh token.>
+            The command line must be enclosed in double quotes. Paths must be absolute.
+        --no_results_analyzer
+            If specified, do not run results analyzer on the network logs.
+            Results analyzer may be run separately.
+
+    fuzz-lean options:
+        <The same options as 'test'>
+            This task runs test mode with a subset of checkers, which performs some limited fuzzing.
+
+    fuzz options:
+        <The same options as 'test'>
+        --time_budget <maximum duration in hours>
+
+    replay options:
+        <Required options from 'test' mode as above:
+            --target_ip
+            --target_port
+            --token_refresh_cmd. >
+        --replay_log <path to the RESTler bug bucket repro file>. "
     exit 1
 
 module Paths =
