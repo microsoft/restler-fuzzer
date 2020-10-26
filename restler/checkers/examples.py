@@ -5,7 +5,7 @@ import copy
 
 from checkers.checker_base import *
 from engine.fuzzing_parameters.fuzzing_utils import *
-from bug_bucketing import BugBuckets
+from engine.bug_bucketing import BugBuckets
 from engine.core.request_utilities import str_to_hex_def
 from engine.core.requests import Request
 from engine.core.sequences import Sequence
@@ -76,7 +76,7 @@ class ExamplesChecker(CheckerBase):
             # Check to make sure a bug wasn't uncovered while executing the sequence
             if response and response.has_bug_code():
                 self._print_suspect_sequence(seq, response)
-                BugBuckets.Instance().update_bug_buckets(seq, code, origin=self.__class__.__name__)
+                BugBuckets.Instance().update_bug_buckets(seq, code, origin=self.__class__.__name__, hash_full_request=True)
 
         status_codes = {}
 

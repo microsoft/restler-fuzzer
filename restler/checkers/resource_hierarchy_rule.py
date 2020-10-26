@@ -7,7 +7,7 @@ from __future__ import print_function
 from checkers.checker_base import *
 import itertools
 
-from bug_bucketing import BugBuckets
+from engine.bug_bucketing import BugBuckets
 import engine.dependencies as dependencies
 import engine.core.sequences as sequences
 

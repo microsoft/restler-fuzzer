@@ -17,7 +17,7 @@ from engine.core.fuzzing_monitor import Monitor
 from engine.core.requests import GrammarRequestCollection
 from engine.core.requests import FailureInformation
 from restler_settings import Settings
-from bug_bucketing import BugBuckets
+from engine.bug_bucketing import BugBuckets
 from engine.core.request_utilities import str_to_hex_def
 import utils.logger as logger
 import engine.dependencies as dependencies

@@ -15,7 +15,7 @@ import re
 
 from copy import copy
 
-from bug_bucketing import BugBuckets
+from engine.bug_bucketing import BugBuckets
 import engine.dependencies as dependencies
 import engine.core.requests as requests
 import engine.core.sequences as sequences
@@ -1187,10 +1187,13 @@ class PayloadBodyChecker(CheckerBase):
                 err_seq.set_sent_requests_for_replay(seq.sent_request_data_list)
                 self._print_suspect_sequence(err_seq, response)
 
-                log_str = self._buckets.add_bug(request, rendered_data)
-                if log_str is not None:
+                bug_info = self._buckets.add_bug(request, rendered_data)
+                if bug_info is not None:
+                    error_str = bug_info[0]
+                    new_body = bug_info[1]
+                    log_str = f'{error_str}\n{new_body}'
                     BugBuckets.Instance().update_bug_buckets(
-                        err_seq, response.status_code, origin=self.__class__.__name__, additional_log_str=log_str
+                        err_seq, response.status_code, origin=self.__class__.__name__, checker_str=error_str, additional_log_str=log_str
                     )
                 self._refresh_req = True
 

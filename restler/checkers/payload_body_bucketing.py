@@ -23,8 +23,8 @@ class PayloadBodyBuckets():
                                  includes the fuzzed payload body.
         @type  new_request_data: Str
 
-        @return: The log that was printed to the bug bucket log or None
-        @rtype : Str or None
+        @return: Tuple containing the error string and the response body
+        @rtype : Tuple(str, str) or None
 
         """
         # Extract the body from the new request data
@@ -44,7 +44,7 @@ class PayloadBodyBuckets():
                     new_body = new_request_data.split(DELIM)[-1]
                 self._buckets[request.method_endpoint_hex_definition].add(error_str)
                 file.write(f'\t{error_str}\n\t{new_body}\n\n')
-                return f'{error_str}\n{new_body}'
+                return (error_str, new_body)
         return None
 
     def _get_error_str(self, request, new_body):

@@ -8,7 +8,7 @@ from checkers.checker_base import *
 
 import itertools
 
-from bug_bucketing import BugBuckets
+from engine.bug_bucketing import BugBuckets
 import engine.dependencies as dependencies
 import engine.primitives as primitives
 from utils.logger import raw_network_logging as RAW_LOGGING
