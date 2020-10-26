@@ -36,11 +36,6 @@ steps:
     name: pyTools
 
   - script: |
-      pip install -r ./restler/requirements.txt
-      pip install -r ./demo_server/requirements.txt
-    displayName: Install requirements
-
-  - script: |
       python ./build-restler.py --dest_dir $(Agent.BuildDirectory)/restler_drop
     failOnStderr: true
     displayName: Build RESTler drop
