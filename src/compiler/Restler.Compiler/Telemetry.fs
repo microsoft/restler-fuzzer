@@ -7,7 +7,15 @@ module Restler.Telemetry
 let [<Literal>] InstrumentationKey = "6a4d265f-98cd-432f-bfb9-18ced4cd43a9"
 
 type TelemetryClient(machineId: System.Guid, instrumentationKey: string) =
-    let client = Microsoft.ApplicationInsights.TelemetryClient(new Microsoft.ApplicationInsights.Extensibility.TelemetryConfiguration(instrumentationKey))
+    let client =
+        let c = Microsoft.ApplicationInsights.TelemetryClient(
+                    new Microsoft.ApplicationInsights.Extensibility.TelemetryConfiguration(instrumentationKey))
+        // Make sure to not send any instance names or IP addresses
+        // These must be non-empty strings to override sending the values obtained by the framework
+        c.Context.Cloud.RoleName <- "none"
+        c.Context.Cloud.RoleInstance <- "none"
+        c.Context.Location.Ip <- "0.0.0.0"
+        c
 
     member __.RestlerStarted(version, task, executionId, featureList) =
         client.TrackEvent("restler started",
