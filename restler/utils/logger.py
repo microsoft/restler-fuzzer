@@ -347,13 +347,20 @@ def custom_network_logging(sequence, candidate_values_pool, **kwargs):
                 network_log.write(f"\t\t- {primitive}: {print_val!r}")
     network_log.write("")
 
+# Dict to track whether or not a bug was already logged:
+#   {"{seq_hash}_{bucket_class}": tuple(filename_of_replay_log, bug_hash)}
 Bugs_Logged = dict()
-def update_bug_buckets(bug_buckets, bug_request_data, additional_log_str=None):
+# Dict of bug hashes to be printed to bug_buckets.json
+#   {bug_hash: {"file_path": replay_log_relative_path}}
+Bug_Hashes = dict()
+def update_bug_buckets(bug_buckets, bug_request_data, bug_hash, additional_log_str=None):
     """
     @param bug_buckets: Dictionary containing bug bucket information
     @type  bug_buckets: Dict
     @param bug_request_data: The list of request data that was sent to create the bug
     @type  bug_request_data: List[SentRequestData]
+    @param bug_hash: The unique hash for this bug
+    @type  bug_hash: Str
     @param additional_log_str: An optional string that can be added to the bug's replay header
     @type  additional_log_str: Str
 
@@ -373,6 +380,7 @@ def update_bug_buckets(bug_buckets, bug_request_data, additional_log_str=None):
             print(f" {name_header}\n", file=bug_file)
             if additional_log_str is not None:
                 print(f" {additional_log_str}\n", file=bug_file)
+            print(f" Hash: {bug_hash}\n", file=bug_file)
             print(" To attempt to reproduce this bug using restler, run restler with the command", file=bug_file)
             print(" line option of --replay_log <path_to_this_log>.", file=bug_file)
             print(" The other required options are target_ip, target_port, and token_refresh_cmd.", file=bug_file)
@@ -395,6 +403,13 @@ def update_bug_buckets(bug_buckets, bug_request_data, additional_log_str=None):
             os.fsync(log_file.fileno())
 
             return filename
+
+    def add_hash(replay_filename):
+        """ Helper that adds bug hash to the bug buckets json file """
+        global Bug_Hashes
+        Bug_Hashes[bug_hash] = {"file_path": replay_filename}
+        with open(os.path.join(BUG_BUCKETS_DIR, "bug_buckets.json"), "w+") as hash_json:
+            json.dump(Bug_Hashes, hash_json, indent=4)
 
     thread_id = threading.current_thread().ident
     # Create the bug_buckets directory if it doesn't yet exist
@@ -421,21 +436,23 @@ def update_bug_buckets(bug_buckets, bug_request_data, additional_log_str=None):
                 # seq_obj = (sequence definition, bug reproduced boolean)
                 seq_obj = bug_buckets[bucket_class][seq_hash]
                 name_header = bucket_class
-                bug_hash = f"{seq_hash}_{bucket_class}"
-                if bug_hash not in Bugs_Logged:
+                bucket_hash = f"{seq_hash}_{bucket_class}"
+                if bucket_hash not in Bugs_Logged:
                     try:
                         filename = log_new_bug()
-                        Bugs_Logged[bug_hash] = filename
+                        Bugs_Logged[bucket_hash] = (filename, bug_hash)
+                        add_hash(filename)
                     except Exception as error:
                         write_to_main(f"Failed to write bug bucket log: {error!s}")
                         filename = 'Failed to create replay log.'
                 else:
-                    filename = Bugs_Logged[bug_hash]
+                    filename = Bugs_Logged[bucket_hash][0]
                 if seq_obj[1]:
                     name_header = f'{name_header} - Bug was reproduced - {filename}'
                 else:
                     name_header = f'{name_header} - Unable to reproduce bug - {filename}'
                 print(name_header, file=log_file)
+                print(f"Hash: {Bugs_Logged[bucket_hash][1]}", file=log_file)
                 sequence = seq_obj[0]
                 for request in sequence:
                     for payload in list(map(lambda x: x[1], request.definition)):
@@ -572,7 +589,7 @@ def print_memory_consumption(req_collection, seq_len, fuzzing_monitor, fuzzing_m
     @rtype : None
 
     """
-    from bug_bucketing import BugBuckets
+    from engine.bug_bucketing import BugBuckets
     timestamp = formatting.timestamp()
     print_memory_consumption.invocations += 1
 
@@ -618,7 +635,7 @@ def print_generation_stats(req_collection, seq_len, fuzzing_monitor, global_lock
     @rtype : None
 
     """
-    from bug_bucketing import BugBuckets
+    from engine.bug_bucketing import BugBuckets
     from engine.transport_layer.response import VALID_CODES
     from engine.transport_layer.response import RESTLER_INVALID_CODE
     timestamp = formatting.timestamp()

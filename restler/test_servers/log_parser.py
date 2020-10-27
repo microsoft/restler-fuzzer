@@ -221,7 +221,7 @@ class BugLogParser(LogParser):
 
         """
         super().__init__(path)
-        # key = bug type, value = list(tuple(ParsedSequence, reproduced-bool))
+        # key = bug type, value = list(tuple(ParsedSequence, reproduced-bool, bug-hash))
         self._bug_list = dict()
 
         self._parse()
@@ -261,6 +261,7 @@ class BugLogParser(LogParser):
                                 self._bug_list[bug_type] = []
                             # Get whether or not the bug was reproduced
                             reproduced = 'Bug was reproduced' in line
+                            bug_hash = file.readline().split(' ')[-1].rstrip()
                             line = file.readline()
                             seq = ParsedSequence([])
                             # Populate the sequence of requests that made the bug
@@ -268,7 +269,7 @@ class BugLogParser(LogParser):
                                 seq += self._get_request(line)
                                 line = file.readline()
                             # Add the bug sequence to the bug list
-                            self._bug_list[bug_type].append((seq, reproduced))
+                            self._bug_list[bug_type].append((seq, reproduced, bug_hash))
                     else:
                         line = file.readline()
             except Exception as err:

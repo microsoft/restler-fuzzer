@@ -20,11 +20,11 @@ import shutil
 import argparse
 import checkers
 import restler_settings
-import bug_bucketing
 import atexit
 from threading import Thread
 
 import utils.logger as logger
+import engine.bug_bucketing as bug_bucketing
 import engine.dependencies as dependencies
 import engine.core.preprocessing as preprocessing
 import engine.core.postprocessing as postprocessing

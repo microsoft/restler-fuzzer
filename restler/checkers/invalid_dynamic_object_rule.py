@@ -8,7 +8,7 @@ from checkers.checker_base import *
 import time
 import uuid
 
-from bug_bucketing import BugBuckets
+from engine.bug_bucketing import BugBuckets
 import engine.dependencies as dependencies
 import engine.core.sequences as sequences
 from utils.logger import raw_network_logging as RAW_LOGGING

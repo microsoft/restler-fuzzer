@@ -9,7 +9,7 @@ ExamplesChecker: 0
 Total Buckets: 12
 -------------
 main_driver_500 - Bug was reproduced
-Hash: main_driver_500_a6e432e533efe1aa006445e4d76075393bc0848f
+Hash: main_driver_500_a6e432e533efe1aa006445e4d76075393bc08bad
 PUT /city/cityName-63a4e53554/house/houseName HTTP/1.1\r\n\r\n{}\r\n
 PUT /city/cityName-63a4e53554/house/_READER_DELIM_city_house_put_name_READER_DELIM/color/colorName HTTP/1.1\r\n\r\n{{\r\n
 --------------------------------------------------------------------------------
@@ -34,6 +34,9 @@ Hash: InvalidDynamicObjectChecker_20x_0c7bc79adedde76524a357aaa4f73dc367f6a19d
 PUT /resourcehierarchytest/resourcehierarchyTest HTTP/1.1\r\n\r\n{}\r\n
 PUT /resourcehierarchytest/_READER_DELIM_resourcehierarchytest_put_name_READER_DELIM/resourcehierarchychild/resourcehierarchyChild HTTP/1.1\r\n\r\n{}\r\n
 --------------------------------------------------------------------------------
-InvalidDynamicObjectChecker - Bug was not reproduced
+InvalidDynamicObjectChecker - Bug was reproduced
 Hash: InvalidDynamicObjectChecker_20x_9bf2a8c3595768ecbf532ec3368a7854e74ff5b1
-PUT /resourcehierarch
+PUT /resourcehierarchytest/resourcehierarchyTest HTTP/1.1\r\n\r\n{}\r\n
+PUT /resourcehierarchytest/_READER_DELIM_resourcehierarchytest_put_name_READER_DELIM/resourcehierarchychild/resourcehierarchyChild HTTP/1.1\r\n\r\n{}\r\n
+DELETE /resourcehierarchytest/_READER_DELIM_resourcehierarchytest_put_name_READER_DELIM/resourcehierarchychild/_READER_DELIM_resourcehierarchychild_put_name_READER_DELIM HTTP/1.1\r\n\r\n
+--------------------------------------------------------------------------------

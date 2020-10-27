@@ -12,7 +12,7 @@ import engine.dependencies as dependencies
 import engine.core.sequences as sequences
 from engine.core.fuzzing_monitor import Monitor
 
-from bug_bucketing import BugBuckets
+from engine.bug_bucketing import BugBuckets
 from utils.logger import raw_network_logging as RAW_LOGGING
 
 

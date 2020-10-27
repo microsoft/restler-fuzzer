@@ -135,29 +135,29 @@ class BugLogParserTest(unittest.TestCase):
         main_seq = (ParsedSequence([
             ParsedRequest('PUT /city/cityName-63a4e53554/house/houseName HTTP/1.1\r\n\r\n{}\r\n'),
             ParsedRequest('PUT /city/cityName-63a4e53554/house/_READER_DELIM_city_house_put_name_READER_DELIM/color/colorName HTTP/1.1\r\n\r\n{{\r\n')
-        ]), True)
+        ]), True, 'main_driver_500_a6e432e533efe1aa006445e4d76075393bc0848f')
         leak_seq = (ParsedSequence([
             ParsedRequest('PUT /leakageruletest/leakageTest HTTP/1.1\r\n\r\n{}\r\n'),
             ParsedRequest('GET /leakageruletest/_READER_DELIM_leakageruletest_put_name_READER_DELIM HTTP/1.1\r\n\r\n'),
-        ]), True)
+        ]), True, 'LeakageRuleChecker_20x_862884a058ddaaebe2c8d479c75b44b294ff4684')
         resource_seq = (ParsedSequence([
             ParsedRequest('PUT /resourcehierarchytest/resourcehierarchyTest HTTP/1.1\r\n\r\n{}\r\n'),
             ParsedRequest('GET /resourcehierarchytest/_READER_DELIM_resourcehierarchytest_put_name_READER_DELIM/resourcehierarchychild/_READER_DELIM_resourcehierarchychild_put_name_READER_DELIM HTTP/1.1\r\n\r\n')
-        ]), True)
+        ]), True, 'ResourceHierarchyChecker_20x_cf94181e3d6bf39620706486f6c4af575c83a5ea')
         use_seq = (ParsedSequence([
             ParsedRequest('PUT /useafterfreetest/useafterfreeTest HTTP/1.1\r\n\r\n{}\r\n'),
             ParsedRequest('DELETE /useafterfreetest/_READER_DELIM_useafterfreetest_put_name_READER_DELIM HTTP/1.1\r\n\r\n'),
             ParsedRequest('GET /useafterfreetest/_READER_DELIM_useafterfreetest_put_name_READER_DELIM HTTP/1.1\r\n\r\n')
-        ]), True)
+        ]), True, 'UseAfterFreeChecker_20x_8ccb62ff5e82bc905b633f5c228fecaf59b8c379')
         inv_seq1 = (ParsedSequence([
             ParsedRequest('PUT /resourcehierarchytest/resourcehierarchyTest HTTP/1.1\r\n\r\n{}\r\n'),
             ParsedRequest('PUT /resourcehierarchytest/_READER_DELIM_resourcehierarchytest_put_name_READER_DELIM/resourcehierarchychild/resourcehierarchyChild HTTP/1.1\r\n\r\n{}\r\n')
-        ]), True)
+        ]), True, 'InvalidDynamicObjectChecker_20x_0c7bc79adedde76524a357aaa4f73dc367f6a19d')
         inv_seq2 = (ParsedSequence([
             ParsedRequest('PUT /resourcehierarchytest/resourcehierarchyTest HTTP/1.1\r\n\r\n{}\r\n'),
             ParsedRequest('PUT /resourcehierarchytest/_READER_DELIM_resourcehierarchytest_put_name_READER_DELIM/resourcehierarchychild/resourcehierarchyChild HTTP/1.1\r\n\r\n{}\r\n'),
             ParsedRequest('DELETE /resourcehierarchytest/_READER_DELIM_resourcehierarchytest_put_name_READER_DELIM/resourcehierarchychild/_READER_DELIM_resourcehierarchychild_put_name_READER_DELIM HTTP/1.1\r\n\r\n')
-        ]), False)
+        ]), False, 'InvalidDynamicObjectChecker_20x_9bf2a8c3595768ecbf532ec3368a7854e74ff5b1')
 
         bug_list = {
             'main_driver_500': [main_seq],
@@ -180,16 +180,26 @@ class BugLogParserTest(unittest.TestCase):
         inv_seq2[1] = True
         bug_list['InvalidDynamicObjectChecker'].append(tuple(inv_seq2))
         self.assertNotEqual(parser._bug_list, bug_list)
+        # Test hash mismatch
+        inv_seq2[1] = False
+        inv_seq2[2] = 'InvalidDynamicObjectChecker_20x_9bf2a8c3595768ecbf532ec3368a7854e74ffbad'
+        bug_list['InvalidDynamicObjectChecker'] = [inv_seq1, inv_seq2]
+        self.assertNotEqual(parser._bug_list, bug_list)
 
     def test_diff(self):
         parser = BugLogParser(os.path.join(os.path.dirname(__file__), LOG_DIR, 'bug_buckets.txt'))
         parser2 = BugLogParser(os.path.join(os.path.dirname(__file__), LOG_DIR, 'bug_buckets.txt'))
+        # Fewer sequences
         parser3 = BugLogParser(os.path.join(os.path.dirname(__file__), LOG_DIR, 'bug_buckets2.txt'))
+        # Reproduce doesn't match
         parser4 = BugLogParser(os.path.join(os.path.dirname(__file__), LOG_DIR, 'bug_buckets3.txt'))
+        # Hash doesn't match
+        parser5 = BugLogParser(os.path.join(os.path.dirname(__file__), LOG_DIR, 'bug_buckets4.txt'))
         self.assertTrue(parser.diff_log(parser2))
         self.assertFalse(parser.diff_log(parser3))
         self.assertFalse(parser3.diff_log(parser))
         self.assertFalse(parser.diff_log(parser4))
+        self.assertFalse(parser.diff_log(parser5))
 
     def test_parse_exception(self):
         with self.assertRaises(TestFailedException):
