@@ -407,7 +407,7 @@ def update_bug_buckets(bug_buckets, bug_request_data, bug_hash, additional_log_s
     def add_hash(replay_filename):
         """ Helper that adds bug hash to the bug buckets json file """
         global Bug_Hashes
-        Bug_Hashes[bug_hash] = {"file_path": os.path.join('..', replay_filename)}
+        Bug_Hashes[bug_hash] = {"file_path": replay_filename}
         with open(os.path.join(BUG_BUCKETS_DIR, "bug_buckets.json"), "w+") as hash_json:
             json.dump(Bug_Hashes, hash_json, indent=4)
 
