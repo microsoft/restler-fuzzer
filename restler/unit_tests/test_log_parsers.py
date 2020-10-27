@@ -189,7 +189,7 @@ class BugLogParserTest(unittest.TestCase):
     def test_diff(self):
         parser = BugLogParser(os.path.join(os.path.dirname(__file__), LOG_DIR, 'bug_buckets.txt'))
         parser2 = BugLogParser(os.path.join(os.path.dirname(__file__), LOG_DIR, 'bug_buckets.txt'))
-        # Less sequences
+        # Fewer sequences
         parser3 = BugLogParser(os.path.join(os.path.dirname(__file__), LOG_DIR, 'bug_buckets2.txt'))
         # Reproduce doesn't match
         parser4 = BugLogParser(os.path.join(os.path.dirname(__file__), LOG_DIR, 'bug_buckets3.txt'))

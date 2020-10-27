@@ -347,8 +347,12 @@ def custom_network_logging(sequence, candidate_values_pool, **kwargs):
                 network_log.write(f"\t\t- {primitive}: {print_val!r}")
     network_log.write("")
 
+# Dict to track whether or not a bug was already logged:
+#   {"{seq_hash}_{bucket_class}": tuple(filename_of_replay_log, bug_hash)}
 Bugs_Logged = dict()
-Hash_List = []
+# Dict of bug hashes to be printed to bug_buckets.json
+#   {bug_hash: {"file_path": replay_log_relative_path}}
+Bug_Hashes = dict()
 def update_bug_buckets(bug_buckets, bug_request_data, bug_hash, additional_log_str=None):
     """
     @param bug_buckets: Dictionary containing bug bucket information
@@ -376,7 +380,7 @@ def update_bug_buckets(bug_buckets, bug_request_data, bug_hash, additional_log_s
             print(f" {name_header}\n", file=bug_file)
             if additional_log_str is not None:
                 print(f" {additional_log_str}\n", file=bug_file)
-            print(f" Hash: {bug_hash}", file=bug_file)
+            print(f" Hash: {bug_hash}\n", file=bug_file)
             print(" To attempt to reproduce this bug using restler, run restler with the command", file=bug_file)
             print(" line option of --replay_log <path_to_this_log>.", file=bug_file)
             print(" The other required options are target_ip, target_port, and token_refresh_cmd.", file=bug_file)
@@ -400,11 +404,12 @@ def update_bug_buckets(bug_buckets, bug_request_data, bug_hash, additional_log_s
 
             return filename
 
-    def add_hash():
-        global Hash_List
-        Hash_List.append(bug_hash)
-        with open(os.path.join(BUG_BUCKETS_DIR, "bug_hashes.json"), "w+") as hash_json:
-            json.dump(Hash_List, hash_json, indent=4)
+    def add_hash(replay_filename):
+        """ Helper that adds bug hash to the bug buckets json file """
+        global Bug_Hashes
+        Bug_Hashes[bug_hash] = {"file_path": os.path.join('..', replay_filename)}
+        with open(os.path.join(BUG_BUCKETS_DIR, "bug_buckets.json"), "w+") as hash_json:
+            json.dump(Bug_Hashes, hash_json, indent=4)
 
     thread_id = threading.current_thread().ident
     # Create the bug_buckets directory if it doesn't yet exist
@@ -436,7 +441,7 @@ def update_bug_buckets(bug_buckets, bug_request_data, bug_hash, additional_log_s
                     try:
                         filename = log_new_bug()
                         Bugs_Logged[bucket_hash] = (filename, bug_hash)
-                        add_hash()
+                        add_hash(filename)
                     except Exception as error:
                         write_to_main(f"Failed to write bug bucket log: {error!s}")
                         filename = 'Failed to create replay log.'
@@ -447,7 +452,7 @@ def update_bug_buckets(bug_buckets, bug_request_data, bug_hash, additional_log_s
                 else:
                     name_header = f'{name_header} - Unable to reproduce bug - {filename}'
                 print(name_header, file=log_file)
-                print(Bugs_Logged[bucket_hash][1], file=log_file)
+                print(f"Hash: {Bugs_Logged[bucket_hash][1]}", file=log_file)
                 sequence = seq_obj[0]
                 for request in sequence:
                     for payload in list(map(lambda x: x[1], request.definition)):
