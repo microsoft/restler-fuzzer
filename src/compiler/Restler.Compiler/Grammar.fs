@@ -55,29 +55,6 @@ module Tree =
             subtrees |> Seq.iter (recurse newCtx)
             fNode ctx nodeInfo
 
-/// RESTler grammar built-in types
-/// IMPORTANT ! All primitives must be supported in restler/engine/primitives.py
-type RequestPrimitiveType =
-    | Restler_static_string_constant of string
-    | Restler_static_string_variable of string
-    | Restler_static_string_jtoken_delim of string
-    | Restler_fuzzable_string of string
-    | Restler_fuzzable_datetime of string
-    | Restler_fuzzable_object of string
-    | Restler_fuzzable_delim of string
-    | Restler_fuzzable_uuid4 of string
-    | Restler_fuzzable_group of string
-    | Restler_fuzzable_bool of string
-    | Restler_fuzzable_int of string
-    | Restler_fuzzable_number of string
-    | Restler_multipart_formdata of string
-    | Restler_custom_payload of string
-    | Restler_custom_payload_header of string
-    | Restler_custom_payload_uuid4_suffix of string
-    | Restler_refreshable_authentication_token of string
-    | Shadow_values of string
-    | Response_parser of string
-
 type OperationMethod =
     | Get
     | Post
@@ -138,8 +115,8 @@ type FuzzingPayload =
     | Fuzzable of PrimitiveType * string
 
     /// The name of the custom payload, as specified in the custom dictionary
-    /// (payload type, payload value, whether the value is an object)
-    | Custom of CustomPayloadType * string * bool
+    /// (custom payload type, primitive type, payload value, whether the value is an object)
+    | Custom of CustomPayloadType * PrimitiveType * string * bool
 
     | DynamicObject of string
 

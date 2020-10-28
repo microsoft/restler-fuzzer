@@ -48,7 +48,7 @@ request = requests.Request([
     primitives.restler_static_string("Accept: application/json\r\n"),
     primitives.restler_static_string("Host: localhost:8888\r\n"),
     primitives.restler_static_string("\r\n"),
-
+    
     {
         'post_send':
         {
@@ -65,6 +65,45 @@ requestId="/stores"
 )
 req_collection.add_request(request)
 
+# Endpoint: /stores/{storeId}, method: Put
+request = requests.Request([
+    primitives.restler_static_string("PUT "),
+    primitives.restler_static_string("/"),
+    primitives.restler_static_string("api"),
+    primitives.restler_static_string("/"),
+    primitives.restler_static_string("stores"),
+    primitives.restler_static_string("/"),
+    primitives.restler_static_string(_stores_post_id.reader()),
+    primitives.restler_static_string(" HTTP/1.1\r\n"),
+    primitives.restler_static_string("Accept: application/json\r\n"),
+    primitives.restler_static_string("Host: localhost:8888\r\n"),
+    primitives.restler_static_string("Content-Type: application/json\r\n"),
+    primitives.restler_static_string("\r\n"),
+    primitives.restler_static_string("{"),
+    primitives.restler_static_string("""
+    "metadata":"""),
+    primitives.restler_fuzzable_object("{ \"fuzz\": false }"),
+    primitives.restler_static_string(""",
+    "delivery":
+        {
+            "metadata":"""),
+    primitives.restler_fuzzable_object("{ \"fuzz\": false }"),
+    primitives.restler_static_string("""
+        }
+    ,
+    "id":"""),
+    primitives.restler_fuzzable_int("1"),
+    primitives.restler_static_string(""",
+    "name":"""),
+    primitives.restler_fuzzable_int("1"),
+    primitives.restler_static_string("}"),
+    primitives.restler_static_string("\r\n"),
+
+],
+requestId="/stores/{storeId}"
+)
+req_collection.add_request(request)
+
 # Endpoint: /stores/{storeId}/order, method: Post
 request = requests.Request([
     primitives.restler_static_string("POST "),
@@ -76,6 +115,12 @@ request = requests.Request([
     primitives.restler_static_string(_stores_post_id.reader()),
     primitives.restler_static_string("/"),
     primitives.restler_static_string("order"),
+    primitives.restler_static_string("?"),
+    primitives.restler_static_string("submittedDate="),
+    primitives.restler_fuzzable_datetime("2019-06-26T20:20:39+00:00", quoted=False),
+    primitives.restler_static_string("&"),
+    primitives.restler_static_string("message="),
+    primitives.restler_custom_payload("message", quoted=False),
     primitives.restler_static_string(" HTTP/1.1\r\n"),
     primitives.restler_static_string("Accept: application/json\r\n"),
     primitives.restler_static_string("Host: localhost:8888\r\n"),
@@ -93,9 +138,6 @@ request = requests.Request([
         {
             "tags":"""),
     primitives.restler_custom_payload("/storeProperties/tags", quoted=False),
-    primitives.restler_static_string(""",
-            "intro":"""),
-    primitives.restler_custom_payload("/storeProperties/intro", quoted=True),
     primitives.restler_static_string("""
         }
     ,
@@ -119,10 +161,10 @@ request = requests.Request([
     primitives.restler_fuzzable_string("fuzzstring", quoted=True),
     primitives.restler_static_string(""",
             "deliveryTags":"""),
-    primitives.restler_custom_payload("/items/[0]/deliveryTags", quoted=False),
+    primitives.restler_fuzzable_object("{ \"fuzz\": false }"),
     primitives.restler_static_string(""",
             "code":"""),
-    primitives.restler_fuzzable_int("1"),
+    primitives.restler_custom_payload("code", quoted=False),
     primitives.restler_static_string(""",
             "storeId":"""),
     primitives.restler_fuzzable_int("1"),

@@ -141,7 +141,8 @@ module Examples =
 
             // The grammar should not contain the bag type from the example, dictionary value should be used
             Assert.False(grammar.Contains("paperfestive"))
-            Assert.True(grammar.Contains("restler_custom_payload(\"bagType\")"))
+
+            Assert.True(grammar.Contains("restler_custom_payload(\"bagType\", quoted=True)"))
 
         [<Fact>]
         let ``Logic example in grammar with dependencies`` () =

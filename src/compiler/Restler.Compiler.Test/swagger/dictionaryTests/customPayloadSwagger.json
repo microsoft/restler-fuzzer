@@ -48,7 +48,17 @@
         "status": {
           "description": "The order status",
           "type": "string"
+        },
+        "count": {
+          "description": "The count",
+          "type": "int"
+        },
+        "count2": {
+          "description": "The count",
+          "type": "int"
         }
+
+
       }
     },
     "StoreProperties": {
@@ -56,12 +66,7 @@
         "tags": {
           "description": "The unique identifier of the store",
           "type": "object"
-        },
-        "intro": {
-          "description": "The intro display of the store",
-          "type": "string"
         }
-
       }
     },
     "DeliveryProperties": {
@@ -180,6 +185,35 @@
     "/stores": {
       "post": {
         "operationId": "post_stores",
+
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Store"
+            }
+          }
+        }
+      }
+    },
+    "/stores/{storeId}": {
+      "put": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "storeId",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "bodyParameters",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Store"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Success",
@@ -199,6 +233,19 @@
             "name": "storeId",
             "required": true,
             "type": "integer"
+          },
+          {
+            "in": "query",
+            "name": "submittedDate",
+            "required": true,
+            "type": "string",
+            "format": "date-time"
+          },
+          {
+            "in": "query",
+            "name": "message",
+            "required": true,
+            "type": "string"
           },
           {
             "name": "orderDetails",

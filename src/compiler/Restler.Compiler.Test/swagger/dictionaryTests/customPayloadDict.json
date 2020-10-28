@@ -1,0 +1,20 @@
+{
+  "restler_fuzzable_string": [ "str" ],
+  "restler_fuzzable_string_unquoted": [ "str" ],
+  "restler_fuzzable_datetime": [ "dt" ],
+  "restler_fuzzable_datetime_unquoted": [ "dt" ],
+  "restler_fuzzable_uuid4": [ "id" ],
+  "restler_fuzzable_uuid4_unquoted": [ "id" ],
+  "restler_fuzzable_int": [ "1" ],
+  "restler_custom_payload": {
+    "message": [ "hello" ],
+    "count2": [ "4" ],
+    "code": [ "2" ],
+    "/storeProperties/tags": [ "custom2" ]
+  },
+  "restler_custom_payload_unquoted": {
+    "/storeProperties/tags": [ "custom2" ],
+    "message": [ "4" ],
+    "count2":  ["true"]
+  }
+}
