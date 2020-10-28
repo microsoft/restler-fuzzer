@@ -31,8 +31,8 @@ let usage() =
     global options:
         --disable_log_upload
             Disable uploading full logs to the configured log upload directory.
-        --logsUploadRootDirPath
-            Upload full logs to this upload directory
+        --logsUploadRootDirPath <path where to upload logs>
+            Upload full logs to this upload directory.
 
     compile options:
         <compiler config file>
@@ -46,7 +46,9 @@ let usage() =
         --dictionary_file <dictionary file>
         --target_ip <ip>
         --target_port <port>
-        --token_refresh_interval <refresh interval> <token refresh options>
+        --token_refresh_interval <interval with which to refresh the token>
+        --token_refresh_command <full command line to refresh token.>
+            The command line must be enclosed in double quotes. Paths must be absolute.
         --producer_timing_delay <delay in seconds after invoking an API that creates a new resource>
         --path_regex <path regex>
             <path regex> is a regular expression used to filter which requests are fuzzed.
@@ -62,10 +64,7 @@ let usage() =
             <list of checkers> - A comma-separated list of checker names without spaces.
             Supported checkers: leakagerule, resourcehierarchy, useafterfree,
                                 namespacerule, invaliddynamicobject, payloadbody.
-            Note: some checkers are enabled by default in fuzz mode.
-        token refresh options:
-        --token_refresh_command <full command line to refresh token.>
-            The command line must be enclosed in double quotes. Paths must be absolute.
+            Note: some checkers are enabled by default in fuzz-lean and fuzz mode.
         --no_results_analyzer
             If specified, do not run results analyzer on the network logs.
             Results analyzer may be run separately.
