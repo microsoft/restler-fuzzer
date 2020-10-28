@@ -12,13 +12,18 @@ exception InvalidMutationsDictionaryFormat of string
 
 type MutationsDictionary =
     {
+        // Each string type has a matching 'raw' type
         restler_fuzzable_string : string list
+        restler_fuzzable_raw_string : string list
+        restler_fuzzable_datetime : string list
+        restler_fuzzable_raw_datetime : string list
+        restler_fuzzable_uuid4 : string list
+        restler_fuzzable_raw_uuid4 : string list
+
         restler_fuzzable_int : string list
         restler_fuzzable_number : string list
         restler_fuzzable_bool : string list
-        restler_fuzzable_datetime : string list
         restler_fuzzable_object : string list
-        restler_fuzzable_uuid4 : string list
         restler_custom_payload : Map<string, string list> option
         restler_custom_payload_uuid4_suffix : Map<string, string> option
         restler_custom_payload_header :  Map<string, string list> option
@@ -100,12 +105,15 @@ type MutationsDictionary =
 let DefaultMutationsDictionary =
     {
         restler_fuzzable_string = ["fuzzstring"]
+        restler_fuzzable_raw_string = ["fuzzstring"]
         restler_fuzzable_int = ["0" ; "1"]
         restler_fuzzable_number = ["0.1"; "1.2"]
         restler_fuzzable_bool = ["true"]
         restler_fuzzable_datetime = ["6/25/2019 12:00:00 AM"]
+        restler_fuzzable_raw_datetime = ["6/25/2019 12:00:00 AM"]
         restler_fuzzable_object = ["{}"]
         restler_fuzzable_uuid4 = ["903bcc44-30cf-4ea7-968a-d9d0da7c072f"]
+        restler_fuzzable_raw_uuid4 = ["903bcc44-30cf-4ea7-968a-d9d0da7c072f"]
         restler_custom_payload = Some (Map.empty<string, string list>)
         restler_custom_payload_uuid4_suffix = Some (Map.empty<string, string>)
         restler_custom_payload_header = None

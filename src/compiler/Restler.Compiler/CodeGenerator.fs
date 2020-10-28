@@ -114,7 +114,9 @@ let generatePythonParameter includeOptionalParameters parameterKind (parameterNa
             let needQuotes =
                 match p.payload with
                 | FuzzingPayload.Custom (payloadType, payloadValue, isObject) ->
-                    not isObject
+                    // Since the user may want to substitute values of any type, do not
+                    // quote strings.  The user is expected to quote strings in the dictionary.
+                    false
                 | FuzzingPayload.Constant (PrimitiveType.String, s) ->
                     // TODO: improve the metadata of FuzzingPayload.Constant to capture whether
                     // the constant represents an object,
@@ -124,9 +126,9 @@ let generatePythonParameter includeOptionalParameters parameterKind (parameterNa
                 | FuzzingPayload.Constant (primitiveType, v) ->
                     isPrimitiveTypeQuoted primitiveType (isNull v)
                 | FuzzingPayload.Fuzzable (primitiveType, _) ->
-                    // Note: this is a current RESTler limitation -
-                    // fuzzable values may not be set to null without changing the grammar.
-                    isPrimitiveTypeQuoted primitiveType false
+                    // Since the user may want to substitute values of any type, do not
+                    // quote strings.  The user is expected to quote strings in the dictionary.
+                    false
                 | _ -> true
 
             let tabSeq =
