@@ -1,6 +1,6 @@
 # Compiling the API Specification
 
-RESTler analyzer the Swagger/OpenAPI spec and generates a fuzzing grammar, which contains information about parameters and responses for individual requests and the dependencies between requests.  
+RESTler analyzes the Swagger/OpenAPI spec and generates a fuzzing grammar, which contains information about parameters and responses for individual requests and the dependencies between requests.
 
 - To quickly generate the RESTler grammar and templates for other artifacts required for fuzzing, run:
 
@@ -18,11 +18,11 @@ RESTler analyzer the Swagger/OpenAPI spec and generates a fuzzing grammar, which
 
 * RESTler will generate new files `grammar.py`, `grammar.json`, `dict.json`, and logs from the compiler in this sub-directory.  A brief diagnostic will be given in the console.
 
-The following describes all available inputs and configuration options for the compiler.  
+The following describes all available inputs and configuration options for the compiler.
 
 ### Required inputs
 
-1. A Swagger/OpenAPI specification in JSON format.  
+1. A Swagger/OpenAPI specification in JSON or YAML format.
 
    Several specifications may be included, and the grammar will be a union of all specifications.
 
@@ -38,7 +38,7 @@ The dictionary format is described in detail in [Fuzzing Dictionary](FuzzingDict
 
 ### Optional inputs
 
-1. Examples.  
+1. Examples.
 
    Examples may be specified to improve coverage.  They are specified either inline (e.g. already included in the specification), or in a separate file.  In the latter case, a json file specifying which endpoints and method the examples correspond to must be provided.
 
@@ -60,5 +60,5 @@ Outputs:
 
 * RESTler will generate new files `grammar.py`, `grammar.json`, `dict.json`, and logs from the compiler in this sub-directory.  A brief diagnostic will be given in the console.
 
-If producer-consumer dependencies are unresolved in the Swagger specification, the user can either ignore those or can annotate the Swagger JSON specification to help RESTler resolve those.  See [Annotations](Annotations.md).
+If producer-consumer dependencies are unresolved in the Swagger specification, the user can either ignore those or can annotate the Swagger JSON or YAML specification to help RESTler resolve those.  See [Annotations](Annotations.md).
 

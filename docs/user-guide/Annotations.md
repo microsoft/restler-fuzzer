@@ -17,7 +17,8 @@ When provided in a separate file (e.g. annotations.json), the file contents shou
 }
 ```
 
-To provide local annotations inline in the Swagger/OpenAPI spec, include the above block globally as follows:
+To provide local annotations inline in the Swagger/OpenAPI spec,
+include the above block globally as follows (Note: only JSON is currently supported):
 
 ```json
 {
@@ -29,7 +30,6 @@ To provide local annotations inline in the Swagger/OpenAPI spec, include the abo
   ]
 }
 ```
-
 
 
 ## Local annotations

@@ -91,26 +91,30 @@ module Examples =
         [<Fact>]
         let ``example in grammar without dependencies`` () =
 
-            let config = { Restler.Config.SampleConfig with
-                             IncludeOptionalParameters = true
-                             GrammarOutputDirectoryPath = Some ctx.testRootDirPath
-                             ResolveBodyDependencies = false
-                             UseBodyExamples = true
-                             SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, @"swagger\example_demo1.json"))]
-                             CustomDictionaryFilePath = Some (Path.Combine(Environment.CurrentDirectory, @"swagger\example_demo_dictionary.json"))
-                         }
-            Restler.Workflow.generateRestlerGrammar None config
-            let grammarFilePath = Path.Combine(ctx.testRootDirPath, "grammar.py")
-            let grammar = File.ReadAllText(grammarFilePath)
+            // Make sure the same test works on yaml and json
+            let extensions = [".json" ; ".yaml"]
+            for extension in extensions do
+                let config = { Restler.Config.SampleConfig with
+                                 IncludeOptionalParameters = true
+                                 GrammarOutputDirectoryPath = Some ctx.testRootDirPath
+                                 ResolveBodyDependencies = false
+                                 UseBodyExamples = true
+                                 SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory,
+                                                                           sprintf @"swagger\example_demo1%s" extension))]
+                                 CustomDictionaryFilePath = Some (Path.Combine(Environment.CurrentDirectory, @"swagger\example_demo_dictionary.json"))
+                             }
+                Restler.Workflow.generateRestlerGrammar None config
+                let grammarFilePath = Path.Combine(ctx.testRootDirPath, "grammar.py")
+                let grammar = File.ReadAllText(grammarFilePath)
 
-            // The grammar should contain the fruit codes from the example
-            Assert.True(grammar.Contains("999"))
+                // The grammar should contain the fruit codes from the example
+                Assert.True(grammar.Contains("999"))
 
-            // The grammar should contain the store codes from the example
-            Assert.True(grammar.Contains("23456"))
+                // The grammar should contain the store codes from the example
+                Assert.True(grammar.Contains("23456"))
 
-            // The grammar should contain the bag type from the example
-            Assert.True(grammar.Contains("paperfestive"))
+                // The grammar should contain the bag type from the example
+                Assert.True(grammar.Contains("paperfestive"))
 
         [<Fact>]
         let ``example in grammar with dependencies`` () =
