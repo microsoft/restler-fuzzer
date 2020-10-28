@@ -383,7 +383,7 @@ def update_bug_buckets(bug_buckets, bug_request_data, bug_hash, additional_log_s
             print(f" Hash: {bug_hash}\n", file=bug_file)
             print(" To attempt to reproduce this bug using restler, run restler with the command", file=bug_file)
             print(" line option of --replay_log <path_to_this_log>.", file=bug_file)
-            print(" The other required options are target_ip, target_port, and token_refresh_cmd.", file=bug_file)
+            print(" If an authentication token is required, you must also specify the token_refresh_cmd.", file=bug_file)
             print("\n This log may contain specific values for IDs or names that were generated", file=bug_file)
             print(" during fuzzing, using the fuzzing dictionary. Such names will be re-played", file=bug_file)
             print(" without modification. You must update the replay log manually with any changes", file=bug_file)

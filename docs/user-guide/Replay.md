@@ -1,16 +1,15 @@
 # How to reproduce bugs found by RESTler
 
-In *Replay* mode, RESTler can replay a sequence from a bug_bucket log that was created during a test or fuzzing run.  These bug_bucket logs can be found in the RestlerResults/experiment##/bug_buckets/ directory.  
+In *Replay* mode, RESTler can replay a sequence from a bug_bucket log that was created during a test or fuzzing run.  These bug_bucket logs can be found in the RestlerResults/experiment##/bug_buckets/ directory.
 
-## Using the replay log 
+## Using the replay log
 
 To reproduce a bug bucket using RESTler,
 send the following command (as an example):
 
-`C:\RESTler\restler\restler.exe replay --replay_log C:\restler-test\Test\RestlerResults\experiment20652\bug_buckets\PayloadBodyChecker_500_1.txt --target_ip 127.0.0.1 --target_port 8888 --token_refresh_command "<command>" --token_refresh_interval 30`
+`C:\RESTler\restler\restler.exe replay --replay_log C:\restler-test\Test\RestlerResults\experiment20652\bug_buckets\PayloadBodyChecker_500_1.txt --token_refresh_command "<command>" --token_refresh_interval 30`
 
-In this example, RESTler will replay the log `PayloadBodyChecker_500_1.txt`
-and send the requests to `127.0.0.1:8888`.
+In this example, RESTler will replay the log `PayloadBodyChecker_500_1.txt` that requires the specified token_refresh_command for authentication tokens.
 
 As you can see above,
 the IP, port, and authorization token refresh command/interval are all used
@@ -30,7 +29,7 @@ Any resources created should be removed manually.
 
 ## Replay log format
 
-The replay log is created anytime a new bug bucket is reported. 
+The replay log is created anytime a new bug bucket is reported.
 This replay log consists of the full sequence of requests that were sent to create the bug.
 Each request is also paired with the corresponding response that was received from the server.
 Each request and response is displayed exactly as sent and received, including dynamic objects,
@@ -84,4 +83,4 @@ while max_async_wait_time will attempt to perform an asynchronous polling-wait b
 with a maximum resource-creation-wait-time of the max_async_wait_time setting.
 
 
-## 
+##

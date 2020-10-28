@@ -24,6 +24,8 @@ last_refresh = 0
 latest_token_value = 'NO-TOKEN-SPECIFIED'
 latest_shadow_token_value = 'NO-SHADOW-TOKEN-SPECIFIED'
 
+HOST_PREFIX = 'Host: '
+
 class EmptyTokenException(Exception):
     pass
 
@@ -250,6 +252,20 @@ def call_response_parser(parser, response, request=None):
         _RAW_LOGGING(str(error))
         return False
     return True
+
+def get_hostname_from_line(line):
+    """ Gets the hostname from a request definition's Host: line
+
+    @param line: The line to extract the hostname
+    @type  line: Str
+    @return: The hostname or None if not found
+    @rtype : Str or None
+
+    """
+    try:
+        return line.split(HOST_PREFIX, 1)[1].split('\r\n', 1)[0]
+    except:
+        return None
 
 def _RAW_LOGGING(log_str):
     """ Wrapper for the raw network logging function.

@@ -589,6 +589,29 @@ class RestlerSettings(object):
         self._custom_dictionaries.set_val(custom_dicts)
         self._create_once_endpoints.set_val(create_once_endpoints)
 
+    def set_hostname(self, hostname):
+        """ Sets the hostname
+
+        @param hostname: The hostname to set
+        @type  hostname: Str
+        @return: None
+        @rtype : None
+
+        """
+        self._host.val = hostname
+
+    def set_port(self, port):
+        """ Sets the port
+
+        @param port: The port to set
+        @type  port: Int
+        @return: None
+        @rtype : None
+
+        """
+        self._target_port.val = int(port)
+        self._connection_settings.target_port = int(port)
+
     def in_smoke_test_mode(self) -> bool:
         """ Returns whether or not we are running a smoke test
 
@@ -671,9 +694,5 @@ class RestlerSettings(object):
             raise OptionValidationError("Must specify command to refresh token")
         if self.token_refresh_cmd and not self.token_refresh_interval:
             raise OptionValidationError("Must specify refresh period in seconds")
-        if not self._target_ip.val:
-            raise OptionValidationError("Target IP is required")
-        if not self._target_port.val:
-            raise OptionValidationError("Target Port is required")
         if self.request_throttle_ms and self.fuzzing_jobs != 1:
             raise OptionValidationError("Request throttling not available for multiple fuzzing jobs")

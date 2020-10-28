@@ -36,7 +36,7 @@ if __name__ == '__main__':
     try:
         # Run the quick start script
         output = subprocess.run(
-            f'python ./restler-quick-start.py --api_spec_path {swagger_path} --ip 127.0.0.1 --port 8888 --restler_drop_dir {restler_drop_dir}',
+            f'python ./restler-quick-start.py --api_spec_path {swagger_path} --restler_drop_dir {restler_drop_dir}',
             shell=True, capture_output=True
         )
         # Kill demo server

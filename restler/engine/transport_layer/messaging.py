@@ -37,23 +37,22 @@ class HttpSock(object):
         self._request_throttle_sec = (float)(Settings().request_throttle_ms/1000.0)\
             if Settings().request_throttle_ms else None
 
-        if connection_settings:
-            self.connection_settings = connection_settings
-        else:
-            self.connection_settings = ConnectionSettings('127.0.0.1', 80, use_ssl=True)
+        self.connection_settings = connection_settings
+
         try:
             self._sock = None
+            host = Settings().host
+            target_ip = self.connection_settings.target_ip or host
+            target_port = self.connection_settings.target_port
             if Settings().use_test_socket:
                 self._sock = TestSocket(Settings().test_server)
             elif self.connection_settings.use_ssl:
-                self._sock = ssl.wrap_socket(
-                    socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                )
+                context = ssl.create_default_context()
+                with socket.create_connection((target_ip, target_port or 443)) as sock:
+                    self._sock = context.wrap_socket(sock, server_hostname=host)
             else:
                 self._sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-            server_address = (self.connection_settings.target_ip, self.connection_settings.target_port)
-            self._sock.connect(server_address)
+                self._sock.connect((target_ip, target_port or 80))
         except Exception as error:
             raise TransportLayerException(f"Exception Creating Socket: {error!s}")
 

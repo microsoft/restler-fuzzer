@@ -17,7 +17,7 @@ Authentication options: configuring authentication is described in [Authenticati
 
 How to invoke RESTler in test mode:
 
-`C:\RESTler\restler\Restler.exe test --grammar_file <RESTLer grammar.py file> --dictionary_file <RESTler fuzzing-dictionary.json file> --target_ip <IP address> --target_port <port number> --token_refresh_interval <time in seconds> --token_refresh_command <command>`
+`C:\RESTler\restler\Restler.exe test --grammar_file <RESTLer grammar.py file> --dictionary_file <RESTler fuzzing-dictionary.json file> --token_refresh_interval <time in seconds> --token_refresh_command <command>`
 
 Outputs: see the sub-directory Test
 

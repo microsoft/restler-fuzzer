@@ -45,7 +45,9 @@ let usage() =
         --grammar_file <grammar file>
         --dictionary_file <dictionary file>
         --target_ip <ip>
+            If specified, overrides the IP address
         --target_port <port>
+            If specified, overrides the port. The default for SSL is 443 and for no SSL is 80.
         --token_refresh_interval <interval with which to refresh the token>
         --token_refresh_command <full command line to refresh token.>
             The command line must be enclosed in double quotes. Paths must be absolute.
@@ -57,7 +59,7 @@ let usage() =
         --no_ssl
             When connecting to the service, do not use SSL.  The default is to connect with SSL.
         --host <Host string>
-            If specified, this string will override the Host in each request.
+            If specified, this string will set or override the Host in each request.
         --settings <engine settings file>
         --enable_checkers <list of checkers>
         --disable_checkers <list of checkers>
@@ -79,8 +81,6 @@ let usage() =
 
     replay options:
         <Required options from 'test' mode as above:
-            --target_ip
-            --target_port
             --token_refresh_cmd. >
         --replay_log <path to the RESTler bug bucket repro file>. "
     exit 1
@@ -168,8 +168,6 @@ module Fuzz =
         [
             sprintf "--restler_grammar \"%s\"" parameters.grammarFilePath
             sprintf "--custom_mutations \"%s\"" parameters.mutationsFilePath
-            sprintf "--target_ip %s" parameters.targetIp
-            sprintf "--target_port %s" parameters.targetPort
             sprintf "--set_version %s" CurrentVersion
 
             (match parameters.refreshableTokenOptions with
@@ -207,7 +205,12 @@ module Fuzz =
              | None -> ""
              | Some t ->
                 sprintf "--time_budget %f" t)
-
+            (match parameters.targetIp with
+             | Some t -> sprintf "--target_ip %s" t
+             | None -> "")
+            (match parameters.targetPort with
+             | Some t -> sprintf "--target_port %s" t
+             | None -> "")
             // internal options
             "--include_user_agent"
             "--no_tokens_in_logs t"
@@ -325,12 +328,6 @@ module Fuzz =
 let rec parseEngineArgs task (args:EngineParameters) = function
     | [] ->
         // Check for unspecified parameters
-        if args.targetIp = DefaultEngineParameters.targetIp then
-            Logging.logError <| sprintf "Target IP must be specified."
-            usage()
-        if args.targetPort = DefaultEngineParameters.targetPort then
-           Logging.logError <| sprintf "Target port must be specified."
-           usage()
         match task with
         | Compile ->
             failwith "Invalid function usage."
@@ -359,9 +356,9 @@ let rec parseEngineArgs task (args:EngineParameters) = function
             usage()
         parseEngineArgs task  { args with mutationsFilePath = Path.GetFullPath(mutationsFilePath) } rest
     | "--target_ip"::targetIp::rest ->
-        parseEngineArgs task { args with targetIp = targetIp } rest
+        parseEngineArgs task { args with targetIp = Some targetIp } rest
     | "--target_port"::targetPort::rest ->
-        parseEngineArgs task { args with targetPort = targetPort } rest
+        parseEngineArgs task { args with targetPort = Some targetPort } rest
     | "--token_refresh_command"::refreshCommand::rest ->
         let parameters = UserSpecifiedCommand refreshCommand
         let options =

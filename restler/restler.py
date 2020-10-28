@@ -403,7 +403,26 @@ if __name__ == '__main__':
     monitor.renderings_monitor.set_memoize_invalid_past_renderings_on()
 
     if settings.host:
-        req_collection.update_hosts()
+        try:
+            req_collection.update_hosts()
+        except requests.InvalidGrammarException:
+            sys.exit(-1)
+    else:
+        host = req_collection.get_host_from_grammar()
+        if host is not None:
+            if ':' in host:
+                # If hostname includes port, split it out
+                host_split = host.split(':')
+                host = host_split[0]
+                if settings.connection_settings.target_port is None:
+                    settings.set_port(host_split[1])
+            settings.set_hostname(host)
+        else:
+            logger.write_to_main(
+                "Host not found in grammar. Fix grammar or launch RESTler with --host parameter.",
+                 print_to_console=True
+            )
+            sys.exit(-1)
 
     # Filter and get the requests to be used for fuzzing
     fuzzing_requests = preprocessing.create_fuzzing_req_collection(args.path_regex)
