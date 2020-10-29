@@ -26,6 +26,9 @@ from enum import Enum
 class EmptyRequestException(Exception):
     pass
 
+class InvalidGrammarException(Exception):
+    pass
+
 class FailureInformation(Enum):
     SEQUENCE = 1
     RESOURCE_CREATION = 2
@@ -374,6 +377,22 @@ class Request(object):
                     self._consumes.remove(var_name)
         self._create_once_requests += rendered_sequence.sequence.sent_request_data_list
 
+    def get_host_index(self):
+        """ Gets the index of the definition line containing the Host parameter
+
+        @return: The index of the Host parameter or -1 if not found
+        @rtype : Int
+
+        """
+        for i, line in enumerate(self._definition):
+            try:
+                if isinstance(line[1], str) and line[1].startswith(request_utilities.HOST_PREFIX):
+                    return i
+            except:
+                # ignore line parsing exceptions - error will be returned if host not found
+                pass
+        return -1
+
     def update_host(self):
         """ Updates the Host field for every request with the one specified in Settings
 
@@ -381,11 +400,28 @@ class Request(object):
         @rtype : None
 
         """
+        new_host_line = primitives.restler_static_string(f"{request_utilities.HOST_PREFIX}{Settings().host}\r\n")
+        host_idx = self.get_host_index()
+        if host_idx >= 0:
+            self._definition[host_idx] = new_host_line
+        else:
+            # Host not in grammar, add it
+            header_idx = self.header_start_index()
+            if header_idx < 0:
+                raise InvalidGrammarException
+            self._definition.insert(header_idx, new_host_line)
+
+    def header_start_index(self):
+        """ Gets the index of the first header line in the definition
+
+        @return: The index of the first header line in the definition or -1 if not found
+        @rtype : Int
+
+        """
         for i, line in enumerate(self._definition):
-            if isinstance(line[1], str) and line[1].startswith("Host: "):
-                self._definition[i] =\
-                    primitives.restler_static_string(f"Host: {Settings().host}\r\n")
-                break
+            if isinstance(line[1], str) and 'HTTP/1.1' in line[1]:
+                return i + 1
+        return -1
 
     def render_iter(self, candidate_values_pool, skip=0, preprocessing=False):
         """ This is the core method that renders values combinations in a
@@ -680,6 +716,19 @@ class RequestCollection(object):
         """
         for req in self._requests:
             req.update_host()
+
+    def get_host_from_grammar(self):
+        """ Gets the hostname from the grammar
+
+        @return: The hostname or None if not found
+        @rtype : Str or None
+
+        """
+        for req in self._requests:
+            idx = req.get_host_index()
+            if idx >= 0:
+                return request_utilities.get_hostname_from_line(req._definition[idx][1])
+        return None
 
     def add_request(self, request):
         """ Adds a new request in the collection of requests.

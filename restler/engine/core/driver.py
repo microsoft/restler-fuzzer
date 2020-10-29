@@ -25,6 +25,7 @@ import engine.core.fuzzing_monitor as fuzzing_monitor
 from engine.core.requests import GrammarRequestCollection
 from engine.core.requests import FailureInformation
 from engine.core.request_utilities import execute_token_refresh_cmd
+from engine.core.request_utilities import get_hostname_from_line
 from engine.core.fuzzing_monitor import Monitor
 from engine.errors import TimeOutException
 from engine.errors import ExhaustSeqCollectionException
@@ -720,6 +721,13 @@ def replay_sequence_from_log(replay_log_filename, token_refresh_cmd):
                 line = line.rstrip('\n')
                 line = line.replace('\\r', '\r')
                 line = line.replace('\\n', '\n')
+                if not Settings().host:
+                    # Extract hostname from request
+                    hostname = get_hostname_from_line(line)
+                    if hostname is None:
+                        raise Exception("Host not found in request. The replay log may be corrupted.")
+                    Settings().set_hostname(hostname)
+
                 # Append the request data to the list
                 # None is for the parser, which does not currently run during replays.
                 send_data.append(sequences.SentRequestData(line, None))

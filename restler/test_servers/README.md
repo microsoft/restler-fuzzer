@@ -1,7 +1,7 @@
 ## To run example in test mode:
 
 ```
-python -B C:\...restler\restler.py --fuzzing_mode directed-smoke-test --restler_grammar c:\...restler\test_servers\unit_test_server\test_grammar.py --custom_mutations c:\...restler\test_servers\unit_test_server\test_dict.json --target_ip 1.2.3.4 --target_port 443 --use_test_socket --garbage_collector_interval 30
+python -B C:\...restler\restler.py --fuzzing_mode directed-smoke-test --restler_grammar c:\...restler\test_servers\unit_test_server\test_grammar.py --custom_mutations c:\...restler\test_servers\unit_test_server\test_dict.json --use_test_socket --garbage_collector_interval 30
 ```
 
 test_grammar.py can be updated as any typical RESTler grammar.
@@ -18,7 +18,7 @@ test_grammar.py should pass the smoke test with 33/33 requests rendered,
 but the server is intentionally not free of errors.
 To return a test with planted bugs, run the same command with test_grammar_bugs.py:
 ```
-python -B C:\...restler\restler.py --fuzzing_mode directed-smoke-test --restler_grammar c:\...restler\test_servers\unit_test_server\test_grammar_bugs.py --custom_mutations c:\...restler\test_servers\unit_test_server\test_dict.json --target_ip 1.2.3.4 --target_port 443 --use_test_socket --garbage_collector_interval 30 --enable_checkers leakagerule useafterfree resourcehierarchy
+python -B C:\...restler\restler.py --fuzzing_mode directed-smoke-test --restler_grammar c:\...restler\test_servers\unit_test_server\test_grammar_bugs.py --custom_mutations c:\...restler\test_servers\unit_test_server\test_dict.json --use_test_socket --garbage_collector_interval 30 --enable_checkers leakagerule useafterfree resourcehierarchy
 ```
 
 

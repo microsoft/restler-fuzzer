@@ -26,7 +26,7 @@ For this simple tutorial, we will use the default values automatically generated
 
 Let's run RESTler in test mode to see what specification coverage we get with this default RESTler grammar:
 
-`C:\RESTler\restler\restler.exe test --grammar_file C:\restler-test\Compile\grammar.py --dictionary_file C:\restler-test\Compile\dict.json --settings C:\restler-test\Compile\engine_settings.json --target_ip 127.0.0.1 --target_port 8888 --no_ssl`
+`C:\RESTler\restler\restler.exe test --grammar_file C:\restler-test\Compile\grammar.py --dictionary_file C:\restler-test\Compile\dict.json --settings C:\restler-test\Compile\engine_settings.json --no_ssl`
 
 (For help, run `C:\RESTler\restler\restler.exe --help`)
 
@@ -68,7 +68,7 @@ By looking at `network.testing.<...>.txt`, we can see that RESTler attempts to e
 
 Let's now try to run restler in Fuzz-lean mode.
 
-`C:\RESTler\restler\restler.exe fuzz-lean --grammar_file C:\restler-test\Compile\grammar.py --dictionary_file C:\restler-test\Compile\dict.json --settings C:\restler-test\Compile\engine_settings.json --target_ip 127.0.0.1 --target_port 8888 --no_ssl`
+`C:\RESTler\restler\restler.exe fuzz-lean --grammar_file C:\restler-test\Compile\grammar.py --dictionary_file C:\restler-test\Compile\dict.json --settings C:\restler-test\Compile\engine_settings.json --no_ssl`
 
 The results are in a new `FuzzLean` directory and the experiment results can be found in `C:\restler-test\FuzzLean\RestlerResults\experiment<...>\`. The `logs\` directory should contain the same coverage results as the previous Test run, but you should also now see a new `bug_buckets` directory.
 
@@ -97,7 +97,7 @@ Right above the body in the header you should also see `StructMissing_/id/checks
 
 Now let's try to fuzz:
 
-`C:\RESTler\restler\restler.exe fuzz --grammar_file C:\restler-test\Compile\grammar.py --dictionary_file C:\restler-test\Compile\dict.json --settings C:\restler-test\Compile\engine_settings.json --target_ip 127.0.0.1 --target_port 8888 --no_ssl --time_budget 1`
+`C:\RESTler\restler\restler.exe fuzz --grammar_file C:\restler-test\Compile\grammar.py --dictionary_file C:\restler-test\Compile\dict.json --settings C:\restler-test\Compile\engine_settings.json --no_ssl --time_budget 1`
 
 The new __time_budget__ parameter is the length, in hours, to perform the fuzzing run.
 

@@ -28,9 +28,8 @@ Restler_Path = os.path.join(os.path.dirname(__file__), '..', 'restler.py')
 
 Common_Settings = [
     "python", "-B", Restler_Path, "--use_test_socket",
-    '--target_ip', '1', '--target_port', '1',
     '--custom_mutations', f'{os.path.join(Test_File_Directory, "test_dict.json")}',
-    "--garbage_collection_interval", "30"
+    "--garbage_collection_interval", "30", "--host", "unittest"
 ]
 
 class FunctionalityTests(unittest.TestCase):

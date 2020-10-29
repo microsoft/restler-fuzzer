@@ -62,10 +62,14 @@ def test_spec(ip, port, use_ssl, compile_dir, restler_dll_path):
     """
     command = (
         f"dotnet {restler_dll_path} test --grammar_file {compile_dir.joinpath('grammar.py')} --dictionary_file {compile_dir.joinpath('dict.json')}"
-        f" --settings {compile_dir.joinpath('engine_settings.json')} --target_ip {ip} --target_port {port}"
+        f" --settings {compile_dir.joinpath('engine_settings.json')}"
     )
     if not use_ssl:
         command = f"{command} --no_ssl"
+    if ip is not None:
+        command = f"{command} --target_ip {ip}"
+    if port is not None:
+        command = f"{command} --target_port {port}"
 
     with usedir(RESTLER_TEMP_DIR):
         subprocess.run(command, shell=True)
@@ -78,10 +82,10 @@ if __name__ == '__main__':
                         type=str, required=True)
     parser.add_argument('--ip',
                         help='The IP of the service to test',
-                        type=str, required=True)
+                        type=str, required=False, default=None)
     parser.add_argument('--port',
                         help='The port of the service to test',
-                        type=str, required=True)
+                        type=str, required=False, default=None)
     parser.add_argument('--restler_drop_dir',
                         help="The path to the RESTler drop",
                         type=str, required=True)

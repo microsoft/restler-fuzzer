@@ -29,10 +29,10 @@ type EngineParameters =
         mutationsFilePath : string
 
         /// The IP of the endpoint being fuzzed
-        targetIp : string
+        targetIp : string option
 
         /// The port of the endpoint being fuzzed
-        targetPort : string
+        targetPort : string option
 
         /// The maximum fuzzing time in hours
         maxDurationHours : float
@@ -71,8 +71,8 @@ let DefaultEngineParameters =
     {
         grammarFilePath = ""
         mutationsFilePath = ""
-        targetIp = ""
-        targetPort = ""
+        targetIp = None
+        targetPort = None
         refreshableTokenOptions = None
         maxDurationHours = float 0
         producerTimingDelay = 0

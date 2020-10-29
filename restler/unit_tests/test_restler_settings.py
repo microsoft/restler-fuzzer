@@ -339,18 +339,6 @@ class RestlerSettingsTest(unittest.TestCase):
         with self.assertRaises(InvalidValueError):
             RestlerSettings(user_args)
 
-    def test_missing_ip(self):
-        user_args = {'target_port': 500}
-        settings = RestlerSettings(user_args)
-        with self.assertRaises(OptionValidationError):
-            settings.validate_options()
-
-    def test_missing_port(self):
-        user_args = {'target_ip': '192.168.0.1'}
-        settings = RestlerSettings(user_args)
-        with self.assertRaises(OptionValidationError):
-            settings.validate_options()
-
     def test_random_walk_sequence_length(self):
         user_args = {'target_port': 500,
                      'target_ip': '192.168.0.1',

@@ -15,9 +15,9 @@ Inputs: (same as for test)
 
 ## How to invoke RESTler in fuzz-lean or fuzz mode
 
-```C:\RESTler\restler\restler.exe fuzz-lean --grammar_file <RESTLer grammar.py file> --dictionary_file <RESTler fuzzing-dictionary.json file> --target_ip <IP address> --target_port <port number> --token_refresh_interval <time in seconds> --token_refresh_command <command>```
+```C:\RESTler\restler\restler.exe fuzz-lean --grammar_file <RESTLer grammar.py file> --dictionary_file <RESTler fuzzing-dictionary.json file> --token_refresh_interval <time in seconds> --token_refresh_command <command>```
 
-```C:\RESTler\restler\restler.exe fuzz --grammar_file <RESTLer grammar.py file> --dictionary_file <RESTler fuzzing-dictionary.json file> --target_ip <IP address> --target_port <port number> --token_refresh_interval <time in seconds> --token_refresh_command <command> --time_budget <max number of hours (default 1)```
+```C:\RESTler\restler\restler.exe fuzz --grammar_file <RESTLer grammar.py file> --dictionary_file <RESTler fuzzing-dictionary.json file> --token_refresh_interval <time in seconds> --token_refresh_command <command> --time_budget <max number of hours (default 1)```
 
 An optional settings file can also be passed to RESTler by adding the command-line option `--settings <path_to_settings_file.json>`.
 For a list of available settings, see [SettingsFile](SettingsFile.md).
@@ -29,17 +29,17 @@ RESTLer will generate a sub-directory `Fuzz[Lean]\RestlerResults\experiment<GUID
 - `bug_buckets.txt` reports bugs found by RESTler. Those bugs are either "500 Internal Server Errors" found by the RESTler "main_driver" or property checker violations
 
     RESTler currently detects these different types of bugs:
-    
+
     - "500 Internal Server Errors" and any other 5xx errors are detected by the "main_driver"
-    
+
     - UseAfterFreeChecker detects that a deleted resource can still being accessed after deletion
-    
+
     - NameSpaceRuleChecker detects that an unauthorized user can access service resources
-    
+
     - ResourceHierarchyChecker detects that a child resource can be accessed from a non-parent resource
-    
+
     - LeakageRuleChecker detects that a failed resource creation leaks data in subsequent requests
-    
+
     - InvalidDynamicObjectChecker detects 500 errors or unexpected success status codes when invalid dynamic objects are sent in requests
 
     - PayloadBodyChecker detects 500 errors when fuzzing the JSON bodies of requests
