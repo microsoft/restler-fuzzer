@@ -33,6 +33,16 @@ CUSTOM_PAYLOAD_HEADER = "restler_custom_payload_header"
 CUSTOM_PAYLOAD_UUID4_SUFFIX = "restler_custom_payload_uuid4_suffix"
 REFRESHABLE_AUTHENTICATION_TOKEN = "restler_refreshable_authentication_token"
 SHADOW_VALUES = "shadow_values"
+# Types that will be auto-quoted by the engine when extracted from the dictionary
+Quoted_Types = {FUZZABLE_STRING, FUZZABLE_DATETIME, FUZZABLE_UUID4, CUSTOM_PAYLOAD}
+
+# The below raw values will be substituted into their non-raw counterparts.
+# These values do not correlate to additional primitive types.
+FUZZABLE_RAW_STRING = "restler_fuzzable_raw_string"
+FUZZABLE_RAW_DATETIME = "restler_fuzzable_raw_datetime"
+FUZZABLE_RAW_UUID4 = "restler_fuzzable_raw_uuid4"
+CUSTOM_RAW_PAYLOAD = "restler_custom_raw_payload"
+Raw_Types = {FUZZABLE_RAW_STRING, FUZZABLE_RAW_DATETIME, FUZZABLE_RAW_UUID4, CUSTOM_RAW_PAYLOAD}
 
 class CandidateValuesPool(object):
 
@@ -49,6 +59,7 @@ class CandidateValuesPool(object):
         self.supported_primitive_types = [
             STATIC_STRING,
             FUZZABLE_STRING,
+            FUZZABLE_RAW_STRING,
             FUZZABLE_DELIM,
             FUZZABLE_UUID4,
             FUZZABLE_GROUP,
@@ -99,10 +110,64 @@ class CandidateValuesPool(object):
         @rtype : None
 
         """
-        DateTime_Str = 'restler_fuzzable_datetime'
+        DateTime_Str = FUZZABLE_DATETIME
         if DateTime_Str in candidate_values:
             candidate_values[DateTime_Str].append(self._future_date)
             candidate_values[DateTime_Str].append(self._past_date)
+
+    def _set_custom_values(self, to_primitives, from_mutations):
+        """ Helper that sets the custom primitive values
+
+        @param to_primitives: The current primitive values that will be updated
+                              with the custom values
+        @type  to_primitives: Dict
+        @param from_mutations: The custom mutations that will be used to update,
+                               i.e. from the mutations dictionary
+        @type  from_mutations: Dict
+
+        @return: None
+        @rtype : None
+
+        """
+        for primitive in from_mutations:
+            if primitive == 'args':
+                continue
+
+            if primitive not in self.get_supported_primitive_types() and\
+            primitive not in Raw_Types:
+                print(primitive, "not in supported primitives")
+                continue
+
+            if primitive in Quoted_Types:
+                if isinstance(from_mutations[primitive], dict):
+                    # iterate through and update custom payload/dict types
+                    for key in from_mutations[primitive].keys():
+                        for i, val in enumerate(from_mutations[primitive][key]):
+                            from_mutations[primitive][key][i] = f'"{val}"'
+                else:
+                    for i, val in enumerate(from_mutations[primitive]):
+                        from_mutations[primitive][i] = f'"{val}"'
+            elif primitive in Raw_Types:
+                # ignore raw types for now, we will append these to the matching non-raw
+                # collections at the end
+                continue
+
+            to_primitives.update({primitive: from_mutations[primitive]})
+
+        for primitive in Raw_Types:
+            if primitive in from_mutations:
+                # Add the raw values to the matching non-raw collection
+                if isinstance(from_mutations[primitive], dict):
+                    new_prim = primitive.replace('raw_', '')
+                    if not to_primitives[new_prim]:
+                        to_primitives[new_prim] = dict()
+                    for key in from_mutations[primitive].keys():
+                        if key not in to_primitives[new_prim]:
+                            to_primitives[new_prim][key] = from_mutations[primitive][key]
+                        else:
+                            to_primitives[new_prim][key].extend(from_mutations[primitive][key])
+                else:
+                    to_primitives[primitive.replace('raw_', '')].extend(from_mutations[primitive])
 
     def get_supported_primitive_types(self):
         """ Returns a list of restler-supported primitive types.
@@ -182,7 +247,7 @@ class CandidateValuesPool(object):
         # the dictionary for that fuzzable type
         if not fuzzable_values:
             fuzzable_values.append(default_value)
-        elif primitive_type == 'restler_fuzzable_datetime' and\
+        elif primitive_type == FUZZABLE_DATETIME and\
         len(fuzzable_values) == 2:
             # Special case for fuzzable_datetime because there will always be
             # two additional values for past/future in the list
@@ -202,22 +267,12 @@ class CandidateValuesPool(object):
         @rtype : None
 
         """
-        def _set_custom_values(to_primitives, from_mutations):
-            for primitive in from_mutations:
-                if primitive == 'args':
-                    continue
-
-                if primitive not in self.get_supported_primitive_types():
-                    print(primitive, "not in supported primitives")
-                    continue
-                to_primitives.update({primitive: from_mutations[primitive]})
-
         if 'args' in custom_values:
             if not Settings().settings_file_exists:
                 DEPRECATED_set_args(custom_values['args'])
 
         # Set default primitives
-        _set_custom_values(self.candidate_values, custom_values)
+        self._set_custom_values(self.candidate_values, custom_values)
         if not self._dates_added:
             self._add_fuzzable_dates(self.candidate_values)
             self._dates_added = True
@@ -227,7 +282,7 @@ class CandidateValuesPool(object):
                 self.per_endpoint_candidate_values[request_id] = {}
                 for primitive in self.supported_primitive_types:
                     self.per_endpoint_candidate_values[request_id][primitive] = []
-                _set_custom_values(self.per_endpoint_candidate_values[request_id], per_endpoint_custom_mutations[request_id])
+                self._set_custom_values(self.per_endpoint_candidate_values[request_id], per_endpoint_custom_mutations[request_id])
                 self._add_fuzzable_dates(self.per_endpoint_candidate_values[request_id])
 
 def restler_static_string(*args, **kwargs):
@@ -251,7 +306,26 @@ def restler_static_string(*args, **kwargs):
 
 
 def restler_fuzzable_string(*args, **kwargs):
-    """ Fuzzable sting primitive.
+    """ Fuzzable string primitive.
+
+    @param args: The argument with which the primitive is defined in the block
+                    of the request to which it belongs to. This is a fuzzable
+                    string and therefore the argument will be added to the
+                    existing candidate values for string mutations.
+    @type  args: Tuple
+    @param kwargs: Optional keyword arguments.
+    @type  kwargs: Dict
+
+    @return: A tuple of the primitive's name and its default value or its tag
+                both passed as arguments via the restler grammar.
+    @rtype : Tuple
+
+    """
+    field_name = args[0]
+    return sys._getframe().f_code.co_name, field_name
+
+def restler_fuzzable_raw_string(*args, **kwargs):
+    """ Fuzzable raw sting primitive.
 
     @param args: The argument with which the primitive is defined in the block
                     of the request to which it belongs to. This is a fuzzable

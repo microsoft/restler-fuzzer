@@ -148,7 +148,7 @@ def resolve_dynamic_primitives(values, candidate_values_pool, request):
         and values[i] == primitives.restler_fuzzable_uuid4:
             values[i] = uuid.uuid4().hex
         elif isinstance(values[i], tuple)\
-        and values[i][0] == 'restler_custom_payload_uuid4_suffix':
+        and values[i][0] == primitives.CUSTOM_PAYLOAD_UUID4_SUFFIX:
             current_uuid_type_name = values[i][1]
             if current_uuid_type_name not in current_uuid_suffixes:
                 current_uuid_suffixes[current_uuid_type_name] =\
@@ -157,7 +157,7 @@ def resolve_dynamic_primitives(values, candidate_values_pool, request):
         elif isinstance(values[i], types.FunctionType)\
         and values[i] == primitives.restler_refreshable_authentication_token:
             token_dict = candidate_values_pool.get_candidate_values(
-                'restler_refreshable_authentication_token'
+                primitives.REFRESHABLE_AUTHENTICATION_TOKEN
             )
             if not isinstance(token_dict, dict):
                 raise Exception("Refreshable token was not specified as a setting, but a request was expecting it.")
