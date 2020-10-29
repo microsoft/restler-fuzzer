@@ -9,7 +9,8 @@ send the following command (as an example):
 
 `C:\RESTler\restler\restler.exe replay --replay_log C:\restler-test\Test\RestlerResults\experiment20652\bug_buckets\PayloadBodyChecker_500_1.txt --token_refresh_command "<command>" --token_refresh_interval 30`
 
-In this example, RESTler will replay the log `PayloadBodyChecker_500_1.txt` that requires the specified token_refresh_command for authentication tokens.
+In this example, RESTler will replay the log `PayloadBodyChecker_500_1.txt`.
+If authentication is required to replay the sequence, the authentication options must be specified during replay.
 
 As you can see above,
 the IP, port, and authorization token refresh command/interval are all used

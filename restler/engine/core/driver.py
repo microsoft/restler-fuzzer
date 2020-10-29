@@ -725,7 +725,7 @@ def replay_sequence_from_log(replay_log_filename, token_refresh_cmd):
                     # Extract hostname from request
                     hostname = get_hostname_from_line(line)
                     if hostname is None:
-                        raise Exception("No hostname in request.")
+                        raise Exception("Host not found in request. The replay log may be corrupted.")
                     Settings().set_hostname(hostname)
 
                 # Append the request data to the list

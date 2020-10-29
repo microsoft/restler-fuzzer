@@ -419,7 +419,8 @@ if __name__ == '__main__':
             settings.set_hostname(host)
         else:
             logger.write_to_main(
-                "Host not found in grammar. Fix grammar or launch RESTler with --host parameter.",
+                "Host not found in grammar. "
+                "Add the host to your spec or launch RESTler with --host parameter.",
                  print_to_console=True
             )
             sys.exit(-1)

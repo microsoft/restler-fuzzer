@@ -45,9 +45,9 @@ let usage() =
         --grammar_file <grammar file>
         --dictionary_file <dictionary file>
         --target_ip <ip>
-            If specified, overrides the IP address
+            If specified, sets the IP address to this specific value instead of using the hostname.
         --target_port <port>
-            If specified, overrides the port. The default for SSL is 443 and for no SSL is 80.
+            If specified, overrides the default port, which is 443 with SSL, 80 with no SSL.
         --token_refresh_interval <interval with which to refresh the token>
         --token_refresh_command <full command line to refresh token.>
             The command line must be enclosed in double quotes. Paths must be absolute.
