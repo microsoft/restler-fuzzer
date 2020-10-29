@@ -1,5 +1,5 @@
 {
-  "restler_fuzzable_string": [
+  "restler_fuzzable_raw_string": [
     "fuzzstring",
     "enable"
   ],
@@ -11,7 +11,7 @@
     "true",
     "false"
   ],
-  "restler_custom_payload": {
+  "restler_custom_raw_payload": {
     "api-version": [
       "2019-04-01"
     ],
