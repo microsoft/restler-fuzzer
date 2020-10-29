@@ -1,0 +1,152 @@
+basePath: /api
+consumes:
+  - application/json
+definitions:
+  Store:
+    properties:
+      id:
+        description: The unique identifier of a store
+        type: integer
+      name:
+        description: The name of the store
+        type: integer
+  Order:
+    properties:
+      id:
+        description: The unique identifier of an order
+        type: integer
+      eta:
+        description: The date the order will be ready
+        type: string
+        format: date-time
+      status:
+        description: The order status
+        type: string
+  GroceryList:
+    properties:
+      storeId:
+        description: The unique identifier of the store
+        type: integer
+      rush:
+        description: Is it a rush order
+        type: boolean
+      bagType:
+        description: The type of bags to use
+        type: string
+      items:
+        description: The type of bags to use
+        type: array
+        items:
+          $ref: '#/definitions/GroceryListItem'
+      useDoubleBags:
+        description: Whether to use double bags
+        type: boolean
+      bannedBrands:
+        description: do not use these brands
+        type: array
+        items:
+          type: string
+  GroceryListItem:
+    properties:
+      name:
+        description: The name of the item
+        type: string
+      code:
+        description: The code of the item
+        type: integer
+      groceryItemTags:
+        description: The tags of the item
+        type: object
+      storeId:
+        description: The unique identifier of the store
+        type: integer
+      expirationMaxDate:
+        description: The maximum date that this item should expire
+        type: string
+        format: date-time
+  KeyType:
+    type: string
+    enum:
+      - NotSpecified
+      - Primary
+      - Secondary
+    x-ms-enum:
+      name: KeyType
+      modelAsString: false
+  GetCallbackUrlParameters:
+    type: object
+    properties:
+      notAfter:
+        type: string
+        format: date-time
+        description: The expiry time.
+      keyType:
+        $ref: '#/definitions/KeyType'
+        description: The key type.
+    description: The callback url parameters.
+host: 'localhost:8888'
+info:
+  description: A simple swagger spec that uses examples
+  title: My Grocery API
+  version: '1.0'
+paths:
+  /stores/:
+    get:
+      operationId: get_stores
+      responses:
+        '200':
+          description: Success retrieving store information.
+          schema:
+            $ref: '#/definitions/Store'
+    post:
+      operationId: post_stores
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Store'
+  '/stores/{storeId}/order':
+    post:
+      operationId: make_an_order
+      parameters:
+        - in: path
+          name: storeId
+          required: true
+          type: integer
+        - name: orderDetails
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/GroceryList'
+      x-ms-examples:
+        Make an order:
+          $ref: ./examples/make_order.json
+        Make a bigger order:
+          $ref: ./examples/make_big_order.json
+      responses:
+        '200':
+          description: Success retrieving an order
+          schema:
+            $ref: '#/definitions/Order'
+        '404':
+          description: Store not found.
+  '/stores/{storeId}/order/{orderId}':
+    get:
+      operationId: get_order
+      parameters:
+        - in: path
+          name: orderId
+          required: true
+          type: integer
+        - in: path
+          name: storeId
+          required: true
+          type: integer
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Order'
+        '404':
+          description: Order not found.
+swagger: '2.0'

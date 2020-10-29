@@ -56,7 +56,7 @@ Prerequisites: Install [Python 3.8.2](https://www.python.org/downloads/) and
 
 RESTler runs in 4 main modes (in order):
 
-1. **Compile:** from a Swagger JSON specification (and optionally examples), generate a RESTler grammar. See [Compiling](./docs/user-guide/Compiling.md).
+1. **Compile:** from a Swagger JSON or YAML specification (and optionally examples), generate a RESTler grammar. See [Compiling](./docs/user-guide/Compiling.md).
 2. **Test:** execute quickly all of the endpoints+methods in a compiled RESTler grammar for debugging the test setup and compute what parts of the Swagger spec are covered. This mode is also called a *smoketest*.
 See [Testing](./docs/user-guide/Testing.md). To use custom test engine settings, see [Test Engine Settings](./docs/user-guide/SettingsFile.md).
 3. **Fuzz-lean:** execute once every endpoint+method in a compiled RESTler grammar with a default set of checkers to see if bugs can be found quickly. See [Fuzzing](./docs/user-guide/Fuzzing.md).
