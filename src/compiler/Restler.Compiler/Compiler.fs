@@ -549,6 +549,7 @@ let generateRequestGrammar (swaggerDocs:Types.ApiSpecFuzzingConfig list)
                                             config.AllowGetProducers
                                             config.DataFuzzing
                                             perResourceDictionaries
+                                            config.ApiNamingConvention
 
     logTimingInfo "Generating request primitives..."
 

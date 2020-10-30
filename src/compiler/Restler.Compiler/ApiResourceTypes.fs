@@ -8,6 +8,19 @@ open System
 open Restler.Grammar
 open Restler.AccessPaths
 
+type NamingConvention = Config.NamingConvention
+
+let RegexSplitMap =
+    let camelCaseRegexSplit = "(?=\p{Lu}\p{Ll})|(?<=\p{Ll})(?=\p{Lu})"
+    [
+        NamingConvention.CamelCase, camelCaseRegexSplit
+        NamingConvention.PascalCase, camelCaseRegexSplit
+        NamingConvention.HyphenSeparator, "-"
+        NamingConvention.UnderscoreSeparator, "_"
+    ]
+    |> List.map (fun (x,y) -> (x, System.Text.RegularExpressions.Regex(y)))
+    |> Map.ofList
+
 /// Reference to a parameter passed in the body of a request or
 /// or returned in a response
 type JsonParameterReference =
@@ -38,14 +51,6 @@ type ResourceReference =
     /// A body parameter
     | BodyResource of JsonParameterReference
 
-/// The 'type' of the resource is inferred based on the naming of its name and container as
-/// well as conventions for the API method (e.g. PUT vs. POST).
-type NamingConvention =
-| CamelCase
-| DashSeparator
-| UnderscoreSeparator
-
-
 let private pluralizer = Pluralize.NET.Core.Pluralizer()
 
 /// The resource id.
@@ -54,7 +59,7 @@ let private pluralizer = Pluralize.NET.Core.Pluralizer()
 /// For example: "/admin/pre-receive-environments/{pre_receive_environment_id}"
 type ApiResource(requestId:RequestId,
                  resourceReference:ResourceReference,
-                 namingConvention:NamingConvention,
+                 namingConvention:NamingConvention option,
                  primitiveType:PrimitiveType) =
     let endpointParts = requestId.endpoint.Split([|'/'|], StringSplitOptions.RemoveEmptyEntries)
 
@@ -130,18 +135,43 @@ type ApiResource(requestId:RequestId,
     let bodyContainerName = getBodyContainerName()
     let pathContainerName = getContainerPartFromPath endpointParts
 
-    let regexSplit =
-        match namingConvention with
-        | NamingConvention.CamelCase ->
-            "(?=\p{Lu}\p{Ll})|(?<=\p{Ll})(?=\p{Lu})"
-        | NamingConvention.DashSeparator ->
-            raise (Exception("not supported"))
-        | NamingConvention.UnderscoreSeparator ->
-            raise (Exception("not supported"))
+    /// Infer the naming convention.
+    // The naming convention is inferred from the container if present.
+    // Otherwise, infer it from the resource name.
+    // If not possible to infer, the default (camel case) is used.
+    let getConvention (str:string) =
+        let hasUpper = str |> Seq.exists (fun x -> Char.IsUpper x)
+        let hasLower = str |> Seq.exists (fun x -> Char.IsLower x)
+        let hasUnderscores = str.Contains("_")
+        let hasHyphens = str.Contains("-")
+        let startsWithUpper = Char.IsUpper(str.[0])
 
-    let typeRegex = System.Text.RegularExpressions.Regex(regexSplit)
+        if hasUpper && hasLower then
+            if startsWithUpper then
+                NamingConvention.PascalCase
+            else
+                NamingConvention.CamelCase
+        else if hasUnderscores then
+            NamingConvention.UnderscoreSeparator
+        else if hasHyphens then
+            NamingConvention.HyphenSeparator
+        else
+            // Use CamelCase as the default
+            NamingConvention.CamelCase
 
-    let resourceNameWords = typeRegex.Split(resourceName)
+    let getTypeWords name =
+        // Infer the convention if it is not already set.
+        // Each name (e.g. container vs. resource names) may have a different convention.
+        // For example: the-accounts/{the_account_id}
+        let typeNamingConvention =
+            match namingConvention with
+            | None -> getConvention name
+            | Some c -> c
+        let nameRegexSplit = RegexSplitMap.[typeNamingConvention]
+        nameRegexSplit.Split(name)
+        |> Array.filter (fun x -> not (String.IsNullOrEmpty x))
+
+    let resourceNameWords = getTypeWords resourceName
 
     /// Gets the candidate type names for this resource, based on its container.
     /// This function currently uses heuristics to infer a set of possible type names
@@ -155,7 +185,8 @@ type ApiResource(requestId:RequestId,
         match containerName with
         | Some c ->
             let containerNameWithoutPlural = pluralizer.Singularize(c)
-            let containerWords = typeRegex.Split(containerNameWithoutPlural)
+            let containerWords = getTypeWords containerNameWithoutPlural
+
             match bodyContainerName with
             | None ->
                 // The top-level container should be just the container name

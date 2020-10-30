@@ -1,0 +1,81 @@
+{
+  "basePath": "/api",
+  "consumes": [
+    "application/json"
+  ],
+  "host": "localhost:8888",
+  "info": {
+    "description": "Small example for POST and dependent PATCH.",
+    "title": "patch dependency test case.",
+    "version": "1.0.0"
+  },
+  "definitions": {
+    "environment": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer"
+        },
+        "name": {
+          "type": "string"
+        },
+        "image_url": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string"
+        }
+      }
+    }
+  },
+  "paths": {
+    "/system-environments": {
+      "post": {
+        "responses": {
+          "201": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/environment"
+            }
+          }
+        }
+      }
+    },
+    "/system-environments/{system-environment-id}": {
+      "patch": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "system-environment-id",
+            "required": true,
+            "type": "String"
+          },
+          {
+            "in": "body",
+            "name": "bodyParameters",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "image_url": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/environment"
+            }
+          }
+        }
+      }
+    }
+  },
+  "swagger": "2.0"
+}

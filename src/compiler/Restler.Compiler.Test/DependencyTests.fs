@@ -248,5 +248,35 @@ module Dependencies =
             let message = sprintf "The number of dependencies is not correct (%d <> %d)" expectedCount actualCount
             Assert.True((expectedCount = actualCount), message)
 
+        /// Test that a full path annotation only to a specified body parameter works.
+        [<Fact>]
+        let ``patch request body parameter producers from post`` () =
+            let grammarOutputDirPath = ctx.testRootDirPath
+            let config = { Restler.Config.SampleConfig with
+                             IncludeOptionalParameters = true
+                             GrammarOutputDirectoryPath = Some grammarOutputDirPath
+                             ResolveBodyDependencies = true
+                             UseBodyExamples = true
+                             SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, @"swagger\dependencyTests\post_patch_dependency.json"))]
+                             AllowGetProducers = true
+                         }
+            Restler.Workflow.generateRestlerGrammar None config
+
+            // Make sure there are three dynamic objects.
+            //
+            let grammarFilePath = Path.Combine(grammarOutputDirPath,
+                                               Restler.Workflow.Constants.DefaultRestlerGrammarFileName)
+            let grammar = File.ReadAllText(grammarFilePath)
+            let grammarDynamicObjects =
+                [
+                    "_system_environments_post_id.reader()"
+                    "_system_environments_post_url.reader()"
+                    "_system_environments_post_name.reader()"
+                ]
+            grammarDynamicObjects
+            |> Seq.iter (fun x -> Assert.True(grammar.Contains(x),
+                                              sprintf "Grammar does not contain %s" x))
+
+
         interface IClassFixture<Fixtures.TestSetupAndCleanup>
 

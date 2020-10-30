@@ -188,7 +188,10 @@ let generateGrammarFromSwagger grammarOutputDirectoryPath swaggerDoc config =
     Dependencies.writeDependencies dependenciesFilePath dependencies false
 
     let dependenciesDebugFilePath = Path.Combine(grammarOutputDirectoryPath, Constants.DependenciesDebugFileName)
-    Dependencies.writeDependenciesDebug dependenciesDebugFilePath dependencies
+    let dependenciesSorted =
+        dependencies
+        |> List.sortBy (fun x -> x.consumer.id.RequestId, x.consumer.id.AccessPath)
+    Dependencies.writeDependenciesDebug dependenciesDebugFilePath dependenciesSorted
 
     // Update engine settings
     let newEngineSettingsFilePath =
