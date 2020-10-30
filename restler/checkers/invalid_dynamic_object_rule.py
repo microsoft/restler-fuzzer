@@ -128,7 +128,7 @@ class InvalidDynamicObjectChecker(CheckerBase):
         for i in range(1, len(data), 2):
             consumer_types.append(dependencies.get_variable(data[i]))
 
-        default_invalids = [f'{VALID_REPLACE_STR}?api-version=2019-01-01',\
+        default_invalids = [f'{VALID_REPLACE_STR}?injected_query_string',\
                             f'{VALID_REPLACE_STR}/?/',\
                             f'{VALID_REPLACE_STR}??',\
                             f'{VALID_REPLACE_STR}/{VALID_REPLACE_STR}',\
