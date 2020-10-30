@@ -2,9 +2,17 @@
 
 ## What is RESTler?
 
-RESTler is the *first stateful REST API fuzzing tool* for automatically testing cloud services through their REST APIs and finding security and reliability bugs in these services. For a given cloud service with an OpenAPI/Swagger specification, RESTler analyzes its entire specification, and then generates and executes tests that exercise the service through its REST API.
+RESTler is the *first stateful REST API fuzzing tool* for automatically
+testing cloud services through their REST APIs and finding security and
+reliability bugs in these services. For a given cloud service
+with an OpenAPI/Swagger specification, RESTler analyzes its entire specification,
+and then generates and executes tests that exercise the service through its REST API.
 
-RESTler intelligently infers producer-consumer dependencies among request types from the Swagger specification; and during testing, it checks for specific bugs and dynamically learns from prior service responses how the service behaves. This intelligence allows RESTler to explore deeper service states reachable only through specific request sequences and to find more bugs.
+RESTler intelligently infers producer-consumer dependencies among request types from the Swagger
+specification.  During testing, it checks for specific classes of bugs
+and dynamically learns how the service behaves from prior service responses.
+This intelligence allows RESTler to explore deeper service states
+reachable only through specific request sequences and to find more bugs.
 
 RESTler is described in these peer-reviewed research papers:
 
@@ -18,6 +26,10 @@ If you use RESTler in your research, please cite the (default) ICSE'2019 paper (
 RESTler was created at Microsoft Research and is still under active development.
 
 ![RESTler architecture](./docs/user-guide/RESTler-arch.png)
+
+## Build Status
+
+[![Build Status](https://dev.azure.com/ms/restler-fuzzer/_apis/build/status/restler-build-validation?branchName=main)](https://dev.azure.com/ms/restler-fuzzer/_build/latest?definitionId=422&branchName=main)
 
 
 ## Setting up RESTler
@@ -41,8 +53,6 @@ Note: if you get nuget error NU1403 when building, a quick workaround is to clea
 
 ```dotnet nuget locals all --clear```
 
-
-[![Build Status](https://dev.azure.com/ms/restler-fuzzer/_apis/build/status/restler-build-validation?branchName=main)](https://dev.azure.com/ms/restler-fuzzer/_build/latest?definitionId=422&branchName=main)
 
 ### **Binary-drop instructions**
 
@@ -87,6 +97,11 @@ See also these [Frequently Asked Questions](./docs/user-guide/FAQ.md).
 
 If you're interested in using RESTler at scale as part of your CI/CD pipeline, check out
 the [REST API Fuzz Testing self-hosted service](https://github.com/microsoft/rest-api-fuzz-testing).
+
+## Questions
+
+If you have a request/suggestion/question, please file an issue.
+See [Contributing.md](./docs/contributor-guide/Contributing.md) for instructions.
 
 ## Contributing
 
