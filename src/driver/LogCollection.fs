@@ -17,11 +17,6 @@ module LogCollection =
     [<Literal>]
     let RestlerLogShareSettingsKey = "restlerLogsUploadDirectory"
 
-    /// This program collects logs before and after each step to facilitate support troubleshooting.
-    /// The following share has been made write-accessible to any MSFT FTE.
-    let getLogCollectionShareDirPath rootDir =
-        rootDir ++ "RestlerLogs"
-
     [<Literal>]
     let RestlerTelemetryShareAccessRetryCount = 10
 
@@ -39,8 +34,7 @@ module LogCollection =
         let dateFormat = "MM-dd-yyyy_hhmmsstt";
 
         let timeStamp = DateTime.UtcNow.ToString(dateFormat)
-        (getLogCollectionShareDirPath rootDir) ++ (sprintf "%s_%s" (timeStamp.ToString()) userName)
-
+        rootDir ++ (sprintf "%s_%s" (timeStamp.ToString()) userName)
 
     let uploadInputs (driverArgs:DriverArgs) targetPath logFileName handleFailure =
         createDirectoryWithRetries
