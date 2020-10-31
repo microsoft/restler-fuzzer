@@ -19,7 +19,7 @@ You may find that RESTler cannot support or does not perform well
 on your desired API (e.g. it uses a different specification language,
 different naming conventions, ...).
 We encourage you to open issues and discuss with us,
-but will only extend RESTler in a way that applies to a broad set of APIs.  
+but will only extend RESTler in a way that applies to a broad set of APIs.
 - **Systematic bug hunting over unit testing.** RESTler is designed as a bug finding tool,
  which systematically explores the space of possible request executions of an API
  to find more bugs.  Features to support unit/functional test scenarios for APIs
@@ -31,9 +31,9 @@ focus of the tool, and increasing complexity by adding such features should be a
 ### Opening Issues
 
 - Don't know whether you're reporting an issue or requesting a feature? File an issue
-- Have a question that you don't see answered in docs? File an issue or post on Stack Overflow.
+- Have a question that you don't see answered in docs? File an issue
 - Want to know if we're planning on building a particular feature? File an issue
-- Got a great idea for a new feature? File an issue/request/idea
+- Got a great idea for a new feature? File an issue
 - Found an existing issue that describes yours? Great - up-vote and add additional info / repro steps / etc.
 
 When you hit "New Issue", select the type of issue closest to what you want to report/ask/request.
@@ -71,7 +71,7 @@ When you would like us to review, mark the PR as 'Ready For Review' so that the 
 
 For compiler and engine changes, run the existing unit tests,
 and add new tests to exercise your new use case.
- These must pass prior to merging your changes.  
+ These must pass prior to merging your changes.
 
 If you performed targeted testing, we may ask you to check in your artifacts or convert them to automated tests.
 
