@@ -129,8 +129,11 @@ module Uri =
 
 module Headers =
     let parse (headers:string): Headers option =
-        let headers =
+        let headerList =
             headers.Split(HttpDelimiter)
+            // Special case: the RESTler engine inserts this string instead of
+            // headers that include a token.
+            |> Array.filter (fun x -> x <> "_OMITTED_AUTH_TOKEN_")
             |> Array.toSeq
             |> Seq.map (fun headerLine ->
                 match headerLine.Split(':', 2) with
@@ -141,11 +144,11 @@ module Headers =
                 | [| key; value |] -> Some (key, value.Trim())
                 | _invalidHeaderLine -> None)
         // If a single header couldn't be parsed, parsing of the whole header section failed.
-        if Seq.contains None headers
+        if Seq.contains None headerList
         then
             None
         else
-            headers
+            headerList
             |> Seq.map Option.get
             |> Map.ofSeq
             |> Some
@@ -158,14 +161,17 @@ let private parseHttpMessage (message:string): Option<string * Headers * string>
     let! startAndHeaders, body =
         // Body may itself contain more \r\n\r\n, so stop splitting after 2 elements.
         match message.Split(BodyDelimiter, 2, StringSplitOptions.None) with
-        | [| startAndHeaders; body |] -> Some (startAndHeaders, body)
-        | _invalidBodyDelimiter -> None
+        | [| startAndHeaders; body |] ->
+            Some (startAndHeaders, body)
+        | _invalidBodyDelimiter ->
+            None
     let! startLine, headers =
         // I am not 100% sure headers cannot contain newlines, so limit splitting here as well.
         match startAndHeaders.Split(HttpDelimiter, 2, StringSplitOptions.None) with
         | [| startLine; headers |] -> Some (startLine, headers)
         | [| startLine |] -> Some (startLine, "")
-        | _invalidStartLineDelimiter -> None
+        | _invalidStartLineDelimiter ->
+            None
     let! headers = Headers.parse headers
     return startLine, headers, body
 }
@@ -177,7 +183,8 @@ module Request =
         let! method, uri, version =
             match requestLine.Split(' ') with
             | [| method; uri; version |] -> Some (method, uri, version)
-            | _invalidRequestLine -> None
+            | _invalidRequestLine ->
+                None
         let! uri = Uri.parse uri
         let! body = bodyParser body
         return {
@@ -216,8 +223,10 @@ module Response =
         let! version, code, description =
             // Limit splitting because status description can contains spaces, e.g., "Bad Request"
             match statusLine.Split(' ', 3, StringSplitOptions.None) with
-            | [| version; code; description |] -> Some (version, code, description)
-            | _invalidStatusLine -> None
+            | [| version; code; description |] ->
+                Some (version, code, description)
+            | _invalidStatusLine ->
+                None
         let! code = Parsing.tryParseInt code
         let! body = bodyParser body
         return {
