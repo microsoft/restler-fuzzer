@@ -122,7 +122,7 @@ def replace_auth_token(data, replace_str):
             data = data.replace(latest_shadow_token_value.split('\r\n')[0], replace_str)
     return data
 
-def resolve_dynamic_primitives(values, candidate_values_pool, request):
+def resolve_dynamic_primitives(values, candidate_values_pool):
     """ Dynamic primitives (i.e., uuid4) must be filled with a new value
         each time the request is rendered.
 
@@ -131,6 +131,8 @@ def resolve_dynamic_primitives(values, candidate_values_pool, request):
                     fuction pointer and will be substituted with fresh value
                     within this routine.
     @type values: List
+    @param candidate_values_pool: The pool of values for primitive types.
+    @type  candidate_values_pool: Dict
 
     @return: List of string of primitive type payloads for which any dynamic
                 primitive (e.g., uuid4) with be substituted with a fresh and

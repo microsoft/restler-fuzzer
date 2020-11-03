@@ -305,6 +305,7 @@ def custom_network_logging(sequence, candidate_values_pool, **kwargs):
         for request_block in definition:
             primitive = request_block[0]
             default_val = request_block[1]
+            quoted = request_block[2]
             # Handling dynamic primitives that need fresh rendering every time
             if primitive == "restler_fuzzable_uuid4":
                 values = [primitives.restler_fuzzable_uuid4]
@@ -318,7 +319,7 @@ def custom_network_logging(sequence, candidate_values_pool, **kwargs):
             # Handle custom payload
             elif primitive == "restler_custom_payload_header":
                 current_fuzzable_tag = default_val
-                values = candidate_values_pool.get_candidate_values(primitive, request_id=request.request_id, tag=current_fuzzable_tag)
+                values = candidate_values_pool.get_candidate_values(primitive, request_id=request.request_id, tag=current_fuzzable_tag, quoted=quoted)
                 if not isinstance(values, list):
                     values = [values]
                 if len(values) == 1:
@@ -326,7 +327,7 @@ def custom_network_logging(sequence, candidate_values_pool, **kwargs):
             # Handle custom payload
             elif primitive == "restler_custom_payload":
                 current_fuzzable_tag = default_val
-                values = candidate_values_pool.get_candidate_values(primitive, request_id=request.request_id, tag=current_fuzzable_tag)
+                values = candidate_values_pool.get_candidate_values(primitive, request_id=request.request_id, tag=current_fuzzable_tag, quoted=quoted)
                 if not isinstance(values, list):
                     values = [values]
                 if len(values) == 1:
@@ -334,11 +335,11 @@ def custom_network_logging(sequence, candidate_values_pool, **kwargs):
             # Handle custom payload with uuid4 suffix
             elif primitive == "restler_custom_payload_uuid4_suffix":
                 current_fuzzable_tag = default_val
-                values = candidate_values_pool.get_candidate_values(primitive, request_id=request.request_id, tag=current_fuzzable_tag)
+                values = candidate_values_pool.get_candidate_values(primitive, request_id=request.request_id, tag=current_fuzzable_tag, quoted=quoted)
                 default_val = values[0]
             # Handle all the rest
             else:
-                values = candidate_values_pool.get_fuzzable_values(primitive, request_block[1], request.request_id)
+                values = candidate_values_pool.get_fuzzable_values(primitive, default_val, request.request_id, quoted=quoted)
 
             if len(values) > 1:
                 network_log.write(f"\t\t+ {primitive}: {values}")
