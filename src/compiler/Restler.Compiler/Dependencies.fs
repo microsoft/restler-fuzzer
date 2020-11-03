@@ -286,23 +286,41 @@ let findProducerWithResourceName
     let consumerResourceName = consumer.id.ResourceName
 
     let consumerEndpoint = consumer.id.RequestId.endpoint
-    let bracketedConsumerResourceName = sprintf "{%s}" consumerResourceName
-    let pathParameterIndex = consumerEndpoint.IndexOf(bracketedConsumerResourceName)
+    let bracketedConsumerResourceName =
+        if consumer.parameterKind = ParameterKind.Path then
+            sprintf "{%s}" consumerResourceName
+            |> Some
+        else None
+    let pathParameterIndex =
+        match bracketedConsumerResourceName with
+        | None -> None
+        | Some bracketedName ->
+            consumerEndpoint.IndexOf(bracketedName)
+            |> Some
 
-    // First, search according to the path
-    // producerEndpoint contains everything including the container
-    let producerEndpoint =
-        if pathParameterIndex = 0 then
-            raise InvalidSwaggerEndpoint
-        else if pathParameterIndex > 0 then
-            consumerEndpoint.Substring(0, pathParameterIndex - 1)  // subtract one to remove the slash.
-        else
-            "Not found"
+    let producerEndpoint, producerContainer =
+        match consumer.parameterKind with
+        | ParameterKind.Body
+        | ParameterKind.Query -> None, None
+        | ParameterKind.Path ->
+            let producerEndpoint =
+                // Search according to the path
+                // producerEndpoint contains everything including the container
+                if pathParameterIndex.Value = 0 then
+                    raise InvalidSwaggerEndpoint
+                else if pathParameterIndex.Value > 0 then
+                    consumerEndpoint.Substring(0, pathParameterIndex.Value - 1)  // subtract one to remove the slash.
+                    |> Some
+                else
+                    None
 
-    // We need to find the container (here, "accounts") to filter a particular API structure that does not
-    // fully conform to the OpenAPI spec (see below).
-    let producerContainer =
-        producerEndpoint.Split([|'/'|]) |> Seq.last
+            // We need to find the container (here, "accounts") to filter a particular API structure that does not
+            // fully conform to the OpenAPI spec (see below).
+            let producerContainer =
+                match producerEndpoint with
+                | None -> None
+                | Some ep -> ep.Split([|'/'|]) |> Seq.last |> Some
+            producerEndpoint, producerContainer
 
     let matchingResourceProducers, matchingResourceProducersByEndpoint =
         // The logic below guards against including cases where the container returns a
@@ -314,12 +332,18 @@ let findProducerWithResourceName
         // match a field named "type" returned by  dnsZones/{zoneName} which will
         // be a zone type and not a record-type.
         // accounts starts with 'account'
-        if not (producerContainer.StartsWith("{")) then
+        match producerContainer with
+        | None ->
+            Seq.empty, Seq.empty
+        | Some pc when pc.StartsWith("{") ->
+             Seq.empty, Seq.empty
+        | Some pc ->
             producers.getSortedByMatchProducers(producerParameterName, true),
-            producers.getIndexedByEndpointProducers(producerParameterName, producerEndpoint,
-                                                    [OperationMethod.Put; OperationMethod.Post;
-                                                     OperationMethod.Get])
-        else Seq.empty, Seq.empty
+            if producerEndpoint.IsSome then
+                producers.getIndexedByEndpointProducers(producerParameterName, producerEndpoint.Value,
+                                                        [OperationMethod.Put; OperationMethod.Post;
+                                                         OperationMethod.Get])
+            else Seq.empty
 
     let annotationMatches =
         let ann = consumer.annotation
@@ -393,14 +417,18 @@ let findProducerWithResourceName
                                 // e.g. producerEndpoint = "/api/webhooks/account/{accountId}/blah/id"
                                 // look for /api/webhooks/account/{accountId}/blah, /api/webhooks/account/{accountId}
                                 let producerMatch =
-                                    producerEndpoint.StartsWith(p.id.RequestId.endpoint) &&
-                                    (not (producerEndpoint.Replace(p.id.RequestId.endpoint, "").Contains("{"))) &&
-                                    p.id.ResourceName = producerParameterName
+                                    match producerEndpoint with
+                                    | None -> false
+                                    | Some pe ->
+                                        pe.StartsWith(p.id.RequestId.endpoint) &&
+                                        (not (pe.Replace(p.id.RequestId.endpoint, "").Contains("{"))) &&
+                                        p.id.ResourceName = producerParameterName
                                 // Check for the presence of the producer container in the path to this resource.
                                 let containerMatch =
-                                    match p.id.BodyContainerName with
-                                    | None -> false
-                                    | Some container ->
+                                    match p.id.BodyContainerName, producerContainer with
+                                    | None,_
+                                    | _,None -> false
+                                    | Some container, Some producerContainer ->
                                         container = producerContainer
                                 producerMatch && containerMatch)
         |> Seq.filter (fun (p:ResponseProducer) ->
@@ -421,14 +449,15 @@ let findProducerWithResourceName
            // If there is a dictionary entry for a static value, it should override the inferred dependency
            (dictionary.getParameterForCustomPayload consumerResourceName consumer.id.AccessPathParts) |> Seq.isEmpty &&
            inferredExactMatches |> Seq.isEmpty then
+
             getCreateOrUpdateProducer
                         consumer
                         dictionary
                         producers
                         consumerResourceName
                         producerParameterName
-                        pathParameterIndex
-                        bracketedConsumerResourceName
+                        pathParameterIndex.Value
+                        bracketedConsumerResourceName.Value
         else
             dictionary, None
 
@@ -470,18 +499,19 @@ let findProducerWithResourceName
 
 
 let findProducer (producers:Producers)
-        (consumer:Consumer)
-        (dictionary:MutationsDictionary)
-        (allowGetProducers:bool)
-        (perRequestDictionary:MutationsDictionary option) =
+                 (consumer:Consumer)
+                 (dictionary:MutationsDictionary)
+                 (allowGetProducers:bool)
+                 (perRequestDictionary:MutationsDictionary option) =
 
     let possibleProducerParameterNames =
         // Try both the producer parameter name as inferred by naming convention,
         // and a match for the consumer resource (i.e. parameter) name itself.
         [ consumer.id.ProducerParameterName ; consumer.id.ResourceName ]
 
-    let producers =
+    let matchingProducers =
         possibleProducerParameterNames
+        |> Seq.distinct
         |> Seq.choose (
             fun producerParameterName ->
                 let mutationsDictionary, producer =
@@ -496,7 +526,7 @@ let findProducer (producers:Producers)
                     Some (mutationsDictionary, producer)
                 else None
             )
-    match producers |> Seq.tryHead with
+    match matchingProducers |> Seq.tryHead with
     | Some result -> result
     | None -> dictionary, None
 

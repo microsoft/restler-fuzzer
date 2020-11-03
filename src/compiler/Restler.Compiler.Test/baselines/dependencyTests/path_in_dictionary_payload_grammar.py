@@ -48,7 +48,7 @@ request = requests.Request([
     primitives.restler_static_string("Accept: application/json\r\n"),
     primitives.restler_static_string("Host: localhost:8888\r\n"),
     primitives.restler_static_string("\r\n"),
-
+    
     {
         'post_send':
         {
@@ -87,9 +87,8 @@ request = requests.Request([
     primitives.restler_fuzzable_object("{ \"fuzz\": false }"),
     primitives.restler_static_string(""",
     "storeId":"""),
-    primitives.restler_static_string('"'),
-    primitives.restler_static_string(_stores_post_id.reader()),
-    primitives.restler_static_string("""",
+    primitives.restler_fuzzable_int("1"),
+    primitives.restler_static_string(""",
     "storeProperties":
         {
             "tags":"""),
@@ -127,9 +126,8 @@ request = requests.Request([
     primitives.restler_fuzzable_int("1"),
     primitives.restler_static_string(""",
             "storeId":"""),
-    primitives.restler_static_string('"'),
-    primitives.restler_static_string(_stores_post_id.reader()),
-    primitives.restler_static_string("""",
+    primitives.restler_fuzzable_int("1"),
+    primitives.restler_static_string(""",
             "expirationMaxDate":"""),
     primitives.restler_static_string('"'),
     primitives.restler_fuzzable_string("fuzzstring"),
