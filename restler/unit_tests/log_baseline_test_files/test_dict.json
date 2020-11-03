@@ -7,7 +7,7 @@
     "0",
     "1"
   ],
-  "restler_fuzzable_bool": [
+  "restler_fuzzable_bool_unquoted": [
     "true",
     "false"
   ],
@@ -17,6 +17,11 @@
     ],
     "location": [
       "centralus"
+    ]
+  },
+  "restler_custom_payload_unquoted": {
+    "testquote": [
+      "5"
     ]
   },
   "restler_custom_payload_uuid4_suffix": {

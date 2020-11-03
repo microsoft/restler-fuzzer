@@ -35,11 +35,12 @@ REFRESHABLE_AUTHENTICATION_TOKEN = "restler_refreshable_authentication_token"
 SHADOW_VALUES = "shadow_values"
 
 QUOTED_ARG = 'quoted'
+UNQUOTED_STR = '_unquoted'
 
 class CandidateValues(object):
     def __init__(self):
-        self.unquoted_values = None
-        self.values = None
+        self.unquoted_values = []
+        self.values = []
 
 class CandidateValuesPool(object):
 
@@ -83,6 +84,26 @@ class CandidateValuesPool(object):
 
         self.per_endpoint_candidate_values = {}
 
+        self._create_fuzzable_dates()
+        self._dates_added = False
+
+    def _create_fuzzable_dates(self):
+        """ Creates dates for future and past, which can be added to a list
+        of restler_fuzzable_datetime candidate values
+
+        @return: None
+        @rtype : None
+
+        """
+        today = datetime.datetime.today()
+        # Make sure we add enough days to account for a long fuzzing run
+        days_to_add = datetime.timedelta(days = (Settings().time_budget / 24) + 1)
+        future = today + days_to_add
+        self._future_date = future.strftime(PAYLOAD_DATE_FORMAT)
+        oneday = datetime.timedelta(days=1)
+        yesterday = today - oneday
+        self._past_date = yesterday.strftime(PAYLOAD_DATE_FORMAT)
+
     def _add_fuzzable_dates(self, candidate_values):
         """ Adds fuzzable dates to a candidate values dict
 
@@ -93,13 +114,9 @@ class CandidateValuesPool(object):
         @rtype : None
 
         """
-        today = datetime.datetime.today()
-        oneday = datetime.timedelta(days=1)
-        tomorrow = today + oneday
-        yesterday = today - oneday
         if FUZZABLE_DATETIME in candidate_values:
-            candidate_values[FUZZABLE_DATETIME].append(tomorrow.strftime(PAYLOAD_DATE_FORMAT))
-            candidate_values[FUZZABLE_DATETIME].append(yesterday.strftime(PAYLOAD_DATE_FORMAT))
+            candidate_values[FUZZABLE_DATETIME].values.append(self._future_date)
+            candidate_values[FUZZABLE_DATETIME].values.append(self._past_date)
 
     def _set_custom_values(self, current_primitives, custom_mutations):
         """ Helper that sets the custom primitive values
@@ -120,7 +137,9 @@ class CandidateValuesPool(object):
             if primitive == 'args':
                 continue
 
-            grammar_primitive = primitive.replace('unquoted', '')
+            # grammar does not use 'unquoted' primitives,
+            # create variable to match unquoted mutations
+            grammar_primitive = primitive.replace(UNQUOTED_STR, '')
 
             if grammar_primitive not in self.supported_primitive_types:
                 print(primitive, "not in supported primitives")
@@ -130,12 +149,12 @@ class CandidateValuesPool(object):
                 for tag in custom_mutations[primitive]:
                     if tag not in new_primitives[grammar_primitive]:
                         new_primitives[grammar_primitive][tag] = CandidateValues()
-                    if 'unquoted' in primitive:
+                    if UNQUOTED_STR in primitive:
                         new_primitives[grammar_primitive][tag].unquoted_values = custom_mutations[primitive][tag]
                     else:
                         new_primitives[grammar_primitive][tag].values = custom_mutations[primitive][tag]
             else:
-                if 'unquoted' in primitive:
+                if UNQUOTED_STR in primitive:
                     current_primitives[grammar_primitive].unquoted_values = custom_mutations[primitive]
                 else:
                     current_primitives[grammar_primitive].values = custom_mutations[primitive]
@@ -145,8 +164,7 @@ class CandidateValuesPool(object):
     def get_candidate_values(self, primitive_name, request_id=None, tag=None, quoted=False):
         """ Return feasible values for a given primitive.
 
-        @param primitive_name: The primitive whose feasible values we wish to
-                                    fetch.
+        @param primitive_name: The primitive whose feasible values we wish to fetch.
         @type primitive_name: Str
         @param request_id: The request ID of the request to get values for
         @type  request_id: Int
@@ -169,6 +187,7 @@ class CandidateValuesPool(object):
 
                 helper_ret = []
                 if quoted:
+                    # Quote each value
                     for val in helper_values.values:
                         helper_ret.append(f'"{val}"')
                 else:
@@ -195,14 +214,11 @@ class CandidateValuesPool(object):
                    format(primitive_name))
             raise CandidateValueException
 
-        if primitive_name == FUZZABLE_DATETIME:
-            self._add_fuzzable_dates(candidate_values)
-
         try:
             if tag:
                 if tag in candidate_values[primitive_name]:
                     return _flatten_and_quote(candidate_values[primitive_name][tag], quoted)
-                ## tag not in custom, try sending from default
+                # tag not in custom, try sending from default
                 return _flatten_and_quote(self.candidate_values[primitive_name][tag], quoted)
             else:
                 if primitive_name in candidate_values:
@@ -236,6 +252,8 @@ class CandidateValuesPool(object):
             self.get_candidate_values(primitive_type, request_id, quoted=quoted)
         )
 
+        if quoted:
+            default_value = f'"{default_value}"'
         # Only use the default value if no values are defined in
         # the dictionary for that fuzzable type
         if not fuzzable_values:
@@ -266,17 +284,24 @@ class CandidateValuesPool(object):
 
         # Set default primitives
         self.candidate_values = self._set_custom_values(self.candidate_values, custom_values)
+        if not self._dates_added:
+            self._add_fuzzable_dates(self.candidate_values)
+            self._dates_added = True
         # Set per-resource primitives
         if per_endpoint_custom_mutations:
             for request_id in per_endpoint_custom_mutations:
                 self.per_endpoint_candidate_values[request_id] = {}
                 for primitive in self.supported_primitive_types:
-                    self.per_endpoint_candidate_values[request_id][primitive] = []
+                    if primitive in self.primitive_payload_types:
+                        self.per_endpoint_candidate_values[request_id][primitive] = dict()
+                    else:
+                        self.per_endpoint_candidate_values[request_id][primitive] = CandidateValues()
                 self.per_endpoint_candidate_values[request_id] =\
                     self._set_custom_values(
                         self.per_endpoint_candidate_values[request_id],
                         per_endpoint_custom_mutations[request_id]
                     )
+                self._add_fuzzable_dates(self.per_endpoint_candidate_values[request_id])
 
 def restler_static_string(*args, **kwargs):
     """ Static string primitive.
