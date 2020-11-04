@@ -75,7 +75,9 @@ class CandidateValuesPool(object):
         self.primitive_payload_types = [
             CUSTOM_PAYLOAD,
             CUSTOM_PAYLOAD_HEADER,
-            CUSTOM_PAYLOAD_UUID4_SUFFIX
+            CUSTOM_PAYLOAD_UUID4_SUFFIX,
+            REFRESHABLE_AUTHENTICATION_TOKEN,
+            SHADOW_VALUES
         ]
         for primitive in self.supported_primitive_types:
             self.candidate_values[primitive] = CandidateValues()
