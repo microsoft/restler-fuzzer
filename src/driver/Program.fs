@@ -162,6 +162,17 @@ module Fuzz =
             "*"
         ]
 
+    /// Default engine parameters with the default set of checkers
+    /// for fuzzing.
+    let DefaultFuzzModeEngineParameters =
+        { DefaultEngineParameters with
+            checkerOptions =
+                [
+                    ("--enable_checkers", "*")
+                    ("--disable_checkers", "namespacerule")
+                ]
+        }
+
     /// Gets the RESTler engine parameters common to any fuzzing mode
     let getCommonParameters (parameters:EngineParameters) maxDurationHours =
 
@@ -476,20 +487,12 @@ let rec parseArgs (args:DriverArgs) = function
         { args with task = Test
                     taskParameters = EngineParameters engineParameters}
     | "fuzz"::rest ->
-        let engineParameters = parseEngineArgs RestlerTask.Fuzz DefaultEngineParameters rest
+        let engineParameters = parseEngineArgs RestlerTask.Fuzz Fuzz.DefaultFuzzModeEngineParameters rest
         { args with task = Fuzz
                     taskParameters = EngineParameters engineParameters}
     | "fuzz-lean"::rest ->
         // Fuzz-lean is 'test' with all checkers except the namespace checker turned on.
-        let engineParameters = parseEngineArgs RestlerTask.Test DefaultEngineParameters rest
-        let engineParameters =
-            { engineParameters with
-                checkerOptions =
-                    [
-                        ("--enable_checkers", "*")
-                        ("--disable_checkers", "namespacerule")
-                    ]
-            }
+        let engineParameters = parseEngineArgs RestlerTask.Test Fuzz.DefaultFuzzModeEngineParameters rest
         { args with task = FuzzLean
                     taskParameters = EngineParameters engineParameters}
     | "replay"::rest ->
