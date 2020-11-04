@@ -589,8 +589,7 @@ let main argv =
                          }
                          (argv |> Array.toList)
 
-    //Instrumentation key is from the app insights resource in Azure Portal
-
+    // Instrumentation key is from the app insights resource in Azure Portal
     let instrumentationKey =
         let optOutFromTelemetry = Telemetry.getMicrosoftOptOut()
         if optOutFromTelemetry then
@@ -601,12 +600,10 @@ let main argv =
             | None -> Restler.Telemetry.InstrumentationKey
             | Some key -> key
     let machineId = Telemetry.getMachineId()
-
     use telemetryClient = new TelemetryClient(machineId, instrumentationKey)
 
     // Run task
-    async {
-        let taskName = args.task.ToString()
+    let runRestlerTask executionId taskName = async {
         let taskWorkingDirectory = args.workingDirectoryPath ++ taskName
         recreateDir taskWorkingDirectory
         let logsUploadDirPath =
@@ -625,7 +622,6 @@ let main argv =
             Logging.logError <| sprintf "Log upload failed, please contact support.  Upload directory: %A, exception: %A"
                                         logsUploadDirPath e
 
-        let executionId = System.Guid.NewGuid()
         // Run the specified task
         let! result = async {
             try
@@ -735,6 +731,18 @@ let main argv =
                 LogCollection.uploadLogs args.workingDirectoryPath taskWorkingDirectory logsUploadDirPath.Value "task_logs"
         with e ->
             Logging.logError <| sprintf "Log upload failed, please contact support.  Upload directory: %A, exception: %A" logsUploadDirPath e
+    }
 
-    } |> Async.RunSynchronously
+    let executionId = System.Guid.NewGuid()
+    let taskName = args.task.ToString()
+    try
+        async {
+            do! runRestlerTask executionId taskName
+        }
+        |> Async.RunSynchronously
+    with e ->
+        // Report that an error occurred in telemetry
+        telemetryClient.RestlerDriverFailed(CurrentVersion, taskName, executionId)
+        reraise()
     0
+
