@@ -563,10 +563,26 @@ let getDataFromTestingSummary taskWorkingDirectory =
         specCoverageCounts = specCoverageCounts
     |}
 
+let tryRecreateDir dirPath =
+    if Directory.Exists dirPath then
+        try
+            Directory.Delete(dirPath, true)
+        with
+        | :? UnauthorizedAccessException
+        | :? IOException as ex ->
+            let message = sprintf "The directory %s cannot be deleted.\n\
+                                   Please check for files you have opened from that directory,\
+                                   close them, and re-try RESTler."
+                                  dirPath
+            Logging.logError <| message
+            exit 1
+
+    Directory.CreateDirectory(dirPath) |> ignore
+
 [<EntryPoint>]
 let main argv =
-    let logsDirPath= Environment.CurrentDirectory ++ "RestlerLogs"
-    recreateDir logsDirPath
+    let logsDirPath = Environment.CurrentDirectory ++ "RestlerLogs"
+    tryRecreateDir logsDirPath
 
     use tracing = System.Diagnostics.Listener.registerFileTracer
                         "restler"
@@ -606,7 +622,7 @@ let main argv =
     // Run task
     let runRestlerTask executionId taskName = async {
         let taskWorkingDirectory = args.workingDirectoryPath ++ taskName
-        recreateDir taskWorkingDirectory
+        tryRecreateDir taskWorkingDirectory
         let logsUploadDirPath =
             match args.logsUploadRootDirectoryPath with
             | None ->
