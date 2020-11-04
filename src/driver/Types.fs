@@ -185,5 +185,5 @@ module Logging =
         Trace.warning "%s" message
 
     let logError (message:string) =
-        printfn "%s" message
+        printfn "\nERROR: %s\n" message
         Trace.error "%s" message

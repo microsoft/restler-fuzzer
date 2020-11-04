@@ -48,6 +48,14 @@ type TelemetryClient(machineId: System.Guid, instrumentationKey: string) =
                 "status", sprintf "%A" status
             ]))
 
+    member __.RestlerDriverFailed(version, task, executionId) =
+        client.TrackEvent("restler failed",
+            dict ([
+                "machineId", sprintf "%A" machineId
+                "version", version
+                "task", task
+                "executionId", sprintf "%A" executionId]))
+
     interface System.IDisposable with
         member __.Dispose() =
             client.Flush()
