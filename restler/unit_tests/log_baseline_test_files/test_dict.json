@@ -22,6 +22,9 @@
   "restler_custom_payload_unquoted": {
     "testquote": [
       "5"
+    ],
+    "location": [
+      "10"
     ]
   },
   "restler_custom_payload_uuid4_suffix": {
