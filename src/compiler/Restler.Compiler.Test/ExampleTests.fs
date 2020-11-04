@@ -111,7 +111,7 @@ module Examples =
                 Assert.True(grammar.Contains("999"))
 
                 // The grammar should contain the store codes from the example
-                Assert.True(grammar.Contains("23456"))
+                Assert.True(grammar.Contains("78910"))
 
                 // The grammar should contain the bag type from the example
                 Assert.True(grammar.Contains("paperfestive"))
@@ -135,7 +135,8 @@ module Examples =
             // The grammar should contain the fruit codes from the example (which do not have a dependency)
             Assert.True(grammar.Contains("999"))
 
-            // The grammar should not contain the store codes from the example, those should be dynamic objects
+            // The grammar should not contain the store code from the top level
+            // in the example body - this should be a dynamic object
             Assert.False(grammar.Contains("23456"))
 
             // The grammar should not contain the bag type from the example, dictionary value should be used
