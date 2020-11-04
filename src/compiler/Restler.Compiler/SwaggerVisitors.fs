@@ -267,7 +267,9 @@ module SwaggerVisitors =
 
         // As of NJsonSchema version 10, need to walk references explicitly.
         let rec getActualSchema (s:NJsonSchema.JsonSchema) =
-            if s.HasReference then
+            // Explicitly check for null rather than use 'HasReference' because the
+            // property includes AllOf/OneOf/AnyOf in addition to direct references.
+            if not (isNull s.Reference) then
                 getActualSchema s.Reference
             else s
 
