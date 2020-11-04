@@ -48,7 +48,7 @@ request = requests.Request([
     primitives.restler_static_string("Accept: application/json\r\n"),
     primitives.restler_static_string("Host: localhost:8888\r\n"),
     primitives.restler_static_string("\r\n"),
-    
+
     {
         'post_send':
         {
@@ -92,8 +92,9 @@ request = requests.Request([
     "storeProperties":
         {
             "tags":"""),
+    primitives.restler_static_string('"'),
     primitives.restler_custom_payload("/storeProperties/tags"),
-    primitives.restler_static_string("""
+    primitives.restler_static_string(""""
         }
     ,
     "deliveryProperties":
@@ -107,17 +108,20 @@ request = requests.Request([
     primitives.restler_fuzzable_bool("true"),
     primitives.restler_static_string(""",
     "bagType":"""),
+    primitives.restler_static_string('"'),
     primitives.restler_fuzzable_string("fuzzstring"),
-    primitives.restler_static_string(""",
+    primitives.restler_static_string("""",
     "items":
     [
         {
             "name":"""),
+    primitives.restler_static_string('"'),
     primitives.restler_fuzzable_string("fuzzstring"),
-    primitives.restler_static_string(""",
+    primitives.restler_static_string("""",
             "deliveryTags":"""),
+    primitives.restler_static_string('"'),
     primitives.restler_custom_payload("/items/[0]/deliveryTags"),
-    primitives.restler_static_string(""",
+    primitives.restler_static_string("""",
             "code":"""),
     primitives.restler_fuzzable_int("1"),
     primitives.restler_static_string(""",
@@ -125,8 +129,9 @@ request = requests.Request([
     primitives.restler_fuzzable_int("1"),
     primitives.restler_static_string(""",
             "expirationMaxDate":"""),
+    primitives.restler_static_string('"'),
     primitives.restler_fuzzable_string("fuzzstring"),
-    primitives.restler_static_string("""
+    primitives.restler_static_string(""""
         }
     ],
     "useDoubleBags":"""),
@@ -135,8 +140,9 @@ request = requests.Request([
     "bannedBrands":
     [
         """),
+    primitives.restler_static_string('"'),
     primitives.restler_fuzzable_string("fuzzstring"),
-    primitives.restler_static_string("""
+    primitives.restler_static_string(""""
     ]}"""),
     primitives.restler_static_string("\r\n"),
 

@@ -137,7 +137,7 @@ module Dependencies =
         /// Test that a full path annotation only to a specified body parameter works.
         [<Fact>]
         let ``full path to body parameter in dictionary custom_payload`` () =
-            let grammarOutputDirPath = ctx.testRootDirPath
+            let grammarOutputDirPath = @"c:\temp\restlertest" //ctx.testRootDirPath
             let config = { Restler.Config.SampleConfig with
                              IncludeOptionalParameters = true
                              GrammarOutputDirectoryPath = Some grammarOutputDirPath
