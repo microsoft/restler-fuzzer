@@ -228,7 +228,8 @@ class FunctionalityTests(unittest.TestCase):
         args = Common_Settings + [
             '--fuzzing_mode', 'bfs-cheap',
             '--restler_grammar',f'{os.path.join(Test_File_Directory, "test_grammar.py")}',
-            '--time_budget', f'{Fuzz_Time}'
+            '--time_budget', f'{Fuzz_Time}', '--enable_checkers', '*',
+            '--disable_checkers', 'namespacerule', 'examples'
         ]
 
         result = subprocess.run(args, capture_output=True)

@@ -19,14 +19,14 @@ from utils.logger import raw_network_logging as RAW_LOGGING
 class CheckerBase:
     __metaclass__ = ABCMeta
 
-    def __init__(self, req_collection, fuzzing_requests, enabled):
+    def __init__(self, req_collection, fuzzing_requests, enabled=False):
         """ Abstract class constructor
 
         @param req_collection: The shared request collection
         @type  req_collection: RequestCollection
         @param fuzzing_requests: The collection of requests to fuzz
         @type  fuzzing_requests: FuzzingRequestCollection
-        @param enabled: Set to True to enable this checker
+        @param enabled: Set to True to enable this checker by default when fuzzing
         @type  enabled: Bool
 
         """

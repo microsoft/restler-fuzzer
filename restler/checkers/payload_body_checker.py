@@ -36,7 +36,7 @@ class PayloadBodyChecker(CheckerBase):
     """ Checker for payload body fuzzing. """
 
     def __init__(self, req_collection, fuzzing_requests):
-        CheckerBase.__init__(self, req_collection, fuzzing_requests, True)
+        CheckerBase.__init__(self, req_collection, fuzzing_requests)
 
         # alias the log
         self._log = self._checker_log.checker_print
