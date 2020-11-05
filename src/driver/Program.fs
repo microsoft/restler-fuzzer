@@ -65,7 +65,8 @@ let usage() =
         --disable_checkers <list of checkers>
             <list of checkers> - A comma-separated list of checker names without spaces.
             Supported checkers: leakagerule, resourcehierarchy, useafterfree,
-                                namespacerule, invaliddynamicobject, payloadbody.
+                                namespacerule, invaliddynamicobject, payloadbody,
+                                examples.
             Note: some checkers are enabled by default in fuzz-lean and fuzz mode.
         --no_results_analyzer
             If specified, do not run results analyzer on the network logs.

@@ -19,7 +19,7 @@ from utils.logger import raw_network_logging as RAW_LOGGING
 class UseAfterFreeChecker(CheckerBase):
     """ Checker for use after free violations. """
     def __init__(self, req_collection, fuzzing_requests):
-        CheckerBase.__init__(self, req_collection, fuzzing_requests, True)
+        CheckerBase.__init__(self, req_collection, fuzzing_requests)
 
     def apply(self, rendered_sequence, lock):
         """ Applies check for resource leakage rule violations.

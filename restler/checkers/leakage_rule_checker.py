@@ -16,7 +16,7 @@ import engine.core.sequences as sequences
 class LeakageRuleChecker(CheckerBase):
     """ Checker for resource leakage violations. """
     def __init__(self, req_collection, fuzzing_requests):
-        CheckerBase.__init__(self, req_collection, fuzzing_requests, True)
+        CheckerBase.__init__(self, req_collection, fuzzing_requests)
 
     def apply(self, rendered_sequence, lock):
         """ Applies check for leakage rule violations.

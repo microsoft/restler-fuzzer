@@ -14,7 +14,7 @@ import engine.core.sequences as sequences
 class ResourceHierarchyChecker(CheckerBase):
     """ Checker for ResourceHierarchy rule violations. """
     def __init__(self, req_collection, fuzzing_requests):
-        CheckerBase.__init__(self, req_collection, fuzzing_requests, True)
+        CheckerBase.__init__(self, req_collection, fuzzing_requests)
 
     def apply(self, rendered_sequence, lock):
         """ Applies check for resource hierarchy rule violations.

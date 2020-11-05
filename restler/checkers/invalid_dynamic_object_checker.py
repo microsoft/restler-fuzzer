@@ -21,7 +21,7 @@ class InvalidDynamicObjectChecker(CheckerBase):
     generation_executed_requests = dict()
 
     def __init__(self, req_collection, fuzzing_requests):
-        CheckerBase.__init__(self, req_collection, fuzzing_requests, True)
+        CheckerBase.__init__(self, req_collection, fuzzing_requests)
 
     def apply(self, rendered_sequence, lock):
         """ Applies check for invalid dynamic object rule violations.

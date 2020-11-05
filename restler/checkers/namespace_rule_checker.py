@@ -18,7 +18,7 @@ STATIC_OAUTH_TOKEN = 'static_oauth_token'
 class NameSpaceRuleChecker(CheckerBase):
     """ Checker for Namespace rule violations. """
     def __init__(self, req_collection, fuzzing_requests):
-        CheckerBase.__init__(self, req_collection, fuzzing_requests, False)
+        CheckerBase.__init__(self, req_collection, fuzzing_requests)
 
     def apply(self, rendered_sequence, lock):
         """ Applies check for namespace rule violations.
