@@ -3,6 +3,8 @@ The checkers are created as subclasses to the CheckerBase abstract base class.  
 the subclasses' logs and maintaining data members that are shared across all checkers.
 The CheckerBase class also declares and/or defines functions that are required for each checker subclass.
 
+See the checkers in this directory for examples.
+
 ## Data Members:
 * _checker_log: The CheckerLog log file for the checker
 * _req_collection: A reference to the RequestCollection object shared throughout restler
@@ -15,32 +17,38 @@ The CheckerBase class also declares and/or defines functions that are required f
 ## Functions:
 * apply: This abstract function is required to be defined by each checker. It is called after sequences are rendered for each enabled
 checker. It can be thought of as a checker's "main" entry point.
-* _send_request: This function sends data to the server and then returns the response. request_utilities.call_response_parser() should be called after this function
-in order to set dependencies and add resources for garbage collection.
-* _render_and_append_data_to_sequence: This function renders a specified request's data and then appends that data to a sequence's
-sent-request-data list.
+* _send_request: This function sends a request to the service under test and then returns the response. The function request_utilities.call_response_parser() should be called after this function
+in order to update resource dependencies (due to the new request that was just executed) and make these visible to the garbage collector(otherwise resources created by the newly sent request will not be garbage collected).
+* _render_and_send_data: This function renders data for a request, sends the request to the service under test, and then adds that rendered data and its response to a sequence's sent-request-data list. 
   * This sent-request-data list is used exclusively for replaying sequences to test for bug reproducibility. Because checkers tend not
   to use the sequences.render function to render and send requests, the sent-request-data is never added to the list. This means that,
   in order to replay the sequence when a bug is found, this function must be called.
+  * This function thus includes the functionality of both _send_request() and request_utilities.call_response_parser() combined.
 * _rule_violation: This function is defined by default in CheckerBase to check a response's status code for "500" or "20x" (note: "20x"
-check is optional) and then call a "false alarm" function to verify that the rule violation was not triggered in error (more on this below).
-  * This function should be called by each checker subclass to check for rule violations
+check is optional) and then call an (optional) "false alarm" function to optionally filter out some specific cases (more on this below).
+  * This function should be called by each checker subclass to check for rule violations.
   * If the default behavior is not desirable for a new checker, this function can (and should) be overridden in the subclass to better
   match the checker's requirements.
+  * See below for more.
 * _false_alarm: This function is defined in CheckerBase to return False by default as it is called by the default _rule_violation function.
   * If a checker should check for false alarms this function should be defined/overridden in the subclass.
+  * See below for more.
 * _print_suspect_sequence: This function prints a "suspect sequence" to the appropriate checker log. This function should be called if a
 rule violation is detected.
 
 # Creating a Checker
 ## To create a checker, the following rules must be adhered to:
-* The checker must inherit from CheckerBase
-* The checker must be defined in its own file and the file must be added to checkers/\_\_init\_\_.py
-  * The order of this init list defines the order that the checkers will be called
-* The checker's class name must end with Checker
-* The checker must define an apply function
-* If the checker detects a rule violation, the checker must update bug buckets and print the suspect sequence
-* The checker's constructor must take req_collection and fuzzing_requests as an argument
+
+* The checker must be defined in its own file and this file must be specified in the settings.json file like this 
+
+  ```"custom_checkers": ["C:\\<path>\\my_new_checker.py"]``` 
+  
+  or be added to checkers/\_\_init\_\_.py (the order of this init list defines the order in which the checkers will be called).
+* The checker must inherit from CheckerBase.
+* The checker's class name must end with Checker.
+* The checker must define an apply function.
+* If the checker detects a rule violation, the checker must update bug buckets and print the suspect sequence.
+* The checker's constructor must take req_collection and fuzzing_requests as an argument.
 * The checker's constructor must call the CheckerBase constructor with req_collection, fuzzing_requests, and a boolean value that defines whether or not this checker
 should be enabled by default (True to enable by default, False to disable by default).
 * The checker's apply function must take exactly three arguments; valid_rendering, invalid_rendering, and lock
@@ -56,22 +64,22 @@ A checker's apply function takes three arguments; valid_rendering, invalid_rende
 race conditions when RESTler is run in parallel mode. <br/>
 * The __rendered_sequence__ argument is a RenderedSequence object that contains information about the sequence that was rendered.
 This object contains:
-  * sequence - The Sequence object that was rendered
+  * sequence - The Sequence object that was rendered.
   * valid - A boolean indicating whether or not the sequence was "valid" (20x) when rendered.
   * faliure_info - A FailureInformation enum that, if set, indicates a reason for the sequence to have failed.
   * final_request_response - The response received after sending the final request in the sequence, as an HttpResponse object.
 
 ### Sending requests and parsing responses
-Before sending a request to the server, the request's data must first be rendered. The correct "checker way" of rendering a
-request is to call the self._render_and_append_data_to_sequence function with the request and the sequence being rendered.
+Before sending a new request to the service under test, the request's data must first be rendered. The correct "checker way" of rendering a
+request is to call the self._render_and_send_data function with the request and the sequence being rendered.
 It is important to pay careful attention to the Sequence object that will be used during the execution of the checker. If a
 sequence is being re-rendered by the checker, a new Sequence object should be created and each request should be added to it along
-with its rendered data - the rendered data portion is added using the _render_and_append_data_to_sequence function above. For the
+with its rendered data - the rendered data portion is added using the _render_and_send_data function above. For the
 cases where the original sequence will _not_ be re-rendered, it is sufficient to append any new requests and their data to the end
-of the sequence object that was passed to the apply() function originally.
+of the sequence object that was passed to the apply() function originally. In other words, all these requests are then executed one by one from the current state (which is thus not reset between these executions).
 
 After the sequence has been updated and the request's data has been rendered, the checker can then call self._send_request along
-with the parser and rendered data that were returned from the render_and_append_data_to_sequence function. The _send_request function
+with the parser and rendered data that were returned from the _render_and_send_data function. The _send_request function
 will return the server's response (as a string). From there, the checker can make a call to self._rule_violation along with the
 Sequence object for the sequence that was just sent to the server and the response returned by _send_request. If _rule_violation
 returns True then it means that there was a rule violated and the checker should now update the bug_buckets and print the suspect
