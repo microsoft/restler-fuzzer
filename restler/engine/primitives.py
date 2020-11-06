@@ -34,13 +34,53 @@ CUSTOM_PAYLOAD_UUID4_SUFFIX = "restler_custom_payload_uuid4_suffix"
 REFRESHABLE_AUTHENTICATION_TOKEN = "restler_refreshable_authentication_token"
 SHADOW_VALUES = "shadow_values"
 
+# Optional argument passed to grammar function definition functions
 QUOTED_ARG = 'quoted'
+# Suffix applied to always-unquoted primitive lists in the mutations dictionary.
 UNQUOTED_STR = '_unquoted'
+
+class UnsupportedPrimitiveException(Exception):
+    """ Raised if unknown primitive found in mutations dictionary """
+    pass
+
+class InvalidDictPrimitiveException(Exception):
+    """ Raised if dict primitive is not a dict type in the mutations dictionary.
+    e.g. a restler_custom_payload is received as a list
+    """
+    pass
 
 class CandidateValues(object):
     def __init__(self):
         self.unquoted_values = []
         self.values = []
+
+    def get_flattened_and_quoted_values(self, quoted):
+        """ Quotes values as needed and then merges the quoted and unquoted values
+        into a single list to be returned.
+
+        @param quoted: If true, quote the quotable values
+        @type  quoted: Bool
+        @return: The flattened list of candidate values
+        @rtype : List[str]
+
+        """
+        # First check to see if the values are only a single value, e.g. for uuid4_suffix values
+        if self.values and not isinstance(self.values, list):
+            return f'"{self.values}"' if quoted else self.values
+        elif self.unquoted_values and not isinstance(self.unquoted_values, list):
+            return self.unquoted_values
+
+        final_values = []
+        if quoted:
+            # Quote each value
+            for val in self.values:
+                final_values.append(f'"{val}"')
+        else:
+            if self.values:
+                final_values.extend(self.values)
+        if self.unquoted_values:
+            final_values.extend(self.unquoted_values)
+        return final_values
 
 class CandidateValuesPool(object):
 
@@ -53,7 +93,7 @@ class CandidateValuesPool(object):
         """
         self.candidate_values = {}
 
-        # Supported primitive types.
+        # Supported primitive types (in grammar).
         self.supported_primitive_types = [
             STATIC_STRING,
             FUZZABLE_STRING,
@@ -72,7 +112,7 @@ class CandidateValuesPool(object):
             REFRESHABLE_AUTHENTICATION_TOKEN,
             SHADOW_VALUES
         ]
-        self.primitive_payload_types = [
+        self.supported_primitive_dict_types = [
             CUSTOM_PAYLOAD,
             CUSTOM_PAYLOAD_HEADER,
             CUSTOM_PAYLOAD_UUID4_SUFFIX,
@@ -81,7 +121,7 @@ class CandidateValuesPool(object):
         ]
         for primitive in self.supported_primitive_types:
             self.candidate_values[primitive] = CandidateValues()
-        for primitive in self.primitive_payload_types:
+        for primitive in self.supported_primitive_dict_types:
             self.candidate_values[primitive] = dict()
 
         self.per_endpoint_candidate_values = {}
@@ -134,34 +174,48 @@ class CandidateValuesPool(object):
         @rtype : Dict
 
         """
-        new_primitives = current_primitives
+        def _assign_values(candidate_values, custom_values):
+            """ Assigns custom mutations values to the candidate values list """
+            if UNQUOTED_STR in primitive:
+                candidate_values.unquoted_values = custom_values
+            else:
+                candidate_values.values = custom_values
+            return candidate_values
+
         for primitive in custom_mutations:
             if primitive == 'args':
                 continue
 
-            # grammar does not use 'unquoted' primitives,
-            # create variable to match unquoted mutations
+            # Create variable for the matching non-unquoted primitive that's used in the grammmar
+            #   Example:
+            #     dictionary: restler_fuzzable_string_unquoted
+            #     grammar   : restler_fuzzable_string
             grammar_primitive = primitive.replace(UNQUOTED_STR, '')
 
             if grammar_primitive not in self.supported_primitive_types:
-                print(primitive, "not in supported primitives")
-                continue
+                raise UnsupportedPrimitiveException(primitive)
 
-            if isinstance(custom_mutations[primitive], dict):
+            # For dict primitive types, each value in the dict contains its own CandidateValues
+            # object which contains lists of candidate values, so they must be handled differently
+            # than normal primitive types.
+            if grammar_primitive in self.supported_primitive_dict_types:
+                if not isinstance(custom_mutations[primitive], dict):
+                    raise InvalidDictPrimitiveException(f'primitive: {primitive}, type: {type(custom_mutations[primitive])}')
+                # tag is the key in dict types.
+                #   Example:
+                #     restler_custom_payload {
+                #         "tag1": ["val1", "val2"],
+                #         "tag2": ["val3"]
+                #     }
                 for tag in custom_mutations[primitive]:
-                    if tag not in new_primitives[grammar_primitive]:
-                        new_primitives[grammar_primitive][tag] = CandidateValues()
-                    if UNQUOTED_STR in primitive:
-                        new_primitives[grammar_primitive][tag].unquoted_values = custom_mutations[primitive][tag]
-                    else:
-                        new_primitives[grammar_primitive][tag].values = custom_mutations[primitive][tag]
+                    if tag not in current_primitives[grammar_primitive]:
+                        current_primitives[grammar_primitive][tag] = CandidateValues()
+                    current_primitives[grammar_primitive][tag] =\
+                        _assign_values(current_primitives[grammar_primitive][tag], custom_mutations[primitive][tag])
             else:
-                if UNQUOTED_STR in primitive:
-                    current_primitives[grammar_primitive].unquoted_values = custom_mutations[primitive]
-                else:
-                    current_primitives[grammar_primitive].values = custom_mutations[primitive]
+                current_primitives[grammar_primitive] = _assign_values(current_primitives[grammar_primitive], custom_mutations[primitive])
 
-        return new_primitives
+        return current_primitives
 
     def get_candidate_values(self, primitive_name, request_id=None, tag=None, quoted=False):
         """ Return feasible values for a given primitive.
@@ -179,32 +233,16 @@ class CandidateValuesPool(object):
         @rtype : List or dict
 
         """
-        def _flatten_and_quote(values, quoted):
-            def _helper(helper_values):
-                # First check to see if the values are only a single value, e.g. for uuid4_suffix values
-                if helper_values.values and not isinstance(helper_values.values, list):
-                    return f'"{helper_values.values}"' if quoted else helper_values.values
-                elif helper_values.unquoted_values and not isinstance(helper_values.unquoted_values, list):
-                    return helper_values.unquoted_values
-
-                helper_ret = []
-                if quoted:
-                    # Quote each value
-                    for val in helper_values.values:
-                        helper_ret.append(f'"{val}"')
-                else:
-                    if helper_values.values:
-                        helper_ret.extend(helper_values.values)
-                if helper_values.unquoted_values:
-                    helper_ret.extend(helper_values.unquoted_values)
-                return helper_ret
-
-            if isinstance(values, dict):
+        def _flatten_and_quote_candidate_values(candidate_vals):
+            """ Returns a merged list of quoted and unquoted candidate values """
+            # First check for dict type. This can occur if get_candidate_values
+            # was called on a dict type without a specific tag/key.
+            if isinstance(candidate_vals, dict):
                 retval = dict()
-                for key in values:
-                    retval[key] = _helper(values[key])
+                for key in candidate_vals:
+                    retval[key] = candidate_vals[key].get_flattened_and_quoted_values(quoted)
             else:
-                retval = _helper(values)
+                retval = candidate_vals.get_flattened_and_quoted_values(quoted)
             return retval
 
         candidate_values = self.candidate_values
@@ -219,14 +257,14 @@ class CandidateValuesPool(object):
         try:
             if tag:
                 if tag in candidate_values[primitive_name]:
-                    return _flatten_and_quote(candidate_values[primitive_name][tag], quoted)
+                   return _flatten_and_quote_candidate_values(candidate_values[primitive_name][tag])
                 # tag not in custom, try sending from default
-                return _flatten_and_quote(self.candidate_values[primitive_name][tag], quoted)
+                return _flatten_and_quote_candidate_values(self.candidate_values[primitive_name][tag])
             else:
                 if primitive_name in candidate_values:
-                    return _flatten_and_quote(candidate_values[primitive_name], quoted)
+                    return _flatten_and_quote_candidate_values(candidate_values[primitive_name])
                 # primitive values not in custom, try sending from default
-                return _flatten_and_quote(self.candidate_values[primitive_name], quoted)
+                return _flatten_and_quote_candidate_values(self.candidate_values[primitive_name])
         except KeyError:
             raise CandidateValueException
 
@@ -294,7 +332,7 @@ class CandidateValuesPool(object):
             for request_id in per_endpoint_custom_mutations:
                 self.per_endpoint_candidate_values[request_id] = {}
                 for primitive in self.supported_primitive_types:
-                    if primitive in self.primitive_payload_types:
+                    if primitive in self.supported_primitive_dict_types:
                         self.per_endpoint_candidate_values[request_id][primitive] = dict()
                     else:
                         self.per_endpoint_candidate_values[request_id][primitive] = CandidateValues()
