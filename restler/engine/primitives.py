@@ -13,6 +13,16 @@ from restler_settings import Settings
 class CandidateValueException(Exception):
     pass
 
+class UnsupportedPrimitiveException(Exception):
+    """ Raised if unknown primitive found in mutations dictionary """
+    pass
+
+class InvalidDictPrimitiveException(Exception):
+    """ Raised if dict primitive is not a dict type in the mutations dictionary.
+    e.g. a restler_custom_payload is received as a list
+    """
+    pass
+
 # Year-Month-Date format used by restler_fuzzable_datetime
 PAYLOAD_DATE_FORMAT = '%Y-%m-%d'
 
@@ -38,16 +48,6 @@ SHADOW_VALUES = "shadow_values"
 QUOTED_ARG = 'quoted'
 # Suffix applied to always-unquoted primitive lists in the mutations dictionary.
 UNQUOTED_STR = '_unquoted'
-
-class UnsupportedPrimitiveException(Exception):
-    """ Raised if unknown primitive found in mutations dictionary """
-    pass
-
-class InvalidDictPrimitiveException(Exception):
-    """ Raised if dict primitive is not a dict type in the mutations dictionary.
-    e.g. a restler_custom_payload is received as a list
-    """
-    pass
 
 class CandidateValues(object):
     def __init__(self):
