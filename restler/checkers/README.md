@@ -18,7 +18,7 @@ See the checkers in this directory for examples.
 * apply: This abstract function is required to be defined by each checker. It is called after sequences are rendered for each enabled
 checker. It can be thought of as a checker's "main" entry point.
 * _send_request: This function sends a request to the service under test and then returns the response. The function request_utilities.call_response_parser() should be called after this function
-in order to update resource dependencies (due to the new request that was just executed) and make these visible to the garbage collector(otherwise resources created by the newly sent request will not be garbage collected).
+in order to update resource dependencies (due to the new request that was just executed) and make these visible to the garbage collector (otherwise resources created by the newly sent request will not be garbage collected).
 * _render_and_send_data: This function renders data for a request, sends the request to the service under test, and then adds that rendered data and its response to a sequence's sent-request-data list. 
   * This sent-request-data list is used exclusively for replaying sequences to test for bug reproducibility. Because checkers tend not
   to use the sequences.render function to render and send requests, the sent-request-data is never added to the list. This means that,
@@ -43,7 +43,7 @@ rule violation is detected.
 
   ```"custom_checkers": ["C:\\<path>\\my_new_checker.py"]``` 
   
-  or be added to checkers/\_\_init\_\_.py (the order of this init list defines the order in which the checkers will be called).
+  or be added to checkers/\_\_init\_\_.py (the order of this list defines the order in which the checkers will be called).
 * The checker must inherit from CheckerBase.
 * The checker's class name must end with Checker.
 * The checker must define an apply function.
@@ -52,22 +52,22 @@ rule violation is detected.
 * The checker's constructor must call the CheckerBase constructor with req_collection, fuzzing_requests, and a boolean value that defines whether or not this checker
 should be enabled by default (True to enable by default, False to disable by default).
 * The checker's apply function must take exactly three arguments; valid_rendering, invalid_rendering, and lock
-(see __How checkers are called and used in RESTler__ for details).
+(see __How checkers are called and used in RESTler__ below for details).
 * The checker must be independent from all other checkers. This means it should neither interfere with other checkers nor rely on them.
 
 ## How checkers are called and used in RESTler
 After each sequence rendering an apply_checkers function is called. This function gets a list of CheckerBase subclasses and, for each
 subclass, it checks whether or not the checker is enabled and, if so, it then calls the checker's apply function.
 
-A checker's apply function takes three arguments; valid_rendering, invalid_rendering, and lock. <br/>
-* The __lock__ argument is a global lock that should be used if any portions of the checker code should be protected from
-race conditions when RESTler is run in parallel mode. <br/>
-* The __rendered_sequence__ argument is a RenderedSequence object that contains information about the sequence that was rendered.
+A checker's apply function takes three arguments: rendered_sequence and lock.
+* The __rendered_sequence__ argument is a RenderedSequence object that contains information about the sequence that was just rendered.
 This object contains:
   * sequence - The Sequence object that was rendered.
   * valid - A boolean indicating whether or not the sequence was "valid" (20x) when rendered.
   * faliure_info - A FailureInformation enum that, if set, indicates a reason for the sequence to have failed.
   * final_request_response - The response received after sending the final request in the sequence, as an HttpResponse object.
+* The __lock__ argument is a global lock that should be used if any portions of the checker code should be protected from
+race conditions when RESTler is run in parallel mode.
 
 ### Sending requests and parsing responses
 Before sending a new request to the service under test, the request's data must first be rendered. The correct "checker way" of rendering a
