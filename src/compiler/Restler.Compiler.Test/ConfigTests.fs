@@ -25,7 +25,7 @@ module Config =
                 {   Restler.Config.SampleConfig with
                         SwaggerSpecFilePath = None
                         CustomDictionaryFilePath = Some (Path.Combine(Environment.CurrentDirectory, @"swagger\configTests\maindict.json"))
-                        UseBodyExamples = false
+                        UseBodyExamples = Some false
                         ResolveBodyDependencies = true
                         SwaggerSpecConfig =
                             Some [
@@ -126,7 +126,7 @@ module Config =
             let config = { Restler.Config.SampleConfig with
                              GrammarOutputDirectoryPath = Some grammarOutputDirectoryPath
                              ResolveBodyDependencies = true
-                             UseBodyExamples = false
+                             UseBodyExamples = Some false
                              SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, @"swagger\annotationTests\pathAnnotation.json"))]
                              CustomDictionaryFilePath = None
                          }

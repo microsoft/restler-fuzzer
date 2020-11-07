@@ -473,8 +473,12 @@ let rec parseArgs (args:DriverArgs) = function
         | Choice1Of2 config->
             let config = Restler.Config.convertRelativeToAbsPaths compilerConfigFilePath config
             let config = { config with
-                                UseQueryExamples = Restler.Config.DefaultConfig.UseQueryExamples
-                                UseBodyExamples = Restler.Config.DefaultConfig.UseBodyExamples
+                                UseQueryExamples = if config.UseQueryExamples.IsSome then
+                                                       config.UseQueryExamples
+                                                   else Restler.Config.DefaultConfig.UseQueryExamples
+                                UseBodyExamples = if config.UseBodyExamples.IsSome then
+                                                      config.UseBodyExamples
+                                                  else Restler.Config.DefaultConfig.UseBodyExamples
                                 IncludeOptionalParameters = true }
             parseArgs { args with task = Compile ; taskParameters = CompilerParameters config } rest
         | Choice2Of2 error ->

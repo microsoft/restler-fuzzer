@@ -19,8 +19,8 @@ module Dictionary =
                              GrammarOutputDirectoryPath = Some grammarOutputDirPath
                              ResolveBodyDependencies = true
                              ResolveQueryDependencies = true
-                             UseBodyExamples = false
-                             UseQueryExamples = false
+                             UseBodyExamples = Some false
+                             UseQueryExamples = Some false
                              SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, @"swagger\dictionaryTests\customPayloadSwagger.json"))]
                              CustomDictionaryFilePath = Some (Path.Combine(Environment.CurrentDirectory, @"swagger\dictionaryTests\customPayloadDict.json"))
                          }
