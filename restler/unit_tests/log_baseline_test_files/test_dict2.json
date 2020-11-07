@@ -28,8 +28,5 @@
     "useafterfreeTest": "useafterfreeTest<test!>-",
     "resourcehierarchyTest": "resourcehierarchyTest<test!>-",
     "resourcehierarchyChild": "resourcehierarchyChild<test!>-"
-  },
-  "args": {
-    "max_combinations": 20
   }
 }

@@ -46,7 +46,7 @@ SHADOW_VALUES = "shadow_values"
 
 # Optional argument passed to grammar function definition functions
 QUOTED_ARG = 'quoted'
-# Suffix applied to always-unquoted primitive lists in the mutations dictionary.
+# Suffix present in always-unquoted primitive lists in the mutations dictionary.
 UNQUOTED_STR = '_unquoted'
 
 class CandidateValues(object):
@@ -93,7 +93,7 @@ class CandidateValuesPool(object):
         """
         self.candidate_values = {}
 
-        # Supported primitive types (in grammar).
+        # Supported primitive types in grammar.
         self.supported_primitive_types = [
             STATIC_STRING,
             FUZZABLE_STRING,
@@ -183,9 +183,6 @@ class CandidateValuesPool(object):
             return candidate_values
 
         for primitive in custom_mutations:
-            if primitive == 'args':
-                continue
-
             # Create variable for the matching non-unquoted primitive that's used in the grammmar
             #   Example:
             #     dictionary: restler_fuzzable_string_unquoted
@@ -195,9 +192,9 @@ class CandidateValuesPool(object):
             if grammar_primitive not in self.supported_primitive_types:
                 raise UnsupportedPrimitiveException(primitive)
 
-            # For dict primitive types, each value in the dict contains its own CandidateValues
-            # object which contains lists of candidate values, so they must be handled differently
-            # than normal primitive types.
+            # For custom primitive types, a dict is needed to define the name of the type,
+            # so each value in the dict contains its own list of candidate values, thus they
+            # must be handled differently than built-in primitive types.
             if grammar_primitive in self.supported_primitive_dict_types:
                 if not isinstance(custom_mutations[primitive], dict):
                     raise InvalidDictPrimitiveException(f'primitive: {primitive}, type: {type(custom_mutations[primitive])}')
@@ -258,12 +255,12 @@ class CandidateValuesPool(object):
             if tag:
                 if tag in candidate_values[primitive_name]:
                    return _flatten_and_quote_candidate_values(candidate_values[primitive_name][tag])
-                # tag not in custom, try sending from default
+                # tag not specified in per_endpoint values, try sending from default list
                 return _flatten_and_quote_candidate_values(self.candidate_values[primitive_name][tag])
             else:
                 if primitive_name in candidate_values:
                     return _flatten_and_quote_candidate_values(candidate_values[primitive_name])
-                # primitive values not in custom, try sending from default
+                # primitive value not specified in per_endpoint values, try sending from default list
                 return _flatten_and_quote_candidate_values(self.candidate_values[primitive_name])
         except KeyError:
             raise CandidateValueException
@@ -318,10 +315,6 @@ class CandidateValuesPool(object):
         @rtype : None
 
         """
-        if 'args' in custom_values:
-            if not Settings().settings_file_exists:
-                DEPRECATED_set_args(custom_values['args'])
-
         # Set default primitives
         self.candidate_values = self._set_custom_values(self.candidate_values, custom_values)
         if not self._dates_added:
@@ -691,47 +684,3 @@ def restler_refreshable_authentication_token(*args, **kwargs):
     if QUOTED_ARG in kwargs:
         quoted = kwargs[QUOTED_ARG]
     return sys._getframe().f_code.co_name, field_name, quoted
-
-def DEPRECATED_set_args(args):
-    """ Sets RestlerSettings values that were specified in the dictionary.
-
-    DEPRECATED - use settings file (see restler_settings.py)
-        This is here to support backwards compatibility only, thus the odd design choice
-        If settings file was used to set any of these args, use that as priority
-
-    @param args: The args dictionary containing the value to set
-    @type  args: Dict
-
-    @return: None
-    @rtype : None
-
-    """
-    try:
-        for arg in args.keys():
-            if arg == 'max_combinations':
-                    Settings()._max_combinations.set_val(int(args[arg]))
-
-            elif arg == 'namespace_rule_mode':
-                if not 'namespacerule' in Settings()._checker_args:
-                    Settings()._checker_args.val['namespacerule'] = {}
-                Settings()._checker_args.val['namespacerule']['mode'] = str(args[arg])
-
-            elif arg == 'use_after_free_rule_mode':
-                use_after_free_rule_mode = args['use_after_free_rule_mode']
-                if not 'useafterfree' in Settings()._checker_args:
-                    Settings()._checker_args.val['useafterfree'] = {}
-                Settings()._checker_args.val['useafterfree']['mode'] = str(args[arg])
-
-            elif arg == 'leakage_rule_mode':
-                leakage_rule_mode = args['leakage_rule_mode']
-                if not 'leakagerule' in Settings()._checker_args:
-                    Settings()._checker_args.val['leakagerule'] = {}
-                Settings()._checker_args.val['leakagerule']['mode'] = str(args[arg])
-
-            elif arg == 'resource_hierarchy_rule_mode':
-                resource_hierarchy_rule_mode = args['resource_hierarchy_rule_mode']
-                if not 'resourcehierarchy' in Settings()._checker_args:
-                    Settings()._checker_args.val['resourcehierarchy'] = {}
-                Settings()._checker_args.val['resourcehierarchy']['mode'] = str(args[arg])
-    except Exception:
-        pass
