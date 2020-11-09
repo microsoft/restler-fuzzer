@@ -86,14 +86,14 @@ let rec getRestlerPythonPayload (payload:FuzzingPayload) (isQuoted:bool) : Reque
                     )
                 Restler_fuzzable_group
                     { defaultValue = groupValue ; isQuoted = isQuoted }
-        | Custom (t,pt,s,_) ->
-            match t with
+        | Custom c ->
+            match c.payloadType with
             | CustomPayloadType.String ->
-                Restler_custom_payload { defaultValue = s ; isQuoted = isQuoted }
+                Restler_custom_payload { defaultValue = c.payloadValue ; isQuoted = isQuoted }
             | CustomPayloadType.UuidSuffix ->
-                Restler_custom_payload_uuid4_suffix s
+                Restler_custom_payload_uuid4_suffix c.payloadValue
             | CustomPayloadType.Header ->
-                Restler_custom_payload_header s  // TODO: need test
+                Restler_custom_payload_header c.payloadValue  // TODO: need test
         | DynamicObject s ->
             Restler_static_string_variable (sprintf "%s.reader()" s)
         | PayloadParts p ->
@@ -155,12 +155,12 @@ let generatePythonParameter includeOptionalParameters parameterKind (parameterNa
 
             let needQuotes, isFuzzable =
                 match p.payload with
-                | FuzzingPayload.Custom (payloadType, primitiveType, payloadValue, isObject) ->
-                    let isFuzzable = (payloadType = CustomPayloadType.String)
+                | FuzzingPayload.Custom c ->
+                    let isFuzzable = (c.payloadType = CustomPayloadType.String)
                     // 'needQuotes' must be based on the underlying type of the payload.
                     let needQuotes =
-                        (not isObject) &&
-                        (isPrimitiveTypeQuoted primitiveType false)
+                        (not c.isObject) &&
+                        (isPrimitiveTypeQuoted c.primitiveType false)
                     needQuotes, isFuzzable
                 | FuzzingPayload.Constant (PrimitiveType.String, s) ->
                     // TODO: improve the metadata of FuzzingPayload.Constant to capture whether

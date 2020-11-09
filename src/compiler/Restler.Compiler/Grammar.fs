@@ -106,6 +106,21 @@ type CustomPayloadType =
     | UuidSuffix
     | Header
 
+type CustomPayload =
+    {
+        /// The type of custom payload
+        payloadType: CustomPayloadType
+
+        /// The primitive type of the payload, as declared in the specification
+        primitiveType : PrimitiveType
+
+        /// The value of the payload
+        payloadValue : string
+
+        /// 'True' if the value is an object
+        isObject : bool
+    }
+
 /// The payload for a property specified in as a request parameter
 type FuzzingPayload =
     /// Example: (Int "1")
@@ -114,9 +129,8 @@ type FuzzingPayload =
     /// Example: (Int "1")
     | Fuzzable of PrimitiveType * string
 
-    /// The name of the custom payload, as specified in the custom dictionary
-    /// (custom payload type, primitive type, payload value, whether the value is an object)
-    | Custom of CustomPayloadType * PrimitiveType * string * bool
+    /// The custom payload, as specified in the fuzzing dictionary
+    | Custom of CustomPayload
 
     | DynamicObject of string
 

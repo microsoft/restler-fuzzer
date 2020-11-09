@@ -711,7 +711,7 @@ let getParameterDependencies parameterKind globalAnnotations
                 match p.payload with
                 | FuzzingPayload.Fuzzable (pt, _) -> Some pt
                 | FuzzingPayload.Constant (pt, _) -> Some pt
-                | FuzzingPayload.Custom (_, pt, _, _) -> Some pt
+                | FuzzingPayload.Custom c -> Some c.primitiveType
                 | _ -> None
             let c = getConsumer p.name resourceAccessPath primitiveType
             consumerList.Add(c)
@@ -1108,7 +1108,10 @@ module DependencyLookup =
             let variableName = generateDynamicObjectVariableName responseProducer.id.RequestId (Some responseProducer.id.AccessPathParts) "_"
             DynamicObject variableName
         | Some (DictionaryPayload (customPayload, primitiveType, resourceName, isObject)) ->
-            Custom (customPayload, primitiveType, resourceName, isObject)
+            Custom { payloadType = customPayload
+                     primitiveType = primitiveType
+                     payloadValue = resourceName
+                     isObject = isObject }
         | Some (SameBodyPayload payloadPropertyProducer) ->
             // The producer is a property in the same input payload body.
             // The consumer should consist of a set of payload parts, creating the full URI (with resolved dependencies)
@@ -1130,8 +1133,13 @@ module DependencyLookup =
                 FuzzingPayload.Constant (PrimitiveType.String, payloadValue)
 
             let namePrefix = generateIdForCustomUuidSuffixPayload containerName payloadPropertyProducer.id.ResourceName
-            let namePayload = FuzzingPayload.Custom(CustomPayloadType.UuidSuffix, PrimitiveType.String, namePrefix, false)
-
+            let namePayload = FuzzingPayload.Custom
+                                    {
+                                        payloadType = CustomPayloadType.UuidSuffix
+                                        primitiveType = PrimitiveType.String
+                                        payloadValue = namePrefix
+                                        isObject = false
+                                    }
             // Add the endpoint (path) payload, with resolved dependencies
             let pp = pathPayload.Value
                         |> List.map (fun x -> [ FuzzingPayload.Constant (PrimitiveType.String, "/")
@@ -1226,12 +1234,12 @@ module DependencyLookup =
         let addDictionaryEntries (customPayloads:Map<string, string>) (p:LeafProperty) =
             let rec getDictionaryEntry (entries:Map<string, string>) payload =
                 match payload with
-                | Custom (CustomPayloadType.UuidSuffix, _, payloadValue, _) ->
-                    if entries.ContainsKey(payloadValue) then
+                | Custom cp ->
+                    if entries.ContainsKey(cp.payloadValue) then
                         entries
                     else
-                        let prefixValue = generatePrefixForCustomUuidSuffixPayload payloadValue
-                        entries.Add(payloadValue, prefixValue)
+                        let prefixValue = generatePrefixForCustomUuidSuffixPayload cp.payloadValue
+                        entries.Add(cp.payloadValue, prefixValue)
                 | PayloadParts payloadList ->
                     payloadList
                     |> List.fold (fun e payloadPart ->
