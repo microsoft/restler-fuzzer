@@ -33,6 +33,8 @@ import engine.core.fuzzer as fuzzer
 import engine.core.fuzzing_monitor as fuzzing_monitor
 import engine.core.requests as requests
 from engine.errors import InvalidDictionaryException
+from engine.primitives import InvalidDictPrimitiveException
+from engine.primitives import UnsupportedPrimitiveException
 
 MANAGER_HANDLE = None
 
@@ -382,7 +384,19 @@ if __name__ == '__main__':
                 print(f"Cannot import custom mutations: {error!s}")
                 sys.exit(-1)
 
-    req_collection.set_custom_mutations(custom_mutations, per_endpoint_custom_mutations)
+    try:
+        req_collection.set_custom_mutations(custom_mutations, per_endpoint_custom_mutations)
+    except UnsupportedPrimitiveException as primitive:
+        logger.write_to_main("Error in mutations dictionary.\n"
+                            f"Unsupported primitive type defined: {primitive!s}",
+                            print_to_console=True)
+        sys.exit(-1)
+    except InvalidDictPrimitiveException as err:
+        logger.write_to_main("Error in mutations dictionary.\n"
+                             "Dict type primitive was specified as another type.\n"
+                            f"{err!s}",
+                            print_to_console=True)
+        sys.exit(-1)
 
     if settings.token_refresh_cmd:
         req_collection.candidate_values_pool.set_candidate_values(

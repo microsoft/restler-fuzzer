@@ -223,8 +223,8 @@ class FunctionalityTests(unittest.TestCase):
         requests in the correct order with correct arguments from the dictionary.
         The test runs for 3 minutes and checks 100 sequences
         """
-        Fuzz_Time = 0.05 # 3 minutes
-        Num_Sequences = 100
+        Fuzz_Time = 0.1 # 6 minutes
+        Num_Sequences = 300
         args = Common_Settings + [
             '--fuzzing_mode', 'bfs-cheap',
             '--restler_grammar',f'{os.path.join(Test_File_Directory, "test_grammar.py")}',

@@ -100,18 +100,6 @@ class RestlerSettingsTest(unittest.TestCase):
         self.assertEqual(7, settings.get_max_async_resource_creation_time(hex_def(request_endpoint2)))
         self.assertEqual(6, settings.get_max_async_resource_creation_time(hex_def(request_endpoint3)))
 
-    def test_max_combinations_only_dict(self):
-        settings = RestlerSettings({})
-        candidate_values = primitives.CandidateValuesPool()
-        test_dict = {
-                        'args': {
-                            'max_combinations': 20
-                        }
-                    }
-
-        candidate_values.set_candidate_values(test_dict)
-        self.assertEqual(20, settings.max_combinations)
-
     def test_max_combinations_in_settings(self):
         settings_file = {
             'settings_file_exists': True,
@@ -120,9 +108,6 @@ class RestlerSettingsTest(unittest.TestCase):
         settings = RestlerSettings(settings_file)
         candidate_values = primitives.CandidateValuesPool()
         test_dict = {
-                        'args': {
-                            'max_combinations': 20
-                        }
                     }
         candidate_values.set_candidate_values(test_dict)
         self.assertEqual(10, settings.max_combinations)
@@ -214,24 +199,6 @@ class RestlerSettingsTest(unittest.TestCase):
         self.assertEqual(dict2, custom_dicts[hex_def(request_endpoint2)])
         self.assertTrue(hex_def(request_endpoint3) not in custom_dicts)
 
-    def test_checkers_dict_only(self):
-        settings = RestlerSettings({})
-        candidate_values = primitives.CandidateValuesPool()
-        test_dict = {
-                        'args': {
-                            'namespace_rule_mode': 'exhaustive',
-                            'use_after_free_rule_mode': 'exhaustive',
-                            'leakage_rule_mode': 'exhaustive',
-                            'resource_hierarchy_rule_mode': 'exhaustive'
-                        }
-                    }
-        candidate_values.set_candidate_values(test_dict)
-        self.assertEqual('exhaustive', settings.get_checker_arg('namespacerule', 'mode'))
-        self.assertEqual('exhaustive', settings.get_checker_arg('useafterfree', 'mode'))
-        self.assertEqual('exhaustive', settings.get_checker_arg('leakagerule', 'mode'))
-        self.assertEqual('exhaustive', settings.get_checker_arg('resourcehierarchy', 'mode'))
-        self.assertEqual(None, settings.get_checker_arg('invaliddynamicobject', 'mode'))
-
     def test_checkers_in_settings(self):
         settings_file = {
                     'settings_file_exists':True,
@@ -255,12 +222,6 @@ class RestlerSettingsTest(unittest.TestCase):
         settings = RestlerSettings(settings_file)
         candidate_values = primitives.CandidateValuesPool()
         test_dict = {
-                        'args': {
-                            'namespace_rule_mode': 'other',
-                            'use_after_free_rule_mode': 'other',
-                            'leakage_rule_mode': 'other',
-                            'resource_hierarchy_rule_mode': 'other'
-                        }
                     }
         candidate_values.set_candidate_values(test_dict)
         self.assertEqual('exhaustive', settings.get_checker_arg('namespacerule', 'mode'))

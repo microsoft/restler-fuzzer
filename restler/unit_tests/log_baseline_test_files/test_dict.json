@@ -7,7 +7,7 @@
     "0",
     "1"
   ],
-  "restler_fuzzable_bool": [
+  "restler_fuzzable_bool_unquoted": [
     "true",
     "false"
   ],
@@ -17,6 +17,14 @@
     ],
     "location": [
       "centralus"
+    ]
+  },
+  "restler_custom_payload_unquoted": {
+    "testquote": [
+      "5"
+    ],
+    "location": [
+      "10"
     ]
   },
   "restler_custom_payload_uuid4_suffix": {
@@ -32,8 +40,5 @@
     "useafterfreeTest": "useafterfreeTest<test!>-",
     "resourcehierarchyTest": "resourcehierarchyTest<test!>-",
     "resourcehierarchyChild": "resourcehierarchyChild<test!>-"
-  },
-  "args": {
-    "max_combinations": 20
   }
 }

@@ -48,7 +48,7 @@ request = requests.Request([
     primitives.restler_static_string("Accept: application/json\r\n"),
     primitives.restler_static_string("Host: localhost:8888\r\n"),
     primitives.restler_static_string("\r\n"),
-    
+
     {
         'post_send':
         {

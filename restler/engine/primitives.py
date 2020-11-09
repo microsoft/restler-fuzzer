@@ -13,6 +13,16 @@ from restler_settings import Settings
 class CandidateValueException(Exception):
     pass
 
+class UnsupportedPrimitiveException(Exception):
+    """ Raised if unknown primitive found in mutations dictionary """
+    pass
+
+class InvalidDictPrimitiveException(Exception):
+    """ Raised if dict primitive is not a dict type in the mutations dictionary.
+    e.g. a restler_custom_payload is received as a list
+    """
+    pass
+
 # Year-Month-Date format used by restler_fuzzable_datetime
 PAYLOAD_DATE_FORMAT = '%Y-%m-%d'
 
@@ -34,6 +44,44 @@ CUSTOM_PAYLOAD_UUID4_SUFFIX = "restler_custom_payload_uuid4_suffix"
 REFRESHABLE_AUTHENTICATION_TOKEN = "restler_refreshable_authentication_token"
 SHADOW_VALUES = "shadow_values"
 
+# Optional argument passed to grammar function definition functions
+QUOTED_ARG = 'quoted'
+# Suffix present in always-unquoted primitive lists in the mutations dictionary.
+UNQUOTED_STR = '_unquoted'
+
+class CandidateValues(object):
+    def __init__(self):
+        self.unquoted_values = []
+        self.values = []
+
+    def get_flattened_and_quoted_values(self, quoted):
+        """ Quotes values as needed and then merges the quoted and unquoted values
+        into a single list to be returned.
+
+        @param quoted: If true, quote the quotable values
+        @type  quoted: Bool
+        @return: The flattened list of candidate values
+        @rtype : List[str]
+
+        """
+        # First check to see if the values are only a single value, e.g. for uuid4_suffix values
+        if self.values and not isinstance(self.values, list):
+            return f'"{self.values}"' if quoted else self.values
+        elif self.unquoted_values and not isinstance(self.unquoted_values, list):
+            return self.unquoted_values
+
+        final_values = []
+        if quoted:
+            # Quote each value
+            for val in self.values:
+                final_values.append(f'"{val}"')
+        else:
+            if self.values:
+                final_values.extend(self.values)
+        if self.unquoted_values:
+            final_values.extend(self.unquoted_values)
+        return final_values
+
 class CandidateValuesPool(object):
 
     def __init__(self):
@@ -45,7 +93,7 @@ class CandidateValuesPool(object):
         """
         self.candidate_values = {}
 
-        # Supported primitive types.
+        # Supported primitive types in grammar.
         self.supported_primitive_types = [
             STATIC_STRING,
             FUZZABLE_STRING,
@@ -64,8 +112,17 @@ class CandidateValuesPool(object):
             REFRESHABLE_AUTHENTICATION_TOKEN,
             SHADOW_VALUES
         ]
+        self.supported_primitive_dict_types = [
+            CUSTOM_PAYLOAD,
+            CUSTOM_PAYLOAD_HEADER,
+            CUSTOM_PAYLOAD_UUID4_SUFFIX,
+            REFRESHABLE_AUTHENTICATION_TOKEN,
+            SHADOW_VALUES
+        ]
         for primitive in self.supported_primitive_types:
-            self.candidate_values[primitive] = []
+            self.candidate_values[primitive] = CandidateValues()
+        for primitive in self.supported_primitive_dict_types:
+            self.candidate_values[primitive] = dict()
 
         self.per_endpoint_candidate_values = {}
 
@@ -99,39 +156,91 @@ class CandidateValuesPool(object):
         @rtype : None
 
         """
-        DateTime_Str = 'restler_fuzzable_datetime'
-        if DateTime_Str in candidate_values:
-            candidate_values[DateTime_Str].append(self._future_date)
-            candidate_values[DateTime_Str].append(self._past_date)
+        if FUZZABLE_DATETIME in candidate_values:
+            candidate_values[FUZZABLE_DATETIME].values.append(self._future_date)
+            candidate_values[FUZZABLE_DATETIME].values.append(self._past_date)
 
-    def get_supported_primitive_types(self):
-        """ Returns a list of restler-supported primitive types.
+    def _set_custom_values(self, current_primitives, custom_mutations):
+        """ Helper that sets the custom primitive values
 
-        @return: List of supported primitive type.
-        @rtype : List
+        @param current_primitives: The current primitive values that will be updated
+                              with the custom values
+        @type  current_primitives: Dict
+        @param custom_mutations: The custom mutations that will be used to update,
+                               i.e. from the mutations dictionary
+        @type  custom_mutations: Dict
+
+        @return: The current primitive values updated with the new custom values
+        @rtype : Dict
 
         """
-        return list(self.supported_primitive_types)
+        def _assign_values(candidate_values, custom_values):
+            """ Assigns custom mutations values to the candidate values list """
+            if UNQUOTED_STR in primitive:
+                candidate_values.unquoted_values = custom_values
+            else:
+                candidate_values.values = custom_values
+            return candidate_values
 
-    def get_candidate_values(self, primitive_name, request_id=None, tag=None):
+        for primitive in custom_mutations:
+            # Create variable for the matching non-unquoted primitive that's used in the grammmar
+            #   Example:
+            #     dictionary: restler_fuzzable_string_unquoted
+            #     grammar   : restler_fuzzable_string
+            grammar_primitive = primitive.replace(UNQUOTED_STR, '')
+
+            if grammar_primitive not in self.supported_primitive_types:
+                raise UnsupportedPrimitiveException(primitive)
+
+            # For custom primitive types, a dict is needed to define the name of the type,
+            # so each value in the dict contains its own list of candidate values, thus they
+            # must be handled differently than built-in primitive types.
+            if grammar_primitive in self.supported_primitive_dict_types:
+                if not isinstance(custom_mutations[primitive], dict):
+                    raise InvalidDictPrimitiveException(f'primitive: {primitive}, type: {type(custom_mutations[primitive])}')
+                # tag is the key in dict types.
+                #   Example:
+                #     restler_custom_payload {
+                #         "tag1": ["val1", "val2"],
+                #         "tag2": ["val3"]
+                #     }
+                for tag in custom_mutations[primitive]:
+                    if tag not in current_primitives[grammar_primitive]:
+                        current_primitives[grammar_primitive][tag] = CandidateValues()
+                    current_primitives[grammar_primitive][tag] =\
+                        _assign_values(current_primitives[grammar_primitive][tag], custom_mutations[primitive][tag])
+            else:
+                current_primitives[grammar_primitive] = _assign_values(current_primitives[grammar_primitive], custom_mutations[primitive])
+
+        return current_primitives
+
+    def get_candidate_values(self, primitive_name, request_id=None, tag=None, quoted=False):
         """ Return feasible values for a given primitive.
 
-        @param primitive_name: The primitive whose feasible values we wish to
-                                    fetch.
+        @param primitive_name: The primitive whose feasible values we wish to fetch.
         @type primitive_name: Str
         @param request_id: The request ID of the request to get values for
         @type  request_id: Int
+        @param tag: The tag (key) when getting for dict types
+        @type  tag: Str
+        @param quoted: If True, quote the strings in the quoted list before returning
+        @type  quoted: Bool
 
         @return: Feasible values for a given primitive.
         @rtype : List or dict
 
         """
-        def _return_values(val_to_return):
-            # return a copy, since this is an accessor
-            if isinstance(val_to_return, dict):
-                return dict(val_to_return)
+        def _flatten_and_quote_candidate_values(candidate_vals):
+            """ Returns a merged list of quoted and unquoted candidate values """
+            # First check for dict type. This can occur if get_candidate_values
+            # was called on a dict type without a specific tag/key.
+            if isinstance(candidate_vals, dict):
+                retval = dict()
+                for key in candidate_vals:
+                    retval[key] = candidate_vals[key].get_flattened_and_quoted_values(quoted)
             else:
-                return list(val_to_return)
+                retval = candidate_vals.get_flattened_and_quoted_values(quoted)
+            return retval
 
         candidate_values = self.candidate_values
         if request_id and request_id in self.per_endpoint_candidate_values:
@@ -145,18 +254,18 @@ class CandidateValuesPool(object):
         try:
             if tag:
                 if tag in candidate_values[primitive_name]:
-                    return candidate_values[primitive_name][tag]
-                ## tag not in custom, try sending from default
-                return self.candidate_values[primitive_name][tag]
+                   return _flatten_and_quote_candidate_values(candidate_values[primitive_name][tag])
+                # tag not specified in per_endpoint values, try sending from default list
+                return _flatten_and_quote_candidate_values(self.candidate_values[primitive_name][tag])
             else:
                 if primitive_name in candidate_values:
-                    return _return_values(candidate_values[primitive_name])
-                # primitive values not in custom, try sending from default
-                return _return_values(self.candidate_values[primitive_name])
+                    return _flatten_and_quote_candidate_values(candidate_values[primitive_name])
+                # primitive value not specified in per_endpoint values, try sending from default list
+                return _flatten_and_quote_candidate_values(self.candidate_values[primitive_name])
         except KeyError:
             raise CandidateValueException
 
-    def get_fuzzable_values(self, primitive_type, default_value, request_id=None):
+    def get_fuzzable_values(self, primitive_type, default_value, request_id=None, quoted=False):
         """ Return list of fuzzable values with a default value (specified)
         in the front of the list.
 
@@ -165,24 +274,28 @@ class CandidateValuesPool(object):
 
         @param primitive_type: The type of the primitive to get the fuzzable values for
         @type  primitive_type: Str
-        @param default_value: The default value to insert in the front of the list
+        @param default_value: The default value to use if no fuzzable values exist
         @type  default_value: Str
         @param request_id: The request ID of the request to get values for
         @type  request_id: Int
+        @param quoted: If True, quote the strings in the quoted list before returning
+        @type  quoted: Bool
 
         @return: List of fuzzable values
         @rtype : List[str]
 
         """
         fuzzable_values = list(
-            self.get_candidate_values(primitive_type, request_id)
+            self.get_candidate_values(primitive_type, request_id, quoted=quoted)
         )
 
+        if quoted:
+            default_value = f'"{default_value}"'
         # Only use the default value if no values are defined in
         # the dictionary for that fuzzable type
         if not fuzzable_values:
             fuzzable_values.append(default_value)
-        elif primitive_type == 'restler_fuzzable_datetime' and\
+        elif primitive_type == FUZZABLE_DATETIME and\
         len(fuzzable_values) == 2:
             # Special case for fuzzable_datetime because there will always be
             # two additional values for past/future in the list
@@ -202,22 +315,8 @@ class CandidateValuesPool(object):
         @rtype : None
 
         """
-        def _set_custom_values(to_primitives, from_mutations):
-            for primitive in from_mutations:
-                if primitive == 'args':
-                    continue
-
-                if primitive not in self.get_supported_primitive_types():
-                    print(primitive, "not in supported primitives")
-                    continue
-                to_primitives.update({primitive: from_mutations[primitive]})
-
-        if 'args' in custom_values:
-            if not Settings().settings_file_exists:
-                DEPRECATED_set_args(custom_values['args'])
-
         # Set default primitives
-        _set_custom_values(self.candidate_values, custom_values)
+        self.candidate_values = self._set_custom_values(self.candidate_values, custom_values)
         if not self._dates_added:
             self._add_fuzzable_dates(self.candidate_values)
             self._dates_added = True
@@ -226,8 +325,15 @@ class CandidateValuesPool(object):
             for request_id in per_endpoint_custom_mutations:
                 self.per_endpoint_candidate_values[request_id] = {}
                 for primitive in self.supported_primitive_types:
-                    self.per_endpoint_candidate_values[request_id][primitive] = []
-                _set_custom_values(self.per_endpoint_candidate_values[request_id], per_endpoint_custom_mutations[request_id])
+                    if primitive in self.supported_primitive_dict_types:
+                        self.per_endpoint_candidate_values[request_id][primitive] = dict()
+                    else:
+                        self.per_endpoint_candidate_values[request_id][primitive] = CandidateValues()
+                self.per_endpoint_candidate_values[request_id] =\
+                    self._set_custom_values(
+                        self.per_endpoint_candidate_values[request_id],
+                        per_endpoint_custom_mutations[request_id]
+                    )
                 self._add_fuzzable_dates(self.per_endpoint_candidate_values[request_id])
 
 def restler_static_string(*args, **kwargs):
@@ -247,11 +353,14 @@ def restler_static_string(*args, **kwargs):
 
     """
     field_name = args[0]
-    return sys._getframe().f_code.co_name, field_name
+    quoted = False
+    if QUOTED_ARG in kwargs:
+        quoted = kwargs[QUOTED_ARG]
+    return sys._getframe().f_code.co_name, field_name, quoted
 
 
 def restler_fuzzable_string(*args, **kwargs):
-    """ Fuzzable sting primitive.
+    """ Fuzzable string primitive.
 
     @param args: The argument with which the primitive is defined in the block
                     of the request to which it belongs to. This is a fuzzable
@@ -267,8 +376,10 @@ def restler_fuzzable_string(*args, **kwargs):
 
     """
     field_name = args[0]
-    return sys._getframe().f_code.co_name, field_name
-
+    quoted = False
+    if QUOTED_ARG in kwargs:
+        quoted = kwargs[QUOTED_ARG]
+    return sys._getframe().f_code.co_name, field_name, quoted
 
 def restler_fuzzable_int(*args, **kwargs):
     """ Integer primitive.
@@ -287,7 +398,10 @@ def restler_fuzzable_int(*args, **kwargs):
 
     """
     field_name = args[0]
-    return sys._getframe().f_code.co_name, field_name
+    quoted = False
+    if QUOTED_ARG in kwargs:
+        quoted = kwargs[QUOTED_ARG]
+    return sys._getframe().f_code.co_name, field_name, quoted
 
 
 def restler_fuzzable_bool(*args, **kwargs):
@@ -307,7 +421,10 @@ def restler_fuzzable_bool(*args, **kwargs):
 
     """
     field_name = args[0]
-    return sys._getframe().f_code.co_name, field_name
+    quoted = False
+    if QUOTED_ARG in kwargs:
+        quoted = kwargs[QUOTED_ARG]
+    return sys._getframe().f_code.co_name, field_name, quoted
 
 
 def restler_fuzzable_number(*args, **kwargs):
@@ -327,7 +444,10 @@ def restler_fuzzable_number(*args, **kwargs):
 
     """
     field_name = args[0]
-    return sys._getframe().f_code.co_name, field_name
+    quoted = False
+    if QUOTED_ARG in kwargs:
+        quoted = kwargs[QUOTED_ARG]
+    return sys._getframe().f_code.co_name, field_name, quoted
 
 
 def restler_fuzzable_delim(*args, **kwargs):
@@ -347,7 +467,10 @@ def restler_fuzzable_delim(*args, **kwargs):
 
     """
     field_name = args[0]
-    return sys._getframe().f_code.co_name, field_name
+    quoted = False
+    if QUOTED_ARG in kwargs:
+        quoted = kwargs[QUOTED_ARG]
+    return sys._getframe().f_code.co_name, field_name, quoted
 
 
 def restler_fuzzable_group(*args, **kwargs):
@@ -372,7 +495,11 @@ def restler_fuzzable_group(*args, **kwargs):
     except IndexError:
         enum_vals = [""]
     enum_vals = list(map(lambda x: '{}'.format(x), enum_vals))
-    return sys._getframe().f_code.co_name, enum_vals
+
+    quoted = False
+    if QUOTED_ARG in kwargs:
+        quoted = kwargs[QUOTED_ARG]
+    return sys._getframe().f_code.co_name, enum_vals, quoted
 
 
 def restler_fuzzable_uuid4(*args, **kwargs):
@@ -392,7 +519,10 @@ def restler_fuzzable_uuid4(*args, **kwargs):
 
     """
     field_name = args[0]
-    return sys._getframe().f_code.co_name, field_name
+    quoted = False
+    if QUOTED_ARG in kwargs:
+        quoted = kwargs[QUOTED_ARG]
+    return sys._getframe().f_code.co_name, field_name, quoted
 
 
 def restler_fuzzable_datetime(*args, **kwargs) :
@@ -413,7 +543,10 @@ def restler_fuzzable_datetime(*args, **kwargs) :
     """
 
     field_name = args[0]
-    return sys._getframe().f_code.co_name, field_name
+    quoted = False
+    if QUOTED_ARG in kwargs:
+        quoted = kwargs[QUOTED_ARG]
+    return sys._getframe().f_code.co_name, field_name, quoted
 
 def restler_fuzzable_object(*args, **kwargs) :
     """ object primitive ({})
@@ -432,7 +565,10 @@ def restler_fuzzable_object(*args, **kwargs) :
     """
 
     field_name = args[0]
-    return sys._getframe().f_code.co_name, field_name
+    quoted = False
+    if QUOTED_ARG in kwargs:
+        quoted = kwargs[QUOTED_ARG]
+    return sys._getframe().f_code.co_name, field_name, quoted
 
 def restler_multipart_formdata(*args, **kwargs):
     """ Multipart/formdata primitive
@@ -452,7 +588,10 @@ def restler_multipart_formdata(*args, **kwargs):
 
     """
     field_name = args[0]
-    return sys._getframe().f_code.co_name, field_name
+    quoted = False
+    if QUOTED_ARG in kwargs:
+        quoted = kwargs[QUOTED_ARG]
+    return sys._getframe().f_code.co_name, field_name, quoted
 
 
 def restler_custom_payload(*args, **kwargs):
@@ -472,7 +611,10 @@ def restler_custom_payload(*args, **kwargs):
 
     """
     field_name = args[0]
-    return sys._getframe().f_code.co_name, field_name
+    quoted = False
+    if QUOTED_ARG in kwargs:
+        quoted = kwargs[QUOTED_ARG]
+    return sys._getframe().f_code.co_name, field_name, quoted
 
 
 def restler_custom_payload_header(*args, **kwargs):
@@ -492,7 +634,10 @@ def restler_custom_payload_header(*args, **kwargs):
 
     """
     field_name = args[0]
-    return sys._getframe().f_code.co_name, field_name
+    quoted = False
+    if QUOTED_ARG in kwargs:
+        quoted = kwargs[QUOTED_ARG]
+    return sys._getframe().f_code.co_name, field_name, quoted
 
 
 def restler_custom_payload_uuid4_suffix(*args, **kwargs):
@@ -512,7 +657,10 @@ def restler_custom_payload_uuid4_suffix(*args, **kwargs):
 
     """
     field_name = args[0]
-    return sys._getframe().f_code.co_name, field_name
+    quoted = False
+    if QUOTED_ARG in kwargs:
+        quoted = kwargs[QUOTED_ARG]
+    return sys._getframe().f_code.co_name, field_name, quoted
 
 
 def restler_refreshable_authentication_token(*args, **kwargs):
@@ -532,48 +680,7 @@ def restler_refreshable_authentication_token(*args, **kwargs):
 
     """
     field_name = args[0]
-    return sys._getframe().f_code.co_name, field_name
-
-def DEPRECATED_set_args(args):
-    """ Sets RestlerSettings values that were specified in the dictionary.
-
-    DEPRECATED - use settings file (see restler_settings.py)
-        This is here to support backwards compatibility only, thus the odd design choice
-        If settings file was used to set any of these args, use that as priority
-
-    @param args: The args dictionary containing the value to set
-    @type  args: Dict
-
-    @return: None
-    @rtype : None
-
-    """
-    try:
-        for arg in args.keys():
-            if arg == 'max_combinations':
-                    Settings()._max_combinations.set_val(int(args[arg]))
-
-            elif arg == 'namespace_rule_mode':
-                if not 'namespacerule' in Settings()._checker_args:
-                    Settings()._checker_args.val['namespacerule'] = {}
-                Settings()._checker_args.val['namespacerule']['mode'] = str(args[arg])
-
-            elif arg == 'use_after_free_rule_mode':
-                use_after_free_rule_mode = args['use_after_free_rule_mode']
-                if not 'useafterfree' in Settings()._checker_args:
-                    Settings()._checker_args.val['useafterfree'] = {}
-                Settings()._checker_args.val['useafterfree']['mode'] = str(args[arg])
-
-            elif arg == 'leakage_rule_mode':
-                leakage_rule_mode = args['leakage_rule_mode']
-                if not 'leakagerule' in Settings()._checker_args:
-                    Settings()._checker_args.val['leakagerule'] = {}
-                Settings()._checker_args.val['leakagerule']['mode'] = str(args[arg])
-
-            elif arg == 'resource_hierarchy_rule_mode':
-                resource_hierarchy_rule_mode = args['resource_hierarchy_rule_mode']
-                if not 'resourcehierarchy' in Settings()._checker_args:
-                    Settings()._checker_args.val['resourcehierarchy'] = {}
-                Settings()._checker_args.val['resourcehierarchy']['mode'] = str(args[arg])
-    except Exception:
-        pass
+    quoted = False
+    if QUOTED_ARG in kwargs:
+        quoted = kwargs[QUOTED_ARG]
+    return sys._getframe().f_code.co_name, field_name, quoted

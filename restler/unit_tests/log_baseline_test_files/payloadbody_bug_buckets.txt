@@ -2,6 +2,6 @@ PayloadBodyChecker_500: 1
 Total Buckets: 1
 -------------
 PayloadBodyChecker_500 - Bug was reproduced - PayloadBodyChecker_500_1.txt
-PayloadBodyChecker_500_85e3e88ccd46936f647088f6fcbd5c5483eda313
-PUT /city/cityName HTTP/1.1\r\nAccept: application/json\r\nHost: restler.unit.test.server.com\r\nContent-Type: application/json\r\n\r\n{"population":[],"area":False,"enable":false}
+Hash: PayloadBodyChecker_500_85e3e88ccd46936f647088f6fcbd5c5483eda313
+PUT /city/cityName HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\n\r\n{"population":fuzzstring,"area":"0","enable":[]}
 --------------------------------------------------------------------------------

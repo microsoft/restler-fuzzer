@@ -147,8 +147,8 @@
                           "LeafNode": {
                             "name": "area",
                             "payload": {
-                              "Fuzzable": [
-                                "Int",
+                              "Constant": [
+                                "String",
                                 "5000"
                               ]
                             },
@@ -894,7 +894,37 @@
           [
             "Schema",
             {
-              "ParameterList": []
+              "ParameterList": [
+                [
+                  "payload",
+                  {
+                    "InternalNode": [
+                      {
+                        "name": "",
+                        "propertyType": "Object",
+                        "isRequired": true,
+                        "isReadOnly": false
+                      },
+                      [
+                        {
+                          "LeafNode": {
+                            "name": "testpayload",
+                            "payload": {
+                              "Custom": [
+                                  "String",
+                                  "testquote",
+                                  false
+                              ]
+                            },
+                            "isRequired": false,
+                            "isReadOnly": false
+                          }
+                        }
+                      ]
+                    ]
+                  }
+                ]
+              ]
             }
           ]
         ],
@@ -1098,7 +1128,23 @@
           [
             "Schema",
             {
-              "ParameterList": []
+              "ParameterList": [
+                "location",
+                {
+                  "LeafNode": {
+                    "name": "",
+                    "payload": {
+                      "Custom": [
+                        "String",
+                        "location",
+                        false
+                      ]
+                    },
+                    "isRequired": true,
+                    "isReadOnly": false
+                  }
+                }
+              ]
             }
           ]
         ],
@@ -1118,6 +1164,34 @@
                           "isReadOnly": false
                         },
                         [
+                          {
+                            "LeafNode": {
+                              "name": "testbool",
+                              "payload": {
+                                "Fuzzable": [
+                                  "Bool",
+                                  "testval",
+                                  false
+                                ]
+                              },
+                              "isRequired": true,
+                              "isReadOnly": false
+                            }
+                          },
+                          {
+                            "LeafNode": {
+                              "name": "location",
+                              "payload": {
+                                "Custom": [
+                                  "String",
+                                  "location",
+                                  false
+                                ]
+                              },
+                              "isRequired": true,
+                              "isReadOnly": false
+                            }
+                          }
                         ]
                       ]
                     }
@@ -1549,8 +1623,6 @@
           [
             "Schema",
             {
-              "ParameterList": [
-              ]
             }
           ]
         ],
@@ -1651,7 +1723,37 @@
           [
             "Schema",
             {
-              "ParameterList": []
+              "ParameterList": [
+                "location",
+                {
+                  "LeafNode": {
+                    "name": "",
+                    "payload": {
+                      "Custom": [
+                        "String",
+                        "location",
+                        false
+                      ]
+                    },
+                    "isRequired": true,
+                    "isReadOnly": false
+                  }
+                },
+                "date",
+                {
+                  "LeafNode": {
+                    "name": "",
+                    "payload": {
+                      "Fuzzable": [
+                        "DateTime",
+                        "2020-1-1"
+                      ]
+                    },
+                    "isRequired": true,
+                    "isReadOnly": false
+                  }
+                }
+              ]
             }
           ]
         ],
@@ -1671,6 +1773,19 @@
                           "isReadOnly": false
                         },
                         [
+                          {
+                            "LeafNode": {
+                              "name": "datetest",
+                              "payload": {
+                                "Fuzzable": [
+                                    "DateTime",
+                                    "2020-1-1"
+                                ]
+                              },
+                              "isRequired": false,
+                              "isReadOnly": false
+                            }
+                          }
                         ]
                       ]
                     }

@@ -485,49 +485,48 @@ class Request(object):
         fuzzable = []
         for request_block in definition:
             primitive_type = request_block[0]
+            default_val = request_block[1]
+            quoted = request_block[2]
 
             values = []
             # Handling dynamic primitives that need fresh rendering every time
-            if primitive_type == "restler_fuzzable_uuid4":
+            if primitive_type == primitives.FUZZABLE_UUID4:
                 values = [primitives.restler_fuzzable_uuid4]
             # Handle enums that have a list of values instead of one default val
-            elif primitive_type == "restler_fuzzable_group":
+            elif primitive_type == primitives.FUZZABLE_GROUP:
                 values = list(request_block[1])
             # Handle static whose value is the field name
-            elif primitive_type == "restler_static_string":
+            elif primitive_type == primitives.STATIC_STRING:
                 values = [request_block[1]]
             # Handle multipart form data
-            elif primitive_type == "restler_multipart_formdata":
-                current_fuzzable_tag = request_block[1]
+            elif primitive_type == primitives.FUZZABLE_MULTIPART_FORMDATA:
                 try:
                     current_fuzzable_values = candidate_values_pool.\
-                        get_candidate_values(primitive_type, request_id=self._request_id, tag=current_fuzzable_tag)
+                        get_candidate_values(primitive_type, request_id=self._request_id, tag=default_val, quoted=quoted)
                     values = [multipart_formdata.render(current_fuzzable_values)]
                 except primitives.CandidateValueException:
-                    _raise_dict_err(primitive_type, current_fuzzable_tag)
+                    _raise_dict_err(primitive_type, default_val)
                 except Exception as err:
-                    _handle_exception(primitive_type, current_fuzzable_tag, err)
+                    _handle_exception(primitive_type, default_val, err)
             # Handle custom (user defined) static payload
-            elif primitive_type == "restler_custom_payload":
-                current_fuzzable_tag = request_block[1]
+            elif primitive_type == primitives.CUSTOM_PAYLOAD:
                 try:
                     current_fuzzable_values = candidate_values_pool.\
-                        get_candidate_values(primitive_type, request_id=self._request_id, tag=current_fuzzable_tag)
+                        get_candidate_values(primitive_type, request_id=self._request_id, tag=default_val, quoted=quoted)
                     # handle case where custom payload have more than one values
                     if isinstance(current_fuzzable_values, list):
                         values = current_fuzzable_values
                     else:
                         values = [current_fuzzable_values]
                 except primitives.CandidateValueException:
-                    _raise_dict_err(primitive_type, current_fuzzable_tag)
+                    _raise_dict_err(primitive_type, default_val)
                 except Exception as err:
-                    _handle_exception(primitive_type, current_fuzzable_tag, err)
+                    _handle_exception(primitive_type, default_val, err)
             # Handle custom (user defined) static payload on header (Adds \r\n)
-            elif primitive_type == "restler_custom_payload_header":
-                current_fuzzable_tag = request_block[1]
+            elif primitive_type == primitives.CUSTOM_PAYLOAD_HEADER:
                 try:
                     current_fuzzable_values = candidate_values_pool.\
-                        get_candidate_values(primitive_type, request_id=self._request_id, tag=current_fuzzable_tag)
+                        get_candidate_values(primitive_type, request_id=self._request_id, tag=default_val, quoted=quoted)
                     # handle case where custom payload have more than one values
                     if isinstance(current_fuzzable_values, list):
                         values = current_fuzzable_values
@@ -537,35 +536,29 @@ class Request(object):
                         values = list(
                             map(
                                 lambda x: "{}: {}\r\n".\
-                                format(current_fuzzable_tag, x),
+                                format(default_val, x),
                                 values
                             )
                         )
                 except primitives.CandidateValueException:
-                    _raise_dict_err(primitive_type, current_fuzzable_tag)
+                    _raise_dict_err(primitive_type, default_val)
                 except Exception as err:
-                    _handle_exception(primitive_type, current_fuzzable_tag, err)
+                    _handle_exception(primitive_type, default_val, err)
             # Handle custom (user defined) static payload with uuid4 suffix
-            elif primitive_type == "restler_custom_payload_uuid4_suffix":
-                current_fuzzable_tag = request_block[1]
+            elif primitive_type == primitives.CUSTOM_PAYLOAD_UUID4_SUFFIX:
                 try:
                     current_fuzzable_value = candidate_values_pool.\
-                        get_candidate_values(primitive_type, request_id=self._request_id, tag=current_fuzzable_tag)
+                        get_candidate_values(primitive_type, request_id=self._request_id, tag=default_val, quoted=quoted)
                     values = [primitives.restler_custom_payload_uuid4_suffix(current_fuzzable_value)]
                 except primitives.CandidateValueException:
-                    _raise_dict_err(primitive_type, current_fuzzable_tag)
+                    _raise_dict_err(primitive_type, default_val)
                 except Exception as err:
-                    _handle_exception(primitive_type, current_fuzzable_tag, err)
-            elif primitive_type == "restler_refreshable_authentication_token":
+                    _handle_exception(primitive_type, default_val, err)
+            elif primitive_type == primitives.REFRESHABLE_AUTHENTICATION_TOKEN:
                 values = [primitives.restler_refreshable_authentication_token]
             # Handle all the rest
-            #
-            # NOTE: Consider whatever is in the mutations dictionary for
-            # the specific primitive and add the value passed as default.
-            # This could help in cases where we want one particular mutation
-            # for one specific field.
             else:
-                values = candidate_values_pool.get_fuzzable_values(primitive_type, request_block[1], self._request_id)
+                values = candidate_values_pool.get_fuzzable_values(primitive_type, default_val, self._request_id, quoted)
 
             if Settings().fuzzing_mode == 'random-walk' and not preprocessing:
                 random.shuffle(values)
@@ -587,7 +580,7 @@ class Request(object):
         # dependent variables
         for ind, values in enumerate(combinations_pool):
             values = list(values)
-            values = request_utilities.resolve_dynamic_primitives(values, candidate_values_pool, self)
+            values = request_utilities.resolve_dynamic_primitives(values, candidate_values_pool)
 
             rendered_data = "".join(values)
             yield rendered_data, parser

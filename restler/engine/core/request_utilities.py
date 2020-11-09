@@ -122,7 +122,7 @@ def replace_auth_token(data, replace_str):
             data = data.replace(latest_shadow_token_value.split('\r\n')[0], replace_str)
     return data
 
-def resolve_dynamic_primitives(values, candidate_values_pool, request):
+def resolve_dynamic_primitives(values, candidate_values_pool):
     """ Dynamic primitives (i.e., uuid4) must be filled with a new value
         each time the request is rendered.
 
@@ -131,6 +131,8 @@ def resolve_dynamic_primitives(values, candidate_values_pool, request):
                     fuction pointer and will be substituted with fresh value
                     within this routine.
     @type values: List
+    @param candidate_values_pool: The pool of values for primitive types.
+    @type  candidate_values_pool: Dict
 
     @return: List of string of primitive type payloads for which any dynamic
                 primitive (e.g., uuid4) with be substituted with a fresh and
@@ -148,7 +150,7 @@ def resolve_dynamic_primitives(values, candidate_values_pool, request):
         and values[i] == primitives.restler_fuzzable_uuid4:
             values[i] = uuid.uuid4().hex
         elif isinstance(values[i], tuple)\
-        and values[i][0] == 'restler_custom_payload_uuid4_suffix':
+        and values[i][0] == primitives.CUSTOM_PAYLOAD_UUID4_SUFFIX:
             current_uuid_type_name = values[i][1]
             if current_uuid_type_name not in current_uuid_suffixes:
                 current_uuid_suffixes[current_uuid_type_name] =\
@@ -157,7 +159,7 @@ def resolve_dynamic_primitives(values, candidate_values_pool, request):
         elif isinstance(values[i], types.FunctionType)\
         and values[i] == primitives.restler_refreshable_authentication_token:
             token_dict = candidate_values_pool.get_candidate_values(
-                'restler_refreshable_authentication_token'
+                primitives.REFRESHABLE_AUTHENTICATION_TOKEN
             )
             if not isinstance(token_dict, dict):
                 raise Exception("Refreshable token was not specified as a setting, but a request was expecting it.")
