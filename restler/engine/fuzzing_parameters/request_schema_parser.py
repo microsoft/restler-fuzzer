@@ -164,14 +164,14 @@ def des_param_payload(param_payload_json, tag='', query_param=False):
             content_value = payload['DynamicObject']
         elif 'Custom' in payload:
             custom = True
-            content_type = payload['Custom'][0]
-            content_value = payload['Custom'][1]
+            content_type = payload['Custom']['payloadType']
+            content_value = payload['Custom']['payloadValue']
         elif 'PayloadParts' in payload:
             definition = payload['PayloadParts'][-1]
             if 'Custom' in definition:
                 custom = True
-                content_type = definition['Custom'][0]
-                content_value = definition['Custom'][1]
+                content_type = definition['Custom']['payloadType']
+                content_value = definition['Custom']['payloadValue']
 
         # create value w.r.t. the type
         value = None

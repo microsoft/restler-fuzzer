@@ -186,14 +186,19 @@ class BodySchema():
 
         for block in blocks:
             primitive_type = block[0]
+            value = block[1]
+            if len(block) > 2:
+                quoted = block[2]
 
             # accumulate
             if primitive_type == primitives.STATIC_STRING:
-                acc += str(block[1])
+                if quoted:
+                    value = f'"{value}"'
+                acc += str(value)
 
             # fuzzable values
             elif primitive_type == primitives.FUZZABLE_GROUP:
-                choices = [f'{acc}{choice}' for choice in block[1]]
+                choices = [f'{acc}{choice}' for choice in value]
                 sets.append(choices)
                 acc = ''
 
