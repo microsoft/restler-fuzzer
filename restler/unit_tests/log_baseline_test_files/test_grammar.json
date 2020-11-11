@@ -892,7 +892,7 @@
         ],
         "bodyParameters": [
           [
-            "Schema",
+            "Examples",
             {
               "ParameterList": [
                 [
@@ -918,6 +918,41 @@
                               }
                             },
                             "isRequired": false,
+                            "isReadOnly": false
+                          }
+                        }
+                      ]
+                    ]
+                  }
+                ]
+              ]
+            }
+          ],
+          [
+            "Schema",
+            {
+              "ParameterList": [
+                [
+                  "payload",
+                  {
+                    "InternalNode": [
+                      {
+                        "name": "",
+                        "propertyType": "Object",
+                        "isRequired": true,
+                        "isReadOnly": false
+                      },
+                      [
+                        {
+                          "LeafNode": {
+                            "name": "examplebody",
+                            "payload": {
+                              "Constant": [
+                                "Int",
+                                "5"
+                              ]
+                            },
+                            "isRequired": true,
                             "isReadOnly": false
                           }
                         }
@@ -1126,6 +1161,132 @@
           }
         ],
         "queryParameters": [
+          [
+            "Examples",
+            {
+              "ParameterList": [
+                [
+                  "examplequery",
+                  {
+                    "LeafNode": {
+                      "name": "",
+                      "payload": {
+                        "Constant": [
+                          "String",
+                          "queryexample"
+                        ]
+                      },
+                      "isRequired": true,
+                      "isReadOnly": false
+                    }
+                  }
+                ],
+                [
+                  "location",
+                  {
+                    "LeafNode": {
+                      "name": "",
+                      "payload": {
+                        "Custom": {
+                          "payloadType": "String",
+                          "primitiveType": "String",
+                          "payloadValue": "location",
+                          "isObject": false
+                        }
+                      },
+                      "isRequired": true,
+                      "isReadOnly": false
+                    }
+                  }
+                ]
+              ]
+            }
+          ],
+          [
+            "Examples",
+            {
+              "ParameterList": [
+                [
+                  "payload",
+                  {
+                    "InternalNode": [
+                      {
+                        "name": "",
+                        "propertyType": "Object",
+                        "isRequired": true,
+                        "isReadOnly": false
+                      },
+                      [
+                        {
+                          "LeafNode": {
+                            "name": "testpayload",
+                            "payload": {
+                              "Custom": {
+                                "payloadType": "String",
+                                "primitiveType": "String",
+                                "payloadValue": "testquote",
+                                "isObject": false
+                              }
+                            },
+                            "isRequired": false,
+                            "isReadOnly": false
+                          }
+                        }
+                      ]
+                    ]
+                  }
+                ]
+              ]
+            }
+          ],
+          [
+            "Examples",
+            {
+              "ParameterList": [
+                [
+                  "arrayQueryParameter",
+                  {
+                    "InternalNode": [
+                      {
+                        "name": "",
+                        "propertyType": "Array",
+                        "isRequired": true,
+                        "isReadOnly": false
+                      },
+                      [
+                        {
+                          "LeafNode": {
+                            "name": "",
+                            "payload": {
+                              "Constant": [
+                                "Number",
+                                "40.0"
+                              ]
+                            },
+                            "isRequired": true,
+                            "isReadOnly": false
+                          }
+                        },
+                        {
+                          "LeafNode": {
+                            "name": "",
+                            "payload": {
+                              "Constant": [
+                                "Number",
+                                "75.0"
+                              ]
+                            },
+                            "isRequired": true,
+                            "isReadOnly": false
+                          }
+                        }
+                      ]
+                    ]
+                  }
+                ]
+              ]
+            }
+          ],
           [
             "Schema",
             {
