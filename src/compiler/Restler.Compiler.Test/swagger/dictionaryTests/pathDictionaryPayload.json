@@ -56,7 +56,12 @@
         "tags": {
           "description": "The unique identifier of the store",
           "type": "object"
+        },
+        "intro": {
+          "description": "The intro display of the store",
+          "type": "string"
         }
+
       }
     },
     "DeliveryProperties": {

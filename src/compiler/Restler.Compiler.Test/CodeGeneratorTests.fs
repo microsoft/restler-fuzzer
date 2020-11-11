@@ -6,7 +6,7 @@ namespace Restler.Test
 open System.IO
 open Xunit
 open Restler.Grammar
-open Restler.ApiResourceTypes
+open Restler.CodeGenerator.Python.Types
 open Tree
 open SwaggerSpecs
 open Restler.Config

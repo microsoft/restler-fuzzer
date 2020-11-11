@@ -675,10 +675,8 @@ class ParamString(ParamValue):
 
         """
         if self._is_custom:
-            return [primitives.restler_static_string('"'),\
-                    primitives.restler_custom_payload(self._content),\
-                    primitives.restler_static_string('"')]
-        return [primitives.restler_static_string(f'"{self._content}"')]
+            return [primitives.restler_custom_payload(self._content, quoted=True)]
+        return [primitives.restler_static_string(self._content, quoted=True)]
 
     def get_fuzzing_blocks(self, config):
         """ Returns the fuzzing request blocks per the config
@@ -720,17 +718,15 @@ class ParamString(ParamValue):
                 self.tag, primitives.FUZZABLE_STRING, hint=None
             )
             if not_like_string(default_value):
-                return [primitives.restler_static_string(default_value)]
+                return [primitives.restler_static_string(default_value, quoted=False)]
 
         if not self.is_fuzzable():
-            return [primitives.restler_static_string(f'"{default_value}"')]
+            return [primitives.restler_static_string(default_value, quoted=True)]
 
         # fuzz as normal fuzzable string
         if not config.merge_fuzzable_values:
             blocks = []
-            blocks.append(primitives.restler_static_string('"'))
-            blocks.append(primitives.restler_fuzzable_string(default_value))
-            blocks.append(primitives.restler_keyword.static_string('"'))
+            blocks.append(primitives.restler_fuzzable_string(default_value), quoted=True)
             return blocks
 
         # get the set of fuzzable values

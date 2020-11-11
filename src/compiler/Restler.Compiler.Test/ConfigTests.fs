@@ -110,8 +110,8 @@ module Config =
             // TODO Check that the grammar contains references to the custom payload and uuid suffix.
             let grammarFilePath = Path.Combine(grammarOutputDirectoryPath, Restler.Workflow.Constants.DefaultRestlerGrammarFileName)
             let grammar = File.ReadAllLines(grammarFilePath)
-            let appleCustomPayloadCount = grammar |> Seq.filter (fun line -> line.Contains("primitives.restler_custom_payload(\"apple\"),")) |> Seq.length
-            let bananaCustomPayloadCount = grammar |> Seq.filter (fun line -> line.Contains("primitives.restler_custom_payload(\"banana\"),")) |> Seq.length
+            let appleCustomPayloadCount = grammar |> Seq.filter (fun line -> line.Contains("primitives.restler_custom_payload(\"apple\", quoted=True),")) |> Seq.length
+            let bananaCustomPayloadCount = grammar |> Seq.filter (fun line -> line.Contains("primitives.restler_custom_payload(\"banana\", quoted=True),")) |> Seq.length
             if appleCustomPayloadCount <> 1 then
                 Assert.True(false, sprintf "apple custom payload count should be 1, found %d" appleCustomPayloadCount)
             if bananaCustomPayloadCount <> 1 then

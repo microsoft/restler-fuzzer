@@ -958,6 +958,8 @@ class PayloadBodyChecker(CheckerBase):
 
         @param tag: Parameter tag
         @type  tag: String
+        @param hint: Used for looking up keywords and custom payloads
+        @type  hint: Str
 
         @return: A list of values for the tag
         @rtype:  List
@@ -973,8 +975,8 @@ class PayloadBodyChecker(CheckerBase):
         if not values and self._greedy_response:
             values = self._get_response_values_by_end_tag(tag)
 
-        if not values:
-            values = self._get_custom_payload(tag)
+        if not values and hint:
+            values = self._get_custom_payload(hint)
 
         return values
 

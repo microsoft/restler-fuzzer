@@ -393,9 +393,9 @@ let findProducerWithResourceName
         let perRequestDictionaryMatches =
             match perRequestDictionary with
             | None -> Seq.empty
-            | Some d -> d.getParameterForCustomPayload consumer.id.ResourceName consumer.id.AccessPathParts
+            | Some d -> d.getParameterForCustomPayload consumer.id.ResourceName consumer.id.AccessPathParts consumer.id.PrimitiveType
         let globalDictionaryMatches =
-            dictionary.getParameterForCustomPayload consumer.id.ResourceName consumer.id.AccessPathParts
+            dictionary.getParameterForCustomPayload consumer.id.ResourceName consumer.id.AccessPathParts consumer.id.PrimitiveType
         [
             perRequestDictionaryMatches
             globalDictionaryMatches
@@ -447,7 +447,12 @@ let findProducerWithResourceName
         if consumer.parameterKind = ParameterKind.Path &&
            annotationMatches |> Seq.isEmpty &&
            // If there is a dictionary entry for a static value, it should override the inferred dependency
-           (dictionary.getParameterForCustomPayload consumerResourceName consumer.id.AccessPathParts) |> Seq.isEmpty &&
+           (dictionary.getParameterForCustomPayload
+                consumerResourceName
+                consumer.id.AccessPathParts
+                consumer.id.PrimitiveType
+                )
+            |> Seq.isEmpty &&
            inferredExactMatches |> Seq.isEmpty then
 
             getCreateOrUpdateProducer
@@ -468,7 +473,11 @@ let findProducerWithResourceName
         else if consumer.id.AccessPath.IsSome &&
              annotationMatches |> Seq.isEmpty &&
              // If there is a dictionary entry for a static value, it should override the inferred dependency
-             (dictionary.getParameterForCustomPayload consumerResourceName consumer.id.AccessPathParts) |> Seq.isEmpty &&
+             (dictionary.getParameterForCustomPayload
+                consumerResourceName
+                consumer.id.AccessPathParts
+                consumer.id.PrimitiveType)
+             |> Seq.isEmpty &&
              (not (inferredExactMatches
                    |> Seq.exists (fun x -> x.id.RequestId.method = OperationMethod.Put ||
                                            x.id.RequestId.method = OperationMethod.Post))) then
@@ -666,7 +675,7 @@ let getParameterDependencies parameterKind globalAnnotations
     let annotatedRequests = requestData
                             |> Seq.filter (fun (_, reqData) -> reqData.localAnnotations |> Seq.length > 0)
                             |> Map.ofSeq
-    let getConsumer (resourceName:string) (resourceAccessPath:string list) =
+    let getConsumer (resourceName:string) (resourceAccessPath:string list) (primitiveType:PrimitiveType option) =
         if String.IsNullOrEmpty resourceName then
             failwith "[getConsumer] invalid usage"
         let resourceReference =
@@ -689,7 +698,8 @@ let getParameterDependencies parameterKind globalAnnotations
                 BodyResource { name = resourceName ; fullPath = { path = resourceAccessPath |> List.toArray }}
         {
                 id = ApiResource(requestId, resourceReference,
-                                 NamingConvention.CamelCase)
+                                 NamingConvention.CamelCase,
+                                 if primitiveType.IsSome then primitiveType.Value else PrimitiveType.String)
                 annotation = findAnnotation globalAnnotations annotatedRequests requestId resourceName { path = resourceAccessPath |> List.toArray }
                 parameterKind = parameterKind
         }
@@ -697,24 +707,30 @@ let getParameterDependencies parameterKind globalAnnotations
     let visitLeaf (parentAccessPath:string list) (p:LeafProperty) =
         if not (String.IsNullOrEmpty p.name) then
             let resourceAccessPath = PropertyAccessPaths.getLeafAccessPath parentAccessPath p
-            let c = getConsumer p.name resourceAccessPath
+            let primitiveType =
+                match p.payload with
+                | FuzzingPayload.Fuzzable (pt, _) -> Some pt
+                | FuzzingPayload.Constant (pt, _) -> Some pt
+                | FuzzingPayload.Custom c -> Some c.primitiveType
+                | _ -> None
+            let c = getConsumer p.name resourceAccessPath primitiveType
             consumerList.Add(c)
 
     let visitInner (parentAccessPath:string list) (p:InnerProperty) =
         if not (String.IsNullOrEmpty p.name) then
             let resourceAccessPath = PropertyAccessPaths.getInnerAccessPath parentAccessPath p
-            let c = getConsumer p.name resourceAccessPath
+            let c = getConsumer p.name resourceAccessPath None
             consumerList.Add(c)
 
     match parameterKind with
     | ParameterKind.Path ->
-        let c = getConsumer parameterName []
+        let c = getConsumer parameterName [] None
         consumerList.Add(c)
     | ParameterKind.Query ->
         if String.IsNullOrEmpty parameterName then
             Tree.iterCtx visitLeaf visitInner PropertyAccessPaths.getInnerAccessPath [] parameterPayload
         else
-            let parameterDependency = getConsumer parameterName []
+            let parameterDependency = getConsumer parameterName [] None
             consumerList.Add(parameterDependency)
     | ParameterKind.Body ->
 
@@ -731,7 +747,8 @@ let createBodyProducer (consumerResourceId:ApiResource) =
     {
         ResponseProducer.id = ApiResource(consumerResourceId.RequestId,
                                            consumerResourceId.ResourceReference,
-                                           NamingConvention.CamelCase)
+                                           NamingConvention.CamelCase,
+                                           consumerResourceId.PrimitiveType)
     }
 
 /// Create a path producer that is the result of invoking an API endpoint, which
@@ -745,7 +762,8 @@ let createPathProducer (requestId:RequestId) (accessPath:PropertyAccessPath) =
                                            BodyResource { name = accessPath.Name
                                                           fullPath = accessPath.Path
                                                           },
-                                           NamingConvention.CamelCase)
+                                           NamingConvention.CamelCase,
+                                           PrimitiveType.String)
     }
 
 /// Input: the requests in the RESTler grammar, without dependencies, the dictionary, and any available annotations or examples.
@@ -983,13 +1001,14 @@ let extractDependencies (requestData:(RequestId*RequestData)[])
                                                 let prefixName = generateIdForCustomUuidSuffixPayload rp.id.ContainerName.Value consumerResourceName
 
                                                 let suffixProducer =
-                                                    DictionaryPayload (CustomPayloadType.UuidSuffix, prefixName, false)
+                                                    DictionaryPayload (CustomPayloadType.UuidSuffix, PrimitiveType.String, prefixName, false)
 
                                                 let suffixConsumer =
                                                     {
                                                         Consumer.id = ApiResource(rp.id.RequestId,
                                                                                    rp.id.ResourceReference,
-                                                                                   NamingConvention.CamelCase)
+                                                                                   NamingConvention.CamelCase,
+                                                                                   PrimitiveType.String)
                                                         Consumer.parameterKind = ParameterKind.Body
                                                         Consumer.annotation = None
                                                     }
@@ -1088,8 +1107,11 @@ module DependencyLookup =
         | Some (ResponseObject responseProducer) ->
             let variableName = generateDynamicObjectVariableName responseProducer.id.RequestId (Some responseProducer.id.AccessPathParts) "_"
             DynamicObject variableName
-        | Some (DictionaryPayload (customPayload, resourceName, isObject)) ->
-            Custom (customPayload, resourceName, isObject)
+        | Some (DictionaryPayload (customPayload, primitiveType, resourceName, isObject)) ->
+            Custom { payloadType = customPayload
+                     primitiveType = primitiveType
+                     payloadValue = resourceName
+                     isObject = isObject }
         | Some (SameBodyPayload payloadPropertyProducer) ->
             // The producer is a property in the same input payload body.
             // The consumer should consist of a set of payload parts, creating the full URI (with resolved dependencies)
@@ -1111,8 +1133,13 @@ module DependencyLookup =
                 FuzzingPayload.Constant (PrimitiveType.String, payloadValue)
 
             let namePrefix = generateIdForCustomUuidSuffixPayload containerName payloadPropertyProducer.id.ResourceName
-            let namePayload = FuzzingPayload.Custom(CustomPayloadType.UuidSuffix, namePrefix, false)
-
+            let namePayload = FuzzingPayload.Custom
+                                    {
+                                        payloadType = CustomPayloadType.UuidSuffix
+                                        primitiveType = PrimitiveType.String
+                                        payloadValue = namePrefix
+                                        isObject = false
+                                    }
             // Add the endpoint (path) payload, with resolved dependencies
             let pp = pathPayload.Value
                         |> List.map (fun x -> [ FuzzingPayload.Constant (PrimitiveType.String, "/")
@@ -1207,12 +1234,12 @@ module DependencyLookup =
         let addDictionaryEntries (customPayloads:Map<string, string>) (p:LeafProperty) =
             let rec getDictionaryEntry (entries:Map<string, string>) payload =
                 match payload with
-                | Custom (CustomPayloadType.UuidSuffix, payloadValue, _) ->
-                    if entries.ContainsKey(payloadValue) then
+                | Custom cp ->
+                    if entries.ContainsKey(cp.payloadValue) then
                         entries
                     else
-                        let prefixValue = generatePrefixForCustomUuidSuffixPayload payloadValue
-                        entries.Add(payloadValue, prefixValue)
+                        let prefixValue = generatePrefixForCustomUuidSuffixPayload cp.payloadValue
+                        entries.Add(cp.payloadValue, prefixValue)
                 | PayloadParts payloadList ->
                     payloadList
                     |> List.fold (fun e payloadPart ->
@@ -1285,7 +1312,7 @@ let writeDependencies dependenciesFilePath dependencies (unresolvedOnly:bool) =
                                 rp.id.RequestId.endpoint,
                                 getMethod rp.id,
                                 getParameter rp.id
-                            | Some (DictionaryPayload (payloadType, payloadName, _)) ->
+                            | Some (DictionaryPayload (payloadType, primitivePayloadType, payloadName, _)) ->
                                 let customPayloadDesc =
                                     match payloadType with
                                     | CustomPayloadType.String -> ""

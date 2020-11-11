@@ -11,11 +11,15 @@
     <Compile Include="CodeGeneratorTests.fs" />
     <Compile Include="DependencyTests.fs" />
     <Compile Include="ConfigTests.fs" />
+    <Compile Include="DictionaryTests.fs" />
     <Compile Include="ExampleTests.fs" />
     <Compile Include="ReferencesTests.fs" />
     <Compile Include="RealWorldTests.fs" />
     <Content Include="packages.lock.json" />
     <Content Include="baselines\dependencyTests\path_annotation_grammar.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="baselines\dictionaryTests\quoted_primitives_grammar.py">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="baselines\dependencyTests\path_in_dictionary_payload_grammar.py">
@@ -55,6 +59,12 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="swagger\dictionaryTests\dict.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="swagger\dictionaryTests\customPayloadSwagger.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="swagger\dictionaryTests\customPayloadDict.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="swagger\DependencyTests\lowercase_paths.json">

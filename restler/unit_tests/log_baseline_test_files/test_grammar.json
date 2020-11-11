@@ -158,10 +158,10 @@
                         },
                         {
                           "LeafNode": {
-                            "name": "enable",
+                            "name": "strtest",
                             "payload": {
                                 "Fuzzable": [
-                                    "Bool",
+                                    "String",
                                     "true"
                                 ]
                             },
@@ -910,11 +910,12 @@
                           "LeafNode": {
                             "name": "testpayload",
                             "payload": {
-                              "Custom": [
-                                  "String",
-                                  "testquote",
-                                  false
-                              ]
+                              "Custom": {
+                                "payloadType": "String",
+                                "primitiveType": "String",
+                                "payloadValue": "testquote",
+                                "isObject": false
+                              }
                             },
                             "isRequired": false,
                             "isReadOnly": false
@@ -1134,11 +1135,12 @@
                   "LeafNode": {
                     "name": "",
                     "payload": {
-                      "Custom": [
-                        "String",
-                        "location",
-                        false
-                      ]
+                      "Custom": {
+                        "payloadType": "String",
+                        "primitiveType": "String",
+                        "payloadValue": "location",
+                        "isObject": false
+                      }
                     },
                     "isRequired": true,
                     "isReadOnly": false
@@ -1182,11 +1184,12 @@
                             "LeafNode": {
                               "name": "location",
                               "payload": {
-                                "Custom": [
-                                  "String",
-                                  "location",
-                                  false
-                                ]
+                                "Custom": {
+                                  "payloadType": "String",
+                                  "primitiveType": "String",
+                                  "payloadValue": "location",
+                                  "isObject": false
+                                }
                               },
                               "isRequired": true,
                               "isReadOnly": false
@@ -1729,11 +1732,12 @@
                   "LeafNode": {
                     "name": "",
                     "payload": {
-                      "Custom": [
-                        "String",
-                        "location",
-                        false
-                      ]
+                      "Custom": {
+                        "payloadType": "String",
+                        "primitiveType": "String",
+                        "payloadValue": "location",
+                        "isObject": false
+                      }
                     },
                     "isRequired": true,
                     "isReadOnly": false
@@ -1780,6 +1784,43 @@
                                 "Fuzzable": [
                                     "DateTime",
                                     "2020-1-1"
+                                ]
+                              },
+                              "isRequired": false,
+                              "isReadOnly": false
+                            }
+                          },
+                          {
+                            "LeafNode": {
+                              "name": "id",
+                              "payload": {
+                                "PayloadParts": [
+                                  {
+                                    "Constant": [
+                                      "String",
+                                      "/"
+                                    ]
+                                  },
+                                  {
+                                    "Constant": [
+                                      "String",
+                                      "testparts"
+                                    ]
+                                  },
+                                  {
+                                    "Constant": [
+                                      "String",
+                                      "/"
+                                    ]
+                                  },
+                                  {
+                                    "Custom": {
+                                      "payloadType": "String",
+                                      "primitiveType": "String",
+                                      "payloadValue": "testcustomparts",
+                                      "isObject": false
+                                    }
+                                  }
                                 ]
                               },
                               "isRequired": false,

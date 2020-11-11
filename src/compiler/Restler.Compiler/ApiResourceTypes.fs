@@ -52,7 +52,10 @@ let private pluralizer = Pluralize.NET.Core.Pluralizer()
 /// The type name is inferred during construction.
 /// Note: resource IDs may use several naming conventions in the same one.  This is not currently supported.
 /// For example: "/admin/pre-receive-environments/{pre_receive_environment_id}"
-type ApiResource(requestId:RequestId, resourceReference:ResourceReference, namingConvention:NamingConvention) =
+type ApiResource(requestId:RequestId,
+                 resourceReference:ResourceReference,
+                 namingConvention:NamingConvention,
+                 primitiveType:PrimitiveType) =
     let endpointParts = requestId.endpoint.Split([|'/'|], StringSplitOptions.RemoveEmptyEntries)
 
     // Gets the first non path parameter of this endpoint
@@ -239,6 +242,8 @@ type ApiResource(requestId:RequestId, resourceReference:ResourceReference, namin
 
     member x.IsNestedBodyResource = isNestedBodyResource
 
+    member x.PrimitiveType = primitiveType
+
     override x.ToString() =
         sprintf "%A %s %A"
                 x.RequestId x.ResourceName x.AccessPath
@@ -270,7 +275,7 @@ type Producer =
     /// A resource value specified as a payload in the custom dictionary.
     /// (payloadType, consumerResourceName, isObject)
     /// To be converted to 'consumerResourcePath' in VSTS#7191
-    | DictionaryPayload of CustomPayloadType * string * bool
+    | DictionaryPayload of CustomPayloadType * PrimitiveType * string * bool
 
     /// A resource value produced in a response of the specified request.
     | ResponseObject of ResponseProducer

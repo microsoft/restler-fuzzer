@@ -17,6 +17,9 @@
     ],
     "location": [
       "centralus"
+    ],
+    "testcustomparts": [
+      "testcustompart"
     ]
   },
   "restler_custom_payload_unquoted": {
