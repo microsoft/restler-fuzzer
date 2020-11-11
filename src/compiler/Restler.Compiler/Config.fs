@@ -58,9 +58,9 @@ type Config =
 
         IncludeOptionalParameters : bool
 
-        UseQueryExamples : bool
+        UseQueryExamples : bool option
 
-        UseBodyExamples : bool
+        UseBodyExamples : bool option
 
         /// When set to 'true', discovers examples and outputs them to a directory next to the grammar.
         /// If an existing directory exists, does not over-write it.
@@ -181,8 +181,8 @@ let SampleConfig =
         AnnotationFilePath = None
         GrammarOutputDirectoryPath = None
         IncludeOptionalParameters = true
-        UseQueryExamples = false
-        UseBodyExamples = false
+        UseQueryExamples = None
+        UseBodyExamples = None
         DiscoverExamples = false
         ExamplesDirectory = ""
         ResolveQueryDependencies = true
@@ -207,8 +207,8 @@ let DefaultConfig =
         AnnotationFilePath = None
         GrammarOutputDirectoryPath = None
         IncludeOptionalParameters = true
-        UseQueryExamples = true
-        UseBodyExamples = true
+        UseQueryExamples = Some true
+        UseBodyExamples = Some true
         DiscoverExamples = false
         ExamplesDirectory = ""
         ResolveQueryDependencies = true

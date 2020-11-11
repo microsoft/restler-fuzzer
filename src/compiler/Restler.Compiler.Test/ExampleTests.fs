@@ -18,7 +18,7 @@ module Examples =
                              IncludeOptionalParameters = true
                              GrammarOutputDirectoryPath = Some ctx.testRootDirPath
                              ResolveBodyDependencies = true
-                             UseBodyExamples = false
+                             UseBodyExamples = Some false
                              SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, @"swagger\example_demo1.json"))]
                              CustomDictionaryFilePath = Some (Path.Combine(Environment.CurrentDirectory, @"swagger\example_demo_dictionary.json"))
                          }
@@ -42,8 +42,8 @@ module Examples =
                              IncludeOptionalParameters = true
                              GrammarOutputDirectoryPath = Some ctx.testRootDirPath
                              ResolveBodyDependencies = false
-                             UseBodyExamples = true
-                             UseQueryExamples = true
+                             UseBodyExamples = Some true
+                             UseQueryExamples = Some true
                              SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, @"swagger\array_example.json"))]
                              CustomDictionaryFilePath = Some (Path.Combine(Environment.CurrentDirectory, @"swagger\example_demo_dictionary.json"))
                          }
@@ -56,7 +56,7 @@ module Examples =
                              IncludeOptionalParameters = true
                              GrammarOutputDirectoryPath = Some ctx.testRootDirPath
                              ResolveBodyDependencies = false
-                             UseBodyExamples = true
+                             UseBodyExamples = Some true
                              SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, @"swagger\object_example.json"))]
                              CustomDictionaryFilePath = Some (Path.Combine(Environment.CurrentDirectory, @"swagger\example_demo_dictionary.json"))
                          }
@@ -69,7 +69,7 @@ module Examples =
                              IncludeOptionalParameters = true
                              GrammarOutputDirectoryPath = Some ctx.testRootDirPath
                              ResolveBodyDependencies = false
-                             UseBodyExamples = true
+                             UseBodyExamples = Some true
                              SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, @"swagger\secgroup_example.json"))]
                              CustomDictionaryFilePath = Some (Path.Combine(Environment.CurrentDirectory, @"swagger\dict_secgroup_example.json"))
                          }
@@ -82,7 +82,7 @@ module Examples =
                              IncludeOptionalParameters = true
                              GrammarOutputDirectoryPath = Some ctx.testRootDirPath
                              ResolveBodyDependencies = false
-                             UseBodyExamples = true
+                             UseBodyExamples = Some true
                              SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, @"swagger\empty_array_example.json"))]
                              CustomDictionaryFilePath = Some (Path.Combine(Environment.CurrentDirectory, @"swagger\example_demo_dictionary.json"))
                          }
@@ -98,7 +98,7 @@ module Examples =
                                  IncludeOptionalParameters = true
                                  GrammarOutputDirectoryPath = Some ctx.testRootDirPath
                                  ResolveBodyDependencies = false
-                                 UseBodyExamples = true
+                                 UseBodyExamples = Some true
                                  SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory,
                                                                            sprintf @"swagger\example_demo1%s" extension))]
                                  CustomDictionaryFilePath = Some (Path.Combine(Environment.CurrentDirectory, @"swagger\example_demo_dictionary.json"))
@@ -122,7 +122,7 @@ module Examples =
                              IncludeOptionalParameters = true
                              GrammarOutputDirectoryPath = Some ctx.testRootDirPath
                              ResolveBodyDependencies = true
-                             UseBodyExamples = true
+                             UseBodyExamples = Some true
                              DiscoverExamples = true
                              SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, @"swagger\example_demo1.json"))]
                              CustomDictionaryFilePath = Some (Path.Combine(Environment.CurrentDirectory, @"swagger\example_demo_dictionary.json"))
@@ -150,7 +150,7 @@ module Examples =
                              IncludeOptionalParameters = true
                              GrammarOutputDirectoryPath = Some ctx.testRootDirPath
                              ResolveBodyDependencies = true
-                             UseBodyExamples = true
+                             UseBodyExamples = Some true
                              SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, @"swagger\example_demo.json"))]
                              CustomDictionaryFilePath = Some (Path.Combine(Environment.CurrentDirectory, @"swagger\example_demo_dictionary.json"))
                          }
@@ -179,7 +179,7 @@ module Examples =
                             GrammarOutputDirectoryPath = Some ctx.testRootDirPath
                             ResolveBodyDependencies = true
                             ResolveQueryDependencies = true
-                            UseBodyExamples = true
+                            UseBodyExamples = Some true
                             SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, @"swagger\dependencyTests\subnet_id.json"))]
                             CustomDictionaryFilePath = None
                          }
@@ -208,7 +208,7 @@ module Examples =
                             GrammarOutputDirectoryPath = Some grammarOutputDirPath
                             ResolveBodyDependencies = true
                             ResolveQueryDependencies = true
-                            UseBodyExamples = true
+                            UseBodyExamples = Some true
                             SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, @"swagger\dependencyTests\nested_objects_naming.json"))]
                             CustomDictionaryFilePath = None
                          }
@@ -279,7 +279,7 @@ module Examples =
                             GrammarOutputDirectoryPath = Some grammarOutputDirectoryPath
                             ResolveBodyDependencies = true
                             ResolveQueryDependencies = true
-                            UseBodyExamples = true
+                            UseBodyExamples = Some true
                             SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, @"swagger\dependencyTests\frontend_port_id.json"))]
                             CustomDictionaryFilePath = None
                          }
@@ -328,7 +328,7 @@ module Examples =
                             GrammarOutputDirectoryPath = Some ctx.testRootDirPath
                             ResolveBodyDependencies = true
                             ResolveQueryDependencies = true
-                            UseBodyExamples = true
+                            UseBodyExamples = Some true
                             SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, @"swagger\DependencyTests\ip_configurations_get.json"))]
                             CustomDictionaryFilePath = None
                          }

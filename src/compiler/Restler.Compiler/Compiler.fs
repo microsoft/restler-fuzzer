@@ -417,7 +417,12 @@ let generateRequestGrammar (swaggerDocs:Types.ApiSpecFuzzingConfig list)
 
                     // If there are examples for this endpoint+method, extract the example file using the example options.
                     let exampleConfig =
-                        if config.UseBodyExamples || config.UseQueryExamples || config.DiscoverExamples then
+                        let useBodyExamples =
+                            config.UseBodyExamples |> Option.defaultValue false
+                        let useQueryExamples =
+                            config.UseQueryExamples |> Option.defaultValue false
+
+                        if useBodyExamples || useQueryExamples || config.DiscoverExamples then
                             let exampleRequestPayloads = getExampleConfig m.Value config.DiscoverExamples config.ExamplesDirectory
                             // If 'discoverExamples' is specified, create a local copy in the specified examples directory for
                             // all the examples found.
@@ -445,8 +450,14 @@ let generateRequestGrammar (swaggerDocs:Types.ApiSpecFuzzingConfig list)
                         let requestParameters =
                             {
                                 RequestParameters.path = Parameters.pathParameters m.Value ep
-                                RequestParameters.query = Parameters.queryParameters m.Value (if config.UseQueryExamples then exampleConfig else None) config.DataFuzzing
-                                RequestParameters.body = Parameters.bodyParameters m.Value (if config.UseBodyExamples then exampleConfig else None) config.DataFuzzing
+                                RequestParameters.query =
+                                    let useQueryExamples =
+                                        config.UseQueryExamples |> Option.defaultValue false
+                                    Parameters.queryParameters m.Value (if useQueryExamples then exampleConfig else None) config.DataFuzzing
+                                RequestParameters.body =
+                                    let useBodyExamples =
+                                        config.UseBodyExamples |> Option.defaultValue false
+                                    Parameters.bodyParameters m.Value (if useBodyExamples then exampleConfig else None) config.DataFuzzing
                             }
 
                         let allResponseProperties = seq {

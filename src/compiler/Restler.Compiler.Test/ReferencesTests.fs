@@ -20,7 +20,7 @@ module References =
                              IncludeOptionalParameters = true
                              GrammarOutputDirectoryPath = Some ctx.testRootDirPath
                              ResolveBodyDependencies = true
-                             UseBodyExamples = false
+                             UseBodyExamples = Some false
                              SwaggerSpecFilePath = Some [filePath]
                              CustomDictionaryFilePath = None
                          }
