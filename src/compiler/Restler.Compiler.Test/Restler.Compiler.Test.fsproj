@@ -25,6 +25,9 @@
     <Content Include="baselines\dependencyTests\path_in_dictionary_payload_grammar.py">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="swagger\dependencyTests\post_patch_dependency.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="swagger\annotationTests\pathAnnotation.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

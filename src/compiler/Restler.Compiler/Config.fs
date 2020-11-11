@@ -5,6 +5,15 @@ module Restler.Config
 
 open System.IO
 
+/// The 'type' of the resource is inferred based on the naming of its name and container as
+/// well as conventions for the API method (e.g. PUT vs. POST).
+/// A naming convention may be specified by the user, or it is inferred automatically
+type NamingConvention =
+    | CamelCase  // accountId
+    | PascalCase // AccountId
+    | HyphenSeparator  // account-id
+    | UnderscoreSeparator // account_id
+
 /// A configuration associated with a single API specification file (e.g. a Swagger .json spec)
 type SwaggerSpecConfig =
     {
@@ -82,6 +91,10 @@ type Config =
         // In limited cases when GET is a valid producer, the user
         // should add an annotation for it.
         AllowGetProducers : bool
+
+        // When specified, use only this naming convention to infer
+        // producer-consumer dependencies.
+        ApiNamingConvention : NamingConvention option
     }
 
 let convertToAbsPath (currentDirPath:string) (filePath:string) =
@@ -179,6 +192,7 @@ let SampleConfig =
         AllowGetProducers = false
         EngineSettingsFilePath = None
         DataFuzzing = false
+        ApiNamingConvention = None
     }
 
 /// The default config used for unit tests.  Most of these should also be the defaults for
@@ -204,4 +218,5 @@ let DefaultConfig =
         AllowGetProducers = false
         EngineSettingsFilePath = None
         DataFuzzing = false
+        ApiNamingConvention = None
     }

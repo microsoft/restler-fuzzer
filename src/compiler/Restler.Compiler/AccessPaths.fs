@@ -39,8 +39,6 @@ let tryGetAccessPathFromString (str:string) : AccessPath option =
                 Some { AccessPath.path = parts }
         else
             None
-    if ap.IsNone then
-        printfn "Invalid access path specified: %s" str
     ap
 
 

@@ -669,7 +669,9 @@ let getProducer (request:RequestId) (response:ResponseProperties) =
 
 let getParameterDependencies parameterKind globalAnnotations
                              (requestData:(RequestId*RequestData)[])
-                             (requestId:RequestId) (parameterName, parameterPayload) =
+                             (requestId:RequestId)
+                             (parameterName, parameterPayload)
+                             namingConvention =
 
     let consumerList = new List<Consumer>()
     let annotatedRequests = requestData
@@ -698,7 +700,7 @@ let getParameterDependencies parameterKind globalAnnotations
                 BodyResource { name = resourceName ; fullPath = { path = resourceAccessPath |> List.toArray }}
         {
                 id = ApiResource(requestId, resourceReference,
-                                 NamingConvention.CamelCase,
+                                 namingConvention,
                                  if primitiveType.IsSome then primitiveType.Value else PrimitiveType.String)
                 annotation = findAnnotation globalAnnotations annotatedRequests requestId resourceName { path = resourceAccessPath |> List.toArray }
                 parameterKind = parameterKind
@@ -747,14 +749,15 @@ let createBodyProducer (consumerResourceId:ApiResource) =
     {
         ResponseProducer.id = ApiResource(consumerResourceId.RequestId,
                                            consumerResourceId.ResourceReference,
-                                           NamingConvention.CamelCase,
+                                           consumerResourceId.NamingConvention,
                                            consumerResourceId.PrimitiveType)
     }
 
 /// Create a path producer that is the result of invoking an API endpoint, which
 /// is identified by the last part of the endpoint.
 /// For example: POST /customers, or PUT /product/{productName}
-let createPathProducer (requestId:RequestId) (accessPath:PropertyAccessPath) =
+let createPathProducer (requestId:RequestId) (accessPath:PropertyAccessPath)
+                       (namingConvention:NamingConvention option) =
     {
         ResponseProducer.id = ApiResource(requestId,
                                            // The producer is a body resource, since it comes from the
@@ -762,8 +765,7 @@ let createPathProducer (requestId:RequestId) (accessPath:PropertyAccessPath) =
                                            BodyResource { name = accessPath.Name
                                                           fullPath = accessPath.Path
                                                           },
-                                           NamingConvention.CamelCase,
-                                           PrimitiveType.String)
+                                           namingConvention, PrimitiveType.String)
     }
 
 /// Input: the requests in the RESTler grammar, without dependencies, the dictionary, and any available annotations or examples.
@@ -776,6 +778,7 @@ let extractDependencies (requestData:(RequestId*RequestData)[])
                          (allowGetProducers:bool)
                          (dataFuzzing:bool)
                          (perResourceDictionaries:Map<string, string * MutationsDictionary>)
+                         (namingConvention:NamingConvention option)
                          : Dictionary<string, List<ProducerConsumerDependency>> * MutationsDictionary =
 
     let getParameterConsumers requestId parameterKind (parameters:RequestParametersPayload) resolveDependencies =
@@ -787,7 +790,8 @@ let extractDependencies (requestData:(RequestId*RequestData)[])
                                                     globalAnnotations
                                                     requestData
                                                     requestId
-                                                    p)
+                                                    p
+                                                    namingConvention)
 
             |> Seq.concat
         | _ -> Seq.empty
@@ -881,7 +885,7 @@ let extractDependencies (requestData:(RequestId*RequestData)[])
                 | Some rp ->
                     let responseProducerAccessPaths = getProducer r rp
                     for ap in responseProducerAccessPaths do
-                        let producer = createPathProducer r ap
+                        let producer = createPathProducer r ap namingConvention
                         let resourceName = ap.Name
                         producers.AddResponseProducer(resourceName, producer))
 
@@ -1006,9 +1010,9 @@ let extractDependencies (requestData:(RequestId*RequestData)[])
                                                 let suffixConsumer =
                                                     {
                                                         Consumer.id = ApiResource(rp.id.RequestId,
-                                                                                   rp.id.ResourceReference,
-                                                                                   NamingConvention.CamelCase,
-                                                                                   PrimitiveType.String)
+                                                                                  rp.id.ResourceReference,
+                                                                                  rp.id.NamingConvention,
+                                                                                  PrimitiveType.String)
                                                         Consumer.parameterKind = ParameterKind.Body
                                                         Consumer.annotation = None
                                                     }
@@ -1361,7 +1365,8 @@ let writeDependencies dependenciesFilePath dependencies (unresolvedOnly:bool) =
                                         |> Seq.map (fun (parameterKind, parameterKindDeps) ->
                                                         parameterKind,
                                                         parameterKindDeps
-                                                        |> Seq.map (fun d -> d.annotation))
+                                                        |> Seq.map (fun d -> d.annotation)
+                                                        |> Seq.sortBy(fun a -> a.consumer_param))
                                         |> Map.ofSeq
                                     )
                          |> Map.ofSeq
