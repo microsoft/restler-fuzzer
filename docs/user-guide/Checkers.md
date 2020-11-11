@@ -59,6 +59,39 @@ Will then re-send the final request with the resource(s) replaced with an invali
 If more than one resource exists,
 each combination of valid/invalid resources will be used.
 
+Note that all _valid-object_ references below will be replaced with the original, valid, dynamic object
+
+The default "invalid dynamic objects" used are:
+* '_valid-object_?injected_query_string=123'
+* '_valid-object_/?/'
+* '_valid-object_??'
+* '_valid-object_/_valid-object_'
+* '{}'
+
+It is possible to disable these default invalid objects by adding the following section to the settings file:
+```
+"checkers": {
+    "invaliddynamicobject": {
+        "no_defaults": true
+    }
+}
+```
+
+It is also possible to define a list of your own custom invalid dynamic objects by specifying them in the settings file:
+```
+"checkers": {
+    "invaliddynamicobject": {
+        "invalid_objects" : [
+            "someinvalidobject",
+            "valid-object/$*"
+        ]
+    }
+}
+```
+
+Note that in the the above example the custom list will be added to the default list.
+To replace all defaults, you must also include the "no_default" setting.
+
 ## PayloadBodyChecker
 Detects errors by fuzzing a request's payload body.
 
@@ -69,7 +102,7 @@ editing the format,
 changing object types,
 etc.
 
-## ExamplesChecker (Off by default)
+## ExamplesChecker
 Detects errors by sending new requests that use their body and query examples.
 
 Triggers after a new request is discovered that has examples.
