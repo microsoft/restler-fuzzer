@@ -592,7 +592,6 @@ def print_memory_consumption(req_collection, fuzzing_monitor, fuzzing_mode, gene
     timestamp = formatting.timestamp()
     print_memory_consumption.invocations += 1
 
-    #num_test_cases = fuzzing_monitor.num_test_cases()
     lcov = 0
 
     avg_val = statistics.mean([r.num_combinations(req_collection.candidate_values_pool)\
