@@ -572,13 +572,11 @@ def print_req_collection_stats(req_collection, candidate_values_pool):
 
     write_to_main(data)
 
-def print_memory_consumption(req_collection, seq_len, fuzzing_monitor, fuzzing_mode, generation):
+def print_memory_consumption(req_collection, fuzzing_monitor, fuzzing_mode, generation):
     """ Prints global generation's memory consumption statistics.
 
     @param req_collection: The requests collection.
     @type  req_collection: RequestCollection class object.
-    @param seq_len: The length of the generation's sequence
-    @type  seq_len: Int
     @param fuzzing_monitor: The global fuzzing monitor
     @type  fuzzing_monitor: FuzzingMonitor
     @param fuzzing_mode: The current fuzzing mode
@@ -594,7 +592,7 @@ def print_memory_consumption(req_collection, seq_len, fuzzing_monitor, fuzzing_m
     timestamp = formatting.timestamp()
     print_memory_consumption.invocations += 1
 
-    num_test_cases = fuzzing_monitor.num_test_cases()
+    #num_test_cases = fuzzing_monitor.num_test_cases()
     lcov = 0
 
     avg_val = statistics.mean([r.num_combinations(req_collection.candidate_values_pool)\
@@ -604,13 +602,10 @@ def print_memory_consumption(req_collection, seq_len, fuzzing_monitor, fuzzing_m
         f"{os.path.basename(req_collection._grammar_name)[:-3]}, "
         f"{req_collection.size}, {avg_val}, {fuzzing_mode}, "
         f"{timestamp}, {lcov}, {generation}, "
-        f"{fuzzing_monitor.num_requests_sent()['main_driver']}, "
-        f"{fuzzing_monitor.num_test_cases()}, {seq_len}\n"
+        f"{fuzzing_monitor.num_requests_sent()['main_driver']}"
 
-        f"{timestamp}: Total sequences: {seq_len}\n"
         f"{timestamp}: Total Creations of Dyn Objects: {dependencies.object_creations}\n"
         f"{timestamp}: Total Accesses of Dyn Objects: {dependencies.object_accesses}\n"
-        f"{timestamp}: Total Unique Test Cases: {fuzzing_monitor.num_test_cases()}\n"
         f"{timestamp}: Total Requests Sent: {fuzzing_monitor.num_requests_sent()}\n"
         f"{timestamp}: Bug Buckets: {BugBuckets.Instance().num_bug_buckets()}"
     )
@@ -618,13 +613,11 @@ def print_memory_consumption(req_collection, seq_len, fuzzing_monitor, fuzzing_m
 print_memory_consumption.invocations = 0
 
 
-def print_generation_stats(req_collection, seq_len, fuzzing_monitor, global_lock, final=False):
+def print_generation_stats(req_collection, fuzzing_monitor, global_lock, final=False):
     """ Prints global generation's statistics.
 
     @param req_collection: The requests collection.
     @type  req_collection: RequestCollection class object.
-    @param seq_len: The length of the generation's sequence
-    @type  seq_len: Int
     @param fuzzing_monitor: The global fuzzing monitor
     @type  fuzzing_monitor: FuzzingMonitor
     @param global_lock: Lock object used for sync of more than one fuzzing jobs.
@@ -640,11 +633,6 @@ def print_generation_stats(req_collection, seq_len, fuzzing_monitor, global_lock
     from engine.transport_layer.response import VALID_CODES
     from engine.transport_layer.response import RESTLER_INVALID_CODE
     timestamp = formatting.timestamp()
-    time_now_minutes = float(int(time.time()*10**6)) / (60*10**6)
-    time_start_minutes = float(fuzzing_monitor.start_time) / (60*10**6)
-    throughput_per_minute = fuzzing_monitor.num_test_cases() /\
-          (time_now_minutes - time_start_minutes)
-
 
     successful_requests = []
     num_fully_valid = 0
@@ -665,7 +653,6 @@ def print_generation_stats(req_collection, seq_len, fuzzing_monitor, global_lock
     rendered_requests_valid_status = f"{sum_successful_requests} / {num_rendered_requests}"
     num_invalid_by_failed_resource_creations = sum_successful_requests - num_fully_valid
     total_object_creations = dependencies.object_creations
-    total_unique_test_cases = fuzzing_monitor.num_test_cases()
     total_requests_sent = fuzzing_monitor.num_requests_sent()
     bug_buckets = BugBuckets.Instance().num_bug_buckets()
 
@@ -676,10 +663,7 @@ def print_generation_stats(req_collection, seq_len, fuzzing_monitor, global_lock
         f"{timestamp}: Num fully valid requests (no resource creation failures): {num_fully_valid}\n"
         f"{timestamp}: Num requests not rendered due to invalid sequence re-renders: {num_sequence_failures}\n"
         f"{timestamp}: Num invalid requests caused by failed resource creations: {num_invalid_by_failed_resource_creations}\n"
-        f"{timestamp}: Throughput: {throughput_per_minute:.1f} (Test Cases / Minute)\n"
         f"{timestamp}: Total Creations of Dyn Objects: {total_object_creations}\n"
-        f"{timestamp}: Total Unique Test Cases: {total_unique_test_cases}\n"
-        f"{timestamp}: Total sequences: {seq_len}\n"
         f"{timestamp}: Total Requests Sent: {total_requests_sent}\n"
         f"{timestamp}: Bug Buckets: {BugBuckets.Instance().num_bug_buckets()}"
     )
@@ -692,10 +676,7 @@ def print_generation_stats(req_collection, seq_len, fuzzing_monitor, global_lock
         testing_summary['num_fully_valid'] = num_fully_valid
         testing_summary['num_sequence_failures'] = num_sequence_failures
         testing_summary['num_invalid_by_failed_resource_creations'] = num_invalid_by_failed_resource_creations
-        testing_summary['throughput'] = throughput_per_minute
         testing_summary['total_object_creations'] = total_object_creations
-        testing_summary['total_unique_test_cases'] = total_unique_test_cases
-        testing_summary['total_sequences'] = seq_len
         testing_summary['total_requests_sent'] = total_requests_sent
         testing_summary['bug_buckets'] = bug_buckets
 

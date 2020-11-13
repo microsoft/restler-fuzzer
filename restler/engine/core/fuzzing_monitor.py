@@ -232,6 +232,8 @@ class FuzzingMonitor(object):
     def num_test_cases(self, lock=None):
         """ Calls internal status codes monitor's num_test_cases function
 
+        DEPRECATED: This function is currently deprecated and unused
+
         @param lock: Lock object used for sync of more than one fuzzing jobs.
         @type lock: thread.Lock object
 

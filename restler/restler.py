@@ -548,6 +548,6 @@ if __name__ == '__main__':
             gc_thread.join(THREAD_JOIN_WAIT_TIME_SECONDS)
 
     # Print the end of the run generation stats
-    logger.print_generation_stats(req_collection, num_total_sequences, monitor, None, final=True)
+    logger.print_generation_stats(req_collection, monitor, None, final=True)
 
     print("Done.")
