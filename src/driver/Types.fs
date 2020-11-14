@@ -163,10 +163,7 @@ module Engine =
             num_fully_valid : int
             num_sequence_failures : int
             num_invalid_by_failed_resource_creations : int
-            throughput : double
             total_object_creations : int
-            total_unique_test_cases : double
-            total_sequences : int
             total_requests_sent : Dictionary<string, int>
             bug_buckets : Dictionary<string, int>
         }

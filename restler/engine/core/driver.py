@@ -179,8 +179,7 @@ def render_one(seq_collection, ith, checkers, generation, global_lock):
     render_one.last_memory_consumption_check = getattr(render_one, 'last_memory_consumption_check', int(time.time()))
 
     if int(time.time()) - render_one.last_memory_consumption_check > (n_minutes*60):
-        logger.print_memory_consumption(GrammarRequestCollection(), len(seq_collection),
-                                        Monitor(), Settings().fuzzing_mode, generation)
+        logger.print_memory_consumption(GrammarRequestCollection(), Monitor(), Settings().fuzzing_mode, generation)
         render_one.last_memory_consumption_check = int(time.time())
 
     candidate_values_pool = GrammarRequestCollection().candidate_values_pool
@@ -668,8 +667,7 @@ def generate_sequences(fuzzing_requests, checkers, fuzzing_jobs=1):
             saver.save(GrammarRequestCollection(), seq_collection, fuzzing_requests, Monitor(), generation)
 
             # Print stats for iteration of the current generation
-            logger.print_generation_stats(GrammarRequestCollection(), len(seq_collection),
-                                           Monitor(), global_lock)
+            logger.print_generation_stats(GrammarRequestCollection(), Monitor(), global_lock)
 
             num_total_sequences += len(seq_collection)
 
