@@ -14,7 +14,7 @@ import subprocess
 import shutil
 from pathlib import Path
 
-RESTLER_WORKING_DIR = Path(Path.home()).joinpath('restler_working_dir')
+RESTLER_WORKING_DIR = 'restler_working_dir'
 
 class QuickStartFailedException(Exception):
     pass
