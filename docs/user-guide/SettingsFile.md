@@ -27,8 +27,16 @@ Checkers' Friendly Names:
 * PayloadBody
 * Examples
 
-### custom_checkers: str (default None)
-Path to a custom checker file that will be loaded during runtime.
+### custom_bug_codes: list(str)
+List of status codes that will be flagged as bugs.
+
+### custom_checkers: list(str) (default None)
+List of paths to custom checker files that will be loaded during runtime.
+
+### custom_non_bug_codes: list(str)
+A list of "non-bug" status codes.
+When this setting is defined,
+any status code received from the service-in-test that was _not_ included in this list will be flagged as a bug.
 
 ### dyn_objects_cache_size: int (default 10)
 Max number of objects of one type before deletion by the garbage collector
