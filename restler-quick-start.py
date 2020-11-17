@@ -6,7 +6,7 @@ import os
 import subprocess
 from pathlib import Path
 
-RESTLER_TEMP_DIR = Path(Path.home()).joinpath('restler_working_dir')
+RESTLER_TEMP_DIR = 'restler_working_dir'
 
 @contextlib.contextmanager
 def usedir(dir):
@@ -30,8 +30,8 @@ def compile_spec(api_spec_path, restler_dll_path):
     @param restler_dll_path: The absolute path to the RESTler driver's dll
     @type  restler_dll_path: Str
 
-    @return: The path of the Compile directory
-    @rtype : Path
+    @return: None
+    @rtype : None
 
     """
     if not os.path.exists(RESTLER_TEMP_DIR):
@@ -40,9 +40,7 @@ def compile_spec(api_spec_path, restler_dll_path):
     with usedir(RESTLER_TEMP_DIR):
         subprocess.run(f'dotnet {restler_dll_path} compile --api_spec {api_spec_path}', shell=True)
 
-    return Path(f'{RESTLER_TEMP_DIR}/Compile')
-
-def test_spec(ip, port, use_ssl, compile_dir, restler_dll_path):
+def test_spec(ip, port, use_ssl, restler_dll_path):
     """ Runs RESTler's test mode on a specified Compile directory
 
     @param ip: The IP of the service to test
@@ -51,8 +49,6 @@ def test_spec(ip, port, use_ssl, compile_dir, restler_dll_path):
     @type  port: Str
     @param use_ssl: If False, set the --no_ssl parameter when executing RESTler
     @type  use_ssl: Boolean
-    @param compile_dir: The Compile directory that contains the files to Test
-    @type  compile_dir: Str
     @param restler_dll_path: The absolute path to the RESTler driver's dll
     @type  restler_dll_path: Str
 
@@ -60,18 +56,20 @@ def test_spec(ip, port, use_ssl, compile_dir, restler_dll_path):
     @rtype : None
 
     """
-    command = (
-        f"dotnet {restler_dll_path} test --grammar_file {compile_dir.joinpath('grammar.py')} --dictionary_file {compile_dir.joinpath('dict.json')}"
-        f" --settings {compile_dir.joinpath('engine_settings.json')}"
-    )
-    if not use_ssl:
-        command = f"{command} --no_ssl"
-    if ip is not None:
-        command = f"{command} --target_ip {ip}"
-    if port is not None:
-        command = f"{command} --target_port {port}"
-
     with usedir(RESTLER_TEMP_DIR):
+        compile_dir = Path(f'Compile')
+
+        command = (
+            f"dotnet {restler_dll_path} test --grammar_file {compile_dir.joinpath('grammar.py')} --dictionary_file {compile_dir.joinpath('dict.json')}"
+            f" --settings {compile_dir.joinpath('engine_settings.json')}"
+        )
+        if not use_ssl:
+            command = f"{command} --no_ssl"
+        if ip is not None:
+            command = f"{command} --target_ip {ip}"
+        if port is not None:
+            command = f"{command} --target_port {port}"
+
         subprocess.run(command, shell=True)
 
 if __name__ == '__main__':
@@ -97,7 +95,7 @@ if __name__ == '__main__':
 
     api_spec_path = os.path.abspath(args.api_spec_path)
     restler_dll_path = Path(os.path.abspath(args.restler_drop_dir)).joinpath('restler', 'Restler.dll')
-    compile_dir = compile_spec(api_spec_path, restler_dll_path.absolute())
-    test_spec(args.ip, args.port, args.use_ssl, compile_dir, restler_dll_path.absolute())
+    compile_spec(api_spec_path, restler_dll_path.absolute())
+    test_spec(args.ip, args.port, args.use_ssl, restler_dll_path.absolute())
 
-    print(f"Test complete.\nSee {RESTLER_TEMP_DIR} for results.")
+    print(f"Test complete.\nSee {os.path.abspath(RESTLER_TEMP_DIR)} for results.")
