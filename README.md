@@ -39,7 +39,7 @@ RESTler was designed to run on 64-bit machines with Windows or Linux.
 ### **Build instructions**
 
 Prerequisites: Install [Python 3.8.2](https://www.python.org/downloads/) and
-[.NET core SDK 3.1](https://dotnet.microsoft.com/download/dotnet-core?utm_source=getdotnetcorecli&utm_medium=referral) or higher, for your appropriate OS.
+[.NET core SDK 3.1](https://dotnet.microsoft.com/download/dotnet-core?utm_source=getdotnetcorecli&utm_medium=referral), for your appropriate OS.
 
 Create a directory where you'd like to place the RESTler binaries:
 

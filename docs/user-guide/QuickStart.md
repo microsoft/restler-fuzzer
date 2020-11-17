@@ -1,7 +1,5 @@
 # Quick Start for Fuzzing with RESTler
 
-
-
 RESTler generates tests from your API specification,
 and executes these tests against your live service.
 In this quick start, you will first run RESTler with
@@ -24,7 +22,8 @@ The minimal requirements for fuzzing your API are:
 
 ## **Initial run**
 
-Once you have prepared (1) and (2), run the following command:
+Once you have built RESTler per the steps in the main README, and
+prepared (1) and (2), run the following command:
 
 ```python restler-quick-start.py --apiSpec <path to specification> --restler_drop_dir <path to RESTler drop>```
 
