@@ -26,7 +26,7 @@ The minimal requirements for fuzzing your API are:
 
 Once you have prepared (1) and (2), run the following command:
 
-```python restler-quick-start.py --apiSpec <path to specification> --restler_drop_dir <path to RESTler drop>```
+```python restler-quick-start.py --api_spec_path <path to specification> --restler_drop_dir <path to RESTler drop>```
 
 This command combines the Compile and Test mode into one: it compiles the
 Swagger specification and then tries to successfully
