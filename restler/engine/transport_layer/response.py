@@ -118,8 +118,8 @@ class HttpResponse(object):
         """
         if self._status_code:
             if Settings().custom_non_bug_codes:
-                # If the non-bug-code list is nonempty,
-                # return False only if the status code exists in the list.
+                # All codes except the ones in the custom_non_bug_codes list should be flagged as bugs.
+                # Hence, return False only if the status code exists in the list.
                 for code in Settings().custom_non_bug_codes:
                     if re.match(code, self._status_code):
                         return False
