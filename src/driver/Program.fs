@@ -14,7 +14,7 @@ open Microsoft.FSharpLu.Diagnostics.Process
 open Restler.Telemetry
 
 [<Literal>]
-let CurrentVersion = "7.0.0"
+let CurrentVersion = "7.0.1"
 
 let usage() =
     // Usage instructions should be formatted to ~100 characters per line.
