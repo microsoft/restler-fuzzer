@@ -5,6 +5,7 @@
 from __future__ import print_function
 import json
 import sys
+import re
 
 class NewSingletonError(Exception):
     pass
@@ -181,9 +182,9 @@ class SettingsListArg(SettingsArg):
 
         for value in values:
             if value != None:
-                self._validate(value)
                 if self.val_convert:
                     value = self.val_convert(value)
+                self._validate(value)
             self.val.append(value)
 
 class SettingsDictArg(SettingsArg):
@@ -319,6 +320,15 @@ class RestlerSettings(object):
             if arg.name in user_args and user_args[arg.name] is not None:
                 arg.set_val(user_args[arg.name])
 
+        def convert_wildcards_to_regex(str_value):
+            """ Converts strings with wildcards in '?' and '*' format to regex wildcards """
+            if not isinstance(str_value, str):
+                raise InvalidValueError("Invalid type identified when converting string to wildcard. "
+                                        f"{str_value} is type {type(str_value)}")
+            new_value = str_value.replace('?', '.')
+            new_value = new_value.replace('*', '.+')
+            return re.compile(new_value)
+
         if RestlerSettings.__instance:
             raise NewSingletonError("Attempting to create a new singleton instance.")
 
@@ -332,11 +342,17 @@ class RestlerSettings(object):
 
         ## List of endpoints whose resource is to be created only once - Will be set with other per_resource settings
         self._create_once_endpoints = SettingsListArg('create_once', str, val_convert=str_to_hex_def)
+        ## List of status codes that will be flagged as bugs
+        self._custom_bug_codes = SettingsListArg('custom_bug_codes', re.Pattern, val_convert=convert_wildcards_to_regex)
+        set_arg(self._custom_bug_codes)
         ## List of paths to custom checker python files
         self._custom_checkers = SettingsListArg('custom_checkers', str)
         set_arg(self._custom_checkers)
         ## Custom dictionaries for individual endpoints - will be set with other per_resource settings
         self._custom_dictionaries = SettingsDictArg('custom_dictionary', str, key_convert=str_to_hex_def)
+        ## List of status codes that represent "non-bugs". All other status codes will be treated as bugs.
+        self._custom_non_bug_codes = SettingsListArg('custom_non_bug_codes', re.Pattern, val_convert=convert_wildcards_to_regex)
+        set_arg(self._custom_non_bug_codes)
         ## Max number of objects of one type before deletion by the garbage collector
         self._dyn_objects_cache_size = SettingsArg('dyn_objects_cache_size', int, DYN_OBJECTS_CACHE_SIZE_DEFAULT, minval=0)
         set_arg(self._dyn_objects_cache_size)
@@ -455,8 +471,16 @@ class RestlerSettings(object):
         return self._create_once_endpoints.val
 
     @property
+    def custom_bug_codes(self):
+        return self._custom_bug_codes.val
+
+    @property
     def custom_checkers(self):
         return self._custom_checkers.val
+
+    @property
+    def custom_non_bug_codes(self):
+        return self._custom_non_bug_codes.val
 
     @property
     def dyn_objects_cache_size(self):
@@ -696,3 +720,6 @@ class RestlerSettings(object):
             raise OptionValidationError("Must specify refresh period in seconds")
         if self.request_throttle_ms and self.fuzzing_jobs != 1:
             raise OptionValidationError("Request throttling not available for multiple fuzzing jobs")
+        if self.custom_bug_codes and self.custom_non_bug_codes:
+            raise OptionValidationError("Both custom_bug_codes and custom_non_bug_codes lists were specified. "
+                                        "Specifying both lists is not allowed.")

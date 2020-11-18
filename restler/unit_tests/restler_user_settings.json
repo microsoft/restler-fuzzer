@@ -51,8 +51,16 @@
             "start_with_examples" : true,
             "size_dep_budget" : false,
             "use_feedback" : true,
-            "recipe_file" : "C:\\restler\\restlerpayloadbody\\recipe_custom.json",
-            "grammar_file" : "C:\\restler\\restlerpayloadbody\\compile\\grammar.json"
+            "recipe_file" : "C:\\restler\\restlerpayloadbody\\recipe_custom.json"
         }
-    }
+    },
+    "custom_bug_codes": [
+        "400",
+        "2?4",
+        "3*"
+    ],
+    "custom_non_bug_codes": [
+        "404",
+        "500"
+    ]
 }

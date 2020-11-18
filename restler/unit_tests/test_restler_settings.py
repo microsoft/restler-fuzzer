@@ -5,9 +5,11 @@
 import unittest
 import json
 import os
+import re
 import restler_settings
 
 from engine import primitives
+from engine.transport_layer.response import HttpResponse
 from engine.core.request_utilities import str_to_hex_def as hex_def
 from restler_settings import RestlerSettings
 from restler_settings import NewSingletonError
@@ -361,6 +363,77 @@ class RestlerSettingsTest(unittest.TestCase):
         except:
             assert False
 
+    def test_custom_bug_codes(self):
+        user_args = {"custom_bug_codes": ["200", "4?4", "3*"]}
+        try:
+            settings = RestlerSettings(user_args)
+            settings.validate_options()
+        except:
+            assert False
+
+        response200 = HttpResponse('HTTP/1.1 200 response')
+        response201 = HttpResponse('HTTP/1.1 201 response')
+        response400 = HttpResponse('HTTP/1.1 400 response')
+        response404 = HttpResponse('HTTP/1.1 404 response')
+        response414 = HttpResponse('HTTP/1.1 414 response')
+        response300 = HttpResponse('HTTP/1.1 300 response')
+        response301 = HttpResponse('HTTP/1.1 301 response')
+        response500 = HttpResponse('HTTP/1.1 500 response')
+
+        self.assertTrue(response200.has_bug_code())
+        self.assertFalse(response201.has_bug_code())
+        self.assertFalse(response400.has_bug_code())
+        self.assertTrue(response404.has_bug_code())
+        self.assertTrue(response414.has_bug_code())
+        self.assertTrue(response300.has_bug_code())
+        self.assertTrue(response301.has_bug_code())
+        self.assertTrue(response500.has_bug_code())
+
+    def test_custom_non_bug_codes(self):
+        user_args = {"custom_non_bug_codes": ["200", "4?4", "3*"]}
+        try:
+            settings = RestlerSettings(user_args)
+            settings.validate_options()
+        except:
+            assert False
+
+        response200 = HttpResponse('HTTP/1.1 200 response')
+        response201 = HttpResponse('HTTP/1.1 201 response')
+        response400 = HttpResponse('HTTP/1.1 400 response')
+        response404 = HttpResponse('HTTP/1.1 404 response')
+        response414 = HttpResponse('HTTP/1.1 414 response')
+        response300 = HttpResponse('HTTP/1.1 300 response')
+        response301 = HttpResponse('HTTP/1.1 301 response')
+        response500 = HttpResponse('HTTP/1.1 500 response')
+
+        self.assertFalse(response200.has_bug_code())
+        self.assertTrue(response201.has_bug_code())
+        self.assertTrue(response400.has_bug_code())
+        self.assertFalse(response404.has_bug_code())
+        self.assertFalse(response414.has_bug_code())
+        self.assertFalse(response300.has_bug_code())
+        self.assertFalse(response301.has_bug_code())
+        self.assertTrue(response500.has_bug_code())
+
+        settings.TEST_DeleteInstance()
+
+        user_args["custom_non_bug_codes"].append("500")
+        try:
+            settings = RestlerSettings(user_args)
+            settings.validate_options()
+        except:
+            assert False
+
+        self.assertFalse(response500.has_bug_code())
+
+    def test_custom_bug_code_list_mutual_exclusiveness(self):
+        user_args = {"custom_bug_codes": ["200", "4?4", "3*"],
+                     "custom_non_bug_codes": ["500"]}
+
+        settings = RestlerSettings(user_args)
+        with self.assertRaises(OptionValidationError):
+            settings.validate_options()
+
     def test_settings_file_upload(self):
         with open(os.path.join(os.path.dirname(__file__), "restler_user_settings.json")) as json_file:
             settings_file = json.load(json_file)
@@ -377,7 +450,6 @@ class RestlerSettingsTest(unittest.TestCase):
         self.assertFalse(settings.get_checker_arg('payloadbody', 'size_dep_budget'))
         self.assertTrue(settings.get_checker_arg('payloadbody', 'use_feedback'))
         self.assertEqual('C:\\restler\\restlerpayloadbody\\recipe_custom.json', settings.get_checker_arg('payloadbody', 'recipe_file'))
-        self.assertEqual('C:\\restler\\restlerpayloadbody\\compile\\grammar.json', settings.get_checker_arg('payloadbody', 'grammar_file'))
 
         request1 = "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Network/dnsZones/{zoneName}/{recordType}/{relativeRecordSetName}"
         request2 = "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Network/dnsZones/{zoneName}"
@@ -415,3 +487,10 @@ class RestlerSettingsTest(unittest.TestCase):
         self.assertEqual(60, settings.token_refresh_interval)
         self.assertEqual(False, settings.wait_for_async_resource_creation)
         self.assertEqual('0.0.0', settings.version)
+        code1 = re.compile('400')
+        code2 = re.compile('2.4')
+        code3 = re.compile('3.+')
+        code4 = re.compile('404')
+        code5 = re.compile('500')
+        self.assertEqual([code1, code2, code3], settings.custom_bug_codes)
+        self.assertEqual([code4, code5], settings.custom_non_bug_codes)

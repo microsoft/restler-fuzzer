@@ -1,6 +1,8 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 import string
+import re
+from restler_settings import Settings
 
 DELIM = "\r\n\r\n"
 VALID_CODES = {'200', '201', '202', '204', '304'}
@@ -115,7 +117,19 @@ class HttpResponse(object):
 
         """
         if self._status_code:
-            return self._status_code.startswith('5')
+            if Settings().custom_non_bug_codes:
+                # All codes except the ones in the custom_non_bug_codes list should be flagged as bugs.
+                # Hence, return False only if the status code exists in the list.
+                for code in Settings().custom_non_bug_codes:
+                    if re.match(code, self._status_code):
+                        return False
+                else:
+                    return True
+            if self._status_code.startswith('5'):
+                return True
+            for code in Settings().custom_bug_codes:
+                if re.match(code, self._status_code):
+                    return True
         return False
 
     def has_valid_code(self):
