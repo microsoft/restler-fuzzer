@@ -87,7 +87,7 @@ class ExamplesChecker(CheckerBase):
             if new_request:
                 _send_request(new_request)
             else:
-                self._log('Failed to substitute body')
+                self._log(f"Failed to substitute body for request {request.endpoint}.")
         # Send new request for each query example.
         # For now don't try to match these up with body examples.
         # There will soon be IDs associated with the examples, so they can be matched.

@@ -1107,6 +1107,9 @@ class PayloadBodyChecker(CheckerBase):
         """
         # substitute to the original request
         new_request = substitute_body(request, body_blocks)
+        if new_request is None:
+            self._log(f"Failed to substitute body for request {request.endpoint}.")
+            return
 
         seq = copy(self._sequence)
         cnt = 0
