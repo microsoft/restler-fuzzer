@@ -40,13 +40,15 @@ def compile_spec(api_spec_path, restler_dll_path):
     with usedir(RESTLER_TEMP_DIR):
         subprocess.run(f'dotnet {restler_dll_path} compile --api_spec {api_spec_path}', shell=True)
 
-def test_spec(ip, port, use_ssl, restler_dll_path):
+def test_spec(ip, port, host, use_ssl, restler_dll_path):
     """ Runs RESTler's test mode on a specified Compile directory
 
     @param ip: The IP of the service to test
     @type  ip: Str
     @param port: The port of the service to test
     @type  port: Str
+    @param host: The hostname of the service to test
+    @type  host: Str
     @param use_ssl: If False, set the --no_ssl parameter when executing RESTler
     @type  use_ssl: Boolean
     @param restler_dll_path: The absolute path to the RESTler driver's dll
@@ -69,6 +71,8 @@ def test_spec(ip, port, use_ssl, restler_dll_path):
             command = f"{command} --target_ip {ip}"
         if port is not None:
             command = f"{command} --target_port {port}"
+        if host is not None:
+            command = f"{command} --host {host}"
 
         subprocess.run(command, shell=True)
 
@@ -90,12 +94,15 @@ if __name__ == '__main__':
     parser.add_argument('--use_ssl',
                         help='Set this flag if you want to use SSL validation for the socket',
                         action='store_true')
+    parser.add_argument('--host',
+                        help='The hostname of the service to test',
+                        type=str, required=False, default=None)
 
     args = parser.parse_args()
 
     api_spec_path = os.path.abspath(args.api_spec_path)
     restler_dll_path = Path(os.path.abspath(args.restler_drop_dir)).joinpath('restler', 'Restler.dll')
     compile_spec(api_spec_path, restler_dll_path.absolute())
-    test_spec(args.ip, args.port, args.use_ssl, restler_dll_path.absolute())
+    test_spec(args.ip, args.port, args.host, args.use_ssl, restler_dll_path.absolute())
 
     print(f"Test complete.\nSee {os.path.abspath(RESTLER_TEMP_DIR)} for results.")
