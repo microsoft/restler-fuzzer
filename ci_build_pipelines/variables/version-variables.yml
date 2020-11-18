@@ -1,10 +1,10 @@
 variables:
   - name: version.major
-    value: 6
+    value: 7
   - name: version.minor
-    value: 1
-  - name: devRevision
     value: 0
+  - name: devRevision
+    value: 1
   - name: buildPlatform
     value: 'Any CPU'
   - name: buildConfiguration
