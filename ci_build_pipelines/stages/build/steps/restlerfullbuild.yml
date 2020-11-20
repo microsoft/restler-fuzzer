@@ -2,12 +2,22 @@ steps:
   - task: NuGetToolInstaller@1
     displayName: 'Use NuGet 5.8'
     inputs:
-      versionSpec: 5.8
+      versionSpec: 5.8.0
 
   - task: NuGetCommand@2
     displayName: 'NuGet restore solution'
     inputs:
       restoreSolution: '**\Restler.sln'
+
+  - task: DotNetCoreCLI@2
+    displayName: 'Clean solution'
+    inputs:
+      command: clean
+      projects: |
+        src/compiler/Restler.CompilerExe/Restler.CompilerExe.fsproj
+        src/driver/Restler.Driver.fsproj
+        src/ResultsAnalyzer/ResultsAnalyzer.fsproj
+      arguments: '-c $(buildConfiguration)'
 
   - task: DotNetCoreCLI@2
     displayName: 'Publish RESTler dotnet core projects'
