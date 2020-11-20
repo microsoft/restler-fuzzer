@@ -12,7 +12,8 @@ steps:
   - task: DotNetCoreCLI@2
     displayName: 'Clean solution'
     inputs:
-      command: clean
+      command: custom
+      custom: clean
       projects: |
         src/compiler/Restler.CompilerExe/Restler.CompilerExe.fsproj
         src/driver/Restler.Driver.fsproj
