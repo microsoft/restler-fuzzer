@@ -64,3 +64,7 @@ steps:
       artifactName: 'restler-fuzzer-drop-$(versionNumber)'
       publishLocation: 'Container'
 
+  - task: PublishPipelineArtifact@1
+    inputs:
+      targetPath: $(Agent.BuildDirectory)/restler_drop/
+      artifactName: restler-fuzzer-drop-for-docker

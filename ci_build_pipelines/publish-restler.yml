@@ -1,0 +1,64 @@
+trigger:
+  batch : true
+  branches:
+    include:
+      - 'main'
+
+parameters:
+  - name: RestlerBuildTag
+    displayName: Restler Tag or Commit
+    default: "Tag Name"
+  - name: Production
+    displayName: Publish For Production?
+    default: No
+    values:
+    - Yes
+    - No
+
+variables:
+  - template: 'variables/version-variables.yml'
+  - name: version.revision
+    value: $[counter(variables['devRevision'], 1)]
+  - name: versionNumber
+    value: $(version.major).$(version.minor).$(version.revision)
+
+stages:
+  - template: stages/build/build.yml
+
+  - stage: publish
+    jobs:
+      - job: PublishDockerImage
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+        - checkout: self
+
+        - task: DownloadPipelineArtifact@2
+          inputs:
+            artifact: restler-fuzzer-drop-for-docker
+            path: $(Build.SourcesDirectory)/artifacts/restler-fuzzer-drop
+
+        - task: Docker@2
+          displayName: 'Publish Restler Test'
+          condition: and(succeeded(), eq('${{parameters.Production}}', 'No'))
+          inputs:
+              buildContext: $(Build.SourcesDirectory)/artifacts/restler-fuzzer-drop
+              command: buildAndPush
+              containerRegistry: acrrestler
+              repository: restler
+              Dockerfile: $(Build.SourcesDirectory)/docker/Dockerfile
+              tags: |
+                Test-$(Build.BuildNumber)
+
+        - task: Docker@2
+          displayName: 'Publish Restler Production'
+          condition: and(succeeded(), eq('${{parameters.Production}}', 'Yes'))
+          inputs:
+              buildContext: $(Build.SourcesDirectory)/artifacts/restler-fuzzer-drop
+              command: buildAndPush
+              containerRegistry: RAFTProductionRegistry
+              repository: public/restlerfuzzer/restler
+              Dockerfile: $(Build.SourcesDirectory)/docker/Dockerfile
+              tags: |
+                ${{ parameters.RestlerBuildTag }}
+      
