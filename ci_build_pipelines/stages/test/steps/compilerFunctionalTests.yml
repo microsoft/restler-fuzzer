@@ -1,13 +1,22 @@
 steps:
   - task: NuGetToolInstaller@1
-    displayName: 'Use NuGet 5.4'
+    displayName: 'Use NuGet 5.8'
     inputs:
-      versionSpec: 5.4
+      versionSpec: 5.8.0
 
   - task: NuGetCommand@2
     displayName: 'NuGet restore solution'
     inputs:
       restoreSolution: '**\Restler.sln'
+
+  - task: DotNetCoreCLI@2
+    displayName: 'Clean solution'
+    inputs:
+      command: custom
+      custom: clean
+      projects: |
+        src/compiler/Restler.Compiler.Test/Restler.Compiler.Test.fsproj
+      arguments: '-c $(buildConfiguration)'
 
   - task: DotNetCoreCLI@2
     displayName: 'Build functional tests'
@@ -16,7 +25,7 @@ steps:
       projects: |
         src/compiler/Restler.Compiler.Test/Restler.Compiler.Test.fsproj
       arguments: '--no-restore -c $(buildConfiguration)'
-      
+
   - task: DotNetCoreCLI@2
     displayName: "Run functional tests"
     inputs:
