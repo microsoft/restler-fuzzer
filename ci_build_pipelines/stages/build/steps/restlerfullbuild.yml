@@ -1,8 +1,8 @@
 steps:
   - task: NuGetToolInstaller@1
-    displayName: 'Use NuGet 5.4'
+    displayName: 'Use NuGet 5.8'
     inputs:
-      versionSpec: 5.4
+      versionSpec: 5.8
 
   - task: NuGetCommand@2
     displayName: 'NuGet restore solution'
