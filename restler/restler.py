@@ -33,6 +33,7 @@ import engine.core.fuzzer as fuzzer
 import engine.core.fuzzing_monitor as fuzzing_monitor
 import engine.core.requests as requests
 from engine.errors import InvalidDictionaryException
+from engine.errors import NoTokenSpecifiedException
 from engine.primitives import InvalidDictPrimitiveException
 from engine.primitives import UnsupportedPrimitiveException
 
@@ -351,6 +352,15 @@ if __name__ == '__main__':
             driver.replay_sequence_from_log(args.replay_log, settings.token_refresh_cmd)
             print("Done playing sequence from log")
             sys.exit(0)
+        except NoTokenSpecifiedException:
+            logger.write_to_main(
+                "Failed to play sequence from log:\n"
+                "A valid authorization token was expected.\n"
+                "Retry with a token refresh script in the settings file or "
+                "update the request in the replay log with a valid authorization token.",
+                print_to_console=True
+            )
+            sys.exit(-1)
         except Exception as error:
             print(f"Failed to play sequence from log:\n{error!s}")
             sys.exit(-1)

@@ -24,6 +24,7 @@ import engine.dependencies as dependencies
 from engine.errors import ResponseParsingException
 from engine.errors import TransportLayerException
 from engine.errors import TimeOutException
+from engine.errors import NoTokenSpecifiedException
 from engine.transport_layer.response import RESTLER_INVALID_CODE
 from utils.logger import raw_network_logging as RAW_LOGGING
 from utils.logger import custom_network_logging as CUSTOM_LOGGING
@@ -518,8 +519,11 @@ class Sequence(object):
         """
         rendered_data = data
         if AUTHORIZATION_TOKEN_PLACEHOLDER in data:
+            token = request_utilities.get_latest_token_value()
+            if token == request_utilities.NO_TOKEN_SPECIFIED:
+                raise NoTokenSpecifiedException
             rendered_data = data.replace(
-                f"{AUTHORIZATION_TOKEN_PLACEHOLDER}\r\n", request_utilities.get_latest_token_value()
+                f"{AUTHORIZATION_TOKEN_PLACEHOLDER}\r\n", token
             )
         return rendered_data
 
