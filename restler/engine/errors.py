@@ -99,3 +99,9 @@ class InvalidDictionaryException(Exception):
     """ To be raised when an invalid fuzzing dictionary is identified.
     """
     pass
+
+class NoTokenSpecifiedException(Exception):
+    """ To be raised when a token was expected in a request,
+    but no token was found when querying for get_token
+    """
+    pass
