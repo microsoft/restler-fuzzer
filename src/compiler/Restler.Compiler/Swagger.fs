@@ -26,26 +26,19 @@ let getSwaggerDocument (swaggerPath:string) (workingDirectory:string) =
     async {
         let specExtension = System.IO.Path.GetExtension(swaggerPath)
 
-        match specExtension with
-        | ".json" ->
-            let specName = sprintf "%s%s%s" (System.IO.Path.GetFileNameWithoutExtension(swaggerPath))
-                                             "_preprocessed"
-                                             specExtension
-            let preprocessedSpecPath = workingDirectory ++ specName
-            let preprocessingResult =
-                SwaggerSpecPreprocessor.preprocessApiSpec swaggerPath preprocessedSpecPath
-            match preprocessingResult with
-            | Ok _ ->
-                return! getSwaggerDocumentAsync preprocessedSpecPath
-            | Error e ->
-                printfn "API spec preprocessing failed (%s).  Please check that your specification is valid.  \
-                            Attempting to compile Swagger document without preprocessing. " e
-                return! getSwaggerDocumentAsync swaggerPath
-        | ".yml"
-        | ".yaml" ->
-            return! getYamlSwaggerDocumentAsync swaggerPath
-        | _ ->
-            return! raise (invalidArg specExtension "This specification format extension is not supported")
+        let specName = sprintf "%s%s%s" (System.IO.Path.GetFileNameWithoutExtension(swaggerPath))
+                                         "_preprocessed"
+                                         specExtension
+        let preprocessedSpecPath = workingDirectory ++ specName
+        let preprocessingResult =
+            SwaggerSpecPreprocessor.preprocessApiSpec swaggerPath preprocessedSpecPath
+        match preprocessingResult with
+        | Ok _ ->
+            return! getSwaggerDocumentAsync preprocessedSpecPath
+        | Error e ->
+            printfn "API spec preprocessing failed (%s).  Please check that your specification is valid.  \
+                        Attempting to compile Swagger document without preprocessing. " e
+            return! getSwaggerDocumentAsync swaggerPath
     }
     |> Async.RunSynchronously
 
