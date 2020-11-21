@@ -22,12 +22,47 @@ type Ref =
 let normalizeFilePath x =
     Path.GetFullPath(x)
 
+type SpecFormat =
+    | Json
+    | Yaml
+
+let getSpecFormat (specFilePath:string) =
+    let specExtension = System.IO.Path.GetExtension(specFilePath)
+
+    match specExtension with
+    | ".json" ->
+        SpecFormat.Json
+    | ".yml"
+    | ".yaml" ->
+        SpecFormat.Yaml
+    | _ ->
+        raise (invalidArg specExtension "This specification format extension is not supported")
+
+module Yaml =
+    open YamlDotNet.Serialization
+    let convertYamlToJson (yamlFilePath:string) =
+        use specReader = new StreamReader(yamlFilePath)
+        let deserializer = YamlDotNet.Serialization.Deserializer()
+        let yamlObject = deserializer.Deserialize(specReader)
+        let serializer = (SerializerBuilder()).JsonCompatible().Build()
+        let json = serializer.Serialize(yamlObject)
+        json
+
+let getJsonSpec filePath =
+    let specFormat = getSpecFormat filePath
+    match specFormat with
+    | Json -> System.IO.File.ReadAllText(filePath)
+    | Yaml -> Yaml.convertYamlToJson filePath
+
 module SpecCache =
+
     let findSpec filePath (jsonSpecs:Dictionary<string, JObject>) =
         let normalizedPath = normalizeFilePath filePath
+
         if not (jsonSpecs.ContainsKey(normalizedPath)) then
-            let text = System.IO.File.ReadAllText(normalizedPath)
-            let spec = JObject.Parse(text)
+            let jsonSpecText = getJsonSpec normalizedPath
+
+            let spec = JObject.Parse(jsonSpecText)
             jsonSpecs.Add(normalizedPath, spec)
         jsonSpecs.[normalizedPath]
 
@@ -206,8 +241,8 @@ let inlineFileRefs (jsonObj:JObject)
 
 /// Preprocesses the document to inline all file references in type definitions (excluding examples).
 let preprocessApiSpec specPath outputSpecPath =
-    let text = System.IO.File.ReadAllText(specPath)
-    let jsonSpec = JObject.Parse(text)
+    let jsonSpecText = getJsonSpec specPath
+    let jsonSpec = JObject.Parse(jsonSpecText)
 
     let jsonSpec =
         let newObject = inlineFileRefs jsonSpec specPath
