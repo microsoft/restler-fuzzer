@@ -442,7 +442,7 @@ def update_bug_buckets(bug_buckets, bug_request_data, bug_hash, additional_log_s
                 if bucket_hash not in Bugs_Logged:
                     try:
                         filename = log_new_bug()
-                        Bugs_Logged[bucket_hash] = BugTuple(filename, bug_hash, bug_bucket.retry_count, bug_bucket.reproduce_count)
+                        Bugs_Logged[bucket_hash] = BugTuple(filename, bug_hash, bug_bucket.reproduce_attempts, bug_bucket.reproduce_successes)
                         add_hash(filename)
                     except Exception as error:
                         write_to_main(f"Failed to write bug bucket log: {error!s}")
@@ -450,13 +450,13 @@ def update_bug_buckets(bug_buckets, bug_request_data, bug_hash, additional_log_s
                 else:
                     filename = Bugs_Logged[bucket_hash].filename_of_replay_log
                     this_bug_hash = Bugs_Logged[bucket_hash].bug_hash
-                    Bugs_Logged[bucket_hash] = BugTuple(filename, this_bug_hash, bug_bucket.retry_count, bug_bucket.reproduce_count)
+                    Bugs_Logged[bucket_hash] = BugTuple(filename, this_bug_hash, bug_bucket.reproduce_attempts, bug_bucket.reproduce_successes)
 
                 if bug_bucket.reproducible:
                     print(f'{name_header} - Bug was reproduced - {filename}', file=log_file)
                 else:
                     print(f'{name_header} - Unable to reproduce bug - {filename}', file=log_file)
-                    print(f'Attempted to reproduce {Bugs_Logged[bucket_hash].reproduce_attempts} additional time(s); '
+                    print(f'Attempted to reproduce {Bugs_Logged[bucket_hash].reproduce_attempts} time(s); '
                           f'Reproduced {Bugs_Logged[bucket_hash].reproduce_successes} time(s)', file=log_file)
                 print(f"Hash: {Bugs_Logged[bucket_hash].bug_hash}", file=log_file)
                 for request in bug_bucket.sequence:

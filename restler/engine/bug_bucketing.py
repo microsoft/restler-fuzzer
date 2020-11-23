@@ -15,11 +15,11 @@ class UninitializedError(Exception):
     pass
 
 class BugBucket(object):
-    def __init__(self, sequence, reproducible, retry_count, reproduce_count):
+    def __init__(self, sequence, reproducible, reproduce_attempts, reproduce_successes):
         self.sequence = sequence
         self.reproducible = reproducible
-        self.retry_count = retry_count
-        self.reproduce_count = reproduce_count
+        self.reproduce_attempts = reproduce_attempts
+        self.reproduce_successes = reproduce_successes
 
 class BugBuckets(object):
     __instance = None
@@ -61,27 +61,6 @@ class BugBuckets(object):
             if b.sequence.last_request.hex_definition == sequence.last_request.hex_definition:
                 return True
 
-        return False
-
-    def _test_bug_reproducibility(self, sequence, bug_code):
-        """ Helper function that replays a sequence to test whether or not
-        a bug can be reproduced.
-
-        @param sequence: The sequence to replay
-        @type  sequence: Sequence
-        @param bug_code: The status code that was received when the first
-                         bug was identified. If this code is produced by
-                         replaying the sequence then we know the bug was
-                         reproduced
-        @type  bug_code: Str
-
-        @return: True if the bug was reproduced
-        @rtype : Bool
-
-        """
-        status_code = sequence.replay_sequence()
-        if status_code and status_code == bug_code:
-            return True
         return False
 
     def _get_create_once_requests(self, sequence):
@@ -154,11 +133,10 @@ class BugBuckets(object):
 
         return f'{origin}_{str_to_hex_def(request_str)}'
 
-    def _attempt_reproduce(self, reproduce, sequence, bug_code, bucket):
-        """ Attempts to reproduce a bug, if requested
+    def _test_bug_reproducibility(self, sequence, bug_code, bucket):
+        """ Helper function that replays a sequence to test whether or not
+        a bug can be reproduced.
 
-        @param reproduce: If False, do not attempt to reproduce
-        @type  reproduce: Bool
         @param sequence: The bug sequence to replay
         @type  sequence: Sequence
         @param bug_code: The status code that was received when the bug was identified.
@@ -170,24 +148,22 @@ class BugBuckets(object):
         @rtype : Tuple(bool, int, int)
 
         """
-        if reproduce:
-            seq_hex = sequence.hex_definition
-            logger.raw_network_logging("Attempting to reproduce bug...")
-            reproducible = self._test_bug_reproducibility(sequence, bug_code)
-            logger.raw_network_logging("Done replaying sequence.")
-            # Gather reproduce retry counts to apply to bucket
-            retry_count = 0
-            reproduce_count = 0
-            first_bug_was_reproducible = reproducible
-            if seq_hex in bucket:
-                retry_count = bucket[seq_hex].retry_count + 1
-                reproduce_count = bucket[seq_hex].reproduce_count
-                if bucket[seq_hex].reproducible == False:
-                    first_bug_was_reproducible = bucket[seq_hex].reproducible
-            reproduce_count = reproduce_count + 1 if reproducible else reproduce_count
-            return (first_bug_was_reproducible, retry_count, reproduce_count)
-        else:
-            return (False, 0, 0)
+        seq_hex = sequence.hex_definition
+        logger.raw_network_logging("Attempting to reproduce bug...")
+        status_code = sequence.replay_sequence()
+        reproducible = status_code and status_code == bug_code
+        logger.raw_network_logging("Done replaying sequence.")
+        # Gather reproduce retry counts to apply to bucket
+        reproduce_attempts = 1
+        reproduce_successes = 0
+        first_bug_was_reproducible = reproducible
+        if seq_hex in bucket:
+            reproduce_attempts = bucket[seq_hex].reproduce_attempts + 1
+            reproduce_successes = bucket[seq_hex].reproduce_successes
+            if bucket[seq_hex].reproducible == False:
+                first_bug_was_reproducible = bucket[seq_hex].reproducible
+        reproduce_successes = reproduce_successes + 1 if reproducible else reproduce_successes
+        return (first_bug_was_reproducible, reproduce_attempts, reproduce_successes)
 
     def update_bug_buckets(self, sequence, bug_code, origin='main_driver', reproduce=True, additional_log_str=None, checker_str=None, hash_full_request=False, lock=None):
         """ Update buckets of error-triggering test case buckets by potentially
@@ -227,8 +203,11 @@ class BugBuckets(object):
 
             if (seq_hex not in bucket and not self._ending_request_exists(sequence, bucket)) or\
             (reproduce and seq_hex in bucket and bucket[seq_hex].reproducible == False):
-                (reproducible, retry_count, reproduce_count) = self._attempt_reproduce(reproduce, sequence, bug_code, bucket)
-                bucket[seq_hex] = BugBucket(sequence, reproducible, retry_count, reproduce_count)
+                if reproduce:
+                    (reproducible, reproduce_attempts, reproduce_successes) = self._test_bug_reproducibility(sequence, bug_code, bucket)
+                else:
+                    (reproducible, reproduce_attempts, reproduce_successes) = (False, 0, 0)
+                bucket[seq_hex] = BugBucket(sequence, reproducible, reproduce_attempts, reproduce_successes)
 
             sent_request_data_list = sequence.sent_request_data_list
             create_once_requests = self._get_create_once_requests(sequence)
