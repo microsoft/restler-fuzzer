@@ -175,7 +175,16 @@ let rec private inlineFileRefs2
                                             if ref.Count() > 0 then
                                                 ref
                                             else
-                                                obj.Properties()
+                                                // TODO: Temporary workaround for issue #61 - NSWag failure to parse
+                                                // required boolean in Headers.  Remove this when the NSWag bug is fixed.
+                                                // The workaround is to remove the required property.
+                                                // This is fine for now, since RESTler does not currently fuzz or
+                                                // learn from header values.
+                                                let headerInPath = sprintf "%s.%s" "headers" x.Name
+                                                if obj.Path.EndsWith(headerInPath) then
+                                                    obj.Properties() |> Seq.filter (fun o -> o.Name <> "required")
+                                                else
+                                                    obj.Properties()
                                         let newChildProperties =
                                             inlineFileRefs2 childProperties
                                                             normalizedDocumentFilePath

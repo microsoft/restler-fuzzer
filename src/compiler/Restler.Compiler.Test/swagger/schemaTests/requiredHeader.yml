@@ -1,0 +1,16 @@
+openapi: 3.0.3
+info:
+  title: example api
+  version: 1.2.3
+paths:
+  "/test_endpoint_1":
+    post:
+      responses:
+        '200':
+          description: OK
+          headers:
+            X-API-Revision:
+              required: true
+              description: API Revision
+              schema:
+                type: string

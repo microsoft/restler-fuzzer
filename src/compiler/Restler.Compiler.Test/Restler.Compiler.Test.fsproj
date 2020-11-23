@@ -14,6 +14,7 @@
     <Compile Include="DictionaryTests.fs" />
     <Compile Include="ExampleTests.fs" />
     <Compile Include="ReferencesTests.fs" />
+    <Compile Include="SchemaTests.fs" />
     <Compile Include="RealWorldTests.fs" />
     <Content Include="packages.lock.json" />
     <Content Include="baselines\dependencyTests\path_annotation_grammar.py">
@@ -62,6 +63,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="swagger\dictionaryTests\dict.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="swagger\schemaTests\requiredHeader.yml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="swagger\dictionaryTests\customPayloadSwagger.json">
