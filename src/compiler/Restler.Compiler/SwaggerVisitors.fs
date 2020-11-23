@@ -305,22 +305,34 @@ module SwaggerVisitors =
                         generateGrammarElementForSchema schema.Item.ActualSchema exValue (schema::parents) |> stn
                 else Seq.empty
 
-            let allOfParameters =
-                schema.AllOf |> Seq.map (fun ao ->
-                                             ao, generateGrammarElementForSchema ao.ActualSchema exampleValue (schema::parents))
-                             |> Seq.choose (fun (ao, parameterObject) ->
-                                              match parameterObject with
-                                              | LeafNode leafProperty ->
-                                                  // Ignore this case - check that there are multiple 'allOf' or
-                                                  // there is a recursive property found.
-                                                  // If not, it may be due to a bug in the Swagger.
-                                                  if not ((schema::parents) |> List.contains ao.ActualSchema ||
-                                                           schema.AllOf.Count > 1) then
-                                                        printfn "Example is: %A" exampleValue
-                                                        raise (UnsupportedType "allOf should never be a leaf node.")
-                                                  None
-                                              | InternalNode (i, children) -> Some children )
-                             |> Seq.concat
+            let allOfParameterSchemas =
+                schema.AllOf
+                |> Seq.map (fun ao -> ao, generateGrammarElementForSchema ao.ActualSchema exampleValue (schema::parents))
+
+            let allOfProperties =
+                allOfParameterSchemas
+                |> Seq.choose (fun (ao, parameterObject) ->
+                                    match parameterObject with
+                                    | LeafNode leafProperty ->
+                                        // If it possible that the schema is not declared directly, but only in terms of the
+                                        // AllOf.  For example:
+                                        // allOf:
+                                        // - type: string
+                                        // This case should be handled separately.
+                                        None
+                                    | InternalNode (i, children) ->
+                                        Some children)
+                |> Seq.concat
+
+            let allOfSchema =
+                allOfParameterSchemas
+                |> Seq.choose (fun (ao, parameterObject) ->
+                                match parameterObject with
+                                | LeafNode leafProperty ->
+                                    Some leafProperty
+                                | InternalNode (i, children) ->
+                                    None)
+                |> Seq.tryHead
 
             // Note: 'AdditionalPropertiesSchema' is omitted here, because it should not have any required parameters.
             // This can be included as a later optimization to improve coverage.
@@ -329,20 +341,23 @@ module SwaggerVisitors =
             let internalNodes =
                 seq { yield declaredPropertyParameters
                       yield arrayProperties
-                      yield allOfParameters
+                      yield allOfProperties
                     } |> Seq.concat
 
             if internalNodes |> Seq.isEmpty then
                 // If there is an example, use it (constant) instead of the token
                 match exampleValue with
                 | None ->
-                    LeafNode (getFuzzableValueForProperty
-                                    ""
-                                    schema
-                                    true (*IsRequired*)
-                                    false (*IsReadOnly*)
-                                    (tryGetEnumeration schema) (*enumeration*)
-                                    (tryGetDefault schema) (*defaultValue*))
+                    if schema.Type = JsonObjectType.None && allOfSchema.IsSome then
+                        LeafNode allOfSchema.Value
+                    else
+                        LeafNode (getFuzzableValueForProperty
+                                        ""
+                                        schema
+                                        true (*IsRequired*)
+                                        false (*IsReadOnly*)
+                                        (tryGetEnumeration schema) (*enumeration*)
+                                        (tryGetDefault schema) (*defaultValue*))
                 | Some v ->
 
                     // Either none of the above properties matched, or there are no properties and
