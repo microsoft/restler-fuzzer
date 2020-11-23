@@ -12,6 +12,7 @@ import statistics
 import json
 from collections import OrderedDict
 from shutil import copyfile
+from collections import namedtuple
 
 import engine.primitives as primitives
 import engine.dependencies as dependencies
@@ -348,8 +349,9 @@ def custom_network_logging(sequence, candidate_values_pool, **kwargs):
                 network_log.write(f"\t\t- {primitive}: {print_val!r}")
     network_log.write("")
 
+BugTuple = namedtuple('BugTuple', ['filename_of_replay_log', 'bug_hash', 'reproduce_attempts', 'reproduce_successes'])
 # Dict to track whether or not a bug was already logged:
-#   {"{seq_hash}_{bucket_class}": tuple(filename_of_replay_log, bug_hash)}
+#   {"{seq_hash}_{bucket_class}": BugTuple()}
 Bugs_Logged = dict()
 # Dict of bug hashes to be printed to bug_buckets.json
 #   {bug_hash: {"file_path": replay_log_relative_path}}
@@ -434,28 +436,30 @@ def update_bug_buckets(bug_buckets, bug_request_data, bug_hash, additional_log_s
         print("-------------", file=log_file)
         for bucket_class in bug_buckets:
             for seq_hash in bug_buckets[bucket_class]:
-                # seq_obj = (sequence definition, bug reproduced boolean)
-                seq_obj = bug_buckets[bucket_class][seq_hash]
-                name_header = bucket_class
+                bug_bucket = bug_buckets[bucket_class][seq_hash]
                 bucket_hash = f"{seq_hash}_{bucket_class}"
+                name_header = bucket_class
                 if bucket_hash not in Bugs_Logged:
                     try:
                         filename = log_new_bug()
-                        Bugs_Logged[bucket_hash] = (filename, bug_hash)
+                        Bugs_Logged[bucket_hash] = BugTuple(filename, bug_hash, bug_bucket.reproduce_attempts, bug_bucket.reproduce_successes)
                         add_hash(filename)
                     except Exception as error:
                         write_to_main(f"Failed to write bug bucket log: {error!s}")
                         filename = 'Failed to create replay log.'
                 else:
-                    filename = Bugs_Logged[bucket_hash][0]
-                if seq_obj[1]:
-                    name_header = f'{name_header} - Bug was reproduced - {filename}'
+                    filename = Bugs_Logged[bucket_hash].filename_of_replay_log
+                    this_bug_hash = Bugs_Logged[bucket_hash].bug_hash
+                    Bugs_Logged[bucket_hash] = BugTuple(filename, this_bug_hash, bug_bucket.reproduce_attempts, bug_bucket.reproduce_successes)
+
+                if bug_bucket.reproducible:
+                    print(f'{name_header} - Bug was reproduced - {filename}', file=log_file)
                 else:
-                    name_header = f'{name_header} - Unable to reproduce bug - {filename}'
-                print(name_header, file=log_file)
-                print(f"Hash: {Bugs_Logged[bucket_hash][1]}", file=log_file)
-                sequence = seq_obj[0]
-                for request in sequence:
+                    print(f'{name_header} - Unable to reproduce bug - {filename}', file=log_file)
+                    print(f'Attempted to reproduce {Bugs_Logged[bucket_hash].reproduce_attempts} time(s); '
+                          f'Reproduced {Bugs_Logged[bucket_hash].reproduce_successes} time(s)', file=log_file)
+                print(f"Hash: {Bugs_Logged[bucket_hash].bug_hash}", file=log_file)
+                for request in bug_bucket.sequence:
                     for payload in list(map(lambda x: x[1], request.definition)):
                         print(repr(payload)[1:-1], end='', file=log_file)
                     print(file=log_file)

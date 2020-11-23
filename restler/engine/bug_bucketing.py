@@ -14,6 +14,13 @@ class NewSingletonError(Exception):
 class UninitializedError(Exception):
     pass
 
+class BugBucket(object):
+    def __init__(self, sequence, reproducible, reproduce_attempts, reproduce_successes):
+        self.sequence = sequence
+        self.reproducible = reproducible
+        self.reproduce_attempts = reproduce_attempts
+        self.reproduce_successes = reproduce_successes
+
 class BugBuckets(object):
     __instance = None
 
@@ -50,31 +57,10 @@ class BugBuckets(object):
 
         """
         # Iterate through each sequence in the bug buckets
-        for s in bug_buckets.values():
-            if s[0].last_request.hex_definition == sequence.last_request.hex_definition:
+        for b in bug_buckets.values():
+            if b.sequence.last_request.hex_definition == sequence.last_request.hex_definition:
                 return True
 
-        return False
-
-    def _test_bug_reproducibility(self, sequence, bug_code):
-        """ Helper function that replays a sequence to test whether or not
-        a bug can be reproduced.
-
-        @param sequence: The sequence to replay
-        @type  sequence: Sequence
-        @param bug_code: The status code that was received when the first
-                         bug was identified. If this code is produced by
-                         replaying the sequence then we know the bug was
-                         reproduced
-        @type  bug_code: Str
-
-        @return: True if the bug was reproduced
-        @rtype : Bool
-
-        """
-        status_code = sequence.replay_sequence()
-        if status_code and status_code == bug_code:
-            return True
         return False
 
     def _get_create_once_requests(self, sequence):
@@ -147,6 +133,38 @@ class BugBuckets(object):
 
         return f'{origin}_{str_to_hex_def(request_str)}'
 
+    def _test_bug_reproducibility(self, sequence, bug_code, bucket):
+        """ Helper function that replays a sequence to test whether or not
+        a bug can be reproduced.
+
+        @param sequence: The bug sequence to replay
+        @type  sequence: Sequence
+        @param bug_code: The status code that was received when the bug was identified.
+        @type  bug_code: Str
+        @param bucket: Pointer to the bug bucket related to this bug
+        @type  bucket: OrderedDict - {seq_hex: BugBucket}
+        @return: Tuple containing whether the bug was reproduced,
+                 the new retry count, and the new reproduced count
+        @rtype : Tuple(bool, int, int)
+
+        """
+        seq_hex = sequence.hex_definition
+        logger.raw_network_logging("Attempting to reproduce bug...")
+        status_code = sequence.replay_sequence()
+        reproducible = status_code and status_code == bug_code
+        logger.raw_network_logging("Done replaying sequence.")
+        # Gather reproduce retry counts to apply to bucket
+        reproduce_attempts = 1
+        reproduce_successes = 0
+        first_bug_was_reproducible = reproducible
+        if seq_hex in bucket:
+            reproduce_attempts = bucket[seq_hex].reproduce_attempts + 1
+            reproduce_successes = bucket[seq_hex].reproduce_successes
+            if bucket[seq_hex].reproducible == False:
+                first_bug_was_reproducible = bucket[seq_hex].reproducible
+        reproduce_successes = reproduce_successes + 1 if reproducible else reproduce_successes
+        return (first_bug_was_reproducible, reproduce_attempts, reproduce_successes)
+
     def update_bug_buckets(self, sequence, bug_code, origin='main_driver', reproduce=True, additional_log_str=None, checker_str=None, hash_full_request=False, lock=None):
         """ Update buckets of error-triggering test case buckets by potentially
         adding sequence.
@@ -173,17 +191,6 @@ class BugBuckets(object):
             https://arxiv.org/pdf/1806.09739.pdf (section: 4.5)
 
         """
-        def is_duplicate(seq_hex_def):
-            """ Helper to avoid reporting duplicate bugs. There is no
-                distinction between the main driver and the checker. That is,
-                whichever checker or main driver triggers the bug first,
-                registers it in its bug buckets.
-            """
-            for k in self._bug_buckets:
-                if seq_hex_def in self._bug_buckets[k]:
-                    return True
-            return False
-
         if lock is not None:
             lock.acquire()
 
@@ -191,15 +198,16 @@ class BugBuckets(object):
             bucket_origin = self._get_bucket_origin(origin, bug_code)
             if bucket_origin not in self._bug_buckets:
                 self._bug_buckets[bucket_origin] = OrderedDict()
+            bucket = self._bug_buckets[bucket_origin]
+            seq_hex = sequence.hex_definition
 
-            if sequence.hex_definition not in self._bug_buckets[bucket_origin] and\
-            not self._ending_request_exists(sequence, self._bug_buckets[bucket_origin]):
-                reproducible = False
+            if (seq_hex not in bucket and not self._ending_request_exists(sequence, bucket)) or\
+            (reproduce and seq_hex in bucket and bucket[seq_hex].reproducible == False):
                 if reproduce:
-                    logger.raw_network_logging("Attempting to reproduce bug...")
-                    reproducible = self._test_bug_reproducibility(sequence, bug_code)
-                    logger.raw_network_logging("Done replaying sequence.")
-                self._bug_buckets[bucket_origin][sequence.hex_definition] = (sequence, reproducible)
+                    (reproducible, reproduce_attempts, reproduce_successes) = self._test_bug_reproducibility(sequence, bug_code, bucket)
+                else:
+                    (reproducible, reproduce_attempts, reproduce_successes) = (False, 0, 0)
+                bucket[seq_hex] = BugBucket(sequence, reproducible, reproduce_attempts, reproduce_successes)
 
             sent_request_data_list = sequence.sent_request_data_list
             create_once_requests = self._get_create_once_requests(sequence)
