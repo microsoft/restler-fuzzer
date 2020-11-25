@@ -764,6 +764,19 @@ class RequestCollection(object):
         """
         self.candidate_values_pool.set_candidate_values(custom_mutations, per_endpoint_custom_mutations)
 
+    def remove_authentication_tokens(self):
+        """ Removes the authentication token line from each request in the collection
+
+        @return: None
+        @rtype : None
+
+        """
+        for req in self._requests:
+            for line in req.definition:
+                if line[0] == primitives.REFRESHABLE_AUTHENTICATION_TOKEN:
+                    req._definition.remove(line)
+                    break
+
     @property
     def request_id_collection(self):
         """ Returns the request id collection, which is a dictionary of request IDs
