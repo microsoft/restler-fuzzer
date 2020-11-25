@@ -4,9 +4,9 @@
     ".NETCoreApp,Version=v3.1": {
       "FSharp.Core": {
         "type": "Direct",
-        "requested": "[4.7.2, )",
-        "resolved": "4.7.2",
-        "contentHash": "w3XFVTnyZUbC8e2QT6a85ern6y7eQPPk+MYemz1FP0iBfgZcembL+wmo5cIZ1kxB8jfoXC8Q9KVkOMsGpkBKbA=="
+        "requested": "[5.0.0, )",
+        "resolved": "5.0.0",
+        "contentHash": "iHoYXA0VaSQUONGENB1aVafjDDZDZpwu39MtaRCTrmwFW/cTcK0b2yKNVYneFHJMc3ChtsSoM9lNtJ1dYXkHfA=="
       },
       "Microsoft.FSharpLu": {
         "type": "Direct",
@@ -1481,7 +1481,7 @@
       "restler.compiler": {
         "type": "Project",
         "dependencies": {
-          "FSharp.Core": "4.7.2",
+          "FSharp.Core": "5.0.0",
           "Microsoft.ApplicationInsights": "2.14.0",
           "Microsoft.FSharpLu": "0.11.6",
           "Microsoft.FSharpLu.Json": "0.11.6",

@@ -42,8 +42,6 @@
 
 * *AnnotationFilePath* is the path to the RESTler annotations in JSON format.  The schema of the annotation file and how to use it is described in [Annotations](Annotations.md).
 
-* *UseRefreshableToken* should be set to true if your API requires an authentication token, otherwise it should be set to false.
-
 * *UseBodyExamples* specifies that the examples referenced in the Swagger specification (e.g., via the *x-ms-examples* attribute) for body parameters should be used.  If there are no examples specified, no error will be issued, and the schema alone will be used to generate the request payload.
 
 * *UseQueryExamples* has the same behavior as UseBodyExamples, but for query parameter examples.

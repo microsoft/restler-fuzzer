@@ -265,7 +265,6 @@ let generateRequestPrimitives (requestId:RequestId)
                                (requestParameters:RequestParameters)
                                (dependencies:Dictionary<string, List<ProducerConsumerDependency>>)
                                basePath
-                               (refreshableToken:bool)
                                (host:string)
                                (resolveQueryDependencies:bool)
                                (resolveBodyDependencies:bool)
@@ -393,8 +392,7 @@ let generateRequestPrimitives (requestId:RequestId)
         queryParameters = queryParameters
         httpVersion = "1.1"
         headers = headers
-        token = (if refreshableToken then Some TokenKind.Refreshable
-                 else None)
+        token = TokenKind.Refreshable
         bodyParameters = bodyParameters
         responseParser  = responseParser
         requestMetadata = requestMetadata
@@ -589,7 +587,6 @@ let generateRequestGrammar (swaggerDocs:Types.ApiSpecFuzzingConfig list)
                                 rd.requestParameters
                                 dependenciesIndex
                                 basePath
-                                config.UseRefreshableToken
                                 host
                                 config.ResolveQueryDependencies
                                 config.ResolveBodyDependencies
