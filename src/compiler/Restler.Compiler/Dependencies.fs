@@ -105,7 +105,7 @@ let getCreateOrUpdateProducer (consumer:Consumer)
         // The producer is a dictionary payload.  The code below makes sure the new dictionary is correctly
         // updated above for this resource.
         dictionary,
-        (dictionary.getParameterForCustomPayloadUuidSuffix consumerResourceName) |> Seq.tryHead
+        (dictionary.getParameterForCustomPayloadUuidSuffix consumerResourceName consumer.id.AccessPathParts consumer.id.PrimitiveType) |> Seq.tryHead
     else
         // Find the corresponding PUT request, which is the producer, if it exists.
         if pathParameterIndex < 1 then
@@ -393,9 +393,26 @@ let findProducerWithResourceName
         let perRequestDictionaryMatches =
             match perRequestDictionary with
             | None -> Seq.empty
-            | Some d -> d.getParameterForCustomPayload consumer.id.ResourceName consumer.id.AccessPathParts consumer.id.PrimitiveType
+            | Some d ->
+                // TODO: error handling.  only one should match.
+                d.getParameterForCustomPayload consumer.id.ResourceName consumer.id.AccessPathParts consumer.id.PrimitiveType
         let globalDictionaryMatches =
             dictionary.getParameterForCustomPayload consumer.id.ResourceName consumer.id.AccessPathParts consumer.id.PrimitiveType
+        [
+            perRequestDictionaryMatches
+            globalDictionaryMatches
+        ]
+        |> Seq.concat
+
+    let uuidSuffixDictionaryMatches =
+        let perRequestDictionaryMatches =
+            match perRequestDictionary with
+            | None -> Seq.empty
+            | Some d ->
+                // TODO: error handling.  only one should match.
+                d.getParameterForCustomPayloadUuidSuffix consumer.id.ResourceName consumer.id.AccessPathParts consumer.id.PrimitiveType
+        let globalDictionaryMatches =
+           dictionary.getParameterForCustomPayloadUuidSuffix consumer.id.ResourceName consumer.id.AccessPathParts consumer.id.PrimitiveType
         [
             perRequestDictionaryMatches
             globalDictionaryMatches
@@ -496,6 +513,7 @@ let findProducerWithResourceName
             dictionary,
             [   annotationMatches |> Seq.sortBy sortByMethod |> Seq.map ResponseObject
                 dictionaryMatches
+                uuidSuffixDictionaryMatches
                 inferredExactMatches
                 |> Seq.map ResponseObject
                 inferredApproximateMatches

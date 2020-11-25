@@ -1,0 +1,9 @@
+{
+  "restler_fuzzable_string": [ "global" ],
+  "restler_fuzzable_int": [ "0", "1" ],
+  "restler_fuzzable_bool": [ "true", "false" ],
+  "restler_custom_payload_uuid4_suffix": {
+      "resourceId": "resourceprefix",
+      "/resource/id": "resourceprefix"
+    }
+  }

@@ -76,12 +76,28 @@ type MutationsDictionary =
                 DictionaryPayload (payloadType, primitiveType, payloadName, false) |> stn
             | None -> Seq.empty
 
-        member x.getParameterForCustomPayloadUuidSuffix consumerResourceName =
+        member x.getParameterForCustomPayloadUuidSuffix
+                    consumerResourceName
+                    (accessPathParts: AccessPath)
+                    primitiveType =
             let payloadType = CustomPayloadType.UuidSuffix
-            match x.findPayloadEntry x.restler_custom_payload_uuid4_suffix consumerResourceName with
+
+            // First, check for an exact access path, and if one is not found, check for the resource name.
+            let payloadName, payloadEntry =
+                match x.findPathPayloadEntry x.restler_custom_payload_uuid4_suffix accessPathParts with
+                | Some (e,v) -> e, Some v
+                | None ->
+                    consumerResourceName, x.findPayloadEntry x.restler_custom_payload_uuid4_suffix consumerResourceName
+
+            match payloadEntry with
+            | Some entry when payloadType = CustomPayloadType.String ->
+                let payloadTrimmed = entry.Trim()
+                let isObject = payloadTrimmed.StartsWith "{" || payloadTrimmed.StartsWith "["
+                DictionaryPayload (payloadType, primitiveType, payloadName, isObject) |> stn
             | Some _ ->
-                DictionaryPayload (payloadType, PrimitiveType.String, consumerResourceName, false) |> stn
+                DictionaryPayload (payloadType, primitiveType, payloadName, false) |> stn
             | None -> Seq.empty
+
 
         /// Combines the elements of the two dictionaries
         member x.combineCustomPayloadSuffix (secondDict:MutationsDictionary) =
