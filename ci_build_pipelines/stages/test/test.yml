@@ -13,8 +13,14 @@ stages:
         steps:
           - template: steps/engineUnitTests.yml
 
-      - job: QuickStartTests
+      - job: QuickStartTests-Linux
         pool:
           vmImage: 'ubuntu-latest'
+        steps:
+          - template: steps/quickStartTests.yml
+
+      - job: QuickStartTests-Windows
+        pool:
+          vmImage: 'windows-2019'
         steps:
           - template: steps/quickStartTests.yml
