@@ -266,7 +266,7 @@ type RequestElement =
     | Path of FuzzingPayload list
     | QueryParameters of RequestParametersPayload
     | Body of RequestParametersPayload
-    | Token of string option
+    | Token of string
     | RefreshableToken
     | Headers of (string * string) list
     | HttpVersion of string
@@ -300,7 +300,7 @@ type Request =
         bodyParameters : (ParameterPayloadSource * RequestParametersPayload) list
 
         /// The token required to access the API
-        token : TokenKind option
+        token : TokenKind
 
         headers : (string * string) list
 

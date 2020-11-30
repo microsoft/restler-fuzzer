@@ -353,8 +353,7 @@ let generatePythonFromRequestElement includeOptionalParameters (e:RequestElement
 
     | Token t->
         match t with
-        | None -> Seq.empty
-        | Some tokStr ->
+        | tokStr ->
             stn (Restler_static_string_constant (sprintf "%s%s" tokStr RETURN))
     | RefreshableToken ->
         stn (Restler_refreshable_authentication_token "authentication_token_tag")
@@ -440,9 +439,8 @@ let generatePythonFromRequest (request:Request) includeOptionalParameters mergeS
         HttpVersion request.httpVersion
         Headers request.headers
         (match request.token with
-            | None -> Token None
-            | Some TokenKind.Refreshable -> RefreshableToken
-            | Some (TokenKind.Static token) -> Token (Some token))
+            | TokenKind.Refreshable -> RefreshableToken
+            | (TokenKind.Static token) -> Token (token))
         Body (getParameterPayload request.bodyParameters)
         Delimiter
         ResponseParser request.responseParser

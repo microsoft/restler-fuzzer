@@ -83,7 +83,7 @@ type Config =
 
         ResolveBodyDependencies: bool
 
-        UseRefreshableToken : bool
+        UseRefreshableToken : bool option
 
         // When true, allow GET requests to be considered.
         // This option is present for debugging, and should be
@@ -188,7 +188,7 @@ let SampleConfig =
         ResolveQueryDependencies = true
         ResolveBodyDependencies = false
         ReadOnlyFuzz = false
-        UseRefreshableToken = false
+        UseRefreshableToken = Some true
         AllowGetProducers = false
         EngineSettingsFilePath = None
         DataFuzzing = false
@@ -214,7 +214,7 @@ let DefaultConfig =
         ResolveQueryDependencies = true
         ResolveBodyDependencies = true
         ReadOnlyFuzz = false
-        UseRefreshableToken = false
+        UseRefreshableToken = Some true
         AllowGetProducers = false
         EngineSettingsFilePath = None
         DataFuzzing = false

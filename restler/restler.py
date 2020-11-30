@@ -418,6 +418,8 @@ if __name__ == '__main__':
                     }
             }
         )
+    else:
+        req_collection.remove_authentication_tokens()
 
     # Initialize the fuzzing monitor
     monitor = fuzzing_monitor.FuzzingMonitor()

@@ -58,7 +58,7 @@ module CodeGenerator =
                     Headers [("Accept", "application/json")
                              ("Host", "fromSwagger")
                              ("Content-Type", "application/json")]
-                    Token (Some "SpringfieldToken: 12345")
+                    Token ("SpringfieldToken: 12345")
                 ]
             let request:Request =
                 {
@@ -72,7 +72,7 @@ module CodeGenerator =
                     headers = [("Accept", "application/json")
                                ("Host", "fromSwagger")
                                ("Content-Type", "application/json")]
-                    token = Some (TokenKind.Static "SpringfieldToken: 12345")
+                    token = (TokenKind.Static "SpringfieldToken: 12345")
                     responseParser = None
                     requestMetadata = { isLongRunningOperation = false }
                 }
