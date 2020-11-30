@@ -318,6 +318,8 @@ request = requests.Request([
     primitives.restler_static_string("Content-Type: application/json\r\n"),
     primitives.restler_static_string("\r\n"),
     primitives.restler_static_string("{"),
+    primitives.restler_static_string('"house":'),
+    primitives.restler_custom_payload_uuid4_suffix("houseName", quoted=True),
     primitives.restler_static_string("}"),
     primitives.restler_refreshable_authentication_token("authentication_token_tag"),
     primitives.restler_static_string("\r\n"),

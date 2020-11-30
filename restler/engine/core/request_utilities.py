@@ -153,10 +153,17 @@ def resolve_dynamic_primitives(values, candidate_values_pool):
         elif isinstance(values[i], tuple)\
         and values[i][0] == primitives.CUSTOM_PAYLOAD_UUID4_SUFFIX:
             current_uuid_type_name = values[i][1]
+            quoted = False
+            if len(current_uuid_type_name) >= 2 and current_uuid_type_name[0] == '"' and current_uuid_type_name[-1] == '"':
+                quoted = True
+                current_uuid_type_name = current_uuid_type_name.strip('"')
             if current_uuid_type_name not in current_uuid_suffixes:
                 current_uuid_suffixes[current_uuid_type_name] =\
                     current_uuid_type_name + uuid.uuid4().hex[:10]
-            values[i] = current_uuid_suffixes[current_uuid_type_name]
+            if quoted:
+                values[i] = f'"{current_uuid_suffixes[current_uuid_type_name]}"'
+            else:
+                values[i] = current_uuid_suffixes[current_uuid_type_name]
         elif isinstance(values[i], types.FunctionType)\
         and values[i] == primitives.restler_refreshable_authentication_token:
             token_dict = candidate_values_pool.get_candidate_values(
