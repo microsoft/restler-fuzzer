@@ -51,7 +51,6 @@ class HttpSock(object):
                     socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 )
             elif self.connection_settings.client_certificate_path:
-                print("Landen Code Wahoo")
                 context = ssl.SSLContext(ssl.PROTOCOL_TLS)
                 context.load_cert_chain(
                     cafile=self.connection_settings.client_certificate_path, 

@@ -160,7 +160,7 @@ def publish_dotnet_apps(dirs, configuration):
         proj_file_path = dotnetcore_projects[target_dir_name]
         print(f"Publishing project {proj_file_path} to output dir {proj_output_dir}")
 
-        output = subprocess.run(f"dotnet restore {proj_file_path} --use-lock-file --locked-mode --force", shell=True, stderr=subprocess.PIPE)
+        output = subprocess.run(f"dotnet restore {proj_file_path} --use-lock-file --locked-mode --force -s https://api.nuget.org/v3/index.json", shell=True, stderr=subprocess.PIPE)
         if output.stderr:
             print("Build failed!")
             print(str(output.stderr))

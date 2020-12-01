@@ -460,6 +460,16 @@ let rec parseEngineArgs task (args:EngineParameters) = function
         parseEngineArgs task { args with checkerOptions = args.checkerOptions @ [(checkerAction, specifiedCheckers |> String.concat " ")] } rest
     | "no_results_analyzer"::rest ->
         parseEngineArgs task { args with runResultsAnalyzer = false } rest
+    | "--client_certificate_path"::certFilePath::rest ->
+        if not (File.Exists certFilePath) then
+            Logging.logError <| sprintf "The RESTler client certificate file path %s does not exist." certFilePath
+            usage()
+        parseEngineArgs task  { args with certFilePath = Path.GetFullPath(certFilePath) } rest
+    | "--client_certificate_password"::certPasswordFilePath::rest ->
+        if not (File.Exists certPasswordFilePath) then
+            Logging.logError <| sprintf "The RESTler client certificate password file path %s does not exist." certPasswordFilePath
+            usage()
+        parseEngineArgs task  { args with certPasswordFilePath = Path.GetFullPath(certPasswordFilePath) } rest
     | invalidArgument::rest ->
         Logging.logError <| sprintf "Invalid argument: %s" invalidArgument
         usage()
