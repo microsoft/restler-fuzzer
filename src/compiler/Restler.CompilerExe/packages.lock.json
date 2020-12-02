@@ -1117,7 +1117,7 @@
       "restler.compiler": {
         "type": "Project",
         "dependencies": {
-          "FSharp.Core": "5.0.0",
+          "FSharp.Core": "4.7.2",
           "Microsoft.ApplicationInsights": "2.14.0",
           "Microsoft.FSharpLu": "0.11.6",
           "Microsoft.FSharpLu.Json": "0.11.6",
