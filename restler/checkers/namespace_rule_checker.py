@@ -12,6 +12,8 @@ from engine.bug_bucketing import BugBuckets
 import engine.dependencies as dependencies
 import engine.primitives as primitives
 from utils.logger import raw_network_logging as RAW_LOGGING
+from engine.core.request_utilities import NO_TOKEN_SPECIFIED
+from engine.core.request_utilities import NO_SHADOW_TOKEN_SPECIFIED
 
 STATIC_OAUTH_TOKEN = 'static_oauth_token'
 
@@ -213,13 +215,11 @@ class NameSpaceRuleChecker(CheckerBase):
             return STATIC_OAUTH_TOKEN
         except Exception:
             pass
-        try:
-            from engine.core.requests import latest_token_value as token1
-            from engine.core.requests import latest_shadow_token_value as token2
-            if token1 is not None and token2 is not None:
-                return primitives.REFRESHABLE_AUTHENTICATION_TOKEN
-        except Exception:
-            pass
+
+        from engine.core.request_utilities import latest_token_value as token1
+        from engine.core.request_utilities import latest_shadow_token_value as token2
+        if token1 is not NO_TOKEN_SPECIFIED and token2 is not NO_SHADOW_TOKEN_SPECIFIED:
+            return primitives.REFRESHABLE_AUTHENTICATION_TOKEN
 
         return 'ONLY_ONE_USER'
 
@@ -236,8 +236,8 @@ class NameSpaceRuleChecker(CheckerBase):
         """
         # print(repr(data))
         if self._authentication_method == primitives.REFRESHABLE_AUTHENTICATION_TOKEN:
-            from engine.core.requests import latest_token_value
-            from engine.core.requests import latest_shadow_token_value
+            from engine.core.request_utilities import latest_token_value
+            from engine.core.request_utilities import latest_shadow_token_value
             token1 = latest_token_value
             token2 = latest_shadow_token_value
             data = data.replace(token1, token2)
