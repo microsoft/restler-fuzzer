@@ -1,0 +1,78 @@
+{
+  "basePath": "/api",
+  "consumes": [
+    "application/json"
+  ],
+  "definitions": {
+    "Parameters": {
+      "properties": {
+        "resource": {
+            "$ref": "#/definitions/Resource"
+        }
+      }
+    },
+    "Resource": {
+      "properties": {
+        "id": {
+          "description": "The unique identifier of a resource",
+          "type": "integer"
+        },
+        "name": {
+          "description": "The name of the resource",
+          "type": "string"
+        }
+      }
+    }
+  },
+  "host": "localhost:8888",
+  "info": {
+    "description": "A simple swagger spec that uses examples",
+    "title": "My Resource API",
+    "version": "1.0"
+  },
+  "paths": {
+    "/resource": {
+      "post": {
+        "operationId": "post_stores",
+
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Resource"
+            }
+          }
+        }
+      }
+    },
+    "/resource/{resourceId}": {
+      "put": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "resourceId",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "bodyParameters",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Parameters"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Resource"
+            }
+          }
+        }
+      }
+    }
+  },
+  "swagger": "2.0"
+}
