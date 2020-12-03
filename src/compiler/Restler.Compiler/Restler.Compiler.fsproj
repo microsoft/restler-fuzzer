@@ -43,4 +43,7 @@
     <PackageReference Include="NSwag.Core.Yaml" Version="13.1.3" />
     <PackageReference Include="Pluralize.NET.Core" Version="1.0.0" />
   </ItemGroup>
+  <ItemGroup>
+    <PackageReference Update="FSharp.Core" Version="4.7.2" />
+  </ItemGroup>
 </Project>

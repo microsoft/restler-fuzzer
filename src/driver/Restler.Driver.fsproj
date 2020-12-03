@@ -30,6 +30,7 @@
     <ProjectReference Include="..\compiler\Restler.Compiler\Restler.Compiler.fsproj" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Update="FSharp.Core" Version="4.7.2" />
     <PackageReference Update="System.ValueTuple" Version="4.5.0" />
   </ItemGroup>
 </Project>
