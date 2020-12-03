@@ -102,6 +102,21 @@ editing the format,
 changing object types,
 etc.
 
+__Note:__ The algorithms and techniques used in the PayloadBodyChecker
+are described in [Intelligent REST API Data Fuzzing​​](https://patricegodefroid.github.io/public_psfiles/fse2020.pdf) (FSE'2020).
+As discussed in that paper, this checker has many settings. The default
+ setting configuration matches what was found as the 'optimal'
+ combination in the experimental study presented in the paper.
+ Other checker settings can be specified in the settings file as usual:
+```
+"checkers": {
+    "payloadbody": {
+        <new settings go here>
+    }
+}
+```
+See the payloadbodychecker code for its list of available settings.
+
 ## ExamplesChecker
 Detects errors by sending new requests that use their body and query examples.
 
