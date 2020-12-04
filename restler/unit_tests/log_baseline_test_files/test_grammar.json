@@ -396,6 +396,21 @@
                           "isReadOnly": false
                         },
                         [
+                          {
+                            "LeafNode": {
+                              "name": "house",
+                              "payload": {
+                                "Custom": {
+                                  "payloadType": "UuidSuffix",
+                                  "primitiveType": "String",
+                                  "payloadValue": "houseName",
+                                  "isObject": false
+                                }
+                              },
+                              "isRequired": false,
+                              "isReadOnly": false
+                            }
+                          }
                         ]
                       ]
                     }
