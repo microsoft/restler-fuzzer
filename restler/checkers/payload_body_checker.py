@@ -68,32 +68,22 @@ class PayloadBodyChecker(CheckerBase):
         self._fuzzed_requests = set()
         self._buckets = PayloadBodyBuckets()
 
+        def set_var(member_var, arg):
+            """ helper for setting member variables from settings """
+            val = Settings().get_checker_arg(self.friendly_name, arg)
+            if val is not None:
+                return val
+            return member_var
         # 'start_with_valid' setting was kept for backwards compatibility.
         # This setting behaves identically to 'fuzz_valid'. 'fuzz_valid' takes priority.
-        self._fuzz_valid = Settings().get_checker_arg(
-            self.friendly_name, 'start_with_valid'
-        ) or self._fuzz_valid
-        self._fuzz_valid = Settings().get_checker_arg(
-            self.friendly_name, 'fuzz_valid'
-        ) or self._fuzz_valid
-        self._fuzz_invalid = Settings().get_checker_arg(
-            self.friendly_name, 'fuzz_invalid'
-        ) or self._fuzz_invalid
-        self._start_with_examples = Settings().get_checker_arg(
-            self.friendly_name, 'start_with_examples'
-        ) or self._start_with_examples
-        self._size_dep_budget = Settings().get_checker_arg(
-            self.friendly_name, 'size_dep_budget'
-        ) or self._size_dep_budget
-        self._use_feedback = Settings().get_checker_arg(
-            self.friendly_name, 'use_feedback'
-        ) or self._use_feedback
-        self._fixed_budget_max_combination = Settings().get_checker_arg(
-            self._friendly_name, 'fixed_budget_max_combination'
-        ) or self._fixed_budget_max_combination
-        self._fixed_budget_pipeline_width = Settings().get_checker_arg(
-            self._friendly_name, 'fixed_budget_pipeline_width'
-        ) or self._fixed_budget_pipeline_width
+        self._fuzz_valid = set_var(self._fuzz_valid, 'start_with_valid')
+        self._fuzz_valid = set_var(self._fuzz_valid, 'fuzz_valid')
+        self._fuzz_invalid = set_var(self._fuzz_invalid, 'fuzz_invalid')
+        self._start_with_examples = set_var(self._start_with_examples, 'start_with_examples')
+        self._size_dep_budget = set_var(self._size_dep_budget, 'size_dep_budget')
+        self._use_feedback = set_var(self._use_feedback, 'use_feedback')
+        self._fixed_budget_max_combination = set_var(self._fixed_budget_max_combination, 'fixed_budget_max_combination')
+        self._fixed_budget_pipeline_width = set_var(self._fixed_budget_pipeline_width, 'fixed_budget_pipeline_width')
         self._recipe_file = Settings().get_checker_arg(
             self.friendly_name, 'recipe_file'
         )
