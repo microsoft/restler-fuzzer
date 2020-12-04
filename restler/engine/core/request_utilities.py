@@ -23,7 +23,8 @@ from engine.transport_layer.messaging import HttpSock
 last_refresh = 0
 NO_TOKEN_SPECIFIED = 'NO-TOKEN-SPECIFIED'
 latest_token_value = NO_TOKEN_SPECIFIED
-latest_shadow_token_value = 'NO-SHADOW-TOKEN-SPECIFIED'
+NO_SHADOW_TOKEN_SPECIFIED = 'NO-SHADOW-TOKEN-SPECIFIED'
+latest_shadow_token_value = NO_SHADOW_TOKEN_SPECIFIED
 
 HOST_PREFIX = 'Host: '
 
