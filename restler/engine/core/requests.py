@@ -491,13 +491,22 @@ class Request(object):
             values = []
             # Handling dynamic primitives that need fresh rendering every time
             if primitive_type == primitives.FUZZABLE_UUID4:
-                values = [primitives.restler_fuzzable_uuid4]
+                if quoted:
+                    values = [(primitives.restler_fuzzable_uuid4, True)]
+                else:
+                    values = [(primitives.restler_fuzzable_uuid4, False)]
             # Handle enums that have a list of values instead of one default val
             elif primitive_type == primitives.FUZZABLE_GROUP:
-                values = list(request_block[1])
+                if quoted:
+                    values = [f'"{val}"' for val in default_val]
+                else:
+                    values = list(default_val)
             # Handle static whose value is the field name
             elif primitive_type == primitives.STATIC_STRING:
-                values = [request_block[1]]
+                val = default_val
+                if quoted:
+                    val = f'"{val}"'
+                values = [val]
             # Handle multipart form data
             elif primitive_type == primitives.FUZZABLE_MULTIPART_FORMDATA:
                 try:

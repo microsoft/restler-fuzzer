@@ -148,9 +148,14 @@ def resolve_dynamic_primitives(values, candidate_values_pool):
     current_uuid_suffixes = {}
     for i in range(len(values)):
         # Look for function pointers assigned to dynamic primitives
-        if isinstance(values[i], types.FunctionType)\
-        and values[i] == primitives.restler_fuzzable_uuid4:
-            values[i] = uuid.uuid4().hex
+        if isinstance(values[i], tuple)\
+        and values[i][0] == primitives.restler_fuzzable_uuid4:
+            val = uuid.uuid4().hex
+            quoted = values[i][1]
+            if quoted:
+                values[i] = f'"{val}"'
+            else:
+                values[i] = val
         elif isinstance(values[i], tuple)\
         and values[i][0] == primitives.CUSTOM_PAYLOAD_UUID4_SUFFIX:
             current_uuid_type_name = values[i][1]
