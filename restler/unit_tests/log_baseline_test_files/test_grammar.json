@@ -213,7 +213,46 @@
           [
             "Schema",
             {
-              "ParameterList": []
+              "ParameterList": [
+                "location",
+                {
+                  "LeafNode": {
+                    "name": "",
+                    "payload": {
+                      "Custom": {
+                        "payloadType": "String",
+                        "primitiveType": "String",
+                        "payloadValue": "location",
+                        "isObject": false
+                      }
+                    },
+                    "isRequired": true,
+                    "isReadOnly": false
+                  }
+                },
+                "group",
+                {
+                  "LeafNode": {
+                    "name": "",
+                    "payload": {
+                      "Fuzzable": [
+                        {
+                          "Enum": [
+                            "String",
+                            [
+                              "A",
+                              "BB",
+                              "CCC"
+                            ],
+                            null
+                          ]
+                        },
+                        "A"
+                      ]
+                    }
+                  }
+                }
+              ]
             }
           ]
         ],
@@ -409,6 +448,27 @@
                               },
                               "isRequired": false,
                               "isReadOnly": false
+                            }
+                          },
+                          {
+                            "LeafNode": {
+                              "name": "group",
+                              "payload": {
+                                "Fuzzable": [
+                                  {
+                                    "Enum": [
+                                      "String",
+                                      [
+                                        "A",
+                                        "BB",
+                                        "CCC"
+                                      ],
+                                      null
+                                    ]
+                                  },
+                                  "A"
+                                ]
+                              }
                             }
                           }
                         ]

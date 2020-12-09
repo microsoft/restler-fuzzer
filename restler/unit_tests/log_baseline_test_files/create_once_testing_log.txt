@@ -1,24 +1,27 @@
 
 Generation-1: Rendering Sequence-1
 
-	Request: 1 (Remaining candidate combinations: 2)
+	Request: 1 (Remaining candidate combinations: 6)
 		- restler_static_string: 'GET '
 		- restler_static_string: '/'
 		- restler_static_string: 'city'
 		- restler_static_string: '/'
-		- restler_static_string: 'cityName<test!>-2abb382dd4'
+		- restler_static_string: 'cityName<test!>-fe9d049e45'
 		- restler_static_string: '?'
 		- restler_static_string: 'location='
 		+ restler_custom_payload: ['centralus', '10']
+		- restler_static_string: '&'
+		- restler_static_string: 'group='
+		+ restler_fuzzable_group: ['A', 'BB', 'CCC']
 		- restler_static_string: ' HTTP/1.1\r\n'
 		- restler_static_string: 'Accept: application/json\r\n'
 		- restler_static_string: 'Host: unittest\r\n'
 		- restler_static_string: 'Content-Type: application/json\r\n'
 		- restler_static_string: '\r\n'
 
-2020-11-30 14:00:39.728: Sending: 'GET /city/cityName<test!>-2abb382dd4?location=centralus HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
+2020-12-08 18:24:33.575: Sending: 'GET /city/cityName<test!>-fe9d049e45?location=centralus&group=A HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
 
-2020-11-30 14:00:39.728: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"name": "cityName<test!>-2abb382dd4", "properties": {"population": "0", "area": "5000"}}'
+2020-12-08 18:24:33.583: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"name": "cityName<test!>-fe9d049e45", "properties": {"population": "0", "area": "5000"}}'
 
 
 Generation-1: Rendering Sequence-1
@@ -34,7 +37,7 @@ Generation-1: Rendering Sequence-1
 		+ restler_custom_payload: ['centralus', '10']
 		- restler_static_string: '&'
 		- restler_static_string: 'date='
-		+ restler_fuzzable_datetime: ['2020-1-1', '2020-12-31', '2020-11-29']
+		+ restler_fuzzable_datetime: ['2020-1-1', '2021-01-08', '2020-12-07']
 		- restler_static_string: ' HTTP/1.1\r\n'
 		- restler_static_string: 'Accept: application/json\r\n'
 		- restler_static_string: 'Host: unittest\r\n'
@@ -42,7 +45,7 @@ Generation-1: Rendering Sequence-1
 		- restler_static_string: '\r\n'
 		- restler_static_string: '{'
 		- restler_static_string: '"datetest":'
-		+ restler_fuzzable_datetime: ['"2020-1-1"', '"2020-12-31"', '"2020-11-29"']
+		+ restler_fuzzable_datetime: ['"2020-1-1"', '"2021-01-08"', '"2020-12-07"']
 		- restler_static_string: ',"id":'
 		- restler_static_string: '"/testparts/'
 		- restler_custom_payload: 'testcustompart'
@@ -50,9 +53,9 @@ Generation-1: Rendering Sequence-1
 		- restler_static_string: '}'
 		- restler_static_string: '\r\n'
 
-2020-11-30 14:00:40.043: Sending: 'PUT /item/itemName<test!>-32ed7d62cc?location=centralus&date=2020-1-1 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 58\r\n\r\n{"datetest":"2020-1-1","id":"/testparts/testcustompart"}\r\n'
+2020-12-08 18:24:33.947: Sending: 'PUT /item/itemName<test!>-9cd5698d31?location=centralus&date=2020-1-1 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 58\r\n\r\n{"datetest":"2020-1-1","id":"/testparts/testcustompart"}\r\n'
 
-2020-11-30 14:00:40.059: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "itemName<test!>-32ed7d62cc"}'
+2020-12-08 18:24:33.957: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "itemName<test!>-9cd5698d31"}'
 
 
 Generation-1: Rendering Sequence-1
@@ -67,9 +70,9 @@ Generation-1: Rendering Sequence-1
 		- restler_static_string: 'Content-Type: application/json\r\n'
 		- restler_static_string: '\r\n'
 
-2020-11-30 14:00:40.344: Sending: 'GET /item HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
+2020-12-08 18:24:34.211: Sending: 'GET /item HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
 
-2020-11-30 14:00:40.359: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"item": {"itemName<test!>-32ed7d62cc": {"name": "itemName<test!>-32ed7d62cc"}}}'
+2020-12-08 18:24:34.219: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"item": {"itemName<test!>-9cd5698d31": {"name": "itemName<test!>-9cd5698d31"}}}'
 
 
 Generation-1: Rendering Sequence-1
@@ -89,16 +92,17 @@ Generation-1: Rendering Sequence-1
 		- restler_static_string: 'Content-Type: application/json\r\n'
 		- restler_static_string: '\r\n'
 		- restler_static_string: '{'
-		- restler_static_string: '"testbool":'
+		- restler_static_string: '"testbool"'
+		- restler_static_string: ':'
 		+ restler_fuzzable_bool: ['true', 'false']
 		- restler_static_string: ',"location":'
 		+ restler_custom_payload: ['"centralus"', '10']
 		- restler_static_string: '}'
 		- restler_static_string: '\r\n'
 
-2020-11-30 14:00:40.660: Sending: 'PUT /farm/farmName<test!>-cc638968ed?location=centralus HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 42\r\n\r\n{"testbool":true,"location":"centralus"}\r\n'
+2020-12-08 18:24:34.514: Sending: 'PUT /farm/farmName<test!>-3f1c8660b8?location=centralus HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 42\r\n\r\n{"testbool":true,"location":"centralus"}\r\n'
 
-2020-11-30 14:00:40.676: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "farmName<test!>-cc638968ed"}'
+2020-12-08 18:24:34.522: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "farmName<test!>-3f1c8660b8"}'
 
 
 Generation-1: Rendering Sequence-1
@@ -113,9 +117,9 @@ Generation-1: Rendering Sequence-1
 		- restler_static_string: 'Content-Type: application/json\r\n'
 		- restler_static_string: '\r\n'
 
-2020-11-30 14:00:40.876: Sending: 'GET /city HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
+2020-12-08 18:24:34.783: Sending: 'GET /city HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
 
-2020-11-30 14:00:40.892: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"city": {"cityName<test!>-2abb382dd4": {"name": "cityName<test!>-2abb382dd4", "properties": {"population": "0", "area": "5000"}}}}'
+2020-12-08 18:24:34.792: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"city": {"cityName<test!>-fe9d049e45": {"name": "cityName<test!>-fe9d049e45", "properties": {"population": "0", "area": "5000"}}}}'
 
 
 Generation-1: Rendering Sequence-1
@@ -125,7 +129,7 @@ Generation-1: Rendering Sequence-1
 		- restler_static_string: '/'
 		- restler_static_string: 'city'
 		- restler_static_string: '/'
-		- restler_static_string: 'cityName<test!>-2abb382dd4'
+		- restler_static_string: 'cityName<test!>-fe9d049e45'
 		- restler_static_string: '/'
 		- restler_static_string: 'road'
 		- restler_static_string: '/'
@@ -141,19 +145,19 @@ Generation-1: Rendering Sequence-1
 		- restler_static_string: '}'
 		- restler_static_string: '\r\n'
 
-2020-11-30 14:00:41.125: Sending: 'PUT /city/cityName<test!>-2abb382dd4/road/roadName<test!>-a64b1781b8 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 19\r\n\r\n{"testpayload":5}\r\n'
+2020-12-08 18:24:35.047: Sending: 'PUT /city/cityName<test!>-fe9d049e45/road/roadName<test!>-4ab846c629 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 19\r\n\r\n{"testpayload":5}\r\n'
 
-2020-11-30 14:00:41.146: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "roadName<test!>-a64b1781b8"}'
+2020-12-08 18:24:35.055: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "roadName<test!>-4ab846c629"}'
 
 
 Generation-1: Rendering Sequence-1
 
-	Request: 1 (Remaining candidate combinations: 1)
+	Request: 1 (Remaining candidate combinations: 3)
 		- restler_static_string: 'PUT '
 		- restler_static_string: '/'
 		- restler_static_string: 'city'
 		- restler_static_string: '/'
-		- restler_static_string: 'cityName<test!>-2abb382dd4'
+		- restler_static_string: 'cityName<test!>-fe9d049e45'
 		- restler_static_string: '/'
 		- restler_static_string: 'house'
 		- restler_static_string: '/'
@@ -166,12 +170,14 @@ Generation-1: Rendering Sequence-1
 		- restler_static_string: '{'
 		- restler_static_string: '"house":'
 		+ restler_custom_payload_uuid4_suffix: "houseName<test!>-"
+		- restler_static_string: ',"group":'
+		+ restler_fuzzable_group: ['A', 'BB', 'CCC']
 		- restler_static_string: '}'
 		- restler_static_string: '\r\n'
 
-2020-11-30 14:00:41.460: Sending: 'PUT /city/cityName<test!>-2abb382dd4/house/houseName<test!>-a46c55a48a HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 41\r\n\r\n{"house":"houseName<test!>-a46c55a48a"}\r\n'
+2020-12-08 18:24:35.420: Sending: 'PUT /city/cityName<test!>-fe9d049e45/house/houseName<test!>-724f299180 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 53\r\n\r\n{"house":"houseName<test!>-724f299180","group":"A"}\r\n'
 
-2020-11-30 14:00:41.468: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "houseName<test!>-a46c55a48a"}'
+2020-12-08 18:24:35.428: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "houseName<test!>-724f299180"}'
 
 
 Generation-1: Rendering Sequence-1
@@ -181,7 +187,7 @@ Generation-1: Rendering Sequence-1
 		- restler_static_string: '/'
 		- restler_static_string: 'city'
 		- restler_static_string: '/'
-		- restler_static_string: 'cityName<test!>-2abb382dd4'
+		- restler_static_string: 'cityName<test!>-fe9d049e45'
 		- restler_static_string: '/'
 		- restler_static_string: 'house'
 		- restler_static_string: ' HTTP/1.1\r\n'
@@ -190,9 +196,9 @@ Generation-1: Rendering Sequence-1
 		- restler_static_string: 'Content-Type: application/json\r\n'
 		- restler_static_string: '\r\n'
 
-2020-11-30 14:00:41.709: Sending: 'GET /city/cityName<test!>-2abb382dd4/house HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
+2020-12-08 18:24:35.699: Sending: 'GET /city/cityName<test!>-fe9d049e45/house HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
 
-2020-11-30 14:00:41.716: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"house": {"houseName<test!>-a46c55a48a": {"name": "houseName<test!>-a46c55a48a"}}}'
+2020-12-08 18:24:35.708: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"house": {"houseName<test!>-724f299180": {"name": "houseName<test!>-724f299180"}}}'
 
 
 Generation-1: Rendering Sequence-1
@@ -202,7 +208,7 @@ Generation-1: Rendering Sequence-1
 		- restler_static_string: '/'
 		- restler_static_string: 'city'
 		- restler_static_string: '/'
-		- restler_static_string: 'cityName<test!>-2abb382dd4'
+		- restler_static_string: 'cityName<test!>-fe9d049e45'
 		- restler_static_string: '/'
 		- restler_static_string: 'road'
 		- restler_static_string: ' HTTP/1.1\r\n'
@@ -211,9 +217,9 @@ Generation-1: Rendering Sequence-1
 		- restler_static_string: 'Content-Type: application/json\r\n'
 		- restler_static_string: '\r\n'
 
-2020-11-30 14:00:41.949: Sending: 'GET /city/cityName<test!>-2abb382dd4/road HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
+2020-12-08 18:24:35.964: Sending: 'GET /city/cityName<test!>-fe9d049e45/road HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
 
-2020-11-30 14:00:41.961: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"road": {"roadName<test!>-a64b1781b8": {"name": "roadName<test!>-a64b1781b8"}}}'
+2020-12-08 18:24:35.972: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"road": {"roadName<test!>-4ab846c629": {"name": "roadName<test!>-4ab846c629"}}}'
 
 
 Generation-1: Rendering Sequence-1
@@ -228,9 +234,9 @@ Generation-1: Rendering Sequence-1
 		- restler_static_string: 'Content-Type: application/json\r\n'
 		- restler_static_string: '\r\n'
 
-2020-11-30 14:00:42.139: Sending: 'GET /group HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
+2020-12-08 18:24:36.176: Sending: 'GET /group HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
 
-2020-11-30 14:00:42.147: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"group": {}}'
+2020-12-08 18:24:36.185: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"group": {}}'
 
 
 Generation-1: Rendering Sequence-1
@@ -245,9 +251,9 @@ Generation-1: Rendering Sequence-1
 		- restler_static_string: 'Content-Type: application/json\r\n'
 		- restler_static_string: '\r\n'
 
-2020-11-30 14:00:42.304: Sending: 'GET /farm HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
+2020-12-08 18:24:36.361: Sending: 'GET /farm HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
 
-2020-11-30 14:00:42.311: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"farm": {"farmName<test!>-cc638968ed": {"name": "farmName<test!>-cc638968ed"}}}'
+2020-12-08 18:24:36.369: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"farm": {"farmName<test!>-3f1c8660b8": {"name": "farmName<test!>-3f1c8660b8"}}}'
 
 
 Generation-1: Rendering Sequence-1
@@ -261,9 +267,9 @@ Generation-1: Rendering Sequence-1
 		- restler_static_string: 'Content-Type: application/json\r\n'
 		- restler_static_string: '\r\n'
 
-2020-11-30 14:00:42.466: Sending: 'GET / HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
+2020-12-08 18:24:36.547: Sending: 'GET / HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
 
-2020-11-30 14:00:42.474: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"city": {"cityName<test!>-2abb382dd4": {"name": "cityName<test!>-2abb382dd4", "properties": {"population": "0", "area": "5000"}}}, "farm": {"farmName<test!>-cc638968ed": {"name": "farmName<test!>-cc638968ed"}}, "item": {"itemName<test!>-32ed7d62cc": {"name": "itemName<test!>-32ed7d62cc"}}, "group": {}}'
+2020-12-08 18:24:36.555: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"city": {"cityName<test!>-fe9d049e45": {"name": "cityName<test!>-fe9d049e45", "properties": {"population": "0", "area": "5000"}}}, "farm": {"farmName<test!>-3f1c8660b8": {"name": "farmName<test!>-3f1c8660b8"}}, "item": {"itemName<test!>-9cd5698d31": {"name": "itemName<test!>-9cd5698d31"}}, "group": {}}'
 
 
 Generation-2: Rendering Sequence-1
@@ -279,7 +285,7 @@ Generation-2: Rendering Sequence-1
 		+ restler_custom_payload: ['centralus', '10']
 		- restler_static_string: '&'
 		- restler_static_string: 'date='
-		+ restler_fuzzable_datetime: ['2020-1-1', '2020-12-31', '2020-11-29']
+		+ restler_fuzzable_datetime: ['2020-1-1', '2021-01-08', '2020-12-07']
 		- restler_static_string: ' HTTP/1.1\r\n'
 		- restler_static_string: 'Accept: application/json\r\n'
 		- restler_static_string: 'Host: unittest\r\n'
@@ -287,7 +293,7 @@ Generation-2: Rendering Sequence-1
 		- restler_static_string: '\r\n'
 		- restler_static_string: '{'
 		- restler_static_string: '"datetest":'
-		+ restler_fuzzable_datetime: ['"2020-1-1"', '"2020-12-31"', '"2020-11-29"']
+		+ restler_fuzzable_datetime: ['"2020-1-1"', '"2021-01-08"', '"2020-12-07"']
 		- restler_static_string: ',"id":'
 		- restler_static_string: '"/testparts/'
 		- restler_custom_payload: 'testcustompart'
@@ -308,20 +314,20 @@ Generation-2: Rendering Sequence-1
 		- restler_static_string: '\r\n'
 		- restler_static_string: '{'
 		- restler_static_string: '"city":"'
-		- restler_static_string: 'cityName<test!>-2abb382dd4'
+		- restler_static_string: 'cityName<test!>-fe9d049e45'
 		- restler_static_string: '", "item": "'
 		- restler_static_string: '_READER_DELIM_item_put_name_READER_DELIM'
 		- restler_static_string: '"'
 		- restler_static_string: '}'
 		- restler_static_string: '\r\n'
 
-2020-11-30 14:00:42.935: Sending: 'PUT /item/itemName<test!>-0743d24835?location=centralus&date=2020-1-1 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 58\r\n\r\n{"datetest":"2020-1-1","id":"/testparts/testcustompart"}\r\n'
+2020-12-08 18:24:37.029: Sending: 'PUT /item/itemName<test!>-2825a5b6d1?location=centralus&date=2020-1-1 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 58\r\n\r\n{"datetest":"2020-1-1","id":"/testparts/testcustompart"}\r\n'
 
-2020-11-30 14:00:42.943: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "itemName<test!>-0743d24835"}'
+2020-12-08 18:24:37.038: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "itemName<test!>-2825a5b6d1"}'
 
-2020-11-30 14:00:42.952: Sending: 'PUT /group/groupName<test!>-80150f52c1 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 77\r\n\r\n{"city":"cityName<test!>-2abb382dd4", "item": "itemName<test!>-0743d24835"}\r\n'
+2020-12-08 18:24:37.054: Sending: 'PUT /group/groupName<test!>-f4cc83cfef HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 77\r\n\r\n{"city":"cityName<test!>-fe9d049e45", "item": "itemName<test!>-2825a5b6d1"}\r\n'
 
-2020-11-30 14:00:42.960: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "groupName<test!>-80150f52c1", "properties": {"item": "itemName<test!>-0743d24835", "city": "cityName<test!>-2abb382dd4"}}'
+2020-12-08 18:24:37.065: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "groupName<test!>-f4cc83cfef", "properties": {"item": "itemName<test!>-2825a5b6d1", "city": "cityName<test!>-fe9d049e45"}}'
 
 
 Generation-2: Rendering Sequence-1
@@ -337,7 +343,7 @@ Generation-2: Rendering Sequence-1
 		+ restler_custom_payload: ['centralus', '10']
 		- restler_static_string: '&'
 		- restler_static_string: 'date='
-		+ restler_fuzzable_datetime: ['2020-1-1', '2020-12-31', '2020-11-29']
+		+ restler_fuzzable_datetime: ['2020-1-1', '2021-01-08', '2020-12-07']
 		- restler_static_string: ' HTTP/1.1\r\n'
 		- restler_static_string: 'Accept: application/json\r\n'
 		- restler_static_string: 'Host: unittest\r\n'
@@ -345,7 +351,7 @@ Generation-2: Rendering Sequence-1
 		- restler_static_string: '\r\n'
 		- restler_static_string: '{'
 		- restler_static_string: '"datetest":'
-		+ restler_fuzzable_datetime: ['"2020-1-1"', '"2020-12-31"', '"2020-11-29"']
+		+ restler_fuzzable_datetime: ['"2020-1-1"', '"2021-01-08"', '"2020-12-07"']
 		- restler_static_string: ',"id":'
 		- restler_static_string: '"/testparts/'
 		- restler_custom_payload: 'testcustompart'
@@ -361,20 +367,20 @@ Generation-2: Rendering Sequence-1
 		- restler_static_string: '_READER_DELIM_item_put_name_READER_DELIM'
 		- restler_static_string: '?'
 		- restler_static_string: 'date='
-		+ restler_fuzzable_datetime: ['2020-1-1', '2020-12-31', '2020-11-29']
+		+ restler_fuzzable_datetime: ['2020-1-1', '2021-01-08', '2020-12-07']
 		- restler_static_string: ' HTTP/1.1\r\n'
 		- restler_static_string: 'Accept: application/json\r\n'
 		- restler_static_string: 'Host: unittest\r\n'
 		- restler_static_string: 'Content-Type: application/json\r\n'
 		- restler_static_string: '\r\n'
 
-2020-11-30 14:00:43.463: Sending: 'PUT /item/itemName<test!>-cccce1b14b?location=centralus&date=2020-1-1 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 58\r\n\r\n{"datetest":"2020-1-1","id":"/testparts/testcustompart"}\r\n'
+2020-12-08 18:24:37.557: Sending: 'PUT /item/itemName<test!>-33b5658826?location=centralus&date=2020-1-1 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 58\r\n\r\n{"datetest":"2020-1-1","id":"/testparts/testcustompart"}\r\n'
 
-2020-11-30 14:00:43.479: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "itemName<test!>-cccce1b14b"}'
+2020-12-08 18:24:37.566: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "itemName<test!>-33b5658826"}'
 
-2020-11-30 14:00:43.479: Sending: 'GET /item/itemName<test!>-cccce1b14b?date=2020-1-1 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
+2020-12-08 18:24:37.575: Sending: 'GET /item/itemName<test!>-33b5658826?date=2020-1-1 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
 
-2020-11-30 14:00:43.494: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"name": "itemName<test!>-cccce1b14b"}'
+2020-12-08 18:24:37.584: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"name": "itemName<test!>-33b5658826"}'
 
 
 Generation-2: Rendering Sequence-1
@@ -384,7 +390,7 @@ Generation-2: Rendering Sequence-1
 		- restler_static_string: '/'
 		- restler_static_string: 'city'
 		- restler_static_string: '/'
-		- restler_static_string: 'cityName<test!>-2abb382dd4'
+		- restler_static_string: 'cityName<test!>-fe9d049e45'
 		- restler_static_string: '/'
 		- restler_static_string: 'road'
 		- restler_static_string: '/'
@@ -405,7 +411,7 @@ Generation-2: Rendering Sequence-1
 		- restler_static_string: '/'
 		- restler_static_string: 'city'
 		- restler_static_string: '/'
-		- restler_static_string: 'cityName<test!>-2abb382dd4'
+		- restler_static_string: 'cityName<test!>-fe9d049e45'
 		- restler_static_string: '/'
 		- restler_static_string: 'road'
 		- restler_static_string: '/'
@@ -416,13 +422,13 @@ Generation-2: Rendering Sequence-1
 		- restler_static_string: 'Content-Type: application/json\r\n'
 		- restler_static_string: '\r\n'
 
-2020-11-30 14:00:43.941: Sending: 'PUT /city/cityName<test!>-2abb382dd4/road/roadName<test!>-40f194bbef HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 19\r\n\r\n{"testpayload":5}\r\n'
+2020-12-08 18:24:37.988: Sending: 'PUT /city/cityName<test!>-fe9d049e45/road/roadName<test!>-bd2f034818 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 19\r\n\r\n{"testpayload":5}\r\n'
 
-2020-11-30 14:00:43.949: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "roadName<test!>-40f194bbef"}'
+2020-12-08 18:24:37.997: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "roadName<test!>-bd2f034818"}'
 
-2020-11-30 14:00:43.951: Sending: 'DELETE /city/cityName<test!>-2abb382dd4/road/roadName<test!>-40f194bbef HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
+2020-12-08 18:24:38.005: Sending: 'DELETE /city/cityName<test!>-fe9d049e45/road/roadName<test!>-bd2f034818 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
 
-2020-11-30 14:00:43.962: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"roadName<test!>-40f194bbef"'
+2020-12-08 18:24:38.014: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"roadName<test!>-bd2f034818"'
 
 
 Generation-2: Rendering Sequence-1
@@ -438,7 +444,7 @@ Generation-2: Rendering Sequence-1
 		+ restler_custom_payload: ['centralus', '10']
 		- restler_static_string: '&'
 		- restler_static_string: 'date='
-		+ restler_fuzzable_datetime: ['2020-1-1', '2020-12-31', '2020-11-29']
+		+ restler_fuzzable_datetime: ['2020-1-1', '2021-01-08', '2020-12-07']
 		- restler_static_string: ' HTTP/1.1\r\n'
 		- restler_static_string: 'Accept: application/json\r\n'
 		- restler_static_string: 'Host: unittest\r\n'
@@ -446,7 +452,7 @@ Generation-2: Rendering Sequence-1
 		- restler_static_string: '\r\n'
 		- restler_static_string: '{'
 		- restler_static_string: '"datetest":'
-		+ restler_fuzzable_datetime: ['"2020-1-1"', '"2020-12-31"', '"2020-11-29"']
+		+ restler_fuzzable_datetime: ['"2020-1-1"', '"2021-01-08"', '"2020-12-07"']
 		- restler_static_string: ',"id":'
 		- restler_static_string: '"/testparts/'
 		- restler_custom_payload: 'testcustompart'
@@ -466,23 +472,23 @@ Generation-2: Rendering Sequence-1
 		- restler_static_string: 'Content-Type: application/json\r\n'
 		- restler_static_string: '\r\n'
 
-2020-11-30 14:00:44.480: Sending: 'PUT /item/itemName<test!>-a0a587b5ca?location=centralus&date=2020-1-1 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 58\r\n\r\n{"datetest":"2020-1-1","id":"/testparts/testcustompart"}\r\n'
+2020-12-08 18:24:38.488: Sending: 'PUT /item/itemName<test!>-ecf441b991?location=centralus&date=2020-1-1 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 58\r\n\r\n{"datetest":"2020-1-1","id":"/testparts/testcustompart"}\r\n'
 
-2020-11-30 14:00:44.490: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "itemName<test!>-a0a587b5ca"}'
+2020-12-08 18:24:38.497: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "itemName<test!>-ecf441b991"}'
 
-2020-11-30 14:00:44.499: Sending: 'DELETE /item/itemName<test!>-a0a587b5ca HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
+2020-12-08 18:24:38.505: Sending: 'DELETE /item/itemName<test!>-ecf441b991 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
 
-2020-11-30 14:00:44.515: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"itemName<test!>-a0a587b5ca"'
+2020-12-08 18:24:38.513: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"itemName<test!>-ecf441b991"'
 
 
 Generation-2: Rendering Sequence-1
 
-	Request: 1 (Current combination: 1 / 1)
+	Request: 1 (Current combination: 1 / 3)
 		- restler_static_string: 'PUT '
 		- restler_static_string: '/'
 		- restler_static_string: 'city'
 		- restler_static_string: '/'
-		- restler_static_string: 'cityName<test!>-2abb382dd4'
+		- restler_static_string: 'cityName<test!>-fe9d049e45'
 		- restler_static_string: '/'
 		- restler_static_string: 'house'
 		- restler_static_string: '/'
@@ -495,6 +501,8 @@ Generation-2: Rendering Sequence-1
 		- restler_static_string: '{'
 		- restler_static_string: '"house":'
 		+ restler_custom_payload_uuid4_suffix: "houseName<test!>-"
+		- restler_static_string: ',"group":'
+		+ restler_fuzzable_group: ['A', 'BB', 'CCC']
 		- restler_static_string: '}'
 		- restler_static_string: '\r\n'
 
@@ -503,7 +511,7 @@ Generation-2: Rendering Sequence-1
 		- restler_static_string: '/'
 		- restler_static_string: 'city'
 		- restler_static_string: '/'
-		- restler_static_string: 'cityName<test!>-2abb382dd4'
+		- restler_static_string: 'cityName<test!>-fe9d049e45'
 		- restler_static_string: '/'
 		- restler_static_string: 'house'
 		- restler_static_string: '/'
@@ -518,13 +526,13 @@ Generation-2: Rendering Sequence-1
 		- restler_static_string: 'Content-Type: application/json\r\n'
 		- restler_static_string: '\r\n'
 
-2020-11-30 14:00:44.971: Sending: 'PUT /city/cityName<test!>-2abb382dd4/house/houseName<test!>-ea6791b555 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 41\r\n\r\n{"house":"houseName<test!>-ea6791b555"}\r\n'
+2020-12-08 18:24:38.988: Sending: 'PUT /city/cityName<test!>-fe9d049e45/house/houseName<test!>-c0deaf8ac7 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 53\r\n\r\n{"house":"houseName<test!>-c0deaf8ac7","group":"A"}\r\n'
 
-2020-11-30 14:00:44.979: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "houseName<test!>-ea6791b555"}'
+2020-12-08 18:24:38.997: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "houseName<test!>-c0deaf8ac7"}'
 
-2020-11-30 14:00:44.986: Sending: 'PUT /city/cityName<test!>-2abb382dd4/house/houseName<test!>-ea6791b555/color/colorName<test!>-7c96e89d64 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
+2020-12-08 18:24:39.005: Sending: 'PUT /city/cityName<test!>-fe9d049e45/house/houseName<test!>-c0deaf8ac7/color/colorName<test!>-10c57a52f3 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
 
-2020-11-30 14:00:44.994: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "colorName<test!>-7c96e89d64"}'
+2020-12-08 18:24:39.015: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "colorName<test!>-10c57a52f3"}'
 
 
 Generation-2: Rendering Sequence-1
@@ -544,7 +552,8 @@ Generation-2: Rendering Sequence-1
 		- restler_static_string: 'Content-Type: application/json\r\n'
 		- restler_static_string: '\r\n'
 		- restler_static_string: '{'
-		- restler_static_string: '"testbool":'
+		- restler_static_string: '"testbool"'
+		- restler_static_string: ':'
 		+ restler_fuzzable_bool: ['true', 'false']
 		- restler_static_string: ',"location":'
 		+ restler_custom_payload: ['"centralus"', '10']
@@ -570,23 +579,23 @@ Generation-2: Rendering Sequence-1
 		- restler_static_string: '}'
 		- restler_static_string: '\r\n'
 
-2020-11-30 14:00:45.568: Sending: 'PUT /farm/farmName<test!>-9196ee7a7f?location=centralus HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 42\r\n\r\n{"testbool":true,"location":"centralus"}\r\n'
+2020-12-08 18:24:39.600: Sending: 'PUT /farm/farmName<test!>-352bb1ff25?location=centralus HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 42\r\n\r\n{"testbool":true,"location":"centralus"}\r\n'
 
-2020-11-30 14:00:45.583: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "farmName<test!>-9196ee7a7f"}'
+2020-12-08 18:24:39.609: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "farmName<test!>-352bb1ff25"}'
 
-2020-11-30 14:00:45.599: Sending: 'PUT /farm/farmName<test!>-9196ee7a7f/animal/animalName<test!>-7db38507ca HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 4\r\n\r\n{}\r\n'
+2020-12-08 18:24:39.617: Sending: 'PUT /farm/farmName<test!>-352bb1ff25/animal/animalName<test!>-aab80e9834 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 4\r\n\r\n{}\r\n'
 
-2020-11-30 14:00:45.599: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "animalName<test!>-7db38507ca"}'
+2020-12-08 18:24:39.617: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "animalName<test!>-aab80e9834"}'
 
 
 Generation-2: Rendering Sequence-1
 
-	Request: 1 (Current combination: 1 / 1)
+	Request: 1 (Current combination: 1 / 3)
 		- restler_static_string: 'PUT '
 		- restler_static_string: '/'
 		- restler_static_string: 'city'
 		- restler_static_string: '/'
-		- restler_static_string: 'cityName<test!>-2abb382dd4'
+		- restler_static_string: 'cityName<test!>-fe9d049e45'
 		- restler_static_string: '/'
 		- restler_static_string: 'house'
 		- restler_static_string: '/'
@@ -599,6 +608,8 @@ Generation-2: Rendering Sequence-1
 		- restler_static_string: '{'
 		- restler_static_string: '"house":'
 		+ restler_custom_payload_uuid4_suffix: "houseName<test!>-"
+		- restler_static_string: ',"group":'
+		+ restler_fuzzable_group: ['A', 'BB', 'CCC']
 		- restler_static_string: '}'
 		- restler_static_string: '\r\n'
 
@@ -607,7 +618,7 @@ Generation-2: Rendering Sequence-1
 		- restler_static_string: '/'
 		- restler_static_string: 'city'
 		- restler_static_string: '/'
-		- restler_static_string: 'cityName<test!>-2abb382dd4'
+		- restler_static_string: 'cityName<test!>-fe9d049e45'
 		- restler_static_string: '/'
 		- restler_static_string: 'house'
 		- restler_static_string: '/'
@@ -618,13 +629,13 @@ Generation-2: Rendering Sequence-1
 		- restler_static_string: 'Content-Type: application/json\r\n'
 		- restler_static_string: '\r\n'
 
-2020-11-30 14:00:46.047: Sending: 'PUT /city/cityName<test!>-2abb382dd4/house/houseName<test!>-dc9ecd6eba HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 41\r\n\r\n{"house":"houseName<test!>-dc9ecd6eba"}\r\n'
+2020-12-08 18:24:40.126: Sending: 'PUT /city/cityName<test!>-fe9d049e45/house/houseName<test!>-82fe1c6d41 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 53\r\n\r\n{"house":"houseName<test!>-82fe1c6d41","group":"A"}\r\n'
 
-2020-11-30 14:00:46.056: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "houseName<test!>-dc9ecd6eba"}'
+2020-12-08 18:24:40.141: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "houseName<test!>-82fe1c6d41"}'
 
-2020-11-30 14:00:46.066: Sending: 'GET /city/cityName<test!>-2abb382dd4/house/houseName<test!>-dc9ecd6eba HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
+2020-12-08 18:24:40.148: Sending: 'GET /city/cityName<test!>-fe9d049e45/house/houseName<test!>-82fe1c6d41 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
 
-2020-11-30 14:00:46.074: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"name": "houseName<test!>-dc9ecd6eba"}'
+2020-12-08 18:24:40.148: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"name": "houseName<test!>-82fe1c6d41"}'
 
 
 Generation-2: Rendering Sequence-1
@@ -644,7 +655,8 @@ Generation-2: Rendering Sequence-1
 		- restler_static_string: 'Content-Type: application/json\r\n'
 		- restler_static_string: '\r\n'
 		- restler_static_string: '{'
-		- restler_static_string: '"testbool":'
+		- restler_static_string: '"testbool"'
+		- restler_static_string: ':'
 		+ restler_fuzzable_bool: ['true', 'false']
 		- restler_static_string: ',"location":'
 		+ restler_custom_payload: ['"centralus"', '10']
@@ -663,13 +675,13 @@ Generation-2: Rendering Sequence-1
 		- restler_static_string: 'Content-Type: application/json\r\n'
 		- restler_static_string: '\r\n'
 
-2020-11-30 14:00:46.524: Sending: 'PUT /farm/farmName<test!>-1339445436?location=centralus HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 42\r\n\r\n{"testbool":true,"location":"centralus"}\r\n'
+2020-12-08 18:24:40.596: Sending: 'PUT /farm/farmName<test!>-abd7993cea?location=centralus HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 42\r\n\r\n{"testbool":true,"location":"centralus"}\r\n'
 
-2020-11-30 14:00:46.540: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "farmName<test!>-1339445436"}'
+2020-12-08 18:24:40.606: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "farmName<test!>-abd7993cea"}'
 
-2020-11-30 14:00:46.549: Sending: 'DELETE /farm/farmName<test!>-1339445436 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
+2020-12-08 18:24:40.615: Sending: 'DELETE /farm/farmName<test!>-abd7993cea HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
 
-2020-11-30 14:00:46.558: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"farmName<test!>-1339445436"'
+2020-12-08 18:24:40.625: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"farmName<test!>-abd7993cea"'
 
 
 Generation-2: Rendering Sequence-1
@@ -679,7 +691,7 @@ Generation-2: Rendering Sequence-1
 		- restler_static_string: '/'
 		- restler_static_string: 'city'
 		- restler_static_string: '/'
-		- restler_static_string: 'cityName<test!>-2abb382dd4'
+		- restler_static_string: 'cityName<test!>-fe9d049e45'
 		- restler_static_string: '/'
 		- restler_static_string: 'road'
 		- restler_static_string: '/'
@@ -700,7 +712,7 @@ Generation-2: Rendering Sequence-1
 		- restler_static_string: '/'
 		- restler_static_string: 'city'
 		- restler_static_string: '/'
-		- restler_static_string: 'cityName<test!>-2abb382dd4'
+		- restler_static_string: 'cityName<test!>-fe9d049e45'
 		- restler_static_string: '/'
 		- restler_static_string: 'road'
 		- restler_static_string: '/'
@@ -711,13 +723,13 @@ Generation-2: Rendering Sequence-1
 		- restler_static_string: 'Content-Type: application/json\r\n'
 		- restler_static_string: '\r\n'
 
-2020-11-30 14:00:46.972: Sending: 'PUT /city/cityName<test!>-2abb382dd4/road/roadName<test!>-fe08a5713f HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 19\r\n\r\n{"testpayload":5}\r\n'
+2020-12-08 18:24:41.044: Sending: 'PUT /city/cityName<test!>-fe9d049e45/road/roadName<test!>-5e4464bfb3 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 19\r\n\r\n{"testpayload":5}\r\n'
 
-2020-11-30 14:00:46.980: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "roadName<test!>-fe08a5713f"}'
+2020-12-08 18:24:41.053: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "roadName<test!>-5e4464bfb3"}'
 
-2020-11-30 14:00:46.987: Sending: 'GET /city/cityName<test!>-2abb382dd4/road/roadName<test!>-fe08a5713f HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
+2020-12-08 18:24:41.062: Sending: 'GET /city/cityName<test!>-fe9d049e45/road/roadName<test!>-5e4464bfb3 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
 
-2020-11-30 14:00:46.995: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"name": "roadName<test!>-fe08a5713f"}'
+2020-12-08 18:24:41.071: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"name": "roadName<test!>-5e4464bfb3"}'
 
 
 Generation-2: Rendering Sequence-1
@@ -737,7 +749,8 @@ Generation-2: Rendering Sequence-1
 		- restler_static_string: 'Content-Type: application/json\r\n'
 		- restler_static_string: '\r\n'
 		- restler_static_string: '{'
-		- restler_static_string: '"testbool":'
+		- restler_static_string: '"testbool"'
+		- restler_static_string: ':'
 		+ restler_fuzzable_bool: ['true', 'false']
 		- restler_static_string: ',"location":'
 		+ restler_custom_payload: ['"centralus"', '10']
@@ -756,13 +769,13 @@ Generation-2: Rendering Sequence-1
 		- restler_static_string: 'Content-Type: application/json\r\n'
 		- restler_static_string: '\r\n'
 
-2020-11-30 14:00:47.401: Sending: 'PUT /farm/farmName<test!>-83285a78c8?location=centralus HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 42\r\n\r\n{"testbool":true,"location":"centralus"}\r\n'
+2020-12-08 18:24:41.505: Sending: 'PUT /farm/farmName<test!>-d5a8319891?location=centralus HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 42\r\n\r\n{"testbool":true,"location":"centralus"}\r\n'
 
-2020-11-30 14:00:47.412: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "farmName<test!>-83285a78c8"}'
+2020-12-08 18:24:41.513: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "farmName<test!>-d5a8319891"}'
 
-2020-11-30 14:00:47.420: Sending: 'GET /farm/farmName<test!>-83285a78c8 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
+2020-12-08 18:24:41.523: Sending: 'GET /farm/farmName<test!>-d5a8319891 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
 
-2020-11-30 14:00:47.428: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"name": "farmName<test!>-83285a78c8"}'
+2020-12-08 18:24:41.525: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"name": "farmName<test!>-d5a8319891"}'
 
 
 Generation-2: Rendering Sequence-1
@@ -782,7 +795,8 @@ Generation-2: Rendering Sequence-1
 		- restler_static_string: 'Content-Type: application/json\r\n'
 		- restler_static_string: '\r\n'
 		- restler_static_string: '{'
-		- restler_static_string: '"testbool":'
+		- restler_static_string: '"testbool"'
+		- restler_static_string: ':'
 		+ restler_fuzzable_bool: ['true', 'false']
 		- restler_static_string: ',"location":'
 		+ restler_custom_payload: ['"centralus"', '10']
@@ -803,23 +817,23 @@ Generation-2: Rendering Sequence-1
 		- restler_static_string: 'Content-Type: application/json\r\n'
 		- restler_static_string: '\r\n'
 
-2020-11-30 14:00:47.892: Sending: 'PUT /farm/farmName<test!>-a2da859b4a?location=centralus HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 42\r\n\r\n{"testbool":true,"location":"centralus"}\r\n'
+2020-12-08 18:24:41.969: Sending: 'PUT /farm/farmName<test!>-42305e5fe8?location=centralus HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 42\r\n\r\n{"testbool":true,"location":"centralus"}\r\n'
 
-2020-11-30 14:00:47.900: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "farmName<test!>-a2da859b4a"}'
+2020-12-08 18:24:41.969: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "farmName<test!>-42305e5fe8"}'
 
-2020-11-30 14:00:47.908: Sending: 'GET /farm/farmName<test!>-a2da859b4a/animal HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
+2020-12-08 18:24:41.985: Sending: 'GET /farm/farmName<test!>-42305e5fe8/animal HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
 
-2020-11-30 14:00:47.916: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"animal": {}}'
+2020-12-08 18:24:42.000: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"animal": {}}'
 
 
 Generation-2: Rendering Sequence-1
 
-	Request: 1 (Current combination: 1 / 1)
+	Request: 1 (Current combination: 1 / 3)
 		- restler_static_string: 'PUT '
 		- restler_static_string: '/'
 		- restler_static_string: 'city'
 		- restler_static_string: '/'
-		- restler_static_string: 'cityName<test!>-2abb382dd4'
+		- restler_static_string: 'cityName<test!>-fe9d049e45'
 		- restler_static_string: '/'
 		- restler_static_string: 'house'
 		- restler_static_string: '/'
@@ -832,6 +846,8 @@ Generation-2: Rendering Sequence-1
 		- restler_static_string: '{'
 		- restler_static_string: '"house":'
 		+ restler_custom_payload_uuid4_suffix: "houseName<test!>-"
+		- restler_static_string: ',"group":'
+		+ restler_fuzzable_group: ['A', 'BB', 'CCC']
 		- restler_static_string: '}'
 		- restler_static_string: '\r\n'
 
@@ -840,7 +856,7 @@ Generation-2: Rendering Sequence-1
 		- restler_static_string: '/'
 		- restler_static_string: 'city'
 		- restler_static_string: '/'
-		- restler_static_string: 'cityName<test!>-2abb382dd4'
+		- restler_static_string: 'cityName<test!>-fe9d049e45'
 		- restler_static_string: '/'
 		- restler_static_string: 'house'
 		- restler_static_string: '/'
@@ -853,23 +869,23 @@ Generation-2: Rendering Sequence-1
 		- restler_static_string: 'Content-Type: application/json\r\n'
 		- restler_static_string: '\r\n'
 
-2020-11-30 14:00:48.359: Sending: 'PUT /city/cityName<test!>-2abb382dd4/house/houseName<test!>-5d7690d0a5 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 41\r\n\r\n{"house":"houseName<test!>-5d7690d0a5"}\r\n'
+2020-12-08 18:24:42.503: Sending: 'PUT /city/cityName<test!>-fe9d049e45/house/houseName<test!>-349af33484 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 53\r\n\r\n{"house":"houseName<test!>-349af33484","group":"A"}\r\n'
 
-2020-11-30 14:00:48.367: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "houseName<test!>-5d7690d0a5"}'
+2020-12-08 18:24:42.512: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "houseName<test!>-349af33484"}'
 
-2020-11-30 14:00:48.375: Sending: 'GET /city/cityName<test!>-2abb382dd4/house/houseName<test!>-5d7690d0a5/color HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
+2020-12-08 18:24:42.520: Sending: 'GET /city/cityName<test!>-fe9d049e45/house/houseName<test!>-349af33484/color HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
 
-2020-11-30 14:00:48.382: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"color": {}}'
+2020-12-08 18:24:42.529: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"color": {}}'
 
 
 Generation-2: Rendering Sequence-1
 
-	Request: 1 (Current combination: 1 / 1)
+	Request: 1 (Current combination: 1 / 3)
 		- restler_static_string: 'PUT '
 		- restler_static_string: '/'
 		- restler_static_string: 'city'
 		- restler_static_string: '/'
-		- restler_static_string: 'cityName<test!>-2abb382dd4'
+		- restler_static_string: 'cityName<test!>-fe9d049e45'
 		- restler_static_string: '/'
 		- restler_static_string: 'house'
 		- restler_static_string: '/'
@@ -882,6 +898,8 @@ Generation-2: Rendering Sequence-1
 		- restler_static_string: '{'
 		- restler_static_string: '"house":'
 		+ restler_custom_payload_uuid4_suffix: "houseName<test!>-"
+		- restler_static_string: ',"group":'
+		+ restler_fuzzable_group: ['A', 'BB', 'CCC']
 		- restler_static_string: '}'
 		- restler_static_string: '\r\n'
 
@@ -890,7 +908,7 @@ Generation-2: Rendering Sequence-1
 		- restler_static_string: '/'
 		- restler_static_string: 'city'
 		- restler_static_string: '/'
-		- restler_static_string: 'cityName<test!>-2abb382dd4'
+		- restler_static_string: 'cityName<test!>-fe9d049e45'
 		- restler_static_string: '/'
 		- restler_static_string: 'house'
 		- restler_static_string: '/'
@@ -901,23 +919,23 @@ Generation-2: Rendering Sequence-1
 		- restler_static_string: 'Content-Type: application/json\r\n'
 		- restler_static_string: '\r\n'
 
-2020-11-30 14:00:48.845: Sending: 'PUT /city/cityName<test!>-2abb382dd4/house/houseName<test!>-ba39884bc5 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 41\r\n\r\n{"house":"houseName<test!>-ba39884bc5"}\r\n'
+2020-12-08 18:24:43.031: Sending: 'PUT /city/cityName<test!>-fe9d049e45/house/houseName<test!>-1cf950c21f HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 53\r\n\r\n{"house":"houseName<test!>-1cf950c21f","group":"A"}\r\n'
 
-2020-11-30 14:00:48.853: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "houseName<test!>-ba39884bc5"}'
+2020-12-08 18:24:43.042: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "houseName<test!>-1cf950c21f"}'
 
-2020-11-30 14:00:48.861: Sending: 'DELETE /city/cityName<test!>-2abb382dd4/house/houseName<test!>-ba39884bc5 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
+2020-12-08 18:24:43.053: Sending: 'DELETE /city/cityName<test!>-fe9d049e45/house/houseName<test!>-1cf950c21f HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
 
-2020-11-30 14:00:48.870: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"houseName<test!>-ba39884bc5"'
+2020-12-08 18:24:43.062: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"houseName<test!>-1cf950c21f"'
 
 
 Generation-3: Rendering Sequence-1
 
-	Request: 1 (Current combination: 1 / 1)
+	Request: 1 (Current combination: 1 / 3)
 		- restler_static_string: 'PUT '
 		- restler_static_string: '/'
 		- restler_static_string: 'city'
 		- restler_static_string: '/'
-		- restler_static_string: 'cityName<test!>-2abb382dd4'
+		- restler_static_string: 'cityName<test!>-fe9d049e45'
 		- restler_static_string: '/'
 		- restler_static_string: 'house'
 		- restler_static_string: '/'
@@ -930,6 +948,8 @@ Generation-3: Rendering Sequence-1
 		- restler_static_string: '{'
 		- restler_static_string: '"house":'
 		+ restler_custom_payload_uuid4_suffix: "houseName<test!>-"
+		- restler_static_string: ',"group":'
+		+ restler_fuzzable_group: ['A', 'BB', 'CCC']
 		- restler_static_string: '}'
 		- restler_static_string: '\r\n'
 
@@ -938,7 +958,7 @@ Generation-3: Rendering Sequence-1
 		- restler_static_string: '/'
 		- restler_static_string: 'city'
 		- restler_static_string: '/'
-		- restler_static_string: 'cityName<test!>-2abb382dd4'
+		- restler_static_string: 'cityName<test!>-fe9d049e45'
 		- restler_static_string: '/'
 		- restler_static_string: 'house'
 		- restler_static_string: '/'
@@ -958,7 +978,7 @@ Generation-3: Rendering Sequence-1
 		- restler_static_string: '/'
 		- restler_static_string: 'city'
 		- restler_static_string: '/'
-		- restler_static_string: 'cityName<test!>-2abb382dd4'
+		- restler_static_string: 'cityName<test!>-fe9d049e45'
 		- restler_static_string: '/'
 		- restler_static_string: 'house'
 		- restler_static_string: '/'
@@ -973,17 +993,17 @@ Generation-3: Rendering Sequence-1
 		- restler_static_string: 'Content-Type: application/json\r\n'
 		- restler_static_string: '\r\n'
 
-2020-11-30 14:00:49.439: Sending: 'PUT /city/cityName<test!>-2abb382dd4/house/houseName<test!>-998f6cc313 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 41\r\n\r\n{"house":"houseName<test!>-998f6cc313"}\r\n'
+2020-12-08 18:24:43.750: Sending: 'PUT /city/cityName<test!>-fe9d049e45/house/houseName<test!>-53cb9406eb HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 53\r\n\r\n{"house":"houseName<test!>-53cb9406eb","group":"A"}\r\n'
 
-2020-11-30 14:00:49.441: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "houseName<test!>-998f6cc313"}'
+2020-12-08 18:24:43.750: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "houseName<test!>-53cb9406eb"}'
 
-2020-11-30 14:00:49.451: Sending: 'PUT /city/cityName<test!>-2abb382dd4/house/houseName<test!>-998f6cc313/color/colorName<test!>-b84a18eee9 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
+2020-12-08 18:24:43.765: Sending: 'PUT /city/cityName<test!>-fe9d049e45/house/houseName<test!>-53cb9406eb/color/colorName<test!>-32c4b92e3c HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
 
-2020-11-30 14:00:49.461: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "colorName<test!>-b84a18eee9"}'
+2020-12-08 18:24:43.765: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "colorName<test!>-32c4b92e3c"}'
 
-2020-11-30 14:00:49.471: Sending: 'GET /city/cityName<test!>-2abb382dd4/house/houseName<test!>-998f6cc313/color/colorName<test!>-b84a18eee9 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
+2020-12-08 18:24:43.781: Sending: 'GET /city/cityName<test!>-fe9d049e45/house/houseName<test!>-53cb9406eb/color/colorName<test!>-32c4b92e3c HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
 
-2020-11-30 14:00:49.471: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"name": "colorName<test!>-b84a18eee9"}'
+2020-12-08 18:24:43.781: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"name": "colorName<test!>-32c4b92e3c"}'
 
 
 Generation-3: Rendering Sequence-1
@@ -1003,7 +1023,8 @@ Generation-3: Rendering Sequence-1
 		- restler_static_string: 'Content-Type: application/json\r\n'
 		- restler_static_string: '\r\n'
 		- restler_static_string: '{'
-		- restler_static_string: '"testbool":'
+		- restler_static_string: '"testbool"'
+		- restler_static_string: ':'
 		+ restler_fuzzable_bool: ['true', 'false']
 		- restler_static_string: ',"location":'
 		+ restler_custom_payload: ['"centralus"', '10']
@@ -1045,17 +1066,17 @@ Generation-3: Rendering Sequence-1
 		- restler_static_string: 'Content-Type: application/json\r\n'
 		- restler_static_string: '\r\n'
 
-2020-11-30 14:00:50.082: Sending: 'PUT /farm/farmName<test!>-7917fbc39e?location=centralus HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 42\r\n\r\n{"testbool":true,"location":"centralus"}\r\n'
+2020-12-08 18:24:44.431: Sending: 'PUT /farm/farmName<test!>-d6e78faac7?location=centralus HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 42\r\n\r\n{"testbool":true,"location":"centralus"}\r\n'
 
-2020-11-30 14:00:50.084: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "farmName<test!>-7917fbc39e"}'
+2020-12-08 18:24:44.447: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "farmName<test!>-d6e78faac7"}'
 
-2020-11-30 14:00:50.092: Sending: 'PUT /farm/farmName<test!>-7917fbc39e/animal/animalName<test!>-21dea850c7 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 4\r\n\r\n{}\r\n'
+2020-12-08 18:24:44.447: Sending: 'PUT /farm/farmName<test!>-d6e78faac7/animal/animalName<test!>-62b173bb3a HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 4\r\n\r\n{}\r\n'
 
-2020-11-30 14:00:50.104: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "animalName<test!>-21dea850c7"}'
+2020-12-08 18:24:44.463: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "animalName<test!>-62b173bb3a"}'
 
-2020-11-30 14:00:50.114: Sending: 'GET /farm/farmName<test!>-7917fbc39e/animal/animalName<test!>-21dea850c7 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
+2020-12-08 18:24:44.469: Sending: 'GET /farm/farmName<test!>-d6e78faac7/animal/animalName<test!>-62b173bb3a HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
 
-2020-11-30 14:00:50.122: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"name": "animalName<test!>-21dea850c7"}'
+2020-12-08 18:24:44.485: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"name": "animalName<test!>-62b173bb3a"}'
 
 
 Generation-3: Rendering Sequence-1
@@ -1075,7 +1096,8 @@ Generation-3: Rendering Sequence-1
 		- restler_static_string: 'Content-Type: application/json\r\n'
 		- restler_static_string: '\r\n'
 		- restler_static_string: '{'
-		- restler_static_string: '"testbool":'
+		- restler_static_string: '"testbool"'
+		- restler_static_string: ':'
 		+ restler_fuzzable_bool: ['true', 'false']
 		- restler_static_string: ',"location":'
 		+ restler_custom_payload: ['"centralus"', '10']
@@ -1117,17 +1139,17 @@ Generation-3: Rendering Sequence-1
 		- restler_static_string: 'Content-Type: application/json\r\n'
 		- restler_static_string: '\r\n'
 
-2020-11-30 14:00:50.664: Sending: 'PUT /farm/farmName<test!>-2dffe94f85?location=centralus HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 42\r\n\r\n{"testbool":true,"location":"centralus"}\r\n'
+2020-12-08 18:24:45.128: Sending: 'PUT /farm/farmName<test!>-f9ab15b6d8?location=centralus HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 42\r\n\r\n{"testbool":true,"location":"centralus"}\r\n'
 
-2020-11-30 14:00:50.672: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "farmName<test!>-2dffe94f85"}'
+2020-12-08 18:24:45.130: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "farmName<test!>-f9ab15b6d8"}'
 
-2020-11-30 14:00:50.680: Sending: 'PUT /farm/farmName<test!>-2dffe94f85/animal/animalName<test!>-a664906426 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 4\r\n\r\n{}\r\n'
+2020-12-08 18:24:45.141: Sending: 'PUT /farm/farmName<test!>-f9ab15b6d8/animal/animalName<test!>-5929c37273 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 4\r\n\r\n{}\r\n'
 
-2020-11-30 14:00:50.688: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "animalName<test!>-a664906426"}'
+2020-12-08 18:24:45.151: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "animalName<test!>-5929c37273"}'
 
-2020-11-30 14:00:50.696: Sending: 'DELETE /farm/farmName<test!>-2dffe94f85/animal/animalName<test!>-a664906426 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
+2020-12-08 18:24:45.161: Sending: 'DELETE /farm/farmName<test!>-f9ab15b6d8/animal/animalName<test!>-5929c37273 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
 
-2020-11-30 14:00:50.704: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"animalName<test!>-a664906426"'
+2020-12-08 18:24:45.172: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"animalName<test!>-5929c37273"'
 
 
 Generation-3: Rendering Sequence-1
@@ -1143,7 +1165,7 @@ Generation-3: Rendering Sequence-1
 		+ restler_custom_payload: ['centralus', '10']
 		- restler_static_string: '&'
 		- restler_static_string: 'date='
-		+ restler_fuzzable_datetime: ['2020-1-1', '2020-12-31', '2020-11-29']
+		+ restler_fuzzable_datetime: ['2020-1-1', '2021-01-08', '2020-12-07']
 		- restler_static_string: ' HTTP/1.1\r\n'
 		- restler_static_string: 'Accept: application/json\r\n'
 		- restler_static_string: 'Host: unittest\r\n'
@@ -1151,7 +1173,7 @@ Generation-3: Rendering Sequence-1
 		- restler_static_string: '\r\n'
 		- restler_static_string: '{'
 		- restler_static_string: '"datetest":'
-		+ restler_fuzzable_datetime: ['"2020-1-1"', '"2020-12-31"', '"2020-11-29"']
+		+ restler_fuzzable_datetime: ['"2020-1-1"', '"2021-01-08"', '"2020-12-07"']
 		- restler_static_string: ',"id":'
 		- restler_static_string: '"/testparts/'
 		- restler_custom_payload: 'testcustompart'
@@ -1172,7 +1194,7 @@ Generation-3: Rendering Sequence-1
 		- restler_static_string: '\r\n'
 		- restler_static_string: '{'
 		- restler_static_string: '"city":"'
-		- restler_static_string: 'cityName<test!>-2abb382dd4'
+		- restler_static_string: 'cityName<test!>-fe9d049e45'
 		- restler_static_string: '", "item": "'
 		- restler_static_string: '_READER_DELIM_item_put_name_READER_DELIM'
 		- restler_static_string: '"'
@@ -1191,27 +1213,27 @@ Generation-3: Rendering Sequence-1
 		- restler_static_string: 'Content-Type: application/json\r\n'
 		- restler_static_string: '\r\n'
 
-2020-11-30 14:00:51.298: Sending: 'PUT /item/itemName<test!>-e773a1d90a?location=centralus&date=2020-1-1 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 58\r\n\r\n{"datetest":"2020-1-1","id":"/testparts/testcustompart"}\r\n'
+2020-12-08 18:24:45.825: Sending: 'PUT /item/itemName<test!>-a2d0399494?location=centralus&date=2020-1-1 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 58\r\n\r\n{"datetest":"2020-1-1","id":"/testparts/testcustompart"}\r\n'
 
-2020-11-30 14:00:51.306: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "itemName<test!>-e773a1d90a"}'
+2020-12-08 18:24:45.834: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "itemName<test!>-a2d0399494"}'
 
-2020-11-30 14:00:51.308: Sending: 'PUT /group/groupName<test!>-38f7bd6be4 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 77\r\n\r\n{"city":"cityName<test!>-2abb382dd4", "item": "itemName<test!>-e773a1d90a"}\r\n'
+2020-12-08 18:24:45.844: Sending: 'PUT /group/groupName<test!>-74a84377cd HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 77\r\n\r\n{"city":"cityName<test!>-fe9d049e45", "item": "itemName<test!>-a2d0399494"}\r\n'
 
-2020-11-30 14:00:51.318: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "groupName<test!>-38f7bd6be4", "properties": {"item": "itemName<test!>-e773a1d90a", "city": "cityName<test!>-2abb382dd4"}}'
+2020-12-08 18:24:45.854: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "groupName<test!>-74a84377cd", "properties": {"item": "itemName<test!>-a2d0399494", "city": "cityName<test!>-fe9d049e45"}}'
 
-2020-11-30 14:00:51.328: Sending: 'GET /group/groupName<test!>-38f7bd6be4 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
+2020-12-08 18:24:45.864: Sending: 'GET /group/groupName<test!>-74a84377cd HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
 
-2020-11-30 14:00:51.338: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"name": "groupName<test!>-38f7bd6be4", "properties": {"item": "itemName<test!>-e773a1d90a", "city": "cityName<test!>-2abb382dd4"}}'
+2020-12-08 18:24:45.873: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"name": "groupName<test!>-74a84377cd", "properties": {"item": "itemName<test!>-a2d0399494", "city": "cityName<test!>-fe9d049e45"}}'
 
 
 Generation-3: Rendering Sequence-1
 
-	Request: 1 (Current combination: 1 / 1)
+	Request: 1 (Current combination: 1 / 3)
 		- restler_static_string: 'PUT '
 		- restler_static_string: '/'
 		- restler_static_string: 'city'
 		- restler_static_string: '/'
-		- restler_static_string: 'cityName<test!>-2abb382dd4'
+		- restler_static_string: 'cityName<test!>-fe9d049e45'
 		- restler_static_string: '/'
 		- restler_static_string: 'house'
 		- restler_static_string: '/'
@@ -1224,6 +1246,8 @@ Generation-3: Rendering Sequence-1
 		- restler_static_string: '{'
 		- restler_static_string: '"house":'
 		+ restler_custom_payload_uuid4_suffix: "houseName<test!>-"
+		- restler_static_string: ',"group":'
+		+ restler_fuzzable_group: ['A', 'BB', 'CCC']
 		- restler_static_string: '}'
 		- restler_static_string: '\r\n'
 
@@ -1232,7 +1256,7 @@ Generation-3: Rendering Sequence-1
 		- restler_static_string: '/'
 		- restler_static_string: 'city'
 		- restler_static_string: '/'
-		- restler_static_string: 'cityName<test!>-2abb382dd4'
+		- restler_static_string: 'cityName<test!>-fe9d049e45'
 		- restler_static_string: '/'
 		- restler_static_string: 'house'
 		- restler_static_string: '/'
@@ -1252,7 +1276,7 @@ Generation-3: Rendering Sequence-1
 		- restler_static_string: '/'
 		- restler_static_string: 'city'
 		- restler_static_string: '/'
-		- restler_static_string: 'cityName<test!>-2abb382dd4'
+		- restler_static_string: 'cityName<test!>-fe9d049e45'
 		- restler_static_string: '/'
 		- restler_static_string: 'house'
 		- restler_static_string: '/'
@@ -1267,17 +1291,17 @@ Generation-3: Rendering Sequence-1
 		- restler_static_string: 'Content-Type: application/json\r\n'
 		- restler_static_string: '\r\n'
 
-2020-11-30 14:00:51.996: Sending: 'PUT /city/cityName<test!>-2abb382dd4/house/houseName<test!>-34575e12a7 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 41\r\n\r\n{"house":"houseName<test!>-34575e12a7"}\r\n'
+2020-12-08 18:24:46.515: Sending: 'PUT /city/cityName<test!>-fe9d049e45/house/houseName<test!>-3aa52579d9 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 53\r\n\r\n{"house":"houseName<test!>-3aa52579d9","group":"A"}\r\n'
 
-2020-11-30 14:00:51.996: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "houseName<test!>-34575e12a7"}'
+2020-12-08 18:24:46.530: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "houseName<test!>-3aa52579d9"}'
 
-2020-11-30 14:00:52.011: Sending: 'PUT /city/cityName<test!>-2abb382dd4/house/houseName<test!>-34575e12a7/color/colorName<test!>-5445904cdb HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
+2020-12-08 18:24:46.530: Sending: 'PUT /city/cityName<test!>-fe9d049e45/house/houseName<test!>-3aa52579d9/color/colorName<test!>-1cd3f358cb HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
 
-2020-11-30 14:00:52.011: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "colorName<test!>-5445904cdb"}'
+2020-12-08 18:24:46.546: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "colorName<test!>-1cd3f358cb"}'
 
-2020-11-30 14:00:52.027: Sending: 'DELETE /city/cityName<test!>-2abb382dd4/house/houseName<test!>-34575e12a7/color/colorName<test!>-5445904cdb HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
+2020-12-08 18:24:46.546: Sending: 'DELETE /city/cityName<test!>-fe9d049e45/house/houseName<test!>-3aa52579d9/color/colorName<test!>-1cd3f358cb HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
 
-2020-11-30 14:00:52.027: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"colorName<test!>-5445904cdb"'
+2020-12-08 18:24:46.562: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"colorName<test!>-1cd3f358cb"'
 
 
 Generation-3: Rendering Sequence-1
@@ -1293,7 +1317,7 @@ Generation-3: Rendering Sequence-1
 		+ restler_custom_payload: ['centralus', '10']
 		- restler_static_string: '&'
 		- restler_static_string: 'date='
-		+ restler_fuzzable_datetime: ['2020-1-1', '2020-12-31', '2020-11-29']
+		+ restler_fuzzable_datetime: ['2020-1-1', '2021-01-08', '2020-12-07']
 		- restler_static_string: ' HTTP/1.1\r\n'
 		- restler_static_string: 'Accept: application/json\r\n'
 		- restler_static_string: 'Host: unittest\r\n'
@@ -1301,7 +1325,7 @@ Generation-3: Rendering Sequence-1
 		- restler_static_string: '\r\n'
 		- restler_static_string: '{'
 		- restler_static_string: '"datetest":'
-		+ restler_fuzzable_datetime: ['"2020-1-1"', '"2020-12-31"', '"2020-11-29"']
+		+ restler_fuzzable_datetime: ['"2020-1-1"', '"2021-01-08"', '"2020-12-07"']
 		- restler_static_string: ',"id":'
 		- restler_static_string: '"/testparts/'
 		- restler_custom_payload: 'testcustompart'
@@ -1322,7 +1346,7 @@ Generation-3: Rendering Sequence-1
 		- restler_static_string: '\r\n'
 		- restler_static_string: '{'
 		- restler_static_string: '"city":"'
-		- restler_static_string: 'cityName<test!>-2abb382dd4'
+		- restler_static_string: 'cityName<test!>-fe9d049e45'
 		- restler_static_string: '", "item": "'
 		- restler_static_string: '_READER_DELIM_item_put_name_READER_DELIM'
 		- restler_static_string: '"'
@@ -1341,15 +1365,15 @@ Generation-3: Rendering Sequence-1
 		- restler_static_string: 'Content-Type: application/json\r\n'
 		- restler_static_string: '\r\n'
 
-2020-11-30 14:00:52.714: Sending: 'PUT /item/itemName<test!>-ea1531d37c?location=centralus&date=2020-1-1 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 58\r\n\r\n{"datetest":"2020-1-1","id":"/testparts/testcustompart"}\r\n'
+2020-12-08 18:24:47.236: Sending: 'PUT /item/itemName<test!>-dc33929343?location=centralus&date=2020-1-1 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 58\r\n\r\n{"datetest":"2020-1-1","id":"/testparts/testcustompart"}\r\n'
 
-2020-11-30 14:00:52.723: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "itemName<test!>-ea1531d37c"}'
+2020-12-08 18:24:47.245: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "itemName<test!>-dc33929343"}'
 
-2020-11-30 14:00:52.731: Sending: 'PUT /group/groupName<test!>-f2402a5edc HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 77\r\n\r\n{"city":"cityName<test!>-2abb382dd4", "item": "itemName<test!>-ea1531d37c"}\r\n'
+2020-12-08 18:24:47.253: Sending: 'PUT /group/groupName<test!>-33d459b4a7 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 77\r\n\r\n{"city":"cityName<test!>-fe9d049e45", "item": "itemName<test!>-dc33929343"}\r\n'
 
-2020-11-30 14:00:52.739: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "groupName<test!>-f2402a5edc", "properties": {"item": "itemName<test!>-ea1531d37c", "city": "cityName<test!>-2abb382dd4"}}'
+2020-12-08 18:24:47.262: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "groupName<test!>-33d459b4a7", "properties": {"item": "itemName<test!>-dc33929343", "city": "cityName<test!>-fe9d049e45"}}'
 
-2020-11-30 14:00:52.747: Sending: 'DELETE /group/groupName<test!>-f2402a5edc HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
+2020-12-08 18:24:47.272: Sending: 'DELETE /group/groupName<test!>-33d459b4a7 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
 
-2020-11-30 14:00:52.755: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"groupName<test!>-f2402a5edc"'
+2020-12-08 18:24:47.281: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"groupName<test!>-33d459b4a7"'
 
