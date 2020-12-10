@@ -8,6 +8,7 @@ import engine.primitives as primitives
 from engine.fuzzing_parameters.fuzzing_config import *
 
 TAG_SEPARATOR = '/'
+FUZZABLE_GROUP_TAG = "fuzzable_group_tag"
 
 class QueryParam():
     """ Query Parameter Class
@@ -742,7 +743,7 @@ class ParamString(ParamValue):
         fuzzable_group = config.cleanup_fuzzable_group(
             f'"{default_value}"', fuzzable_values
         )
-        return [(primitives.FUZZABLE_GROUP, fuzzable_group)]
+        return [primitives.restler_fuzzable_group(FUZZABLE_GROUP_TAG, fuzzable_group)]
 
     def get_fuzzing_pool(self, fuzzer, config):
         """ Returns the fuzzing pool
@@ -811,7 +812,7 @@ class ParamNumber(ParamValue):
         fuzzable_group = config.cleanup_fuzzable_group(
             default_value, fuzzable_values
         )
-        return [(primitives.FUZZABLE_GROUP, fuzzable_group)]
+        return [primitives.restler_fuzzable_group(FUZZABLE_GROUP_TAG, fuzzable_group)]
 
     def get_fuzzing_pool(self, fuzzer, config):
         """ Returns the fuzzing pool
@@ -867,7 +868,7 @@ class ParamBoolean(ParamValue):
         fuzzable_group = config.cleanup_fuzzable_group(
             default_value, fuzzable_values
         )
-        return [(primitives.FUZZABLE_GROUP, fuzzable_group)]
+        return [primitives.restler_fuzzable_group(FUZZABLE_GROUP_TAG, fuzzable_group)]
 
     def get_fuzzing_pool(self, fuzzer, config):
         """ Returns the fuzzing pool
@@ -951,7 +952,7 @@ class ParamObjectLeaf(ParamValue):
         fuzzable_group = config.cleanup_fuzzable_group(
             default_value, fuzzable_values
         )
-        return [(primitives.FUZZABLE_GROUP, fuzzable_group)]
+        return [primitives.restler_fuzzable_group(FUZZABLE_GROUP_TAG, fuzzable_group)]
 
     def get_fuzzing_pool(self, fuzzer, config):
         """ Returns the fuzzing pool
@@ -1030,7 +1031,7 @@ class ParamEnum(ParamBase):
             content_str = f'"{content}"' if self.content_type == 'String' else content
             contents_str.append(content_str)
 
-        return [(primitives.FUZZABLE_GROUP, contents_str)]
+        return [primitives.restler_fuzzable_group(FUZZABLE_GROUP_TAG, contents_str)]
 
     def get_fuzzing_pool(self, fuzzer, config):
         """ Returns the fuzzing pool
@@ -1063,7 +1064,7 @@ class ParamEnum(ParamBase):
 
             contents_str.append(content_str)
 
-        return [(primitives.FUZZABLE_GROUP, contents_str)]
+        return [primitives.restler_fuzzable_group(FUZZABLE_GROUP_TAG, contents_str)]
 
     def check_type_mismatch(self, check_value):
         # Not relevant for this param type
