@@ -251,9 +251,9 @@ module Fuzz =
                 None
         File.WriteAllText(workingDirectory ++ "EngineStdErr.txt", result.StandardError)
         File.WriteAllText(workingDirectory ++ "EngineStdOut.txt", result.StandardOutput)
-        if result.ExitCode <> 0 then
+        if result.ExitCode <> 0 || result.StandardError.Length <> 0 then
             Logging.logError <| sprintf "Restler engine failed. See logs in %s directory for more information. " workingDirectory
-        return result.ExitCode
+        return result
     }
 
     /// Runs the results analyzer.  Note: the results analyzer searches for all
@@ -668,13 +668,19 @@ let main argv =
                         else
                             return None
                     }
+                    let exitCode =                         
+                        if result.ExitCode = 0 && result.StandardError.Length <> 0 then
+                            -1
+                        else
+                            result.ExitCode
                     let testingSummary =
-                        if result = 0 then
+                        if exitCode = 0 then
                             getDataFromTestingSummary taskWorkingDirectory |> Some
                         else None
+
                     return
                         {|
-                            taskResult = result
+                            taskResult = exitCode
                             analyzerResult = analyzerResult
                             testingSummary = testingSummary
                         |}
@@ -688,14 +694,19 @@ let main argv =
                         else
                             return None
                     }
+                    let exitCode =                         
+                        if result.ExitCode = 0 && result.StandardError.Length <> 0 then
+                            -1
+                        else
+                            result.ExitCode
                     let testingSummary =
-                        if result = 0 then
+                        if exitCode = 0 then
                             getDataFromTestingSummary taskWorkingDirectory |> Some
                         else None
 
                     return
                         {|
-                            taskResult = result
+                            taskResult = exitCode
                             analyzerResult = analyzerResult
                             testingSummary = testingSummary
                         |}
@@ -703,7 +714,7 @@ let main argv =
                     let! result = Fuzz.replayLog taskWorkingDirectory p
                     return
                         {|
-                            taskResult = result
+                            taskResult = result.ExitCode
                             analyzerResult = None
                             testingSummary = None
                         |}
@@ -730,7 +741,7 @@ let main argv =
         }
 
         Logging.logInfo <| sprintf "Task %A %s." args.task (if result.taskResult = 0 then "succeeded" else "failed")
-
+         
         let bugBucketCounts, specCoverageCounts =
             match result.testingSummary with
             | None -> [], []
