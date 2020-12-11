@@ -15,6 +15,7 @@ open Restler.Telemetry
 
 [<Literal>]
 let CurrentVersion = "7.1.0"
+let EngineErrorCode = -2
 
 let usage() =
     // Usage instructions should be formatted to ~100 characters per line.
@@ -670,7 +671,7 @@ let main argv =
                     }
                     let exitCode =                         
                         if result.ExitCode = 0 && result.StandardError.Length <> 0 then
-                            -1
+                            EngineErrorCode
                         else
                             result.ExitCode
                     let testingSummary =
@@ -696,7 +697,7 @@ let main argv =
                     }
                     let exitCode =                         
                         if result.ExitCode = 0 && result.StandardError.Length <> 0 then
-                            -1
+                            EngineErrorCode
                         else
                             result.ExitCode
                     let testingSummary =
