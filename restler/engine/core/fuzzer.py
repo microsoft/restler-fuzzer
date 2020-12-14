@@ -28,6 +28,11 @@ class FuzzingThread(threading.Thread):
         self._checkers = checkers
         self._fuzzing_jobs = fuzzing_jobs
         self._num_total_sequences = 0
+        self._exception = None
+
+    @property
+    def exception(self):
+        return self._exception
 
     def run(self):
         """ Thread entrance - performs fuzzing
@@ -46,6 +51,8 @@ class FuzzingThread(threading.Thread):
             )
         except InvalidDictionaryException:
             pass
+        except Exception as err:
+            self._exception = str(err)
 
     def join(self, *args):
         """ Overrides thread join function
