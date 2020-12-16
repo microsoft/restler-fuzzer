@@ -37,6 +37,10 @@ _resourcehierarchychild_put_name = dependencies.DynamicVariable(
     "_resourcehierarchychild_put_name"
 )
 
+_namespaceruletest_put_name = dependencies.DynamicVariable(
+    "_namespaceruletest_put_name"
+)
+
 def parse_cityNamePut(data):
     temp_123 = None
 
@@ -149,12 +153,29 @@ def parse_resourcehierarchychildNamePut(data):
     if temp_123:
         dependencies.set_variable("_resourcehierarchychild_put_name", temp_123)
 
+def parse_namespaceruletestNamePut(data):
+    temp_123 = None
+
+    try:
+        data = json.loads(data)
+    except Exception as error:
+        raise ResponseParsingException("Exception parsing response, data was not valid json: {}".format(error))
+
+    try:
+        temp_123 = str(data["name"])
+    except Exception as error:
+        pass
+
+    if temp_123:
+        dependencies.set_variable("_namespaceruletest_put_name", temp_123)
+
 req_collection = requests.RequestCollection([])
 request = requests.Request([
     primitives.restler_static_string("GET "),
     primitives.restler_static_string("/"),
     primitives.restler_static_string("city"),
     primitives.restler_static_string(" HTTP/1.1\r\n"),
+    primitives.restler_refreshable_authentication_token("authentication_token_tag"),
 	primitives.restler_static_string("\r\n")
 ],
 requestId="/city"
@@ -168,6 +189,7 @@ request = requests.Request([
     primitives.restler_static_string("/"),
     primitives.restler_custom_payload_uuid4_suffix("cityName"),
     primitives.restler_static_string(" HTTP/1.1\r\n"),
+    primitives.restler_refreshable_authentication_token("authentication_token_tag"),
     primitives.restler_static_string("\r\n"),
     primitives.restler_static_string("{"),
     primitives.restler_static_string("}"),
@@ -195,6 +217,10 @@ request = requests.Request([
 	primitives.restler_static_string("/"),
 	primitives.restler_static_string(_city_put_name.reader()),
     primitives.restler_static_string(" HTTP/1.1\r\n"),
+    primitives.restler_static_string("Accept: application/json\r\n"),
+    primitives.restler_static_string("Host: restler.unit.test.server.com\r\n"),
+    primitives.restler_static_string("Content-Type: application/json\r\n"),
+    primitives.restler_refreshable_authentication_token("authentication_token_tag"),
 	primitives.restler_static_string("\r\n")
 ],
 requestId="/city/{cityName}"
@@ -210,6 +236,10 @@ request = requests.Request([
     primitives.restler_static_string("/"),
     primitives.restler_static_string("house"),
     primitives.restler_static_string(" HTTP/1.1\r\n"),
+    primitives.restler_static_string("Accept: application/json\r\n"),
+    primitives.restler_static_string("Host: restler.unit.test.server.com\r\n"),
+    primitives.restler_static_string("Content-Type: application/json\r\n"),
+    primitives.restler_refreshable_authentication_token("authentication_token_tag"),
 	primitives.restler_static_string("\r\n")
 ],
 requestId="/city/{cityName}/house"
@@ -227,6 +257,10 @@ request = requests.Request([
     primitives.restler_static_string("/"),
     primitives.restler_custom_payload_uuid4_suffix("houseName"),
     primitives.restler_static_string(" HTTP/1.1\r\n"),
+    primitives.restler_static_string("Accept: application/json\r\n"),
+    primitives.restler_static_string("Host: restler.unit.test.server.com\r\n"),
+    primitives.restler_static_string("Content-Type: application/json\r\n"),
+    primitives.restler_refreshable_authentication_token("authentication_token_tag"),
     primitives.restler_static_string("\r\n"),
     primitives.restler_static_string("{"),
     primitives.restler_static_string("}"),
@@ -258,6 +292,10 @@ request = requests.Request([
     primitives.restler_static_string("/"),
     primitives.restler_static_string(_city_house_put_name.reader()),
     primitives.restler_static_string(" HTTP/1.1\r\n"),
+    primitives.restler_static_string("Accept: application/json\r\n"),
+    primitives.restler_static_string("Host: restler.unit.test.server.com\r\n"),
+    primitives.restler_static_string("Content-Type: application/json\r\n"),
+    primitives.restler_refreshable_authentication_token("authentication_token_tag"),
 	primitives.restler_static_string("\r\n")
 ],
 requestId="/city/{cityName}/house/{houseName}"
@@ -282,10 +320,15 @@ request = requests.Request([
     primitives.restler_static_string("/"),
     primitives.restler_custom_payload_uuid4_suffix("colorName"),
     primitives.restler_static_string(" HTTP/1.1\r\n"),
+    primitives.restler_static_string("Accept: application/json\r\n"),
+    primitives.restler_static_string("Host: restler.unit.test.server.com\r\n"),
+    primitives.restler_static_string("Content-Type: application/json\r\n"),
+    primitives.restler_refreshable_authentication_token("authentication_token_tag"),
     primitives.restler_static_string("\r\n"),
     # Start of malformed body
     primitives.restler_static_string("{"),
     primitives.restler_static_string("{"),
+    primitives.restler_static_string("}"),
     # End of malformed body
     primitives.restler_static_string("\r\n"),
 
@@ -320,6 +363,10 @@ request = requests.Request([
     primitives.restler_static_string("/"),
     primitives.restler_static_string(_city_house_color_put_name.reader()),
     primitives.restler_static_string(" HTTP/1.1\r\n"),
+    primitives.restler_static_string("Accept: application/json\r\n"),
+    primitives.restler_static_string("Host: restler.unit.test.server.com\r\n"),
+    primitives.restler_static_string("Content-Type: application/json\r\n"),
+    primitives.restler_refreshable_authentication_token("authentication_token_tag"),
 	primitives.restler_static_string("\r\n")
 ],
 requestId="/city/{cityName}/house/{houseName}"
@@ -332,6 +379,10 @@ request = requests.Request([
     primitives.restler_static_string("/"),
     primitives.restler_static_string("farm"),
     primitives.restler_static_string(" HTTP/1.1\r\n"),
+    primitives.restler_static_string("Accept: application/json\r\n"),
+    primitives.restler_static_string("Host: restler.unit.test.server.com\r\n"),
+    primitives.restler_static_string("Content-Type: application/json\r\n"),
+    primitives.restler_refreshable_authentication_token("authentication_token_tag"),
 	primitives.restler_static_string("\r\n")
 ],
 requestId="/farm"
@@ -343,6 +394,10 @@ request = requests.Request([
     primitives.restler_static_string("/"),
     primitives.restler_static_string("item"),
     primitives.restler_static_string(" HTTP/1.1\r\n"),
+    primitives.restler_static_string("Accept: application/json\r\n"),
+    primitives.restler_static_string("Host: restler.unit.test.server.com\r\n"),
+    primitives.restler_static_string("Content-Type: application/json\r\n"),
+    primitives.restler_refreshable_authentication_token("authentication_token_tag"),
 	primitives.restler_static_string("\r\n")
 ],
 requestId="/item"
@@ -356,6 +411,10 @@ request = requests.Request([
     primitives.restler_static_string("/"),
     primitives.restler_custom_payload_uuid4_suffix("leakageTest"),
     primitives.restler_static_string(" HTTP/1.1\r\n"),
+    primitives.restler_static_string("Accept: application/json\r\n"),
+    primitives.restler_static_string("Host: restler.unit.test.server.com\r\n"),
+    primitives.restler_static_string("Content-Type: application/json\r\n"),
+    primitives.restler_refreshable_authentication_token("authentication_token_tag"),
     primitives.restler_static_string("\r\n"),
     primitives.restler_static_string("{"),
     primitives.restler_static_string("}"),
@@ -384,6 +443,10 @@ request = requests.Request([
     primitives.restler_static_string("/"),
     primitives.restler_static_string(_leakageruletest_put_name.reader()),
     primitives.restler_static_string(" HTTP/1.1\r\n"),
+    primitives.restler_static_string("Accept: application/json\r\n"),
+    primitives.restler_static_string("Host: restler.unit.test.server.com\r\n"),
+    primitives.restler_static_string("Content-Type: application/json\r\n"),
+    primitives.restler_refreshable_authentication_token("authentication_token_tag"),
 	primitives.restler_static_string("\r\n")
 ],
 requestId="/leakageruletest/{leakageTest}"
@@ -397,6 +460,10 @@ request = requests.Request([
     primitives.restler_static_string("/"),
     primitives.restler_custom_payload_uuid4_suffix("useafterfreeTest"),
     primitives.restler_static_string(" HTTP/1.1\r\n"),
+    primitives.restler_static_string("Accept: application/json\r\n"),
+    primitives.restler_static_string("Host: restler.unit.test.server.com\r\n"),
+    primitives.restler_static_string("Content-Type: application/json\r\n"),
+    primitives.restler_refreshable_authentication_token("authentication_token_tag"),
     primitives.restler_static_string("\r\n"),
     primitives.restler_static_string("{"),
     primitives.restler_static_string("}"),
@@ -425,6 +492,10 @@ request = requests.Request([
     primitives.restler_static_string("/"),
     primitives.restler_static_string(_useafterfreetest_put_name.reader()),
     primitives.restler_static_string(" HTTP/1.1\r\n"),
+    primitives.restler_static_string("Accept: application/json\r\n"),
+    primitives.restler_static_string("Host: restler.unit.test.server.com\r\n"),
+    primitives.restler_static_string("Content-Type: application/json\r\n"),
+    primitives.restler_refreshable_authentication_token("authentication_token_tag"),
 	primitives.restler_static_string("\r\n")
 ],
 requestId="/useafterfreetest/{useafterfreeTest}"
@@ -438,6 +509,10 @@ request = requests.Request([
     primitives.restler_static_string("/"),
     primitives.restler_static_string(_useafterfreetest_put_name.reader()),
     primitives.restler_static_string(" HTTP/1.1\r\n"),
+    primitives.restler_static_string("Accept: application/json\r\n"),
+    primitives.restler_static_string("Host: restler.unit.test.server.com\r\n"),
+    primitives.restler_static_string("Content-Type: application/json\r\n"),
+    primitives.restler_refreshable_authentication_token("authentication_token_tag"),
 	primitives.restler_static_string("\r\n")
 ],
 requestId="/useafterfreetest/{useafterfreeTest}"
@@ -451,6 +526,10 @@ request = requests.Request([
     primitives.restler_static_string("/"),
     primitives.restler_custom_payload_uuid4_suffix("resourcehierarchyTest"),
     primitives.restler_static_string(" HTTP/1.1\r\n"),
+    primitives.restler_static_string("Accept: application/json\r\n"),
+    primitives.restler_static_string("Host: restler.unit.test.server.com\r\n"),
+    primitives.restler_static_string("Content-Type: application/json\r\n"),
+    primitives.restler_refreshable_authentication_token("authentication_token_tag"),
     primitives.restler_static_string("\r\n"),
     primitives.restler_static_string("{"),
     primitives.restler_static_string("}"),
@@ -479,6 +558,10 @@ request = requests.Request([
     primitives.restler_static_string("/"),
     primitives.restler_static_string(_resourcehierarchytest_put_name.reader()),
     primitives.restler_static_string(" HTTP/1.1\r\n"),
+    primitives.restler_static_string("Accept: application/json\r\n"),
+    primitives.restler_static_string("Host: restler.unit.test.server.com\r\n"),
+    primitives.restler_static_string("Content-Type: application/json\r\n"),
+    primitives.restler_refreshable_authentication_token("authentication_token_tag"),
 	primitives.restler_static_string("\r\n")
 ],
 requestId="/resourcehierarchytest/{resourcehierarchyTest}"
@@ -492,6 +575,10 @@ request = requests.Request([
     primitives.restler_static_string("/"),
     primitives.restler_static_string(_resourcehierarchytest_put_name.reader()),
     primitives.restler_static_string(" HTTP/1.1\r\n"),
+    primitives.restler_static_string("Accept: application/json\r\n"),
+    primitives.restler_static_string("Host: restler.unit.test.server.com\r\n"),
+    primitives.restler_static_string("Content-Type: application/json\r\n"),
+    primitives.restler_refreshable_authentication_token("authentication_token_tag"),
 	primitives.restler_static_string("\r\n")
 ],
 requestId="/resourcehierarchytest/{resourcehierarchyTest}"
@@ -509,6 +596,10 @@ request = requests.Request([
     primitives.restler_static_string("/"),
     primitives.restler_custom_payload_uuid4_suffix("resourcehierarchyChild"),
     primitives.restler_static_string(" HTTP/1.1\r\n"),
+    primitives.restler_static_string("Accept: application/json\r\n"),
+    primitives.restler_static_string("Host: restler.unit.test.server.com\r\n"),
+    primitives.restler_static_string("Content-Type: application/json\r\n"),
+    primitives.restler_refreshable_authentication_token("authentication_token_tag"),
     primitives.restler_static_string("\r\n"),
     primitives.restler_static_string("{"),
     primitives.restler_static_string("}"),
@@ -541,6 +632,10 @@ request = requests.Request([
     primitives.restler_static_string("/"),
     primitives.restler_static_string(_resourcehierarchychild_put_name.reader()),
     primitives.restler_static_string(" HTTP/1.1\r\n"),
+    primitives.restler_static_string("Accept: application/json\r\n"),
+    primitives.restler_static_string("Host: restler.unit.test.server.com\r\n"),
+    primitives.restler_static_string("Content-Type: application/json\r\n"),
+    primitives.restler_refreshable_authentication_token("authentication_token_tag"),
 	primitives.restler_static_string("\r\n")
 ],
 requestId="/resourcehierarchychild/{resourcehierarchyChild}"
@@ -558,8 +653,78 @@ request = requests.Request([
     primitives.restler_static_string("/"),
     primitives.restler_static_string(_resourcehierarchychild_put_name.reader()),
     primitives.restler_static_string(" HTTP/1.1\r\n"),
+    primitives.restler_static_string("Accept: application/json\r\n"),
+    primitives.restler_static_string("Host: restler.unit.test.server.com\r\n"),
+    primitives.restler_static_string("Content-Type: application/json\r\n"),
+    primitives.restler_refreshable_authentication_token("authentication_token_tag"),
 	primitives.restler_static_string("\r\n")
 ],
 requestId="/resourcehierarchychild/{resourcehierarchyChild}"
+)
+req_collection.add_request(request)
+
+request = requests.Request([
+    primitives.restler_static_string("PUT "),
+    primitives.restler_static_string("/"),
+    primitives.restler_static_string("namespaceruletest"),
+    primitives.restler_static_string("/"),
+    primitives.restler_custom_payload_uuid4_suffix("namespaceruleTest"),
+    primitives.restler_static_string(" HTTP/1.1\r\n"),
+    primitives.restler_static_string("Accept: application/json\r\n"),
+    primitives.restler_static_string("Host: restler.unit.test.server.com\r\n"),
+    primitives.restler_static_string("Content-Type: application/json\r\n"),
+    primitives.restler_refreshable_authentication_token("authentication_token_tag"),
+    primitives.restler_static_string("\r\n"),
+    primitives.restler_static_string("{"),
+    primitives.restler_static_string("}"),
+    primitives.restler_static_string("\r\n"),
+
+    {
+        'post_send':
+        {
+            'parser': parse_namespaceruletestNamePut,
+            'dependencies':
+            [
+                _namespaceruletest_put_name.writer()
+            ]
+        }
+    },
+
+],
+requestId="/namespaceruletest/{namespaceruleTest}"
+)
+req_collection.add_request(request)
+
+request = requests.Request([
+    primitives.restler_static_string("GET "),
+    primitives.restler_static_string("/"),
+    primitives.restler_static_string("namespaceruletest"),
+    primitives.restler_static_string("/"),
+    primitives.restler_static_string(_namespaceruletest_put_name.reader()),
+    primitives.restler_static_string(" HTTP/1.1\r\n"),
+    primitives.restler_static_string("Accept: application/json\r\n"),
+    primitives.restler_static_string("Host: restler.unit.test.server.com\r\n"),
+    primitives.restler_static_string("Content-Type: application/json\r\n"),
+    primitives.restler_refreshable_authentication_token("authentication_token_tag"),
+	primitives.restler_static_string("\r\n")
+],
+requestId="/namespaceruletest/{namespaceruleTest}"
+)
+req_collection.add_request(request)
+
+request = requests.Request([
+    primitives.restler_static_string("DELETE "),
+    primitives.restler_static_string("/"),
+    primitives.restler_static_string("namespaceruletest"),
+    primitives.restler_static_string("/"),
+    primitives.restler_static_string(_namespaceruletest_put_name.reader()),
+    primitives.restler_static_string(" HTTP/1.1\r\n"),
+    primitives.restler_static_string("Accept: application/json\r\n"),
+    primitives.restler_static_string("Host: restler.unit.test.server.com\r\n"),
+    primitives.restler_static_string("Content-Type: application/json\r\n"),
+    primitives.restler_refreshable_authentication_token("authentication_token_tag"),
+	primitives.restler_static_string("\r\n")
+],
+requestId="/namespaceruletest/{namespaceruleTest}"
 )
 req_collection.add_request(request)

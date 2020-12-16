@@ -65,6 +65,12 @@ class TestServerBase:
                                 body={"error": message})
         return HttpResponse(response_str)
 
+    def _403(self) -> HttpResponse:
+        response_str = self._get_response_str('403',
+                                description='Forbidden',
+                                body={"User not authorized or no auth token specified."})
+        return HttpResponse(response_str)
+
     def _404(self, dyn_object="") -> HttpResponse:
         response_str = self._get_response_str('404',
                                 description="Not Found",

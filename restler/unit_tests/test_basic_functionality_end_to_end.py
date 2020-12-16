@@ -29,7 +29,9 @@ Restler_Path = os.path.join(os.path.dirname(__file__), '..', 'restler.py')
 Common_Settings = [
     "python", "-B", Restler_Path, "--use_test_socket",
     '--custom_mutations', f'{os.path.join(Test_File_Directory, "test_dict.json")}',
-    "--garbage_collection_interval", "30", "--host", "unittest"
+    "--garbage_collection_interval", "30", "--host", "unittest",
+    "--token_refresh_cmd", f'python {os.path.join(Test_File_Directory, "unit_test_server_auth.py")}',
+    "--token_refresh_interval", "10"
 ]
 
 class FunctionalityTests(unittest.TestCase):
@@ -142,9 +144,9 @@ class FunctionalityTests(unittest.TestCase):
             self.fail("Create-once failed: Garbage Collector")
 
     def test_checkers(self):
-        """ This checks that a directed smoke test, with checkers enabled (sans namespacerule,
-        payloadbody, examples), bugs planted for each checker, and a main driver bug, will
-        produce the appropriate bug buckets and the requests will be sent in the correct order.
+        """ This checks that a directed smoke test, with checkers enabled,
+        bugs planted for each checker, and a main driver bug, will produce the
+        appropriate bug buckets and the requests will be sent in the correct order.
         """
         args = Common_Settings + [
             '--fuzzing_mode', 'directed-smoke-test',
