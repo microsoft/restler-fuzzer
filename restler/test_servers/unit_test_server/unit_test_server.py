@@ -7,6 +7,8 @@ from test_servers.parsed_requests import *
 
 import traceback
 
+VALID_UNIT_TEST_TOKEN = 'valid_unit_test_token'
+
 class UnitTestServer(TestServerBase):
     PRINT_DEBUG = False
 
@@ -21,9 +23,29 @@ class UnitTestServer(TestServerBase):
             "DELETE": self._DELETE
         }
 
+    def _reset_resources(self):
+        """ Used to reset resources during unit testing of the server """
+        UnitTestServer._resources = ResourcePool()
+
     def _test_print(self, message):
         if UnitTestServer.PRINT_DEBUG:
             print(message)
+
+    def _authorization_valid(self, auth_token: str, dyn_objects: list) -> bool:
+        """ Helper that checks for a valid authorization token.
+        If this is a namespace rule test request, the authorization token will be ignored
+        and True will always be returned.
+
+        @param auth_token: The authorization token (could be None)
+        @param dyn_objects: The list of dynamic objects
+        @return: True if authorization is valid
+
+        """
+        if NAMESPACE_RULE_RESOURCE not in dyn_objects:
+            if auth_token is not None and auth_token == VALID_UNIT_TEST_TOKEN:
+                return True
+            return False
+        return True
 
     def parse_message(self, message):
         """ Parses a Request and its endpoint for dynamic objects
@@ -55,7 +77,7 @@ class UnitTestServer(TestServerBase):
                 return
 
             if request.method in self._methods:
-                self._methods[request.method](request.endpoint, request.body)
+                self._methods[request.method](request)
             else:
                 self._response = self._405(request.method)
         except UnknownRequest:
@@ -77,9 +99,12 @@ class UnitTestServer(TestServerBase):
         except:
             raise UnknownRequest()
 
-    def _GET(self, endpoint: str, body):
+    def _GET(self, request: ParsedRequest):
         try:
-            dyn_objects = self._get_dyn_objects(endpoint)
+            dyn_objects = self._get_dyn_objects(request.endpoint)
+            if not self._authorization_valid(request.authorization_token, dyn_objects):
+                self._response = self._403()
+                return
             num = len(dyn_objects)
             if dyn_objects[0] == '':
                 # Getting only the root data
@@ -100,10 +125,13 @@ class UnitTestServer(TestServerBase):
         except Exception as error:
             self._response = self._500(str(error))
 
-    def _PUT(self, endpoint: str, body):
+    def _PUT(self, request: ParsedRequest):
         try:
-            dyn_objects = self._get_dyn_objects(endpoint)
-            resource = UnitTestServer._resources.add_resource(dyn_objects, body)
+            dyn_objects = self._get_dyn_objects(request.endpoint)
+            if not self._authorization_valid(request.authorization_token, dyn_objects):
+                self._response = self._403()
+                return
+            resource = UnitTestServer._resources.add_resource(dyn_objects, request.body)
             self._response = self._201(resource.data)
         except ResourceDoesNotExist as resource:
             self._response = self._404(resource)
@@ -114,13 +142,16 @@ class UnitTestServer(TestServerBase):
         except FailedToCreateResource as resource:
             self._response = self._400(resource)
         except InvalidBody:
-            self._response = self._400(body)
+            self._response = self._400(request.body)
         except Exception as error:
             self._response = self._500(str(error))
 
-    def _DELETE(self, endpoint: str, body):
+    def _DELETE(self, request: ParsedRequest):
         try:
-            dyn_objects = self._get_dyn_objects(endpoint)
+            dyn_objects = self._get_dyn_objects(request.endpoint)
+            if not self._authorization_valid(request.authorization_token, dyn_objects):
+                self._response = self._403()
+                return
             num = len(dyn_objects)
             if num % 2 != 0:
                 # Must be even number of dynamic objects as we can only delete

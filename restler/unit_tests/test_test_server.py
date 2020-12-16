@@ -124,36 +124,50 @@ class TestServerTest(unittest.TestCase):
     def test_get(self):
         sock = TestSocket('unit_test')
 
-        req = f"GET /city HTTP/1.1\r\nContent-Length: 0\r\nUser-Agent: restler/3.0.0.0\r\n\r\n"
+        req = f"GET /city HTTP/1.1\r\nContent-Length: 0\r\nAuthorization: valid_unit_test_token\r\nUser-Agent: restler/3.0.0.0\r\n\r\n"
         sock.sendall(req.encode(UTF8))
         self.assertEqual('200', sock.recv().status_code)
 
-        req = f'GET /city/fuzzstring HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+        req = f"GET /city HTTP/1.1\r\nContent-Length: 0\r\nUser-Agent: restler/3.0.0.0\r\n\r\n"
+        sock.sendall(req.encode(UTF8))
+        self.assertEqual('403', sock.recv().status_code)
+
+        req = f'GET /city/fuzzstring HTTP/1.1\r\nContent-Length: 0\r\nAuthorization: valid_unit_test_token\r\n\r\n'
         sock.sendall(req.encode(UTF8))
         self.assertEqual('404', sock.recv().status_code)
+
+        sock._server._reset_resources()
 
     def test_put(self):
         sock = TestSocket('unit_test')
 
-        req = f"PUT /city/city-123 HTTP/1.1\r\nContent-Length: 0\r\n\r\n{{}}"
+        req = f"PUT /city/city-123 HTTP/1.1\r\nContent-Length: 0\r\nAuthorization: valid_unit_test_token\r\n\r\n{{}}"
         sock.sendall(req.encode(UTF8))
         self.assertEqual('201', sock.recv().status_code)
 
-        req = f'GET /city HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+        req = f'GET /city HTTP/1.1\r\nContent-Length: 0\r\nAuthorization: valid_unit_test_token\r\n\r\n'
         sock.sendall(req.encode(UTF8))
         self.assertTrue('city-123' in sock.recv().body)
 
-        req = f'GET /city/city-123 HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+        req = f"PUT /city/city-124 HTTP/1.1\r\nContent-Length: 0\r\n\r\n{{}}"
+        sock.sendall(req.encode(UTF8))
+        self.assertEqual('403', sock.recv().status_code)
+
+        req = f'GET /city HTTP/1.1\r\nContent-Length: 0\r\nAuthorization: valid_unit_test_token\r\n\r\n'
+        sock.sendall(req.encode(UTF8))
+        self.assertFalse('city-124' in sock.recv().body)
+
+        req = f'GET /city/city-123 HTTP/1.1\r\nContent-Length: 0\r\nAuthorization: valid_unit_test_token\r\n\r\n'
         sock.sendall(req.encode(UTF8))
         self.assertTrue('city-123' in sock.recv().body)
 
-        req = f"PUT /city HTTP/1.1\r\nContent-Length: 0\r\n\r\n{{}}"
+        req = f"PUT /city HTTP/1.1\r\nContent-Length: 0\r\nAuthorization: valid_unit_test_token\r\n\r\n{{}}"
         sock.sendall(req.encode(UTF8))
         self.assertEqual('400', sock.recv().status_code)
 
         body = {"population": 5000, "area": 2000}
         bodystr = json.dumps(body)
-        req = f"PUT /city/city-999 HTTP/1.1\r\nContent-Length: {len(bodystr)}\r\n\r\n{bodystr}"
+        req = f"PUT /city/city-999 HTTP/1.1\r\nContent-Length: {len(bodystr)}\r\nAuthorization: valid_unit_test_token\r\n\r\n{bodystr}"
         sock.sendall(req.encode(UTF8))
         res = sock.recv()
         resbody = json.loads(res.body)
@@ -163,23 +177,23 @@ class TestServerTest(unittest.TestCase):
         self.assertEqual(5000, resbody['properties']['population'])
         self.assertEqual(2000, resbody['properties']['area'])
 
-        req = f"PUT /house/house-123 HTTP/1.1\r\nContent-Length: 0\r\n\r\n{{}}"
+        req = f"PUT /house/house-123 HTTP/1.1\r\nContent-Length: 0\r\nAuthorization: valid_unit_test_token\r\n\r\n{{}}"
         sock.sendall(req.encode(UTF8))
         self.assertEqual('400', sock.recv().status_code)
 
-        req = f"PUT /city HTTP/1.1\r\nContent-Length: 0\r\n\r\n{{}}"
+        req = f"PUT /city HTTP/1.1\r\nContent-Length: 0\r\nAuthorization: valid_unit_test_token\r\n\r\n{{}}"
         sock.sendall(req.encode(UTF8))
         self.assertEqual('400', sock.recv().status_code)
 
-        req = f"PUT /city/city-123/house/house-123 HTTP/1.1\r\nContent-Length: 0\r\n\r\n{{}}"
+        req = f"PUT /city/city-123/house/house-123 HTTP/1.1\r\nContent-Length: 0\r\nAuthorization: valid_unit_test_token\r\n\r\n{{}}"
         sock.sendall(req.encode(UTF8))
         self.assertEqual('201', sock.recv().status_code)
 
-        req = f'GET /city/city-123/house HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+        req = f'GET /city/city-123/house HTTP/1.1\r\nContent-Length: 0\r\nAuthorization: valid_unit_test_token\r\n\r\n'
         sock.sendall(req.encode(UTF8))
         self.assertTrue('house-123' in sock.recv().body)
 
-        req = f'GET / HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+        req = f'GET / HTTP/1.1\r\nContent-Length: 0\r\nAuthorization: valid_unit_test_token\r\n\r\n'
         sock.sendall(req.encode(UTF8))
         res = json.loads(sock.recv().body)
         self.assertTrue('city' in res)
@@ -189,71 +203,72 @@ class TestServerTest(unittest.TestCase):
         self.assertTrue('item' in res)
         self.assertTrue(not res['item'])
 
+        sock._server._reset_resources()
 
     def test_delete(self):
         sock = TestSocket('unit_test')
 
-        req = f"PUT /city/city-123 HTTP/1.1\r\nContent-Length: 0\r\n\r\n{{}}"
+        req = f"PUT /city/city-123 HTTP/1.1\r\nContent-Length: 0\r\nAuthorization: valid_unit_test_token\r\n\r\n{{}}"
         sock.sendall(req.encode(UTF8))
         self.assertEqual('201', sock.recv().status_code)
 
-        req = f"PUT /city/city-123/house/house-123 HTTP/1.1\r\nContent-Length: 0\r\n\r\n{{}}"
+        req = f"PUT /city/city-123/house/house-123 HTTP/1.1\r\nContent-Length: 0\r\nAuthorization: valid_unit_test_token\r\n\r\n{{}}"
         sock.sendall(req.encode(UTF8))
         self.assertEqual('201', sock.recv().status_code)
 
-        req = f"PUT /city/city-123/house/house-123/color/red-123 HTTP/1.1\r\nContent-Length: 0\r\n\r\n{{}}"
+        req = f"PUT /city/city-123/house/house-123/color/red-123 HTTP/1.1\r\nContent-Length: 0\r\nAuthorization: valid_unit_test_token\r\n\r\n{{}}"
         sock.sendall(req.encode(UTF8))
         self.assertEqual('201', sock.recv().status_code)
 
-        req = f'GET /city/city-123/house/house-123/color/red-123 HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+        req = f'GET /city/city-123/house/house-123/color/red-123 HTTP/1.1\r\nContent-Length: 0\r\nAuthorization: valid_unit_test_token\r\n\r\n'
         sock.sendall(req.encode(UTF8))
         self.assertTrue('red-123' in sock.recv().body)
 
-        req = f'DELETE /city/city-123/house/house-123/color/red-123 HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+        req = f'DELETE /city/city-123/house/house-123/color/red-123 HTTP/1.1\r\nContent-Length: 0\r\nAuthorization: valid_unit_test_token\r\n\r\n'
         sock.sendall(req.encode(UTF8))
         self.assertEqual('202', sock.recv().status_code)
 
-        req = f'GET /city/city-123/house/house-123/color/red-123 HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+        req = f'GET /city/city-123/house/house-123/color/red-123 HTTP/1.1\r\nContent-Length: 0\r\nAuthorization: valid_unit_test_token\r\n\r\n'
         sock.sendall(req.encode(UTF8))
         self.assertFalse('red-123' in sock.recv().body)
 
-        req = f"PUT /city/city-123/house/house-123/color/red-123 HTTP/1.1\r\nContent-Length: 0\r\n\r\n{{}}"
+        req = f"PUT /city/city-123/house/house-123/color/red-123 HTTP/1.1\r\nContent-Length: 0\r\nAuthorization: valid_unit_test_token\r\n\r\n{{}}"
         sock.sendall(req.encode(UTF8))
         self.assertEqual('201', sock.recv().status_code)
 
-        req = f'GET /city/city-123/house/house-123/color/red-123 HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+        req = f'GET /city/city-123/house/house-123/color/red-123 HTTP/1.1\r\nContent-Length: 0\r\nAuthorization: valid_unit_test_token\r\n\r\n'
         sock.sendall(req.encode(UTF8))
         self.assertTrue('red-123' in sock.recv().body)
 
-        req = f'DELETE /city/city-123/house/house-123 HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+        req = f'DELETE /city/city-123/house/house-123 HTTP/1.1\r\nContent-Length: 0\r\nAuthorization: valid_unit_test_token\r\n\r\n'
         sock.sendall(req.encode(UTF8))
         self.assertEqual('202', sock.recv().status_code)
 
-        req = f'GET /city/city-123/house/house-123/color/red-123 HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+        req = f'GET /city/city-123/house/house-123/color/red-123 HTTP/1.1\r\nContent-Length: 0\r\nAuthorization: valid_unit_test_token\r\n\r\n'
         sock.sendall(req.encode(UTF8))
         self.assertFalse('red-123' in sock.recv().body)
 
-        req = f'GET /city/city-123/house/house-123 HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+        req = f'GET /city/city-123/house/house-123 HTTP/1.1\r\nContent-Length: 0\r\nAuthorization: valid_unit_test_token\r\n\r\n'
         sock.sendall(req.encode(UTF8))
         self.assertFalse('house-123' in sock.recv().body)
 
-        req = f'GET /city/city-123 HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+        req = f'GET /city/city-123 HTTP/1.1\r\nContent-Length: 0\r\nAuthorization: valid_unit_test_token\r\n\r\n'
         sock.sendall(req.encode(UTF8))
         self.assertTrue('city-123' in sock.recv().body)
 
-        req = f'DELETE /city/city-123 HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+        req = f'DELETE /city/city-123 HTTP/1.1\r\nContent-Length: 0\r\nAuthorization: valid_unit_test_token\r\n\r\n'
         sock.sendall(req.encode(UTF8))
         self.assertEqual('202', sock.recv().status_code)
 
-        req = f'GET /city/city-123 HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+        req = f'GET /city/city-123 HTTP/1.1\r\nContent-Length: 0\r\nAuthorization: valid_unit_test_token\r\n\r\n'
         sock.sendall(req.encode(UTF8))
         self.assertFalse('city-123' in sock.recv().body)
 
-        req = f'GET /city HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+        req = f'GET /city HTTP/1.1\r\nContent-Length: 0\r\nAuthorization: valid_unit_test_token\r\n\r\n'
         sock.sendall(req.encode(UTF8))
         self.assertFalse('city-123' in sock.recv().body)
 
-        req = f'GET / HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+        req = f'GET / HTTP/1.1\r\nContent-Length: 0\r\nAuthorization: valid_unit_test_token\r\n\r\n'
         sock.sendall(req.encode(UTF8))
         res = json.loads(sock.recv().body)
         self.assertTrue('city' in res)
@@ -263,11 +278,28 @@ class TestServerTest(unittest.TestCase):
         self.assertTrue(not res['farm'])
         self.assertTrue(not res['item'])
 
-        req = f'DELETE /city/city-123 HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+        req = f'DELETE /city/city-123 HTTP/1.1\r\nContent-Length: 0\r\nAuthorization: valid_unit_test_token\r\n\r\n'
         sock.sendall(req.encode(UTF8))
         self.assertEqual('404', sock.recv().status_code)
 
-        req = f'DELETE /city HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+        req = f'DELETE /city HTTP/1.1\r\nContent-Length: 0\r\nAuthorization: valid_unit_test_token\r\n\r\n'
         sock.sendall(req.encode(UTF8))
         self.assertEqual('400', sock.recv().status_code)
 
+        req = f"PUT /city/city-124 HTTP/1.1\r\nContent-Length: 0\r\nAuthorization: valid_unit_test_token\r\n\r\n{{}}"
+        sock.sendall(req.encode(UTF8))
+        self.assertEqual('201', sock.recv().status_code)
+
+        req = f'GET /city HTTP/1.1\r\nContent-Length: 0\r\nAuthorization: valid_unit_test_token\r\n\r\n'
+        sock.sendall(req.encode(UTF8))
+        self.assertTrue('city-124' in sock.recv().body)
+
+        req = f'DELETE /city/city-124 HTTP/1.1\r\nContent-Length: 0\r\n\r\n'
+        sock.sendall(req.encode(UTF8))
+        self.assertEqual('403', sock.recv().status_code)
+
+        req = f'GET /city HTTP/1.1\r\nContent-Length: 0\r\nAuthorization: valid_unit_test_token\r\n\r\n'
+        sock.sendall(req.encode(UTF8))
+        self.assertTrue('city-124' in sock.recv().body)
+
+        sock._server._reset_resources()

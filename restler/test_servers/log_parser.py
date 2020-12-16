@@ -261,7 +261,11 @@ class BugLogParser(LogParser):
                                 self._bug_list[bug_type] = []
                             # Get whether or not the bug was reproduced
                             reproduced = 'Bug was reproduced' in line
-                            bug_hash = file.readline().split(' ')[-1].rstrip()
+                            line = file.readline()
+                            if line.startswith('Attempted'):
+                                # Skip the 'Attempted to reproduce' line if exists
+                                line = file.readline()
+                            bug_hash = line.split(' ')[-1].rstrip()
                             line = file.readline()
                             seq = ParsedSequence([])
                             # Populate the sequence of requests that made the bug

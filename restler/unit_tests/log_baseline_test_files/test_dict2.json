@@ -27,6 +27,7 @@
     "leakageTest": "leakageTest<test!>-",
     "useafterfreeTest": "useafterfreeTest<test!>-",
     "resourcehierarchyTest": "resourcehierarchyTest<test!>-",
-    "resourcehierarchyChild": "resourcehierarchyChild<test!>-"
+    "resourcehierarchyChild": "resourcehierarchyChild<test!>-",
+    "namespaceruleTest": "namespaceruletest<test!>-"
   }
 }

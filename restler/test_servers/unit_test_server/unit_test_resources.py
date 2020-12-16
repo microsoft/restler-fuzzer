@@ -10,7 +10,8 @@ class LeakageRuleExcept(Exception):
 class UseAfterFreeExcept(Exception):
     pass
 
-Root_Test_Resource_Types = {'leakageruletest', 'useafterfreetest', 'resourcehierarchytest'}
+NAMESPACE_RULE_RESOURCE = 'namespaceruletest'
+Root_Test_Resource_Types = {'leakageruletest', 'useafterfreetest', 'resourcehierarchytest', NAMESPACE_RULE_RESOURCE}
 
 class UnitTestResource(ResourceBase):
     def __init__(self, name: str, body: dict = None):
@@ -109,6 +110,8 @@ class ResourceFactory(object):
             return ResourceHierarchyTester_Parent(name, body)
         if type == 'resourcehierarchychild':
             return ResourceHierarchyTester_Child(name, body)
+        if type == 'namespaceruletest':
+            return NamespaceRuleTester(name, body)
 
         raise UnsupportedResource()
 
@@ -185,6 +188,9 @@ class LeakageRuleTester(UnitTestResource):
     pass
 
 class UseAfterFreeTester(UnitTestResource):
+    pass
+
+class NamespaceRuleTester(UnitTestResource):
     pass
 
 class ResourceHierarchyTester_Parent(UnitTestResource):

@@ -29,7 +29,9 @@ Restler_Path = os.path.join(os.path.dirname(__file__), '..', 'restler.py')
 Common_Settings = [
     "python", "-B", Restler_Path, "--use_test_socket",
     '--custom_mutations', f'{os.path.join(Test_File_Directory, "test_dict.json")}',
-    "--garbage_collection_interval", "30", "--host", "unittest"
+    "--garbage_collection_interval", "30", "--host", "unittest",
+    "--token_refresh_cmd", f'{os.path.join(Test_File_Directory, "unit_test_server_auth.py")}',
+    "--token_refresh_interval", "10"
 ]
 
 class FunctionalityTests(unittest.TestCase):

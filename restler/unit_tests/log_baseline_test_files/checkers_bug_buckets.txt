@@ -1,87 +1,104 @@
 LeakageRuleChecker_20x: 1
-InvalidDynamicObjectChecker_20x: 11
+InvalidDynamicObjectChecker_20x: 13
 UseAfterFreeChecker_20x: 1
+NameSpaceRuleChecker_20x: 1
 main_driver_500: 1
 ResourceHierarchyChecker_20x: 1
-Total Buckets: 15
+Total Buckets: 18
 -------------
 LeakageRuleChecker_20x - Bug was reproduced - LeakageRuleChecker_20x_1.txt
 Hash: LeakageRuleChecker_20x_862884a058ddaaebe2c8d479c75b44b294ff4684
-PUT /leakageruletest/leakageTest HTTP/1.1\r\nHost: unittest\r\n\r\n{}\r\n
-GET /leakageruletest/_READER_DELIM_leakageruletest_put_name_READER_DELIM HTTP/1.1\r\nHost: unittest\r\n\r\n
+PUT /leakageruletest/leakageTest HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nauthentication_token_tag\r\n{}\r\n
+GET /leakageruletest/_READER_DELIM_leakageruletest_put_name_READER_DELIM HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nauthentication_token_tag\r\n
 --------------------------------------------------------------------------------
 InvalidDynamicObjectChecker_20x - Bug was reproduced - InvalidDynamicObjectChecker_20x_1.txt
 Hash: InvalidDynamicObjectChecker_20x_0c7bc79adedde76524a357aaa4f73dc367f6a19d
-PUT /city/cityName HTTP/1.1\r\nHost: unittest\r\n\r\n{}\r\n
-GET /city/_READER_DELIM_city_put_name_READER_DELIM HTTP/1.1\r\nHost: unittest\r\n\r\n
+PUT /city/cityName HTTP/1.1\r\nHost: unittest\r\nauthentication_token_tag\r\n{}\r\n
+GET /city/_READER_DELIM_city_put_name_READER_DELIM HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nauthentication_token_tag\r\n
 --------------------------------------------------------------------------------
 InvalidDynamicObjectChecker_20x - Bug was reproduced - InvalidDynamicObjectChecker_20x_2.txt
-Hash: InvalidDynamicObjectChecker_20x_9bf2a8c3595768ecbf532ec3368a7854e74ff5b1
-PUT /useafterfreetest/useafterfreeTest HTTP/1.1\r\nHost: unittest\r\n\r\n{}\r\n
-DELETE /useafterfreetest/_READER_DELIM_useafterfreetest_put_name_READER_DELIM HTTP/1.1\r\nHost: unittest\r\n\r\n
+Hash: InvalidDynamicObjectChecker_20x_52116bf01989e9aef30515fe60bac5fb5f667509
+PUT /namespaceruletest/namespaceruleTest HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nauthentication_token_tag\r\n{}\r\n
+DELETE /namespaceruletest/_READER_DELIM_namespaceruletest_put_name_READER_DELIM HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nauthentication_token_tag\r\n
 --------------------------------------------------------------------------------
 InvalidDynamicObjectChecker_20x - Bug was reproduced - InvalidDynamicObjectChecker_20x_3.txt
-Hash: InvalidDynamicObjectChecker_20x_869eb0bee8d183686139289a93de5d2d6ed2b3af
-PUT /city/cityName HTTP/1.1\r\nHost: unittest\r\n\r\n{}\r\n
-PUT /city/_READER_DELIM_city_put_name_READER_DELIM/house/houseName HTTP/1.1\r\nHost: unittest\r\n\r\n{}\r\n
+Hash: InvalidDynamicObjectChecker_20x_9bf2a8c3595768ecbf532ec3368a7854e74ff5b1
+PUT /useafterfreetest/useafterfreeTest HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nauthentication_token_tag\r\n{}\r\n
+DELETE /useafterfreetest/_READER_DELIM_useafterfreetest_put_name_READER_DELIM HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nauthentication_token_tag\r\n
 --------------------------------------------------------------------------------
 InvalidDynamicObjectChecker_20x - Bug was reproduced - InvalidDynamicObjectChecker_20x_4.txt
-Hash: InvalidDynamicObjectChecker_20x_8ccb62ff5e82bc905b633f5c228fecaf59b8c379
-PUT /useafterfreetest/useafterfreeTest HTTP/1.1\r\nHost: unittest\r\n\r\n{}\r\n
-GET /useafterfreetest/_READER_DELIM_useafterfreetest_put_name_READER_DELIM HTTP/1.1\r\nHost: unittest\r\n\r\n
+Hash: InvalidDynamicObjectChecker_20x_577e9b24b6d395beae4cb5ddb5ce5d6df29e33f6
+PUT /namespaceruletest/namespaceruleTest HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nauthentication_token_tag\r\n{}\r\n
+GET /namespaceruletest/_READER_DELIM_namespaceruletest_put_name_READER_DELIM HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nauthentication_token_tag\r\n
 --------------------------------------------------------------------------------
 InvalidDynamicObjectChecker_20x - Bug was reproduced - InvalidDynamicObjectChecker_20x_5.txt
-Hash: InvalidDynamicObjectChecker_20x_9381c4f939629c93e664f9672bbdd3d8d45a8fd7
-PUT /city/cityName HTTP/1.1\r\nHost: unittest\r\n\r\n{}\r\n
-GET /city/_READER_DELIM_city_put_name_READER_DELIM/house HTTP/1.1\r\nHost: unittest\r\n\r\n
+Hash: InvalidDynamicObjectChecker_20x_869eb0bee8d183686139289a93de5d2d6ed2b3af
+PUT /city/cityName HTTP/1.1\r\nHost: unittest\r\nauthentication_token_tag\r\n{}\r\n
+PUT /city/_READER_DELIM_city_put_name_READER_DELIM/house/houseName HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nauthentication_token_tag\r\n{}\r\n
 --------------------------------------------------------------------------------
 InvalidDynamicObjectChecker_20x - Bug was reproduced - InvalidDynamicObjectChecker_20x_6.txt
-Hash: InvalidDynamicObjectChecker_20x_20823b02f9bb94397e67c08d573524b1c8651d16
-PUT /resourcehierarchytest/resourcehierarchyTest HTTP/1.1\r\nHost: unittest\r\n\r\n{}\r\n
-PUT /resourcehierarchytest/_READER_DELIM_resourcehierarchytest_put_name_READER_DELIM/resourcehierarchychild/resourcehierarchyChild HTTP/1.1\r\nHost: unittest\r\n\r\n{}\r\n
+Hash: InvalidDynamicObjectChecker_20x_8ccb62ff5e82bc905b633f5c228fecaf59b8c379
+PUT /useafterfreetest/useafterfreeTest HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nauthentication_token_tag\r\n{}\r\n
+GET /useafterfreetest/_READER_DELIM_useafterfreetest_put_name_READER_DELIM HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nauthentication_token_tag\r\n
 --------------------------------------------------------------------------------
 InvalidDynamicObjectChecker_20x - Bug was reproduced - InvalidDynamicObjectChecker_20x_7.txt
-Hash: InvalidDynamicObjectChecker_20x_a367c54b328c98eed22dca48e4fade650b2be68b
-PUT /resourcehierarchytest/resourcehierarchyTest HTTP/1.1\r\nHost: unittest\r\n\r\n{}\r\n
-DELETE /resourcehierarchytest/_READER_DELIM_resourcehierarchytest_put_name_READER_DELIM HTTP/1.1\r\nHost: unittest\r\n\r\n
+Hash: InvalidDynamicObjectChecker_20x_9381c4f939629c93e664f9672bbdd3d8d45a8fd7
+PUT /city/cityName HTTP/1.1\r\nHost: unittest\r\nauthentication_token_tag\r\n{}\r\n
+GET /city/_READER_DELIM_city_put_name_READER_DELIM/house HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nauthentication_token_tag\r\n
 --------------------------------------------------------------------------------
 InvalidDynamicObjectChecker_20x - Bug was reproduced - InvalidDynamicObjectChecker_20x_8.txt
-Hash: InvalidDynamicObjectChecker_20x_c63f46ecab3835cdb9f172769b90ba91584f9f70
-PUT /resourcehierarchytest/resourcehierarchyTest HTTP/1.1\r\nHost: unittest\r\n\r\n{}\r\n
-GET /resourcehierarchytest/_READER_DELIM_resourcehierarchytest_put_name_READER_DELIM HTTP/1.1\r\nHost: unittest\r\n\r\n
+Hash: InvalidDynamicObjectChecker_20x_20823b02f9bb94397e67c08d573524b1c8651d16
+PUT /resourcehierarchytest/resourcehierarchyTest HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nauthentication_token_tag\r\n{}\r\n
+PUT /resourcehierarchytest/_READER_DELIM_resourcehierarchytest_put_name_READER_DELIM/resourcehierarchychild/resourcehierarchyChild HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nauthentication_token_tag\r\n{}\r\n
 --------------------------------------------------------------------------------
 InvalidDynamicObjectChecker_20x - Bug was reproduced - InvalidDynamicObjectChecker_20x_9.txt
-Hash: InvalidDynamicObjectChecker_20x_86cf0facb08a8c9a228d09072ff1f97af609c11d
-PUT /city/cityName HTTP/1.1\r\nHost: unittest\r\n\r\n{}\r\n
-PUT /city/_READER_DELIM_city_put_name_READER_DELIM/house/houseName HTTP/1.1\r\nHost: unittest\r\n\r\n{}\r\n
-GET /city/_READER_DELIM_city_put_name_READER_DELIM/house/_READER_DELIM_city_house_put_name_READER_DELIM HTTP/1.1\r\nHost: unittest\r\n\r\n
+Hash: InvalidDynamicObjectChecker_20x_a367c54b328c98eed22dca48e4fade650b2be68b
+PUT /resourcehierarchytest/resourcehierarchyTest HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nauthentication_token_tag\r\n{}\r\n
+DELETE /resourcehierarchytest/_READER_DELIM_resourcehierarchytest_put_name_READER_DELIM HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nauthentication_token_tag\r\n
 --------------------------------------------------------------------------------
 InvalidDynamicObjectChecker_20x - Bug was reproduced - InvalidDynamicObjectChecker_20x_10.txt
-Hash: InvalidDynamicObjectChecker_20x_3ad2a74b208fb65828a14f054d21da5a2f2989b0
-PUT /resourcehierarchytest/resourcehierarchyTest HTTP/1.1\r\nHost: unittest\r\n\r\n{}\r\n
-PUT /resourcehierarchytest/_READER_DELIM_resourcehierarchytest_put_name_READER_DELIM/resourcehierarchychild/resourcehierarchyChild HTTP/1.1\r\nHost: unittest\r\n\r\n{}\r\n
-DELETE /resourcehierarchytest/_READER_DELIM_resourcehierarchytest_put_name_READER_DELIM/resourcehierarchychild/_READER_DELIM_resourcehierarchychild_put_name_READER_DELIM HTTP/1.1\r\nHost: unittest\r\n\r\n
+Hash: InvalidDynamicObjectChecker_20x_c63f46ecab3835cdb9f172769b90ba91584f9f70
+PUT /resourcehierarchytest/resourcehierarchyTest HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nauthentication_token_tag\r\n{}\r\n
+GET /resourcehierarchytest/_READER_DELIM_resourcehierarchytest_put_name_READER_DELIM HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nauthentication_token_tag\r\n
 --------------------------------------------------------------------------------
 InvalidDynamicObjectChecker_20x - Bug was reproduced - InvalidDynamicObjectChecker_20x_11.txt
+Hash: InvalidDynamicObjectChecker_20x_86cf0facb08a8c9a228d09072ff1f97af609c11d
+PUT /city/cityName HTTP/1.1\r\nHost: unittest\r\nauthentication_token_tag\r\n{}\r\n
+PUT /city/_READER_DELIM_city_put_name_READER_DELIM/house/houseName HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nauthentication_token_tag\r\n{}\r\n
+GET /city/_READER_DELIM_city_put_name_READER_DELIM/house/_READER_DELIM_city_house_put_name_READER_DELIM HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nauthentication_token_tag\r\n
+--------------------------------------------------------------------------------
+InvalidDynamicObjectChecker_20x - Bug was reproduced - InvalidDynamicObjectChecker_20x_12.txt
+Hash: InvalidDynamicObjectChecker_20x_3ad2a74b208fb65828a14f054d21da5a2f2989b0
+PUT /resourcehierarchytest/resourcehierarchyTest HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nauthentication_token_tag\r\n{}\r\n
+PUT /resourcehierarchytest/_READER_DELIM_resourcehierarchytest_put_name_READER_DELIM/resourcehierarchychild/resourcehierarchyChild HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nauthentication_token_tag\r\n{}\r\n
+DELETE /resourcehierarchytest/_READER_DELIM_resourcehierarchytest_put_name_READER_DELIM/resourcehierarchychild/_READER_DELIM_resourcehierarchychild_put_name_READER_DELIM HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nauthentication_token_tag\r\n
+--------------------------------------------------------------------------------
+InvalidDynamicObjectChecker_20x - Bug was reproduced - InvalidDynamicObjectChecker_20x_13.txt
 Hash: InvalidDynamicObjectChecker_20x_cf94181e3d6bf39620706486f6c4af575c83a5ea
-PUT /resourcehierarchytest/resourcehierarchyTest HTTP/1.1\r\nHost: unittest\r\n\r\n{}\r\n
-PUT /resourcehierarchytest/_READER_DELIM_resourcehierarchytest_put_name_READER_DELIM/resourcehierarchychild/resourcehierarchyChild HTTP/1.1\r\nHost: unittest\r\n\r\n{}\r\n
-GET /resourcehierarchytest/_READER_DELIM_resourcehierarchytest_put_name_READER_DELIM/resourcehierarchychild/_READER_DELIM_resourcehierarchychild_put_name_READER_DELIM HTTP/1.1\r\nHost: unittest\r\n\r\n
+PUT /resourcehierarchytest/resourcehierarchyTest HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nauthentication_token_tag\r\n{}\r\n
+PUT /resourcehierarchytest/_READER_DELIM_resourcehierarchytest_put_name_READER_DELIM/resourcehierarchychild/resourcehierarchyChild HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nauthentication_token_tag\r\n{}\r\n
+GET /resourcehierarchytest/_READER_DELIM_resourcehierarchytest_put_name_READER_DELIM/resourcehierarchychild/_READER_DELIM_resourcehierarchychild_put_name_READER_DELIM HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nauthentication_token_tag\r\n
 --------------------------------------------------------------------------------
 UseAfterFreeChecker_20x - Bug was reproduced - UseAfterFreeChecker_20x_1.txt
 Hash: UseAfterFreeChecker_20x_8ccb62ff5e82bc905b633f5c228fecaf59b8c379
-PUT /useafterfreetest/useafterfreeTest HTTP/1.1\r\nHost: unittest\r\n\r\n{}\r\n
-DELETE /useafterfreetest/_READER_DELIM_useafterfreetest_put_name_READER_DELIM HTTP/1.1\r\nHost: unittest\r\n\r\n
-GET /useafterfreetest/_READER_DELIM_useafterfreetest_put_name_READER_DELIM HTTP/1.1\r\nHost: unittest\r\n\r\n
+PUT /useafterfreetest/useafterfreeTest HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nauthentication_token_tag\r\n{}\r\n
+DELETE /useafterfreetest/_READER_DELIM_useafterfreetest_put_name_READER_DELIM HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nauthentication_token_tag\r\n
+GET /useafterfreetest/_READER_DELIM_useafterfreetest_put_name_READER_DELIM HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nauthentication_token_tag\r\n
+--------------------------------------------------------------------------------
+NameSpaceRuleChecker_20x - Unable to reproduce bug - NameSpaceRuleChecker_20x_1.txt
+Attempted to reproduce 0 time(s); Reproduced 0 time(s)
+Hash: NameSpaceRuleChecker_20x_577e9b24b6d395beae4cb5ddb5ce5d6df29e33f6
+PUT /namespaceruletest/namespaceruleTest HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nauthentication_token_tag\r\n{}\r\n
+GET /namespaceruletest/_READER_DELIM_namespaceruletest_put_name_READER_DELIM HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nauthentication_token_tag\r\n
 --------------------------------------------------------------------------------
 main_driver_500 - Bug was reproduced - main_driver_500_1.txt
 Hash: main_driver_500_a6e432e533efe1aa006445e4d76075393bc0848f
-PUT /city/cityName HTTP/1.1\r\nHost: unittest\r\n\r\n{}\r\n
-PUT /city/_READER_DELIM_city_put_name_READER_DELIM/house/houseName HTTP/1.1\r\nHost: unittest\r\n\r\n{}\r\n
-PUT /city/_READER_DELIM_city_put_name_READER_DELIM/house/_READER_DELIM_city_house_put_name_READER_DELIM/color/colorName HTTP/1.1\r\nHost: unittest\r\n\r\n{{\r\n
+PUT /city/cityName HTTP/1.1\r\nHost: unittest\r\nauthentication_token_tag\r\n{}\r\n
+PUT /city/_READER_DELIM_city_put_name_READER_DELIM/house/houseName HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nauthentication_token_tag\r\n{}\r\n
+PUT /city/_READER_DELIM_city_put_name_READER_DELIM/house/_READER_DELIM_city_house_put_name_READER_DELIM/color/colorName HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nauthentication_token_tag\r\n{{}\r\n
 --------------------------------------------------------------------------------
 ResourceHierarchyChecker_20x - Bug was reproduced - ResourceHierarchyChecker_20x_1.txt
 Hash: ResourceHierarchyChecker_20x_cf94181e3d6bf39620706486f6c4af575c83a5ea
-PUT /resourcehierarchytest/resourcehierarchyTest HTTP/1.1\r\nHost: unittest\r\n\r\n{}\r\n
-GET /resourcehierarchytest/_READER_DELIM_resourcehierarchytest_put_name_READER_DELIM/resourcehierarchychild/_READER_DELIM_resourcehierarchychild_put_name_READER_DELIM HTTP/1.1\r\nHost: unittest\r\n\r\n
+PUT /resourcehierarchytest/resourcehierarchyTest HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nauthentication_token_tag\r\n{}\r\n
+GET /resourcehierarchytest/_READER_DELIM_resourcehierarchytest_put_name_READER_DELIM/resourcehierarchychild/_READER_DELIM_resourcehierarchychild_put_name_READER_DELIM HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nauthentication_token_tag\r\n
 --------------------------------------------------------------------------------

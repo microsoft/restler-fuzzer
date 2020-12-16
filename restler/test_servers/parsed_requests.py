@@ -11,19 +11,19 @@ UNIT_TEST_RESOURCE_IDENTIFIER = '<test!>'
 class ParsedRequest:
     """ Created by parsing a request string """
     def __init__(self, request_str: str, ignore_dynamic_objects=False):
-        # Extract body from request string
-        body_split = request_str.split(DELIM, 1)
-        self.body = body_split[1]
-        self.body = self.body.rstrip('\r\n')
-
         # Extract method from request string
-        method_split = body_split[0].split(' ', 1)
+        method_split = request_str.split(' ', 1)
         self.method = method_split[0]
 
-        # Extract endpoint from request string
-        endpoint_split = method_split[1].split(' HTTP', 1)[0]
+        # Split endpoint from header
+        endpoint_split = method_split[1].split(' HTTP', 1)
         # Handle query string if necessary
-        self.endpoint = endpoint_split.split('?', 1)[0]
+        self.endpoint = endpoint_split[0].split('?', 1)[0]
+        header_body_split = endpoint_split[1].split('{', 1)
+        self.header = header_body_split[0]
+        self.body = ''
+        if len(header_body_split) > 1:
+            self.body = "{" + header_body_split[1].rstrip('\r\n')
 
         if ignore_dynamic_objects:
             self._remove_dynamic_objects()
@@ -38,6 +38,20 @@ class ParsedRequest:
         return self.method == other.method and\
                self.endpoint == other.endpoint and\
                self.body == other.body
+
+    @property
+    def authorization_token(self):
+        """ Extracts the authorization token from the header
+        Returns None if it is not found.
+        """
+        try:
+            header_split = self.header.split('\r\n')
+            Auth_Line = 'Authorization: '
+            for line in header_split:
+                if line.startswith(Auth_Line):
+                    return line.split(Auth_Line)[1]
+        except:
+            return None
 
     def _remove_dynamic_objects(self):
         """ Helper function that parses a request's endpoint and

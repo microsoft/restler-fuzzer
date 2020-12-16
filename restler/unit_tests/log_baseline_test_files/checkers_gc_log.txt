@@ -1,104 +1,204 @@
-2020-11-03 23:56:40.755: Sending: 'DELETE /resourcehierarchytest/resourcehierarchyTest<test!>-21de02c44d HTTP/1.1\r\nHost: unittest\r\nContent-Length: 0\r\n\r\n'
+2020-12-15 16:31:05.028: Sending: 'DELETE /resourcehierarchytest/resourcehierarchyTest<test!>-a49121130d HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nAuthorization: valid_unit_test_token\r\nContent-Length: 0\r\n\r\n'
 
-2020-11-03 23:56:40.760: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"resourcehierarchyTest<test!>-21de02c44d"'
+2020-12-15 16:31:05.034: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"resourcehierarchyTest<test!>-a49121130d"'
 
-2020-11-03 23:56:40.772: Sending: 'DELETE /resourcehierarchytest/resourcehierarchyTest<test!>-21de02c44d HTTP/1.1\r\nHost: unittest\r\nContent-Length: 0\r\n\r\n'
+2020-12-15 16:31:05.045: Sending: 'DELETE /resourcehierarchytest/resourcehierarchyTest<test!>-a49121130d HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nAuthorization: valid_unit_test_token\r\nContent-Length: 0\r\n\r\n'
 
-2020-11-03 23:56:40.796: Received: "HTTP/1.1 404 Not Found\r\nRestler Test\r\n\r\n{'Resource': ResourceDoesNotExist()}"
+2020-12-15 16:31:05.053: Received: "HTTP/1.1 404 Not Found\r\nRestler Test\r\n\r\n{'Resource': ResourceDoesNotExist()}"
 
-2020-11-03 23:56:40.818: Sending: 'DELETE /resourcehierarchytest/resourcehierarchyTest<test!>-634cd37f56 HTTP/1.1\r\nHost: unittest\r\nContent-Length: 0\r\n\r\n'
+2020-12-15 16:31:05.061: Sending: 'DELETE /resourcehierarchytest/resourcehierarchyTest<test!>-3e152d4366 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nAuthorization: valid_unit_test_token\r\nContent-Length: 0\r\n\r\n'
 
-2020-11-03 23:56:40.830: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"resourcehierarchyTest<test!>-634cd37f56"'
+2020-12-15 16:31:05.069: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"resourcehierarchyTest<test!>-3e152d4366"'
 
-2020-11-03 23:56:40.840: Sending: 'DELETE /resourcehierarchytest/resourcehierarchyTest<test!>-634cd37f56 HTTP/1.1\r\nHost: unittest\r\nContent-Length: 0\r\n\r\n'
+2020-12-15 16:31:05.078: Sending: 'DELETE /resourcehierarchytest/resourcehierarchyTest<test!>-3e152d4366 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nAuthorization: valid_unit_test_token\r\nContent-Length: 0\r\n\r\n'
 
-2020-11-03 23:56:40.848: Received: "HTTP/1.1 404 Not Found\r\nRestler Test\r\n\r\n{'Resource': ResourceDoesNotExist()}"
+2020-12-15 16:31:05.085: Received: "HTTP/1.1 404 Not Found\r\nRestler Test\r\n\r\n{'Resource': ResourceDoesNotExist()}"
 
-2020-11-03 23:56:40.857: Sending: 'DELETE /resourcehierarchytest/resourcehierarchyTest<test!>-c98ee096cd HTTP/1.1\r\nHost: unittest\r\nContent-Length: 0\r\n\r\n'
+2020-12-15 16:31:05.094: Sending: 'DELETE /resourcehierarchytest/resourcehierarchyTest<test!>-423fef2e6d HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nAuthorization: valid_unit_test_token\r\nContent-Length: 0\r\n\r\n'
 
-2020-11-03 23:56:40.865: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"resourcehierarchyTest<test!>-c98ee096cd"'
+2020-12-15 16:31:05.102: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"resourcehierarchyTest<test!>-423fef2e6d"'
 
-2020-11-03 23:56:40.874: Sending: 'DELETE /resourcehierarchytest/resourcehierarchyTest<test!>-f6b6fd7d2c HTTP/1.1\r\nHost: unittest\r\nContent-Length: 0\r\n\r\n'
+2020-12-15 16:31:05.110: Sending: 'DELETE /resourcehierarchytest/resourcehierarchyTest<test!>-423fef2e6d HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nAuthorization: valid_unit_test_token\r\nContent-Length: 0\r\n\r\n'
 
-2020-11-03 23:56:40.881: Received: "HTTP/1.1 404 Not Found\r\nRestler Test\r\n\r\n{'Resource': ResourceDoesNotExist()}"
+2020-12-15 16:31:05.119: Received: "HTTP/1.1 404 Not Found\r\nRestler Test\r\n\r\n{'Resource': ResourceDoesNotExist()}"
 
-2020-11-03 23:56:40.890: Sending: 'DELETE /resourcehierarchytest/resourcehierarchyTest<test!>-f6b6fd7d2c HTTP/1.1\r\nHost: unittest\r\nContent-Length: 0\r\n\r\n'
+2020-12-15 16:31:05.128: Sending: 'DELETE /resourcehierarchytest/resourcehierarchyTest<test!>-ad31a6e1c3 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nAuthorization: valid_unit_test_token\r\nContent-Length: 0\r\n\r\n'
 
-2020-11-03 23:56:40.899: Received: "HTTP/1.1 404 Not Found\r\nRestler Test\r\n\r\n{'Resource': ResourceDoesNotExist()}"
+2020-12-15 16:31:05.136: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"resourcehierarchyTest<test!>-ad31a6e1c3"'
 
-2020-11-03 23:56:40.908: Sending: 'DELETE /resourcehierarchytest/resourcehierarchyTest<test!>-2dd719811c HTTP/1.1\r\nHost: unittest\r\nContent-Length: 0\r\n\r\n'
+2020-12-15 16:31:05.145: Sending: 'DELETE /resourcehierarchytest/resourcehierarchyTest<test!>-75373fe33b HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nAuthorization: valid_unit_test_token\r\nContent-Length: 0\r\n\r\n'
 
-2020-11-03 23:56:40.917: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"resourcehierarchyTest<test!>-2dd719811c"'
+2020-12-15 16:31:05.153: Received: "HTTP/1.1 404 Not Found\r\nRestler Test\r\n\r\n{'Resource': ResourceDoesNotExist()}"
 
-2020-11-03 23:56:40.925: Sending: 'DELETE /resourcehierarchytest/resourcehierarchyTest<test!>-d48adb43d6 HTTP/1.1\r\nHost: unittest\r\nContent-Length: 0\r\n\r\n'
+2020-12-15 16:31:05.163: Sending: 'DELETE /resourcehierarchytest/resourcehierarchyTest<test!>-75373fe33b HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nAuthorization: valid_unit_test_token\r\nContent-Length: 0\r\n\r\n'
 
-2020-11-03 23:56:40.933: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"resourcehierarchyTest<test!>-d48adb43d6"'
+2020-12-15 16:31:05.172: Received: "HTTP/1.1 404 Not Found\r\nRestler Test\r\n\r\n{'Resource': ResourceDoesNotExist()}"
 
-2020-11-03 23:56:40.941: Sending: 'DELETE /resourcehierarchytest/resourcehierarchyTest<test!>-d48adb43d6 HTTP/1.1\r\nHost: unittest\r\nContent-Length: 0\r\n\r\n'
+2020-12-15 16:31:05.180: Sending: 'DELETE /resourcehierarchytest/resourcehierarchyTest<test!>-e2183b53de HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nAuthorization: valid_unit_test_token\r\nContent-Length: 0\r\n\r\n'
 
-2020-11-03 23:56:40.952: Received: "HTTP/1.1 404 Not Found\r\nRestler Test\r\n\r\n{'Resource': ResourceDoesNotExist()}"
+2020-12-15 16:31:05.188: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"resourcehierarchyTest<test!>-e2183b53de"'
 
-2020-11-03 23:56:40.960: Sending: 'DELETE /resourcehierarchytest/resourcehierarchyTest<test!>-258fa95a4b HTTP/1.1\r\nHost: unittest\r\nContent-Length: 0\r\n\r\n'
+2020-12-15 16:31:05.196: Sending: 'DELETE /resourcehierarchytest/resourcehierarchyTest<test!>-e2183b53de HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nAuthorization: valid_unit_test_token\r\nContent-Length: 0\r\n\r\n'
 
-2020-11-03 23:56:40.968: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"resourcehierarchyTest<test!>-258fa95a4b"'
+2020-12-15 16:31:05.205: Received: "HTTP/1.1 404 Not Found\r\nRestler Test\r\n\r\n{'Resource': ResourceDoesNotExist()}"
 
-2020-11-03 23:56:40.977: Sending: 'DELETE /resourcehierarchytest/resourcehierarchyTest<test!>-05b30ead75 HTTP/1.1\r\nHost: unittest\r\nContent-Length: 0\r\n\r\n'
+2020-12-15 16:31:05.214: Sending: 'DELETE /resourcehierarchytest/resourcehierarchyTest<test!>-aab0a77974 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nAuthorization: valid_unit_test_token\r\nContent-Length: 0\r\n\r\n'
 
-2020-11-03 23:56:40.985: Received: "HTTP/1.1 404 Not Found\r\nRestler Test\r\n\r\n{'Resource': ResourceDoesNotExist()}"
+2020-12-15 16:31:05.222: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"resourcehierarchyTest<test!>-aab0a77974"'
 
-2020-11-03 23:56:40.993: Sending: 'DELETE /resourcehierarchytest/resourcehierarchyTest<test!>-05b30ead75 HTTP/1.1\r\nHost: unittest\r\nContent-Length: 0\r\n\r\n'
+2020-12-15 16:31:05.231: Sending: 'DELETE /resourcehierarchytest/resourcehierarchyTest<test!>-d997e93fe7 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nAuthorization: valid_unit_test_token\r\nContent-Length: 0\r\n\r\n'
 
-2020-11-03 23:56:41.002: Received: "HTTP/1.1 404 Not Found\r\nRestler Test\r\n\r\n{'Resource': ResourceDoesNotExist()}"
+2020-12-15 16:31:05.241: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"resourcehierarchyTest<test!>-d997e93fe7"'
 
-2020-11-03 23:56:41.010: Sending: 'DELETE /resourcehierarchytest/resourcehierarchyTest<test!>-9f849f668e HTTP/1.1\r\nHost: unittest\r\nContent-Length: 0\r\n\r\n'
+2020-12-15 16:31:05.249: Sending: 'DELETE /resourcehierarchytest/resourcehierarchyTest<test!>-d997e93fe7 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nAuthorization: valid_unit_test_token\r\nContent-Length: 0\r\n\r\n'
 
-2020-11-03 23:56:41.019: Received: "HTTP/1.1 404 Not Found\r\nRestler Test\r\n\r\n{'Resource': ResourceDoesNotExist()}"
+2020-12-15 16:31:05.259: Received: "HTTP/1.1 404 Not Found\r\nRestler Test\r\n\r\n{'Resource': ResourceDoesNotExist()}"
 
-2020-11-03 23:56:41.027: Sending: 'DELETE /resourcehierarchytest/resourcehierarchyTest<test!>-4e7d2fffce HTTP/1.1\r\nHost: unittest\r\nContent-Length: 0\r\n\r\n'
+2020-12-15 16:31:05.268: Sending: 'DELETE /resourcehierarchytest/resourcehierarchyTest<test!>-b7bb82b4a2 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nAuthorization: valid_unit_test_token\r\nContent-Length: 0\r\n\r\n'
 
-2020-11-03 23:56:41.036: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"resourcehierarchyTest<test!>-4e7d2fffce"'
+2020-12-15 16:31:05.277: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"resourcehierarchyTest<test!>-b7bb82b4a2"'
 
-2020-11-03 23:56:41.047: Sending: 'DELETE /resourcehierarchytest/resourcehierarchyTest<test!>-4e7d2fffce HTTP/1.1\r\nHost: unittest\r\nContent-Length: 0\r\n\r\n'
+2020-12-15 16:31:05.287: Sending: 'DELETE /resourcehierarchytest/resourcehierarchyTest<test!>-b7bb82b4a2 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nAuthorization: valid_unit_test_token\r\nContent-Length: 0\r\n\r\n'
 
-2020-11-03 23:56:41.067: Received: "HTTP/1.1 404 Not Found\r\nRestler Test\r\n\r\n{'Resource': ResourceDoesNotExist()}"
+2020-12-15 16:31:05.295: Received: "HTTP/1.1 404 Not Found\r\nRestler Test\r\n\r\n{'Resource': ResourceDoesNotExist()}"
 
-2020-11-03 23:56:41.080: Sending: 'DELETE /resourcehierarchytest/resourcehierarchyTest<test!>-dfb1544963 HTTP/1.1\r\nHost: unittest\r\nContent-Length: 0\r\n\r\n'
+2020-12-15 16:31:05.304: Sending: 'DELETE /resourcehierarchytest/resourcehierarchyTest<test!>-a393419d4e HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nAuthorization: valid_unit_test_token\r\nContent-Length: 0\r\n\r\n'
 
-2020-11-03 23:56:41.089: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"resourcehierarchyTest<test!>-dfb1544963"'
+2020-12-15 16:31:05.316: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"resourcehierarchyTest<test!>-a393419d4e"'
 
-2020-11-03 23:56:41.098: Sending: 'DELETE /resourcehierarchytest/resourcehierarchyTest<test!>-d374d93164 HTTP/1.1\r\nHost: unittest\r\nContent-Length: 0\r\n\r\n'
+2020-12-15 16:31:05.324: Sending: 'DELETE /resourcehierarchytest/resourcehierarchyTest<test!>-3996874e5f HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nAuthorization: valid_unit_test_token\r\nContent-Length: 0\r\n\r\n'
 
-2020-11-03 23:56:41.106: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"resourcehierarchyTest<test!>-d374d93164"'
+2020-12-15 16:31:05.333: Received: "HTTP/1.1 404 Not Found\r\nRestler Test\r\n\r\n{'Resource': ResourceDoesNotExist()}"
 
-2020-11-03 23:56:41.124: Sending: 'DELETE /useafterfreetest/useafterfreeTest<test!>-74383b377e HTTP/1.1\r\nHost: unittest\r\nContent-Length: 0\r\n\r\n'
+2020-12-15 16:31:05.342: Sending: 'DELETE /resourcehierarchytest/resourcehierarchyTest<test!>-3996874e5f HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nAuthorization: valid_unit_test_token\r\nContent-Length: 0\r\n\r\n'
 
-2020-11-03 23:56:41.132: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"useafterfreeTest<test!>-74383b377e"'
+2020-12-15 16:31:05.351: Received: "HTTP/1.1 404 Not Found\r\nRestler Test\r\n\r\n{'Resource': ResourceDoesNotExist()}"
 
-2020-11-03 23:56:41.141: Sending: 'DELETE /useafterfreetest/useafterfreeTest<test!>-74383b377e HTTP/1.1\r\nHost: unittest\r\nContent-Length: 0\r\n\r\n'
+2020-12-15 16:31:05.360: Sending: 'DELETE /resourcehierarchytest/resourcehierarchyTest<test!>-b83f3033a3 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nAuthorization: valid_unit_test_token\r\nContent-Length: 0\r\n\r\n'
 
-2020-11-03 23:56:41.149: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"useafterfreeTest<test!>-74383b377e"'
+2020-12-15 16:31:05.369: Received: "HTTP/1.1 404 Not Found\r\nRestler Test\r\n\r\n{'Resource': ResourceDoesNotExist()}"
 
-2020-11-03 23:56:41.158: Sending: 'DELETE /useafterfreetest/useafterfreeTest<test!>-a6bfc74c75 HTTP/1.1\r\nHost: unittest\r\nContent-Length: 0\r\n\r\n'
+2020-12-15 16:31:05.378: Sending: 'DELETE /resourcehierarchytest/resourcehierarchyTest<test!>-b83f3033a3 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nAuthorization: valid_unit_test_token\r\nContent-Length: 0\r\n\r\n'
 
-2020-11-03 23:56:41.167: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"useafterfreeTest<test!>-a6bfc74c75"'
+2020-12-15 16:31:05.387: Received: "HTTP/1.1 404 Not Found\r\nRestler Test\r\n\r\n{'Resource': ResourceDoesNotExist()}"
 
-2020-11-03 23:56:41.175: Sending: 'DELETE /useafterfreetest/useafterfreeTest<test!>-2530556231 HTTP/1.1\r\nHost: unittest\r\nContent-Length: 0\r\n\r\n'
+2020-12-15 16:31:05.397: Sending: 'DELETE /resourcehierarchytest/resourcehierarchyTest<test!>-6d25903130 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nAuthorization: valid_unit_test_token\r\nContent-Length: 0\r\n\r\n'
 
-2020-11-03 23:56:41.183: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"useafterfreeTest<test!>-2530556231"'
+2020-12-15 16:31:05.406: Received: "HTTP/1.1 404 Not Found\r\nRestler Test\r\n\r\n{'Resource': ResourceDoesNotExist()}"
 
-2020-11-03 23:56:41.192: Sending: 'DELETE /useafterfreetest/useafterfreeTest<test!>-2530556231 HTTP/1.1\r\nHost: unittest\r\nContent-Length: 0\r\n\r\n'
+2020-12-15 16:31:05.415: Sending: 'DELETE /resourcehierarchytest/resourcehierarchyTest<test!>-bf16f764cc HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nAuthorization: valid_unit_test_token\r\nContent-Length: 0\r\n\r\n'
 
-2020-11-03 23:56:41.200: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"useafterfreeTest<test!>-2530556231"'
+2020-12-15 16:31:05.425: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"resourcehierarchyTest<test!>-bf16f764cc"'
 
-2020-11-03 23:56:41.208: Sending: 'DELETE /useafterfreetest/useafterfreeTest<test!>-526ce3ea48 HTTP/1.1\r\nHost: unittest\r\nContent-Length: 0\r\n\r\n'
+2020-12-15 16:31:05.434: Sending: 'DELETE /resourcehierarchytest/resourcehierarchyTest<test!>-bf16f764cc HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nAuthorization: valid_unit_test_token\r\nContent-Length: 0\r\n\r\n'
 
-2020-11-03 23:56:41.219: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"useafterfreeTest<test!>-526ce3ea48"'
+2020-12-15 16:31:05.443: Received: "HTTP/1.1 404 Not Found\r\nRestler Test\r\n\r\n{'Resource': ResourceDoesNotExist()}"
 
-2020-11-03 23:56:41.227: Sending: 'DELETE /useafterfreetest/useafterfreeTest<test!>-526ce3ea48 HTTP/1.1\r\nHost: unittest\r\nContent-Length: 0\r\n\r\n'
+2020-12-15 16:31:05.452: Sending: 'DELETE /resourcehierarchytest/resourcehierarchyTest<test!>-ab04e6b7eb HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nAuthorization: valid_unit_test_token\r\nContent-Length: 0\r\n\r\n'
 
-2020-11-03 23:56:41.235: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"useafterfreeTest<test!>-526ce3ea48"'
+2020-12-15 16:31:05.462: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"resourcehierarchyTest<test!>-ab04e6b7eb"'
 
-2020-11-03 23:56:41.244: Sending: 'DELETE /useafterfreetest/useafterfreeTest<test!>-0a4bc95cab HTTP/1.1\r\nHost: unittest\r\nContent-Length: 0\r\n\r\n'
+2020-12-15 16:31:05.471: Sending: 'DELETE /resourcehierarchytest/resourcehierarchyTest<test!>-ab04e6b7eb HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nAuthorization: valid_unit_test_token\r\nContent-Length: 0\r\n\r\n'
 
-2020-11-03 23:56:41.253: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"useafterfreeTest<test!>-0a4bc95cab"'
+2020-12-15 16:31:05.481: Received: "HTTP/1.1 404 Not Found\r\nRestler Test\r\n\r\n{'Resource': ResourceDoesNotExist()}"
+
+2020-12-15 16:31:05.491: Sending: 'DELETE /resourcehierarchytest/resourcehierarchyTest<test!>-dbc9b0809d HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nAuthorization: valid_unit_test_token\r\nContent-Length: 0\r\n\r\n'
+
+2020-12-15 16:31:05.500: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"resourcehierarchyTest<test!>-dbc9b0809d"'
+
+2020-12-15 16:31:05.511: Sending: 'DELETE /resourcehierarchytest/resourcehierarchyTest<test!>-7c115a39c4 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nAuthorization: valid_unit_test_token\r\nContent-Length: 0\r\n\r\n'
+
+2020-12-15 16:31:05.522: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"resourcehierarchyTest<test!>-7c115a39c4"'
+
+2020-12-15 16:31:05.543: Sending: 'DELETE /namespaceruletest/namespaceruletest<test!>-0f3a1e616a HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nAuthorization: valid_unit_test_token\r\nContent-Length: 0\r\n\r\n'
+
+2020-12-15 16:31:05.552: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"namespaceruletest<test!>-0f3a1e616a"'
+
+2020-12-15 16:31:05.561: Sending: 'DELETE /namespaceruletest/namespaceruletest<test!>-0f3a1e616a HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nAuthorization: valid_unit_test_token\r\nContent-Length: 0\r\n\r\n'
+
+2020-12-15 16:31:05.572: Received: "HTTP/1.1 404 Not Found\r\nRestler Test\r\n\r\n{'Resource': ResourceDoesNotExist()}"
+
+2020-12-15 16:31:05.581: Sending: 'DELETE /namespaceruletest/namespaceruletest<test!>-b1bb398f11 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nAuthorization: valid_unit_test_token\r\nContent-Length: 0\r\n\r\n'
+
+2020-12-15 16:31:05.590: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"namespaceruletest<test!>-b1bb398f11"'
+
+2020-12-15 16:31:05.600: Sending: 'DELETE /namespaceruletest/namespaceruletest<test!>-b1bb398f11 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nAuthorization: valid_unit_test_token\r\nContent-Length: 0\r\n\r\n'
+
+2020-12-15 16:31:05.609: Received: "HTTP/1.1 404 Not Found\r\nRestler Test\r\n\r\n{'Resource': ResourceDoesNotExist()}"
+
+2020-12-15 16:31:05.618: Sending: 'DELETE /namespaceruletest/namespaceruletest<test!>-5c2eb2619a HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nAuthorization: valid_unit_test_token\r\nContent-Length: 0\r\n\r\n'
+
+2020-12-15 16:31:05.627: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"namespaceruletest<test!>-5c2eb2619a"'
+
+2020-12-15 16:31:05.637: Sending: 'DELETE /namespaceruletest/namespaceruletest<test!>-b4d796c751 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nAuthorization: valid_unit_test_token\r\nContent-Length: 0\r\n\r\n'
+
+2020-12-15 16:31:05.646: Received: "HTTP/1.1 404 Not Found\r\nRestler Test\r\n\r\n{'Resource': ResourceDoesNotExist()}"
+
+2020-12-15 16:31:05.655: Sending: 'DELETE /namespaceruletest/namespaceruletest<test!>-b4d796c751 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nAuthorization: valid_unit_test_token\r\nContent-Length: 0\r\n\r\n'
+
+2020-12-15 16:31:05.665: Received: "HTTP/1.1 404 Not Found\r\nRestler Test\r\n\r\n{'Resource': ResourceDoesNotExist()}"
+
+2020-12-15 16:31:05.674: Sending: 'DELETE /namespaceruletest/namespaceruletest<test!>-fdb517977c HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nAuthorization: valid_unit_test_token\r\nContent-Length: 0\r\n\r\n'
+
+2020-12-15 16:31:05.684: Received: "HTTP/1.1 404 Not Found\r\nRestler Test\r\n\r\n{'Resource': ResourceDoesNotExist()}"
+
+2020-12-15 16:31:05.693: Sending: 'DELETE /namespaceruletest/namespaceruletest<test!>-fdb517977c HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nAuthorization: valid_unit_test_token\r\nContent-Length: 0\r\n\r\n'
+
+2020-12-15 16:31:05.705: Received: "HTTP/1.1 404 Not Found\r\nRestler Test\r\n\r\n{'Resource': ResourceDoesNotExist()}"
+
+2020-12-15 16:31:05.717: Sending: 'DELETE /namespaceruletest/namespaceruletest<test!>-46974522ba HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nAuthorization: valid_unit_test_token\r\nContent-Length: 0\r\n\r\n'
+
+2020-12-15 16:31:05.728: Received: "HTTP/1.1 404 Not Found\r\nRestler Test\r\n\r\n{'Resource': ResourceDoesNotExist()}"
+
+2020-12-15 16:31:05.737: Sending: 'DELETE /namespaceruletest/namespaceruletest<test!>-d781bf774e HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nAuthorization: valid_unit_test_token\r\nContent-Length: 0\r\n\r\n'
+
+2020-12-15 16:31:05.748: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"namespaceruletest<test!>-d781bf774e"'
+
+2020-12-15 16:31:05.772: Sending: 'DELETE /useafterfreetest/useafterfreeTest<test!>-a03a5cd766 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nAuthorization: valid_unit_test_token\r\nContent-Length: 0\r\n\r\n'
+
+2020-12-15 16:31:05.781: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"useafterfreeTest<test!>-a03a5cd766"'
+
+2020-12-15 16:31:05.799: Sending: 'DELETE /useafterfreetest/useafterfreeTest<test!>-a03a5cd766 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nAuthorization: valid_unit_test_token\r\nContent-Length: 0\r\n\r\n'
+
+2020-12-15 16:31:05.811: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"useafterfreeTest<test!>-a03a5cd766"'
+
+2020-12-15 16:31:05.820: Sending: 'DELETE /useafterfreetest/useafterfreeTest<test!>-a425d51754 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nAuthorization: valid_unit_test_token\r\nContent-Length: 0\r\n\r\n'
+
+2020-12-15 16:31:05.829: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"useafterfreeTest<test!>-a425d51754"'
+
+2020-12-15 16:31:05.839: Sending: 'DELETE /useafterfreetest/useafterfreeTest<test!>-a425d51754 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nAuthorization: valid_unit_test_token\r\nContent-Length: 0\r\n\r\n'
+
+2020-12-15 16:31:05.848: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"useafterfreeTest<test!>-a425d51754"'
+
+2020-12-15 16:31:05.858: Sending: 'DELETE /useafterfreetest/useafterfreeTest<test!>-9fd46a5e83 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nAuthorization: valid_unit_test_token\r\nContent-Length: 0\r\n\r\n'
+
+2020-12-15 16:31:05.867: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"useafterfreeTest<test!>-9fd46a5e83"'
+
+2020-12-15 16:31:05.876: Sending: 'DELETE /useafterfreetest/useafterfreeTest<test!>-a7d842a876 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nAuthorization: valid_unit_test_token\r\nContent-Length: 0\r\n\r\n'
+
+2020-12-15 16:31:05.886: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"useafterfreeTest<test!>-a7d842a876"'
+
+2020-12-15 16:31:05.895: Sending: 'DELETE /useafterfreetest/useafterfreeTest<test!>-a7d842a876 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nAuthorization: valid_unit_test_token\r\nContent-Length: 0\r\n\r\n'
+
+2020-12-15 16:31:05.903: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"useafterfreeTest<test!>-a7d842a876"'
+
+2020-12-15 16:31:05.912: Sending: 'DELETE /useafterfreetest/useafterfreeTest<test!>-3f51ee76e6 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nAuthorization: valid_unit_test_token\r\nContent-Length: 0\r\n\r\n'
+
+2020-12-15 16:31:05.921: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"useafterfreeTest<test!>-3f51ee76e6"'
+
+2020-12-15 16:31:05.930: Sending: 'DELETE /useafterfreetest/useafterfreeTest<test!>-3f51ee76e6 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nAuthorization: valid_unit_test_token\r\nContent-Length: 0\r\n\r\n'
+
+2020-12-15 16:31:05.939: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"useafterfreeTest<test!>-3f51ee76e6"'
+
+2020-12-15 16:31:05.948: Sending: 'DELETE /useafterfreetest/useafterfreeTest<test!>-e913348acd HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nAuthorization: valid_unit_test_token\r\nContent-Length: 0\r\n\r\n'
+
+2020-12-15 16:31:05.956: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"useafterfreeTest<test!>-e913348acd"'
+
+2020-12-15 16:31:05.966: Sending: 'DELETE /useafterfreetest/useafterfreeTest<test!>-e913348acd HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nAuthorization: valid_unit_test_token\r\nContent-Length: 0\r\n\r\n'
+
+2020-12-15 16:31:05.975: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"useafterfreeTest<test!>-e913348acd"'
+
+2020-12-15 16:31:05.984: Sending: 'DELETE /useafterfreetest/useafterfreeTest<test!>-dab9623d20 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nAuthorization: valid_unit_test_token\r\nContent-Length: 0\r\n\r\n'
+
+2020-12-15 16:31:05.993: Received: 'HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n"useafterfreeTest<test!>-dab9623d20"'
 

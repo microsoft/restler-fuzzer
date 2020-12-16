@@ -219,6 +219,7 @@ request = requests.Request([
     primitives.restler_static_string("Accept: application/json\r\n"),
     primitives.restler_static_string("Host: restler.unit.test.server.com\r\n"),
     primitives.restler_static_string("Content-Type: application/json\r\n"),
+    primitives.restler_refreshable_authentication_token("authentication_token_tag"),
     primitives.restler_static_string("\r\n"),
     primitives.restler_static_string("{"),
     primitives.restler_static_string('"population":'),
@@ -228,7 +229,6 @@ request = requests.Request([
     primitives.restler_static_string(':'),
     primitives.restler_fuzzable_bool('true', quoted=True),
     primitives.restler_static_string("}"),
-    primitives.restler_refreshable_authentication_token("authentication_token_tag"),
     primitives.restler_static_string("\r\n"),
     {
         'post_send':
@@ -319,6 +319,7 @@ request = requests.Request([
     primitives.restler_static_string("Accept: application/json\r\n"),
     primitives.restler_static_string("Host: restler.unit.test.server.com\r\n"),
     primitives.restler_static_string("Content-Type: application/json\r\n"),
+    primitives.restler_refreshable_authentication_token("authentication_token_tag"),
     primitives.restler_static_string("\r\n"),
     primitives.restler_static_string("{"),
     primitives.restler_static_string('"house":'),
@@ -326,7 +327,6 @@ request = requests.Request([
     primitives.restler_static_string(',"group":'),
     primitives.restler_fuzzable_group("fuzzable_group_tag", ['A','BB','CCC'], quoted=True),
     primitives.restler_static_string("}"),
-    primitives.restler_refreshable_authentication_token("authentication_token_tag"),
     primitives.restler_static_string("\r\n"),
     {
         'post_send':
@@ -528,12 +528,12 @@ request = requests.Request([
     primitives.restler_static_string("Accept: application/json\r\n"),
     primitives.restler_static_string("Host: restler.unit.test.server.com\r\n"),
     primitives.restler_static_string("Content-Type: application/json\r\n"),
+    primitives.restler_refreshable_authentication_token("authentication_token_tag"),
     primitives.restler_static_string("\r\n"),
     primitives.restler_static_string("{"),
     primitives.restler_static_string('"testpayload":'),
     primitives.restler_custom_payload("testquote", quoted=True),
     primitives.restler_static_string("}"),
-    primitives.restler_refreshable_authentication_token("authentication_token_tag"),
     primitives.restler_static_string("\r\n"),
     {
         'post_send':
@@ -621,6 +621,7 @@ request = requests.Request([
     primitives.restler_static_string("Accept: application/json\r\n"),
     primitives.restler_static_string("Host: restler.unit.test.server.com\r\n"),
     primitives.restler_static_string("Content-Type: application/json\r\n"),
+    primitives.restler_refreshable_authentication_token("authentication_token_tag"),
     primitives.restler_static_string("\r\n"),
     primitives.restler_static_string("{"),
     primitives.restler_static_string('testbool', quoted=True),
@@ -629,7 +630,6 @@ request = requests.Request([
     primitives.restler_static_string(',"location":'),
     primitives.restler_custom_payload("location", quoted=True),
     primitives.restler_static_string("}"),
-    primitives.restler_refreshable_authentication_token("authentication_token_tag"),
     primitives.restler_static_string("\r\n"),
     {
         'post_send':
@@ -714,10 +714,10 @@ request = requests.Request([
     primitives.restler_static_string("Accept: application/json\r\n"),
     primitives.restler_static_string("Host: restler.unit.test.server.com\r\n"),
     primitives.restler_static_string("Content-Type: application/json\r\n"),
+    primitives.restler_refreshable_authentication_token("authentication_token_tag"),
     primitives.restler_static_string("\r\n"),
     primitives.restler_static_string("{"),
     primitives.restler_static_string("}"),
-    primitives.restler_refreshable_authentication_token("authentication_token_tag"),
     primitives.restler_static_string("\r\n"),
     {
         'post_send':
@@ -845,6 +845,7 @@ request = requests.Request([
     primitives.restler_static_string("Accept: application/json\r\n"),
     primitives.restler_static_string("Host: restler.unit.test.server.com\r\n"),
     primitives.restler_static_string("Content-Type: application/json\r\n"),
+    primitives.restler_refreshable_authentication_token("authentication_token_tag"),
     primitives.restler_static_string("\r\n"),
     primitives.restler_static_string("{"),
     primitives.restler_static_string('"datetest":'),
@@ -854,7 +855,6 @@ request = requests.Request([
     primitives.restler_custom_payload("testcustomparts", quoted=False),
     primitives.restler_static_string('"'),
     primitives.restler_static_string("}"),
-    primitives.restler_refreshable_authentication_token("authentication_token_tag"),
     primitives.restler_static_string("\r\n"),
     {
         'post_send':
@@ -931,6 +931,7 @@ request = requests.Request([
     primitives.restler_static_string("Accept: application/json\r\n"),
     primitives.restler_static_string("Host: restler.unit.test.server.com\r\n"),
     primitives.restler_static_string("Content-Type: application/json\r\n"),
+    primitives.restler_refreshable_authentication_token("authentication_token_tag"),
     primitives.restler_static_string("\r\n"),
     primitives.restler_static_string("{"),
     primitives.restler_static_string('"city":"'),
@@ -939,7 +940,6 @@ request = requests.Request([
     primitives.restler_static_string(_item_put_name.reader()),
     primitives.restler_static_string('"'),
     primitives.restler_static_string("}"),
-    primitives.restler_refreshable_authentication_token("authentication_token_tag"),
     primitives.restler_static_string("\r\n"),
     {
         'post_send':
