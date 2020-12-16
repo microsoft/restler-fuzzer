@@ -68,7 +68,9 @@
                 "c:\\restler\\restlertest\\test_settings.json",
                 "--use_test_socket",
                 "--garbage_collection_interval", "30",
-                "--target_ip", "1", "--target_port", "1"
+                "--target_ip", "1", "--target_port", "1",
+                "--token_refresh_cmd", "python restler\\unit_tests\\log_baseline_test_files\\unit_test_server_auth.py",
+                "--token_refresh_interval", "30"
             ]
         },
         {

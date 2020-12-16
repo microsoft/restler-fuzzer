@@ -47,9 +47,9 @@ class NameSpaceRuleChecker(CheckerBase):
 
         self._namespace_rule()
 
-    def _render_original_sequence(self, seq):
-        """ Helper to re-render original sequence to have better checkers'
-        independence.
+    def _render_original_sequence_start(self, seq):
+        """ Helper to re-render the start of the original sequence to create
+        the appropriate dynamic objects. Does not send the final target request.
 
         @param seq: The sequence whose last request we will try to render.
         @type  seq: Sequence Class object.
@@ -58,10 +58,10 @@ class NameSpaceRuleChecker(CheckerBase):
         @rtype : None
 
         """
-        self._checker_log.checker_print("\nRe-rendering original sequence")
-        RAW_LOGGING("Re-rendering original sequence")
+        self._checker_log.checker_print("\nRe-rendering start of original sequence")
+        RAW_LOGGING("Re-rendering start of original sequence")
 
-        for request in seq:
+        for request in seq.requests[:-1]:
             rendered_data, parser = request.render_current(
                 self._req_collection.candidate_values_pool
             )
@@ -97,7 +97,7 @@ class NameSpaceRuleChecker(CheckerBase):
         if self._mode != 'exhaustive' and not self._sequence.last_request.consumes:
             return
 
-        self._render_original_sequence(self._sequence)
+        self._render_original_sequence_start(self._sequence)
 
         for type in consumed_types:
            hijacked_values[type] = dependencies.get_variable(type)

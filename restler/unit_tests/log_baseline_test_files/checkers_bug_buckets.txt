@@ -1,10 +1,10 @@
 LeakageRuleChecker_20x: 1
 InvalidDynamicObjectChecker_20x: 13
+NameSpaceRuleChecker_20x: 2
 UseAfterFreeChecker_20x: 1
-NameSpaceRuleChecker_20x: 1
 main_driver_500: 1
 ResourceHierarchyChecker_20x: 1
-Total Buckets: 18
+Total Buckets: 19
 -------------
 LeakageRuleChecker_20x - Bug was reproduced - LeakageRuleChecker_20x_1.txt
 Hash: LeakageRuleChecker_20x_862884a058ddaaebe2c8d479c75b44b294ff4684
@@ -79,17 +79,23 @@ PUT /resourcehierarchytest/resourcehierarchyTest HTTP/1.1\r\nAccept: application
 PUT /resourcehierarchytest/_READER_DELIM_resourcehierarchytest_put_name_READER_DELIM/resourcehierarchychild/resourcehierarchyChild HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nauthentication_token_tag\r\n{}\r\n
 GET /resourcehierarchytest/_READER_DELIM_resourcehierarchytest_put_name_READER_DELIM/resourcehierarchychild/_READER_DELIM_resourcehierarchychild_put_name_READER_DELIM HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nauthentication_token_tag\r\n
 --------------------------------------------------------------------------------
+NameSpaceRuleChecker_20x - Unable to reproduce bug - NameSpaceRuleChecker_20x_1.txt
+Attempted to reproduce 0 time(s); Reproduced 0 time(s)
+Hash: NameSpaceRuleChecker_20x_52116bf01989e9aef30515fe60bac5fb5f667509
+PUT /namespaceruletest/namespaceruleTest HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nauthentication_token_tag\r\n{}\r\n
+DELETE /namespaceruletest/_READER_DELIM_namespaceruletest_put_name_READER_DELIM HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nauthentication_token_tag\r\n
+--------------------------------------------------------------------------------
+NameSpaceRuleChecker_20x - Unable to reproduce bug - NameSpaceRuleChecker_20x_2.txt
+Attempted to reproduce 0 time(s); Reproduced 0 time(s)
+Hash: NameSpaceRuleChecker_20x_577e9b24b6d395beae4cb5ddb5ce5d6df29e33f6
+PUT /namespaceruletest/namespaceruleTest HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nauthentication_token_tag\r\n{}\r\n
+GET /namespaceruletest/_READER_DELIM_namespaceruletest_put_name_READER_DELIM HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nauthentication_token_tag\r\n
+--------------------------------------------------------------------------------
 UseAfterFreeChecker_20x - Bug was reproduced - UseAfterFreeChecker_20x_1.txt
 Hash: UseAfterFreeChecker_20x_8ccb62ff5e82bc905b633f5c228fecaf59b8c379
 PUT /useafterfreetest/useafterfreeTest HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nauthentication_token_tag\r\n{}\r\n
 DELETE /useafterfreetest/_READER_DELIM_useafterfreetest_put_name_READER_DELIM HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nauthentication_token_tag\r\n
 GET /useafterfreetest/_READER_DELIM_useafterfreetest_put_name_READER_DELIM HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nauthentication_token_tag\r\n
---------------------------------------------------------------------------------
-NameSpaceRuleChecker_20x - Unable to reproduce bug - NameSpaceRuleChecker_20x_1.txt
-Attempted to reproduce 0 time(s); Reproduced 0 time(s)
-Hash: NameSpaceRuleChecker_20x_577e9b24b6d395beae4cb5ddb5ce5d6df29e33f6
-PUT /namespaceruletest/namespaceruleTest HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nauthentication_token_tag\r\n{}\r\n
-GET /namespaceruletest/_READER_DELIM_namespaceruletest_put_name_READER_DELIM HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nauthentication_token_tag\r\n
 --------------------------------------------------------------------------------
 main_driver_500 - Bug was reproduced - main_driver_500_1.txt
 Hash: main_driver_500_a6e432e533efe1aa006445e4d76075393bc0848f
