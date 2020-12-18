@@ -96,7 +96,7 @@ class NetworkLog(object):
             self._current_log_path = build_logfile_path(
                 NETWORK_LOGS, self._log_name, self._thread_id, self._current_log_num)
 
-        with open(self._current_log_path, 'a+') as log_file:
+        with open(self._current_log_path, 'a+', encoding='utf-8') as log_file:
             print(data, file=log_file)
             log_file.flush()
             os.fsync(log_file.fileno())
