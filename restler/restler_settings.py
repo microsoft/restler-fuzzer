@@ -42,7 +42,7 @@ class ConnectionSettings(object):
 
 class SettingsArg(object):
     """ Holds a setting's information """
-    def __init__(self, name, type, default, minval=None, min_exactok=True, maxval=None, max_exactok=True, val_convert=None):
+    def __init__(self, name, type, default, user_args, minval=None, min_exactok=True, maxval=None, max_exactok=True, val_convert=None):
         """ Initializes a SettingsArg with its name, type, default value, and restraints.
 
         @param name: The name of the arg (as referenced in the settings file)
@@ -51,6 +51,8 @@ class SettingsArg(object):
         @type  type: Type
         @param default: The default value of the setting's value.
         @type  default: @param type
+        @param user_args: The dictionary of user arguments (from settings file and command-line)
+        @type  user_args: Dict or None
         @param minval: The minimum value allowed
         @type  minval: @param type
         @param min_exactok: If False, value must exceed minimum
@@ -72,6 +74,21 @@ class SettingsArg(object):
         self.max_exactok = max_exactok
         self.val_convert = val_convert
         self.val = default
+
+        self._set_arg(user_args)
+
+    def _set_arg(self, user_args):
+        """ Helper that updates the val if it was set by the user
+
+        @param user_args: The dictionary of user arguments (from settings file and command-line)
+        @type  user_args: Dict or None
+
+        @return: None
+        @rtype : None
+
+        """
+        if user_args and self.name in user_args and user_args[self.name] is not None:
+            self.set_val(user_args[self.name])
 
     def set_val(self, value):
         """ Sets the SettingArg's value after validating it
@@ -132,13 +149,15 @@ class SettingsArg(object):
 
 class SettingsListArg(SettingsArg):
     """ Special SettingsArg type for List values """
-    def __init__(self, name, type, minval=None, min_exactok=True, maxval=None, max_exactok=True, val_convert=None):
+    def __init__(self, name, type, user_args, minval=None, min_exactok=True, maxval=None, max_exactok=True, val_convert=None):
         """ Initializes a SettingsListArg object
 
         @param name: The name of the arg (as referenced in the settings file)
         @type  name: Str
         @param type: The type of each value within the list (NOT just type=list)
         @type  type: Type
+        @param user_args: The dictionary of user arguments (from settings file and command-line)
+        @type  user_args: Dict or None
         @param minval: The minimum value allowed for each value in the list
         @type  minval: @param type
         @param min_exactok: If False, value must exceed minimum
@@ -151,9 +170,10 @@ class SettingsListArg(SettingsArg):
         @type  val_convert: Func
 
         """
-        super(SettingsListArg, self).__init__(name, type, None, minval=minval, min_exactok=min_exactok, maxval=maxval, max_exactok=max_exactok)
+        super(SettingsListArg, self).__init__(name, type, None, None, minval=minval, min_exactok=min_exactok, maxval=maxval, max_exactok=max_exactok)
         self.val = []
         self.val_convert = val_convert
+        self._set_arg(user_args)
 
     def __contains__(self, value):
         return value in self.val
@@ -210,7 +230,7 @@ class SettingsDictArg(SettingsArg):
         @type  key_convert: Func
 
         """
-        super(SettingsDictArg, self).__init__(name, type, None, minval=minval, min_exactok=min_exactok, maxval=maxval, max_exactok=max_exactok)
+        super(SettingsDictArg, self).__init__(name, type, None, None, minval=minval, min_exactok=min_exactok, maxval=maxval, max_exactok=max_exactok)
         self.val = dict()
         self.key_convert=key_convert
         self.val_convert=val_convert
@@ -316,10 +336,6 @@ class RestlerSettings(object):
         @rtype:  None
 
         """
-        def set_arg(arg):
-            if arg.name in user_args and user_args[arg.name] is not None:
-                arg.set_val(user_args[arg.name])
-
         def convert_wildcards_to_regex(str_value):
             """ Converts strings with wildcards in '?' and '*' format to regex wildcards """
             if not isinstance(str_value, str):
@@ -341,111 +357,80 @@ class RestlerSettings(object):
                 for checker_name, arg in self._checker_args.val.items() }
 
         ## List of endpoints whose resource is to be created only once - Will be set with other per_resource settings
-        self._create_once_endpoints = SettingsListArg('create_once', str, val_convert=str_to_hex_def)
+        self._create_once_endpoints = SettingsListArg('create_once', str, None, val_convert=str_to_hex_def)
         ## List of status codes that will be flagged as bugs
-        self._custom_bug_codes = SettingsListArg('custom_bug_codes', re.Pattern, val_convert=convert_wildcards_to_regex)
-        set_arg(self._custom_bug_codes)
+        self._custom_bug_codes = SettingsListArg('custom_bug_codes', re.Pattern, user_args, val_convert=convert_wildcards_to_regex)
         ## List of paths to custom checker python files
-        self._custom_checkers = SettingsListArg('custom_checkers', str)
-        set_arg(self._custom_checkers)
+        self._custom_checkers = SettingsListArg('custom_checkers', str, user_args)
         ## Custom dictionaries for individual endpoints - will be set with other per_resource settings
         self._custom_dictionaries = SettingsDictArg('custom_dictionary', str, key_convert=str_to_hex_def)
         ## List of status codes that represent "non-bugs". All other status codes will be treated as bugs.
-        self._custom_non_bug_codes = SettingsListArg('custom_non_bug_codes', re.Pattern, val_convert=convert_wildcards_to_regex)
-        set_arg(self._custom_non_bug_codes)
+        self._custom_non_bug_codes = SettingsListArg('custom_non_bug_codes', re.Pattern, user_args, val_convert=convert_wildcards_to_regex)
         ## Max number of objects of one type before deletion by the garbage collector
-        self._dyn_objects_cache_size = SettingsArg('dyn_objects_cache_size', int, DYN_OBJECTS_CACHE_SIZE_DEFAULT, minval=0)
-        set_arg(self._dyn_objects_cache_size)
+        self._dyn_objects_cache_size = SettingsArg('dyn_objects_cache_size', int, DYN_OBJECTS_CACHE_SIZE_DEFAULT, user_args, minval=0)
         # The number of simultaneous fuzzing jobs to perform
-        self._fuzzing_jobs = SettingsArg('fuzzing_jobs', int, 1, minval=1)
-        set_arg(self._fuzzing_jobs)
+        self._fuzzing_jobs = SettingsArg('fuzzing_jobs', int, 1, user_args, minval=1)
         ## The fuzzing mode (bfs/bfs-cheap/random-walk/directed-smoke-test)
-        self._fuzzing_mode = SettingsArg('fuzzing_mode', str, FUZZING_MODE_DEFAULT)
-        set_arg(self._fuzzing_mode)
+        self._fuzzing_mode = SettingsArg('fuzzing_mode', str, FUZZING_MODE_DEFAULT, user_args)
         ## Length of time between garbage collection calls (None = no garbage collection)
-        self._garbage_collection_interval = SettingsArg('garbage_collection_interval', int, None, minval=0)
-        set_arg(self._garbage_collection_interval)
+        self._garbage_collection_interval = SettingsArg('garbage_collection_interval', int, None, user_args, minval=0)
         ## Length of time the garbage collector will attempt to cleanup remaining resources at the end of fuzzing (seconds)
-        self._garbage_collector_cleanup_time = SettingsArg('garbage_collector_cleanup_time', int, MAX_GC_CLEANUP_TIME_SECONDS_DEFAULT, minval=0)
-        set_arg(self._garbage_collector_cleanup_time)
+        self._garbage_collector_cleanup_time = SettingsArg('garbage_collector_cleanup_time', int, MAX_GC_CLEANUP_TIME_SECONDS_DEFAULT, user_args, minval=0)
         ## The time interval to wait after a resource-generating producer is executed (in seconds)
-        self._global_producer_timing_delay = SettingsArg('global_producer_timing_delay', int, 0, minval=0)
+        self._global_producer_timing_delay = SettingsArg('global_producer_timing_delay', int, 0, None, minval=0)
         if self._global_producer_timing_delay.name in user_args:
             self._global_producer_timing_delay.set_val(user_args[self._global_producer_timing_delay.name])
         # This is here for backwards compatibility with the command-line
         elif 'producer_timing_delay' in user_args:
             self._global_producer_timing_delay.set_val(user_args['producer_timing_delay'])
         # The path to the grammar.json file
-        self._grammar_schema = SettingsArg('grammar_schema', str, None)
-        set_arg(self._grammar_schema)
+        self._grammar_schema = SettingsArg('grammar_schema', str, None, user_args)
         ## Set to override the Host that's specified in the grammar
-        self._host = SettingsArg('host', str, None)
-        set_arg(self._host)
+        self._host = SettingsArg('host', str, None, user_args)
         ##  Ignore request dependencies
-        self._ignore_dependencies = SettingsArg('ignore_dependencies', bool, False)
-        set_arg(self._ignore_dependencies)
+        self._ignore_dependencies = SettingsArg('ignore_dependencies', bool, False, user_args)
         ## Ignore server-side feedback
-        self._ignore_feedback = SettingsArg('ignore_feedback', bool, False)
-        set_arg(self._ignore_feedback)
+        self._ignore_feedback = SettingsArg('ignore_feedback', bool, False, user_args)
         ## Include user agent in requests sent
-        self._include_user_agent = SettingsArg('include_user_agent', bool, True)
-        set_arg(self._include_user_agent)
+        self._include_user_agent = SettingsArg('include_user_agent', bool, True, user_args)
         ## Maximum time to wait for an asynchronous resource to be created before continuing (seconds)
-        self._max_async_resource_creation_time = SettingsArg('max_async_resource_creation_time', (int, float), MAX_ASYNC_RESOURCE_CREATION_TIME_DEFAULT, minval=0)
-        set_arg(self._max_async_resource_creation_time)
+        self._max_async_resource_creation_time = SettingsArg('max_async_resource_creation_time', (int, float), MAX_ASYNC_RESOURCE_CREATION_TIME_DEFAULT, user_args, minval=0)
         ## Maximum number of parameter value combinations for parameters within a given request payload
-        self._max_combinations = SettingsArg('max_combinations', int, MAX_COMBINATIONS_DEFAULT, minval=0)
-        set_arg(self._max_combinations)
+        self._max_combinations = SettingsArg('max_combinations', int, MAX_COMBINATIONS_DEFAULT, user_args, minval=0)
         ## Maximum time to wait for a response after sending a request (seconds)
-        self._max_request_execution_time = SettingsArg('max_request_execution_time', (int, float), MAX_REQUEST_EXECUTION_TIME_DEFAULT, minval=0, min_exactok=False, maxval=MAX_REQUEST_EXECUTION_TIME_MAX)
-        set_arg(self._max_request_execution_time)
+        self._max_request_execution_time = SettingsArg('max_request_execution_time', (int, float), MAX_REQUEST_EXECUTION_TIME_DEFAULT, user_args, minval=0, min_exactok=False, maxval=MAX_REQUEST_EXECUTION_TIME_MAX)
         ## Maximum length of any sequence
-        self._max_sequence_length = SettingsArg('max_sequence_length', int, MAX_SEQUENCE_LENGTH_DEFAULT, minval=0)
-        set_arg(self._max_sequence_length)
+        self._max_sequence_length = SettingsArg('max_sequence_length', int, MAX_SEQUENCE_LENGTH_DEFAULT, user_args, minval=0)
         ## Do not use SSL validation
-        self._no_ssl = SettingsArg('no_ssl', bool, False)
-        set_arg(self._no_ssl)
+        self._no_ssl = SettingsArg('no_ssl', bool, False, user_args)
         ## Do not print auth token data in logs
-        self._no_tokens_in_logs = SettingsArg('no_tokens_in_logs', bool, True)
-        set_arg(self._no_tokens_in_logs)
+        self._no_tokens_in_logs = SettingsArg('no_tokens_in_logs', bool, True, user_args)
         ## Limit restler grammars only to endpoints whose paths contain a given substring
-        self._path_regex = SettingsArg('path_regex', str, None)
-        set_arg(self._path_regex)
+        self._path_regex = SettingsArg('path_regex', str, None, user_args)
         ## Minimum time, in milliseconds, to wait between sending requests
-        self._request_throttle_ms = SettingsArg('request_throttle_ms', (int, float), None, minval=0)
-        set_arg(self._request_throttle_ms)
+        self._request_throttle_ms = SettingsArg('request_throttle_ms', (int, float), None, user_args, minval=0)
         ## Collection of endpoint specific producer timing delays - will be set with other per_resource settings
         self._resource_producer_timing_delays = SettingsDictArg('per_resource_producer_timing_delay', int, key_convert=str_to_hex_def)
         ## If the settings file was used (and not just command-line arguments)
-        self._settings_file_exists = SettingsArg('settings_file_exists', bool, False)
-        set_arg(self._settings_file_exists)
+        self._settings_file_exists = SettingsArg('settings_file_exists', bool, False, user_args)
         ## Target IP
-        self._target_ip = SettingsArg('target_ip', str, None)
-        set_arg(self._target_ip)
+        self._target_ip = SettingsArg('target_ip', str, None, user_args)
         ## Target Port
-        self._target_port = SettingsArg('target_port', int, None, minval=0, maxval=TARGET_PORT_MAX)
-        set_arg(self._target_port)
+        self._target_port = SettingsArg('target_port', int, None, user_args, minval=0, maxval=TARGET_PORT_MAX)
         ## Set to use test server/run in test mode
-        self._use_test_socket = SettingsArg('use_test_socket', bool, False)
-        set_arg(self._use_test_socket)
+        self._use_test_socket = SettingsArg('use_test_socket', bool, False, user_args)
         ## Set the test server identifier
-        self._test_server = SettingsArg('test_server', str, DEFAULT_TEST_SERVER_ID)
-        set_arg(self._test_server)
+        self._test_server = SettingsArg('test_server', str, DEFAULT_TEST_SERVER_ID, user_args)
         ## Stops fuzzing after given time (hours)
-        self._time_budget = SettingsArg('time_budget', (int, float), TIME_BUDGET_DEFAULT, minval=0)
-        set_arg(self._time_budget)
+        self._time_budget = SettingsArg('time_budget', (int, float), TIME_BUDGET_DEFAULT, user_args, minval=0)
         ## The command to execute in order to refresh the authentication token
-        self._token_refresh_cmd = SettingsArg('token_refresh_cmd', str, None)
-        set_arg(self._token_refresh_cmd)
+        self._token_refresh_cmd = SettingsArg('token_refresh_cmd', str, None, user_args)
         ## Interval to periodically refresh the authentication token (seconds)
-        self._token_refresh_interval = SettingsArg('token_refresh_interval', int, None)
-        set_arg(self._token_refresh_interval)
+        self._token_refresh_interval = SettingsArg('token_refresh_interval', int, None, user_args)
         ## Restler's version
-        self._version = SettingsArg('set_version', str, DEFAULT_VERSION)
-        set_arg(self._version)
+        self._version = SettingsArg('set_version', str, DEFAULT_VERSION, user_args)
         ## If set, poll for async resource creation before continuing
-        self._wait_for_async_resource_creation = SettingsArg('wait_for_async_resource_creation', bool, True)
-        set_arg(self._wait_for_async_resource_creation)
+        self._wait_for_async_resource_creation = SettingsArg('wait_for_async_resource_creation', bool, True, user_args)
 
         self._connection_settings = ConnectionSettings(self._target_ip.val,
                                         self._target_port.val,
