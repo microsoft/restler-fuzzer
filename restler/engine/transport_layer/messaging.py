@@ -47,7 +47,10 @@ class HttpSock(object):
             if Settings().use_test_socket:
                 self._sock = TestSocket(Settings().test_server)
             elif self.connection_settings.use_ssl:
-                context = ssl.create_default_context()
+                if self.connection_settings.disable_cert_validation:
+                    context = ssl._create_unverified_context()
+                else:
+                    context = ssl.create_default_context()
                 with socket.create_connection((target_ip, target_port or 443)) as sock:
                     self._sock = context.wrap_socket(sock, server_hostname=host)
             else:
