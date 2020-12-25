@@ -291,6 +291,32 @@ class FunctionalityTests(unittest.TestCase):
         except TestFailedException:
             self.fail("Payload body failed: Garbage Collector")
 
+    def test_payload_body_checker_advanced(self):
+        """ This checks that the payload body checker sends all of the correct
+        requests in the correct order for more complicated bodies (including an array body)
+        """
+        args = Common_Settings + [
+            '--fuzzing_mode', 'directed-smoke-test',
+            '--restler_grammar', f'{os.path.join(Test_File_Directory, "test_grammar_body.py")}',
+            '--enable_checkers', 'payloadbody'
+        ]
+
+        result = subprocess.run(args, capture_output=True)
+        if result.stderr:
+            self.fail(result.stderr)
+        try:
+            result.check_returncode()
+        except subprocess.CalledProcessError:
+            self.fail(f"Restler returned non-zero exit code: {result.returncode}")
+
+        experiments_dir = self.get_experiments_dir()
+
+        try:
+            default_parser = FuzzingLogParser(os.path.join(Test_File_Directory, "payloadbody_advanced_testing_log.txt"))
+            test_parser = FuzzingLogParser(self.get_network_log_path(experiments_dir, logger.LOG_TYPE_TESTING))
+        except TestFailedException:
+            self.fail("Payload body arrays failed: Fuzzing")
+
     def test_examples_checker(self):
         """ This checks that the examples checker sends the correct requests
         in the correct order when query or body examples are present

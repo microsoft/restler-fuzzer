@@ -86,11 +86,16 @@ class HttpResponse(object):
             for idx, c in enumerate(body):
                 if c == '{':
                     l_index = idx
+                    r_find = '}'
+                    break
+                elif c == '[':
+                    l_index = idx
+                    r_find = ']'
                     break
                 elif is_invalid(c):
                     return None
 
-            r_index = body.rindex('}') + 1
+            r_index = body.rindex(r_find) + 1
             return body[l_index : r_index]
         except:
             return None

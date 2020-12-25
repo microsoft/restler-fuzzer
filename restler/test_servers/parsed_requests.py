@@ -19,11 +19,17 @@ class ParsedRequest:
         endpoint_split = method_split[1].split(' HTTP', 1)
         # Handle query string if necessary
         self.endpoint = endpoint_split[0].split('?', 1)[0]
-        header_body_split = endpoint_split[1].split('{', 1)
+        Auth_Token_Str = 'authentication_token_tag\r\n'
+        delim = DELIM
+        if DELIM in endpoint_split[1]:
+            pass
+        elif Auth_Token_Str in endpoint_split[1]:
+            delim = Auth_Token_Str
+        header_body_split = endpoint_split[1].split(delim, 1)
         self.header = header_body_split[0]
         self.body = ''
         if len(header_body_split) > 1:
-            self.body = "{" + header_body_split[1].rstrip('\r\n')
+            self.body = header_body_split[1].rstrip('\r\n')
 
         if ignore_dynamic_objects:
             self._remove_dynamic_objects()
