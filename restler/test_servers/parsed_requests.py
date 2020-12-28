@@ -19,6 +19,12 @@ class ParsedRequest:
         endpoint_split = method_split[1].split(' HTTP', 1)
         # Handle query string if necessary
         self.endpoint = endpoint_split[0].split('?', 1)[0]
+        # Some requests being parsed (e.g. from bug_buckets.txt) do not contain the
+        # full DELIM value in the logs when the authentication token tag exists
+        # in the request. For instances where the DELIM value is not found, try
+        # checking for the authentication tag when splitting the body.
+        # Ex-no-DELIM: METHOD /end/point HTTP/1.1 Auth_Token_Str{}
+        # Ex-DELIM: METHOD /end/point HTTP/1.1 DELIM{}
         Auth_Token_Str = 'authentication_token_tag\r\n'
         delim = DELIM
         if DELIM in endpoint_split[1]:
@@ -26,6 +32,7 @@ class ParsedRequest:
         elif Auth_Token_Str in endpoint_split[1]:
             delim = Auth_Token_Str
         header_body_split = endpoint_split[1].split(delim, 1)
+
         self.header = header_body_split[0]
         self.body = ''
         if len(header_body_split) > 1:

@@ -157,13 +157,17 @@ def get_response_body(response):
     response = response.replace("\\'", "'")
     response = response.replace("\'", "'")
 
-    # extract the response body
+    # extract the response body by separating at the known delimiter
+    # Ex: METHOD /end/point HTTP/1.1 DELIM{}
     body_start = response.find(DELIM)
     if body_start == -1:
         return None
 
+    # Save the index where the body begins
+    body_start = body_start + len(DELIM)
+
     try:
-        start_char = response[body_start + len(DELIM)]
+        start_char = response[body_start]
     except Exception:
         return None
 

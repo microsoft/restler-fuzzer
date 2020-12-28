@@ -253,7 +253,14 @@ class FunctionalityTests(unittest.TestCase):
 
     def test_payload_body_checker(self):
         """ This checks that the payload body checker sends all of the correct
-        requests in the correct order and an expected 500 bug is logged.
+        requests in the correct order and an expected 500 bug is logged. The test
+        sends requests in a predictable order and will test invalid json, type changes,
+        and structure changes using DROP and SELECT algorithms.
+
+        If this test fails it is important to verify (by diffing the current baseline files)
+        that the differences that caused the failure are expected by a recent change and no other
+        unexpected changes exist.
+
         """
         args = Common_Settings + [
             '--fuzzing_mode', 'directed-smoke-test',
@@ -293,7 +300,15 @@ class FunctionalityTests(unittest.TestCase):
 
     def test_payload_body_checker_advanced(self):
         """ This checks that the payload body checker sends all of the correct
-        requests in the correct order for more complicated bodies (including an array body)
+        requests in the correct order for more complicated bodies.
+        The bodies in this test include arrays and nested dict objects. The test
+        sends requests in a predictable order and will test invalid json, type changes,
+        and structure changes using DROP and SELECT algorithms.
+
+        If this test fails it is important to verify (by diffing the current baseline file)
+        that the differences that caused the failure are expected by a recent change and no other
+        unexpected changes exist.
+
         """
         args = Common_Settings + [
             '--fuzzing_mode', 'directed-smoke-test',
