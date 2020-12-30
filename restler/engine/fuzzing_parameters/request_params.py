@@ -411,7 +411,9 @@ class ParamObject(ParamBase):
 
         """
         for member in self._members:
+            visitor.depth += 1
             member.check_struct_missing(check_value, visitor)
+            visitor.depth -= 1
 
     def _traverse(self, config: FuzzingConfig, func: str, accum_value):
         """ Helper function that traverses the object's members
@@ -1238,7 +1240,12 @@ class ParamMember(ParamBase):
         elif self.name in check_value:
             new_check = check_value[self.name]
         else:
-            visitor.val_str += f'{TAG_SEPARATOR}{self.name}'
-            new_check = None
+            depth_str = (visitor.depth - 1) * '+'
+            visitor.val_str += f'{TAG_SEPARATOR}{depth_str}{self.name}'
+            if isinstance(self.value, ParamObject):
+                visitor.val_str += '{...}'
+            elif isinstance(self.value, ParamArray):
+                visitor.val_str += '[...]'
+            return
 
         self.value.check_struct_missing(new_check, visitor)
