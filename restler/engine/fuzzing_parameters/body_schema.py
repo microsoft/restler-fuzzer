@@ -20,6 +20,8 @@ class BodySchemaVisitor():
         # Can be used as an accumulator string while
         # traversing the body schema's params.
         self.val_str = ''
+        # Can be used to track the current node depth while traversing
+        self.depth = 0
 
 class BodySchema():
     """ Body Schema Class. """
