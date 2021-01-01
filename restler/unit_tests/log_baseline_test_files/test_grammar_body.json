@@ -1,0 +1,673 @@
+{
+    "Requests": [
+      {
+        "id": {
+          "endpoint": "/city",
+          "method": "Get"
+        },
+        "method": "Get",
+        "path": [
+          {
+            "Constant": [
+              "String",
+              "city"
+            ]
+          }
+        ],
+        "queryParameters": [
+          [
+            "Schema",
+            {
+              "ParameterList": [
+              ]
+            }
+          ]
+        ],
+        "bodyParameters": [
+          [
+            "Schema",
+            {
+              "ParameterList": []
+            }
+          ]
+        ],
+        "headers": [
+          [
+            "Accept",
+            "application/json"
+          ],
+          [
+            "Host",
+            "restler.unit.test.server.com"
+          ]
+        ],
+        "httpVersion": "1.1",
+        "requestMetadata": {
+          "isLongRunningOperation": false
+        }
+      },
+      {
+        "id": {
+          "endpoint": "/city/{cityName}",
+          "method": "Put"
+        },
+        "method": "Put",
+        "path": [
+          {
+            "Constant": [
+              "String",
+              "city"
+            ]
+          },
+          {
+            "Custom": [
+                "UuidSuffix",
+                "cityName",
+                false
+            ]
+          }
+        ],
+        "queryParameters": [
+          [
+            "Schema",
+            {
+              "ParameterList": []
+            }
+          ]
+        ],
+        "bodyParameters": [
+          [
+            "Schema",
+            {
+              "ParameterList": [
+                [
+                  "payload",
+                  {
+                    "InternalNode": [
+                      {
+                        "name": "",
+                        "propertyType": "Object",
+                        "isRequired": true,
+                        "isReadOnly": false
+                      },
+                      [
+                        {
+                          "InternalNode": [
+                            {
+                              "name": "properties",
+                              "propertyType": "Property",
+                              "isRequired": true,
+                              "isReadOnly": false
+                            },
+                            [
+                              {
+                                "InternalNode": [
+                                  {
+                                    "name": "",
+                                    "propertyType": "Object",
+                                    "isRequired": true,
+                                    "isReadOnly": false
+                                  },
+                                  [
+                                    {
+                                      "LeafNode": {
+                                        "name": "population",
+                                        "payload": {
+                                          "Fuzzable": [
+                                              "Int",
+                                              "1000"
+                                          ]
+                                        },
+                                        "isRequired": false,
+                                        "isReadOnly": false
+                                      }
+                                    },
+                                    {
+                                      "LeafNode": {
+                                        "name": "area",
+                                        "payload": {
+                                          "Constant": [
+                                            "String",
+                                            "5000"
+                                          ]
+                                        },
+                                        "isRequired": false,
+                                        "isReadOnly": false
+                                      }
+                                    },
+                                    {
+                                      "LeafNode": {
+                                        "name": "strtest",
+                                        "payload": {
+                                            "Fuzzable": [
+                                                "String",
+                                                "true"
+                                            ]
+                                        },
+                                        "isRequired": true,
+                                        "isReadOnly": false
+                                      }
+                                    },
+                                    {
+                                      "InternalNode": [
+                                        {
+                                          "name": "subproperties",
+                                          "propertyType": "Property",
+                                          "isRequired": true,
+                                          "isReadOnly": false
+                                        },
+                                        [
+                                          {
+                                            "InternalNode": [
+                                              {
+                                                "name": "",
+                                                "propertyType": "Object",
+                                                "isRequired": true,
+                                                "isReadOnly": false
+                                              },
+                                              [
+                                                {
+                                                  "LeafNode": {
+                                                    "name": "subtest",
+                                                    "payload": {
+                                                      "Fuzzable": [
+                                                        "Bool",
+                                                        "true"
+                                                      ]
+                                                    },
+                                                    "isRequired": false,
+                                                    "isReadOnly": false
+                                                  }
+                                                }
+                                              ]
+                                            ]
+                                          }
+                                        ]
+                                      ]
+                                    }
+                                  ]
+                                ]
+                              }
+                            ]
+                          ]
+                        }
+                      ]
+                    ]
+                  }
+                ]
+              ]
+            }
+          ]
+        ],
+        "headers": [
+            [
+              "Accept",
+              "application/json"
+            ],
+            [
+              "Host",
+              "restler.unit.test.server.com"
+            ]
+          ],
+          "httpVersion": "1.1",
+          "requestMetadata": {
+            "isLongRunningOperation": false
+          }
+      },
+      {
+        "id": {
+          "endpoint": "/city/{cityName}",
+          "method": "Get"
+        },
+        "method": "Get",
+        "path": [
+          {
+            "Constant": [
+              "String",
+              "city"
+            ]
+          },
+          {
+            "DynamicObject": "_city_put_name"
+          }
+        ],
+        "queryParameters": [
+          [
+            "Schema",
+            {
+              "ParameterList": [
+                "location",
+                {
+                  "LeafNode": {
+                    "name": "",
+                    "payload": {
+                      "Custom": {
+                        "payloadType": "String",
+                        "primitiveType": "String",
+                        "payloadValue": "location",
+                        "isObject": false
+                      }
+                    },
+                    "isRequired": true,
+                    "isReadOnly": false
+                  }
+                },
+                "group",
+                {
+                  "LeafNode": {
+                    "name": "",
+                    "payload": {
+                      "Fuzzable": [
+                        {
+                          "Enum": [
+                            "String",
+                            [
+                              "A",
+                              "BB",
+                              "CCC"
+                            ],
+                            null
+                          ]
+                        },
+                        "A"
+                      ]
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        ],
+        "bodyParameters": [
+          [
+            "Schema",
+            {
+              "ParameterList": []
+            }
+          ]
+        ],
+        "headers": [
+            [
+              "Accept",
+              "application/json"
+            ],
+            [
+              "Host",
+              "restler.unit.test.server.com"
+            ]
+          ],
+          "httpVersion": "1.1",
+          "requestMetadata": {
+            "isLongRunningOperation": false
+          }
+      },
+      {
+        "id": {
+          "endpoint": "/city/{cityName}",
+          "method": "Delete"
+        },
+        "method": "Delete",
+        "path": [
+          {
+            "Constant": [
+              "String",
+              "city"
+            ]
+          },
+          {
+            "DynamicObject": "_city_put_name"
+          }
+        ],
+        "queryParameters": [
+          [
+            "Schema",
+            {
+              "ParameterList": []
+            }
+          ]
+        ],
+        "bodyParameters": [
+          [
+            "Schema",
+            {
+              "ParameterList": []
+            }
+          ]
+        ],
+        "headers": [
+            [
+              "Accept",
+              "application/json"
+            ],
+            [
+              "Host",
+              "restler.unit.test.server.com"
+            ]
+          ],
+          "httpVersion": "1.1",
+          "requestMetadata": {
+            "isLongRunningOperation": false
+          }
+      },
+      {
+        "id": {
+          "endpoint": "/city/{cityName}/house",
+          "method": "Get"
+        },
+        "method": "Get",
+        "path": [
+          {
+            "Constant": [
+              "String",
+              "city"
+            ]
+          },
+          {
+            "DynamicObject": "_city_put_name"
+          },
+          {
+              "Constant": [
+                  "String",
+                  "house"
+              ]
+          }
+        ],
+        "queryParameters": [
+          [
+            "Schema",
+            {
+              "ParameterList": []
+            }
+          ]
+        ],
+        "bodyParameters": [
+          [
+            "Schema",
+            {
+              "ParameterList": []
+            }
+          ]
+        ],
+        "headers": [
+            [
+              "Accept",
+              "application/json"
+            ],
+            [
+              "Host",
+              "restler.unit.test.server.com"
+            ]
+          ],
+          "httpVersion": "1.1",
+          "requestMetadata": {
+            "isLongRunningOperation": false
+          }
+      },
+      {
+        "id": {
+          "endpoint": "/city/{cityName}/house/{houseName}",
+          "method": "Put"
+        },
+        "method": "Put",
+        "path": [
+          {
+            "Constant": [
+              "String",
+              "city"
+            ]
+          },
+          {
+            "DynamicObject": "_city_put_name"
+          },
+          {
+              "Constant": [
+                  "String",
+                  "house"
+              ]
+          },
+          {
+            "Custom": [
+                "UuidSuffix",
+                "houseName",
+                false
+            ]
+          }
+        ],
+        "queryParameters": [
+          [
+            "Schema",
+            {
+              "ParameterList": []
+            }
+          ]
+        ],
+        "bodyParameters": [
+            [
+              "Schema",
+              {
+                "ParameterList": [
+                  [
+                    "payload",
+                    {
+                      "InternalNode": [
+                        {
+                          "name": "",
+                          "propertyType": "Array",
+                          "isRequired": true,
+                          "isReadOnly": false
+                        },
+                        [
+                          {
+                            "InternalNode": [
+                              {
+                                "name": "",
+                                "propertyType": "Object",
+                                "isRequired": true,
+                                "isReadOnly": false
+                              },
+                              [
+                                {
+                                  "LeafNode": {
+                                    "name": "house",
+                                    "payload": {
+                                      "Custom": {
+                                        "payloadType": "UuidSuffix",
+                                        "primitiveType": "String",
+                                        "payloadValue": "houseName",
+                                        "isObject": false
+                                      }
+                                    },
+                                    "isRequired": false,
+                                    "isReadOnly": false
+                                  }
+                                },
+                                {
+                                  "LeafNode": {
+                                    "name": "group",
+                                    "payload": {
+                                      "Fuzzable": [
+                                        {
+                                          "Enum": [
+                                            "String",
+                                            [
+                                              "A",
+                                              "BB",
+                                              "CCC"
+                                            ],
+                                            null
+                                          ]
+                                        },
+                                        "A"
+                                      ]
+                                    }
+                                  }
+                                }
+                              ]
+                            ]
+                          },
+                          {
+                            "InternalNode": [
+                              {
+                                "name": "",
+                                "propertyType": "Object",
+                                "isRequired": true,
+                                "isReadOnly": false
+                              },
+                              [
+                                {
+                                  "LeafNode": {
+                                    "name": "arraytest",
+                                    "payload": {
+                                      "Custom": {
+                                        "payloadType": "String",
+                                        "primitiveType": "String",
+                                        "payloadValue": "location",
+                                        "isObject": false
+                                      }
+                                    },
+                                    "isRequired": false,
+                                    "isReadOnly": false
+                                  }
+                                }
+                              ]
+                            ]
+                          }
+                        ]
+                      ]
+                    }
+                  ]
+                ]
+              }
+            ]
+          ],
+        "headers": [
+            [
+              "Accept",
+              "application/json"
+            ],
+            [
+              "Host",
+              "restler.unit.test.server.com"
+            ]
+          ],
+          "httpVersion": "1.1",
+          "requestMetadata": {
+            "isLongRunningOperation": false
+          }
+      },
+      {
+        "id": {
+          "endpoint": "/city/{cityName}/house/{houseName}",
+          "method": "Get"
+        },
+        "method": "Get",
+        "path": [
+          {
+            "Constant": [
+              "String",
+              "city"
+            ]
+          },
+          {
+            "DynamicObject": "_city_put_name"
+          },
+          {
+              "Constant": [
+                  "String",
+                  "house"
+              ]
+          },
+          {
+              "DynamicObject": "_city_house_put_name"
+          }
+        ],
+        "queryParameters": [
+          [
+            "Schema",
+            {
+              "ParameterList": []
+            }
+          ]
+        ],
+        "bodyParameters": [
+          [
+            "Schema",
+            {
+              "ParameterList": []
+            }
+          ]
+        ],
+        "headers": [
+            [
+              "Accept",
+              "application/json"
+            ],
+            [
+              "Host",
+              "restler.unit.test.server.com"
+            ]
+          ],
+          "httpVersion": "1.1",
+          "requestMetadata": {
+            "isLongRunningOperation": false
+          }
+      },
+      {
+        "id": {
+          "endpoint": "/city/{cityName}/house/{houseName}",
+          "method": "Delete"
+        },
+        "method": "Delete",
+        "path": [
+          {
+            "Constant": [
+              "String",
+              "city"
+            ]
+          },
+          {
+            "DynamicObject": "_city_put_name"
+          },
+          {
+              "Constant": [
+                  "String",
+                  "house"
+              ]
+          },
+          {
+              "DynamicObject": "_city_house_put_name"
+          }
+        ],
+        "queryParameters": [
+          [
+            "Schema",
+            {
+              "ParameterList": []
+            }
+          ]
+        ],
+        "bodyParameters": [
+          [
+            "Schema",
+            {
+              "ParameterList": []
+            }
+          ]
+        ],
+        "headers": [
+            [
+              "Accept",
+              "application/json"
+            ],
+            [
+              "Host",
+              "restler.unit.test.server.com"
+            ]
+          ],
+          "httpVersion": "1.1",
+          "requestMetadata": {
+            "isLongRunningOperation": false
+          }
+      }
+    ]
+  }

@@ -151,16 +151,35 @@ def get_response_body(response):
     @rtype:  JSON
 
     """
+    from engine.transport_layer.messaging import DELIM
     # sanity cleanup
     response = response.replace('\\"', "'")
     response = response.replace("\\'", "'")
     response = response.replace("\'", "'")
 
-    # extract the response body
-    body_start = response.find('{')
-    body_end = response.rfind('}')
+    # extract the response body by separating at the known delimiter
+    # Ex: METHOD /end/point HTTP/1.1 DELIM{}
+    body_start = response.find(DELIM)
+    if body_start == -1:
+        return None
 
-    if (body_start == -1) or (body_end == -1):
+    # Save the index where the body begins
+    body_start = body_start + len(DELIM)
+
+    try:
+        start_char = response[body_start]
+    except Exception:
+        return None
+
+    if start_char == '{':
+        end_char = '}'
+    elif start_char == '[':
+        end_char = ']'
+    else:
+        return None
+
+    body_end = response.rfind(end_char)
+    if body_end == -1 or body_end < body_start:
         return None
 
     try:
@@ -228,14 +247,29 @@ def get_body_start(request):
     @rtype:  Int or -1 on failure
 
     """
-    # search for this pattern in the request definition
-    body_start_pattern = primitives.restler_static_string('{')
+    # search for the first of these patterns in the request definition
+    body_start_pattern_dict = primitives.restler_static_string('{')
+    body_start_pattern_array = primitives.restler_static_string('[')
+
+    dict_index = -1
+    array_index = -1
 
     try:
-        body_start_index = request.definition.index(body_start_pattern)
-        return body_start_index
+        dict_index = request.definition.index(body_start_pattern_dict)
     except Exception:
-        return -1
+        pass
+
+    try:
+        array_index = request.definition.index(body_start_pattern_array)
+    except Exception:
+        pass
+
+    if dict_index == -1 or array_index == -1:
+        # If one of the indices is -1 then it wasn't found, return the other
+        return max(dict_index, array_index)
+    # Return the lowest index / first character found in body.
+    return min(dict_index, array_index)
+
 
 def get_query_start_end(request):
     """ Get the start and end index of a request's query

@@ -106,10 +106,10 @@ def des_param_payload(param_payload_json, tag='', query_param=False):
                 values.append(value)
 
             array = ParamArray(values)
-            if not query_param:
-                param = ParamMember(name, array)
-            else:
+            if query_param or not name:
                 param = array
+            else:
+                param = ParamMember(name, array)
 
             array.tag = f'{next_tag}_array'
 
