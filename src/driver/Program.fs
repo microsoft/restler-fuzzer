@@ -65,10 +65,14 @@ let usage() =
         --enable_checkers <list of checkers>
         --disable_checkers <list of checkers>
             <list of checkers> - A comma-separated list of checker names without spaces.
+            enable_checkers overrides the default list of checkers,
+            while disable_checkers removes checkers from the default list of checkers.
+            The default list of checkers in fuzz-lean and fuzz mode is
+            all the checkers below except namespacerule.
             Supported checkers: leakagerule, resourcehierarchy, useafterfree,
                                 namespacerule, invaliddynamicobject, payloadbody,
                                 examples.
-            Note: some checkers are enabled by default in fuzz-lean and fuzz mode.
+
         --no_results_analyzer
             If specified, do not run results analyzer on the network logs.
             Results analyzer may be run separately.
@@ -164,16 +168,11 @@ module Fuzz =
             "*"
         ]
 
-    /// Default engine parameters with the default set of checkers
-    /// for fuzzing.
-    let DefaultFuzzModeEngineParameters =
-        { DefaultEngineParameters with
-            checkerOptions =
-                [
-                    ("--enable_checkers", "*")
-                    ("--disable_checkers", "namespacerule")
-                ]
-        }
+    let DefaultFuzzModeCheckerOptions =
+        [
+            ("--enable_checkers", "*")
+            ("--disable_checkers", "namespacerule")
+        ]
 
     /// Gets the RESTler engine parameters common to any fuzzing mode
     let getCommonParameters (parameters:EngineParameters) maxDurationHours =
@@ -337,6 +336,37 @@ module Fuzz =
         return! runRestlerEngine workingDirectory fuzzingParameters
     }
 
+/// Analyzes the checker arguments specified by the user and returns
+/// the corresponding checker arguments that should be passed to the engine.
+let getCheckerOptions defaultCheckerOptions userSpecifiedCheckerOptions =
+    let defaultDisabledCheckers =
+        match defaultCheckerOptions
+            |> List.filter (fun (cmd,checkers) -> cmd = "--disable_checkers")
+            |> List.map (fun (cmd,checkers) -> checkers)
+            |> List.tryHead with
+        | None -> ""
+        | Some x -> x
+    let engineCheckerOptions =
+        match userSpecifiedCheckerOptions with
+        | [] ->
+            defaultCheckerOptions
+        | [("--enable_checkers", ec)] ->
+            // Enable only the user-specified checkers
+            [
+                ("--disable_checkers", "*")
+                ("--enable_checkers", ec)
+            ]
+        | [("--disable_checkers", dc)] ->
+            // Append the user's disable checkers to the default disable list.
+            [
+                ("--enable_checkers", "*")
+                ("--disable_checkers", sprintf "%s %s" defaultDisabledCheckers dc)
+            ]
+        | _ ->
+            Logging.logError <| sprintf "Error: command line contains several checker actions. \
+                                         Either --enable_checkers or --disable_checkers may be specified once."
+            usage()
+    engineCheckerOptions
 
 let rec parseEngineArgs task (args:EngineParameters) = function
     | [] ->
@@ -425,9 +455,8 @@ let rec parseEngineArgs task (args:EngineParameters) = function
         |> Array.iter (fun x ->
                         let valid = Fuzz.SupportedCheckers |> Seq.contains x
                         if not valid then
-                            Logging.logError <| sprintf "Warning: unknown checker %s specified. If this is a custom checker, ignore this message." x
+                            Logging.logWarning <| sprintf "Unknown checker %s specified. If this is a custom checker, ignore this message." x
                       )
-
         parseEngineArgs task { args with checkerOptions = args.checkerOptions @ [(checkerAction, specifiedCheckers |> String.concat " ")] } rest
     | "no_results_analyzer"::rest ->
         parseEngineArgs task { args with runResultsAnalyzer = false } rest
@@ -490,19 +519,31 @@ let rec parseArgs (args:DriverArgs) = function
             usage()
     | "test"::rest ->
         let engineParameters = parseEngineArgs RestlerTask.Test DefaultEngineParameters rest
+        let engineParameters =
+            { engineParameters with
+                  checkerOptions = getCheckerOptions [] engineParameters.checkerOptions }
         { args with task = Test
                     taskParameters = EngineParameters engineParameters}
     | "fuzz"::rest ->
-        let engineParameters = parseEngineArgs RestlerTask.Fuzz Fuzz.DefaultFuzzModeEngineParameters rest
+        let engineParameters = parseEngineArgs RestlerTask.Fuzz DefaultEngineParameters rest
+
+        let engineParameters =
+            { engineParameters with
+                checkerOptions = getCheckerOptions Fuzz.DefaultFuzzModeCheckerOptions engineParameters.checkerOptions }
         { args with task = Fuzz
                     taskParameters = EngineParameters engineParameters}
     | "fuzz-lean"::rest ->
         // Fuzz-lean is 'test' with all checkers except the namespace checker turned on.
-        let engineParameters = parseEngineArgs RestlerTask.Test Fuzz.DefaultFuzzModeEngineParameters rest
+        let engineParameters = parseEngineArgs RestlerTask.Test DefaultEngineParameters rest
+        let engineParameters =
+            { engineParameters with
+                  checkerOptions = getCheckerOptions Fuzz.DefaultFuzzModeCheckerOptions engineParameters.checkerOptions }
         { args with task = FuzzLean
                     taskParameters = EngineParameters engineParameters}
     | "replay"::rest ->
         let engineParameters = parseEngineArgs RestlerTask.Replay DefaultEngineParameters rest
+        let engineParameters = { engineParameters with
+                                    checkerOptions = getCheckerOptions Fuzz.DefaultFuzzModeCheckerOptions engineParameters.checkerOptions }
         { args with task = Replay
                     taskParameters = EngineParameters engineParameters}
     | invalidArgument::_ ->
@@ -669,7 +710,7 @@ let main argv =
                         else
                             return None
                     }
-                    let exitCode =                         
+                    let exitCode =
                         if result.ExitCode = 0 && result.StandardError.Length <> 0 then
                             EngineErrorCode
                         else
@@ -695,7 +736,7 @@ let main argv =
                         else
                             return None
                     }
-                    let exitCode =                         
+                    let exitCode =
                         if result.ExitCode = 0 && result.StandardError.Length <> 0 then
                             EngineErrorCode
                         else
@@ -742,7 +783,7 @@ let main argv =
         }
 
         Logging.logInfo <| sprintf "Task %A %s." args.task (if result.taskResult = 0 then "succeeded" else "failed")
-         
+
         let bugBucketCounts, specCoverageCounts =
             match result.testingSummary with
             | None -> [], []
