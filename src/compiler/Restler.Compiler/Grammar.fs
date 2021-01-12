@@ -13,23 +13,31 @@ module Tree =
         | LeafNode of 'LeafData
         | InternalNode of 'INodeData * Tree<'LeafData,'INodeData> seq
 
-    let rec cata fLeaf fNode (tree:Tree<'LeafData,'INodeData>) :'r =
-        let recurse = cata fLeaf fNode
-        match tree with
-        | LeafNode leafInfo ->
-            fLeaf leafInfo
-        | InternalNode (nodeInfo,subtrees) ->
-            fNode nodeInfo (subtrees |> Seq.map recurse)
 
     /// Same as cata, but allows passing a parent context
-    let rec cataCtx fLeaf fNode fCtx ctx (tree:Tree<'LeafData,'INodeData>) :'r =
-        let recurse = cataCtx fLeaf fNode fCtx
-        match tree with
-        | LeafNode leafInfo ->
-            fLeaf ctx leafInfo
-        | InternalNode (nodeInfo,subtrees) ->
-            let newCtx = fCtx ctx nodeInfo
-            fNode ctx nodeInfo (subtrees |> Seq.map (recurse newCtx))
+    let cataCtx fLeaf fNode fCtx ctx (tree:Tree<'LeafData,'INodeData>) :'r =
+        let rec contMap newCtx (trees: seq<Tree<'LeafData,'INodeData>>) (conts: seq<'r> -> 'r): 'r =
+            if Seq.isEmpty trees then
+                conts []
+            else
+                let h = Seq.head trees
+                contMap newCtx (Seq.tail trees) (fun ts ->
+                    r newCtx h (fun s -> conts (Seq.append [s] ts))
+                )
+        and r ctx tree cont =
+            match tree with
+            | LeafNode leafInfo ->
+                cont(fLeaf ctx leafInfo)
+            | InternalNode (nodeInfo,subtrees) ->
+                let newCtx = fCtx ctx nodeInfo
+                contMap newCtx subtrees (fun ts ->
+                    cont (fNode ctx nodeInfo ts)
+                )
+        r ctx tree id
+
+    let cata fLeaf fNode (tree:Tree<'LeafData,'INodeData>) :Tree<'LeafData,'INodeData> =
+        cataCtx fLeaf fNode (fun () _ -> ()) () tree
+
 
     let rec fold fLeaf fNode acc (tree:Tree<'LeafData,'INodeData>) :'r =
         let recurse = fold fLeaf fNode

@@ -107,10 +107,9 @@ module SwaggerVisitors =
         then None
         else Some (property.Default.ToString())
 
-    let rec generateGrammarElementForSchema (schema:NJsonSchema.JsonSchema)
-                                            (exampleValue:JToken option)
-                                            (parents:NJsonSchema.JsonSchema list) =
 
+
+    module GenerateGrammarElements =
         /// Returns the specified property when the object contains it.
         /// Note: if the example object does not contain the property,
         let extractPropertyFromObject propertyName (objectType:NJsonSchema.JsonObjectType) (exampleObj: JToken option) =
@@ -144,8 +143,12 @@ module SwaggerVisitors =
                     None, true
             pv, includeProperty
 
+
+
         let extractPropertyFromArray (exampleObj: JToken option) =
             extractPropertyFromObject "" NJsonSchema.JsonObjectType.Array exampleObj
+
+
 
         let formatJTokenProperty primitiveType (v:JToken) =
             // Use Formatting.None to avoid unintended string formatting, for example
@@ -174,96 +177,105 @@ module SwaggerVisitors =
             | _ -> rawValue
 
 
-        let processProperty (propertyName, property:NJsonSchema.JsonSchemaProperty)
-                            (propertyValue: JToken option)
-                            (parents:NJsonSchema.JsonSchema list) =
-            // 'isReadOnly' is not correctly initialized in NJsonSchema.  Instead, it appears
-            // in ExtensionData
-            let propertyIsReadOnly (property:NJsonSchema.JsonSchemaProperty) =
-                match getExtensionDataBooleanPropertyValue property.ExtensionData "readOnly" with
-                | None -> property.IsReadOnly
-                | Some v -> v
 
-            match property.Type with
-                | NJsonSchema.JsonObjectType.String
-                | NJsonSchema.JsonObjectType.Number
-                | NJsonSchema.JsonObjectType.Integer
-                | NJsonSchema.JsonObjectType.Boolean ->
-                    let propertyPayload =
-                        let propertySchema = (property :> NJsonSchema.JsonSchema)
+    let rec processProperty (propertyName, property:NJsonSchema.JsonSchemaProperty)
+                        (propertyValue: JToken option)
+                        (parents:NJsonSchema.JsonSchema list)
+                        (cont: Tree<LeafProperty, InnerProperty> -> Tree<LeafProperty, InnerProperty>) =
+        // 'isReadOnly' is not correctly initialized in NJsonSchema.  Instead, it appears
+        // in ExtensionData
+        let propertyIsReadOnly (property:NJsonSchema.JsonSchemaProperty) =
+            match getExtensionDataBooleanPropertyValue property.ExtensionData "readOnly" with
+            | None -> property.IsReadOnly
+            | Some v -> v
 
-                        getFuzzableValueForProperty propertyName
-                                 propertySchema
-                                 property.IsRequired
-                                 (propertyIsReadOnly property)
-                                 (tryGetEnumeration propertySchema)
-                                 (tryGetDefault propertySchema)
+        match property.Type with
+            | NJsonSchema.JsonObjectType.String
+            | NJsonSchema.JsonObjectType.Number
+            | NJsonSchema.JsonObjectType.Integer
+            | NJsonSchema.JsonObjectType.Boolean ->
+                let propertyPayload =
+                    let propertySchema = (property :> NJsonSchema.JsonSchema)
 
-                    match propertyValue with
-                    | None -> LeafNode propertyPayload
-                    | Some v ->
-                        let examplePayload =
-                            match propertyPayload.payload with
-                            | Fuzzable (primitiveType, _) ->
-                                // Replace the default payload with the example payload, preserving type information.
-                                Constant (primitiveType, formatJTokenProperty primitiveType v)
-                            | _ -> raise (invalidOp(sprintf "invalid payload %A, expected fuzzable" propertyValue))
+                    getFuzzableValueForProperty propertyName
+                             propertySchema
+                             property.IsRequired
+                             (propertyIsReadOnly property)
+                             (tryGetEnumeration propertySchema)
+                             (tryGetDefault propertySchema)
 
-                        LeafNode { propertyPayload with
-                                      payload = examplePayload }
+                match propertyValue with
+                | None -> cont(LeafNode propertyPayload)
+                | Some v ->
+                    let examplePayload =
+                        match propertyPayload.payload with
+                        | Fuzzable (primitiveType, _) ->
+                            // Replace the default payload with the example payload, preserving type information.
+                            Constant (primitiveType, GenerateGrammarElements.formatJTokenProperty primitiveType v)
+                        | _ -> raise (invalidOp(sprintf "invalid payload %A, expected fuzzable" propertyValue))
 
-                | NJsonSchema.JsonObjectType.None ->
-                    // When the object type is 'None', simply pass through the example value ('propertyValue')
-                    // For example: the schema of a property whose schema is declared as a $ref will be visited here.
-                    // The example property value needs to be examined according to the 'ActualSchema', which
-                    // is passed through below.
+                    cont(LeafNode { propertyPayload with payload = examplePayload })
 
-                    let tree = generateGrammarElementForSchema property.ActualSchema propertyValue parents
+            | NJsonSchema.JsonObjectType.None ->
+                // When the object type is 'None', simply pass through the example value ('propertyValue')
+                // For example: the schema of a property whose schema is declared as a $ref will be visited here.
+                // The example property value needs to be examined according to the 'ActualSchema', which
+                // is passed through below.
+
+                generateGrammarElementForSchema property.ActualSchema propertyValue parents (fun tree ->
                     let innerProperty = { InnerProperty.name = propertyName
                                           payload = None
                                           propertyType = Property
                                           isRequired = true
                                           isReadOnly = (propertyIsReadOnly property) }
-                    InternalNode (innerProperty, stn tree)
-                | NJsonSchema.JsonObjectType.Array ->
-                    let pv, includeProperty = extractPropertyFromObject propertyName property.Type propertyValue
-                    if not includeProperty then
-                        // TODO: need test case for this example.  Raise an exception to flag these cases.
-                        raise (UnsupportedArrayExample (sprintf "Property name: %s" propertyName))
+                    cont(InternalNode (innerProperty, stn tree))
+                )
+            | NJsonSchema.JsonObjectType.Array ->
+                let pv, includeProperty = GenerateGrammarElements.extractPropertyFromObject propertyName property.Type propertyValue
+                if not includeProperty then
+                    // TODO: need test case for this example.  Raise an exception to flag these cases.
+                    raise (UnsupportedArrayExample (sprintf "Property name: %s" propertyName))
+                else
+                    // If the example is an empty array, just create a leaf property for it.
+                    if propertyValue.IsSome && not propertyValue.Value.HasValues then
+                        let leafProperty = { LeafProperty.name = propertyName
+                                             payload = Constant (PrimitiveType.Object, GenerateGrammarElements.formatJTokenProperty PrimitiveType.Object pv.Value)
+                                             isRequired = true
+                                             isReadOnly = (propertyIsReadOnly property) }
+                        cont(LeafNode leafProperty)
                     else
-                        // If the example is an empty array, just create a leaf property for it.
-                        if propertyValue.IsSome && not propertyValue.Value.HasValues then
-                            let leafProperty = { LeafProperty.name = propertyName
-                                                 payload = Constant (PrimitiveType.Object, formatJTokenProperty PrimitiveType.Object pv.Value)
-                                                 isRequired = true
-                                                 isReadOnly = (propertyIsReadOnly property) }
-                            LeafNode leafProperty
-                        else
-                            // Exit gracefully in case the Swagger is not valid and does not declare the array schema
-                            if isNull property.Item then
-                                raise (NullArraySchema "Make sure the array definition has an element type in Swagger.")
-                            let tree = generateGrammarElementForSchema property.Item.ActualSchema pv parents
+                        // Exit gracefully in case the Swagger is not valid and does not declare the array schema
+                        if isNull property.Item then
+                            raise (NullArraySchema "Make sure the array definition has an element type in Swagger.")
+                        generateGrammarElementForSchema property.Item.ActualSchema pv parents (fun tree ->
                             let innerProperty = { InnerProperty.name = propertyName; payload = None; propertyType = Array
                                                   isRequired = true
                                                   isReadOnly = (propertyIsReadOnly property) }
-                            InternalNode (innerProperty, stn tree)
-                | NJsonSchema.JsonObjectType.Object ->
-                    // This object may or may not have nested properties.
-                    // Similar to type 'None', just pass through the object and it will be taken care of downstream.
-                    let tree = generateGrammarElementForSchema property.ActualSchema propertyValue parents
+                            cont(InternalNode (innerProperty, stn tree))
+                        )
+            | NJsonSchema.JsonObjectType.Object ->
+                // This object may or may not have nested properties.
+                // Similar to type 'None', just pass through the object and it will be taken care of downstream.
+                generateGrammarElementForSchema property.ActualSchema propertyValue parents (fun tree ->
                     // If the object has no properties, it should be set to its primitive type.
                     match tree with
                     | LeafNode l ->
-                        LeafNode { l with name = propertyName }
+                        cont(LeafNode { l with name = propertyName })
                     | InternalNode _ ->
                         let innerProperty = { InnerProperty.name = propertyName
                                               payload = None
                                               propertyType = Property // indicates presence of nested properties
                                               isRequired = true
                                               isReadOnly = (propertyIsReadOnly property) }
-                        InternalNode (innerProperty, stn tree)
-                | nst ->
-                    raise (UnsupportedType (sprintf "Found unsupported type in body parameters: %A" nst))
+                        cont(InternalNode (innerProperty, stn tree))
+                )
+            | nst ->
+                raise (UnsupportedType (sprintf "Found unsupported type in body parameters: %A" nst))
+
+    and generateGrammarElementForSchema (schema:NJsonSchema.JsonSchema)
+                                            (exampleValue:JToken option)
+                                            (parents:NJsonSchema.JsonSchema list) 
+                                            (cont: Tree<LeafProperty, InnerProperty> -> Tree<LeafProperty, InnerProperty>)=
 
         // As of NJsonSchema version 10, need to walk references explicitly.
         let rec getActualSchema (s:NJsonSchema.JsonSchema) =
@@ -283,31 +295,32 @@ module SwaggerVisitors =
                 // Most likely, the current example value should simply be used in the leaf property
                 raise (UnsupportedRecursiveExample (sprintf "%A" exampleValue))
             let leafProperty = { LeafProperty.name = ""; payload = Fuzzable (PrimitiveType.String, ""); isRequired = true ; isReadOnly = false }
-            LeafNode leafProperty
+            cont(LeafNode leafProperty)
         else
+
             let declaredPropertyParameters =
                 schema.Properties
                 |> Seq.choose (fun item ->
                                     let name = item.Key
                                     // Just extract the property as a string.
-                                    let exValue, includeProperty = extractPropertyFromObject name NJsonSchema.JsonObjectType.String exampleValue
+                                    let exValue, includeProperty = GenerateGrammarElements.extractPropertyFromObject name NJsonSchema.JsonObjectType.String exampleValue
                                     if not includeProperty then None
                                     else
-                                        Some (processProperty (name, item.Value) exValue (schema::parents)))
+                                        Some (processProperty (name, item.Value) exValue (schema::parents) id))
 
             let arrayProperties =
                 if schema.IsArray then
                     // An example of this is an array type query parameter.
                     // TODO: still need a way to include all array elements, as a config option.
-                    let exValue, includeProperty = extractPropertyFromArray exampleValue
+                    let exValue, includeProperty = GenerateGrammarElements.extractPropertyFromArray exampleValue
                     if not includeProperty then Seq.empty
                     else
-                        generateGrammarElementForSchema schema.Item.ActualSchema exValue (schema::parents) |> stn
+                        generateGrammarElementForSchema schema.Item.ActualSchema exValue (schema::parents) id |> stn
                 else Seq.empty
 
             let allOfParameterSchemas =
                 schema.AllOf
-                |> Seq.map (fun ao -> ao, generateGrammarElementForSchema ao.ActualSchema exampleValue (schema::parents))
+                |> Seq.map (fun ao -> ao, generateGrammarElementForSchema ao.ActualSchema exampleValue (schema::parents) id)
 
             let allOfProperties =
                 allOfParameterSchemas
@@ -349,15 +362,17 @@ module SwaggerVisitors =
                 match exampleValue with
                 | None ->
                     if schema.Type = JsonObjectType.None && allOfSchema.IsSome then
-                        LeafNode allOfSchema.Value
+                        cont(LeafNode allOfSchema.Value)
                     else
-                        LeafNode (getFuzzableValueForProperty
-                                        ""
-                                        schema
-                                        true (*IsRequired*)
-                                        false (*IsReadOnly*)
-                                        (tryGetEnumeration schema) (*enumeration*)
-                                        (tryGetDefault schema) (*defaultValue*))
+                        cont(
+                            LeafNode (getFuzzableValueForProperty
+                                            ""
+                                            schema
+                                            true (*IsRequired*)
+                                            false (*IsReadOnly*)
+                                            (tryGetEnumeration schema) (*enumeration*)
+                                            (tryGetDefault schema) (*defaultValue*))
+                        )
                 | Some v ->
 
                     // Either none of the above properties matched, or there are no properties and
@@ -372,10 +387,12 @@ module SwaggerVisitors =
                             else schema.Type
 
                         let primitiveType,_ = getGrammarPrimitiveTypeWithDefaultValue schemaType schema.Format
-                        LeafNode { LeafProperty.name = ""
-                                   payload = FuzzingPayload.Constant (primitiveType, formatJTokenProperty primitiveType v)
-                                   isRequired = true
-                                   isReadOnly = false }
+                        cont(
+                            LeafNode { LeafProperty.name = ""
+                                       payload = FuzzingPayload.Constant (primitiveType, GenerateGrammarElements.formatJTokenProperty primitiveType v)
+                                       isRequired = true
+                                       isReadOnly = false }
+                        )
                     else
 
                         // Cases like this arise when an allOf schema is visited, and the example does not contain
@@ -386,12 +403,12 @@ module SwaggerVisitors =
                                               propertyType = NestedType.Object
                                               isRequired = true
                                               isReadOnly = false }
-                        InternalNode (innerProperty, Seq.empty)
+                        cont(InternalNode (innerProperty, Seq.empty))
             else
                 let innerProperty = { InnerProperty.name = ""
                                       payload = None
                                       propertyType = if schema.IsArray then Array else Object
                                       isRequired = true
                                       isReadOnly = false }
-                InternalNode (innerProperty, internalNodes)
+                cont(InternalNode (innerProperty, internalNodes))
 
