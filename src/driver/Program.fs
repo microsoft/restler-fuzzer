@@ -181,6 +181,9 @@ module Fuzz =
             sprintf "--restler_grammar \"%s\"" parameters.grammarFilePath
             sprintf "--custom_mutations \"%s\"" parameters.mutationsFilePath
             sprintf "--set_version %s" CurrentVersion
+            sprintf "--client_certificate_path \"%s\"" parameters.certFilePath
+            sprintf "--client_certificate_password \"%s\"" parameters.certPasswordFilePath
+
 
             (match parameters.refreshableTokenOptions with
                 | None -> ""
