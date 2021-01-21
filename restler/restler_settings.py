@@ -30,8 +30,6 @@ class ConnectionSettings(object):
         @type  use_ssl: Boolean
         @param include_user_agent: Whether or not to add User-Agent to request headers
         @type  include_user_agent: Boolean
-        @param client_certificate_path: Path to the Client Cert, if using CBA
-        @type  client_certificate_path: Str
 
         @return: None
         @rtype : None
@@ -41,7 +39,6 @@ class ConnectionSettings(object):
         self.target_port = target_port
         self.use_ssl = use_ssl
         self.include_user_agent = include_user_agent
-        self.client_certificate_path = client_certificate_path
 
 class SettingsArg(object):
     """ Holds a setting's information """
@@ -361,7 +358,6 @@ class RestlerSettings(object):
 
         ## Path to Client Cert for Certificate Based Authentication
         self._client_certificate_path = SettingsArg('client_certificate_path', str, None, user_args)
-        set_arg(self._client_certificate_path)
         ## List of endpoints whose resource is to be created only once - Will be set with other per_resource settings
         self._create_once_endpoints = SettingsListArg('create_once', str, None, val_convert=str_to_hex_def)
         ## List of status codes that will be flagged as bugs

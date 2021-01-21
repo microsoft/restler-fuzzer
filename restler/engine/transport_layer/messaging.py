@@ -38,7 +38,7 @@ class HttpSock(object):
             if Settings().request_throttle_ms else None
 
         self.connection_settings = connection_settings
-        
+
         try:
             self._sock = None
             host = Settings().host
@@ -48,9 +48,9 @@ class HttpSock(object):
                 self._sock = TestSocket(Settings().test_server)
             elif self.connection_settings.use_ssl:
                 context = ssl.SSLContext(ssl.PROTOCOL_TLS)
-                if self.connection_settings.client_certificate_path:
+                if Settings().client_certificate_path:
                     context.load_cert_chain(
-                        certfile=self.connection_settings.client_certificate_path
+                        certfile=Settings().client_certificate_path
                     )
                 self._sock = context.wrap_socket(socket.socket(socket.AF_INET, socket.SOCK_STREAM))
                 self._sock.connect((target_ip, target_port or 443))
