@@ -38,16 +38,15 @@ class HttpSock(object):
             if Settings().request_throttle_ms else None
 
         self.connection_settings = connection_settings
+        
         try:
             self._sock = None
             host = Settings().host
             target_ip = self.connection_settings.target_ip or host
             target_port = self.connection_settings.target_port
             if Settings().use_test_socket:
-                print('ts')
                 self._sock = TestSocket(Settings().test_server)
             elif self.connection_settings.use_ssl:
-                print('ssl')
                 context = ssl.SSLContext(ssl.PROTOCOL_TLS)
                 if self.connection_settings.client_certificate_path:
                     context.load_cert_chain(
@@ -56,7 +55,6 @@ class HttpSock(object):
                 self._sock = context.wrap_socket(socket.socket(socket.AF_INET, socket.SOCK_STREAM))
                 self._sock.connect((target_ip, target_port or 443))
             else:
-                print('else')
                 self._sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 self._sock.connect((target_ip, target_port or 80))
         except Exception as error:

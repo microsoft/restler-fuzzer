@@ -67,10 +67,6 @@ type EngineParameters =
 
         /// File path to the client certificate.
         certFilePath : string
-
-        /// File path to the client certificate password.
-        certPasswordFilePath : string
-
     }
 
 let DefaultEngineParameters =
@@ -90,7 +86,6 @@ let DefaultEngineParameters =
         replayLogFilePath = None
         runResultsAnalyzer = true
         certFilePath = ""
-        certPasswordFilePath = ""
     }
 
 /// Restler tasks that may be specified by the user

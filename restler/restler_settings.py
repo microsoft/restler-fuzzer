@@ -30,6 +30,8 @@ class ConnectionSettings(object):
         @type  use_ssl: Boolean
         @param include_user_agent: Whether or not to add User-Agent to request headers
         @type  include_user_agent: Boolean
+        @param client_certificate_path: Path to the Client Cert, if using CBA
+        @type  client_certificate_path: Str
 
         @return: None
         @rtype : None
@@ -39,6 +41,7 @@ class ConnectionSettings(object):
         self.target_port = target_port
         self.use_ssl = use_ssl
         self.include_user_agent = include_user_agent
+        self.client_certificate_path = client_certificate_path
 
 class SettingsArg(object):
     """ Holds a setting's information """
