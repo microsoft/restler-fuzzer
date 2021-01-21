@@ -362,6 +362,8 @@ class RestlerSettings(object):
             self._checker_args.val = { checker_name.lower(): arg
                 for checker_name, arg in self._checker_args.val.items() }
 
+        ## Path to Client Cert for Certificate Based Authentication
+        self._client_certificate_path = SettingsArg('client_certificate_path', str, None, user_args)
         ## List of endpoints whose resource is to be created only once - Will be set with other per_resource settings
         self._create_once_endpoints = SettingsListArg('create_once', str, None, val_convert=str_to_hex_def)
         ## List of status codes that will be flagged as bugs
@@ -457,6 +459,10 @@ class RestlerSettings(object):
     def __deepcopy__(self, memo):
         """ Don't deepcopy this object, just return its reference """
         return self
+
+    @property
+    def client_certificate_path(self):
+        return self._client_certificate_path.val
 
     @property
     def connection_settings(self):
