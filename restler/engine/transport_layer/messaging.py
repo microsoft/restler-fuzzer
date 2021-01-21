@@ -47,9 +47,21 @@ class HttpSock(object):
             if Settings().use_test_socket:
                 self._sock = TestSocket(Settings().test_server)
             elif self.connection_settings.use_ssl:
-                context = ssl.create_default_context()
-                with socket.create_connection((target_ip, target_port or 443)) as sock:
-                    self._sock = context.wrap_socket(sock, server_hostname=host)
+                self._sock = ssl.SSLContext(ssl.PROTOCOL_TLS).wrap_socket(
+                    socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                )
+            elif self.connection_settings.client_certificate_path:
+                print("Landen Code Wahoo")
+                context = ssl.SSLContext(ssl.PROTOCOL_TLS)
+                context.load_cert_chain(
+                    cafile=self.connection_settings.client_certificate_path, 
+                    password=self.connection_settings.client_certificate_password
+                )
+                self._sock = context.wrap_socket(socket.socket(socket.AF_INET, socket.SOCK_STREAM))
+
+                self._sock = ssl.SSLContext(ssl.PROTOCOL_TLS).wrap_socket(
+                    socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                )
             else:
                 self._sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 self._sock.connect((target_ip, target_port or 80))
