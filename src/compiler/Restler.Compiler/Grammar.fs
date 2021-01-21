@@ -22,9 +22,9 @@ module Tree =
             else
                 let h = Seq.head trees
                 contMap newCtx (Seq.tail trees) (fun ts ->
-                    r newCtx h (fun s -> conts (Seq.append [s] ts))
+                    processTree newCtx h (fun s -> conts (Seq.append [s] ts))
                 )
-        and r ctx tree cont =
+        and processTree ctx tree cont =
             match tree with
             | LeafNode leafInfo ->
                 cont(fLeaf ctx leafInfo)
@@ -33,11 +33,10 @@ module Tree =
                 contMap newCtx subtrees (fun ts ->
                     cont (fNode ctx nodeInfo ts)
                 )
-        r ctx tree id
+        processTree ctx tree id
 
     let cata fLeaf fNode (tree:Tree<'LeafData,'INodeData>) :Tree<'LeafData,'INodeData> =
         cataCtx fLeaf fNode (fun () _ -> ()) () tree
-
 
     let rec fold fLeaf fNode acc (tree:Tree<'LeafData,'INodeData>) :'r =
         let recurse = fold fLeaf fNode
