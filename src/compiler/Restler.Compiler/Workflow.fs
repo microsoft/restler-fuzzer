@@ -65,7 +65,7 @@ let getSwaggerDataForDoc doc workingDirectory =
     {   swaggerDoc = swaggerDoc
         dictionary = dictionary
         globalAnnotations = globalAnnotations
-    }
+    }   
 
 let generateGrammarFromSwagger grammarOutputDirectoryPath swaggerDoc config =
 
@@ -156,8 +156,11 @@ let generateGrammarFromSwagger grammarOutputDirectoryPath swaggerDoc config =
                         globalExternalAnnotations
 
     let grammarFilePath = Path.Combine(grammarOutputDirectoryPath, Constants.DefaultJsonGrammarFileName)
-    Microsoft.FSharpLu.Json.Compact.serializeToFile grammarFilePath grammar
 
+    use fs = new Restler.Utilities.Stream.FileStreamWithoutPreamble(grammarFilePath, IO.FileMode.Create)
+    Microsoft.FSharpLu.Json.Compact.serializeToStream fs grammar
+    fs.Flush()
+    fs.Dispose()
     // The below statement is present as an assertion, to check for deserialization issues for
     // specific grammars.
 

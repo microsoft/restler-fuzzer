@@ -62,3 +62,24 @@ module Dict =
         match dict.TryGetValue name with
         | true, v ->  v :?> IDictionary<_, obj> |> Some
         | false, _ -> None
+
+
+module Stream =
+    /// https://en.wikipedia.org/wiki/UTF-8
+    /// Byte order mark (or Preamble)
+    /// If the UTF-16 Unicode byte order mark (BOM) character is at the start of a UTF-8 file, the first three bytes will be 0xEF, 0xBB, 0xBF.
+    ///The Unicode Standard neither requires nor recommends the use of the BOM for UTF-8, but warns that it may be encountered at the 
+    /// start of a file trans-coded from another encoding.[46] While ASCII text encoded using UTF-8 is backward compatible with ASCII, 
+    /// this is not true when Unicode Standard recommendations are ignored and a BOM is added. Nevertheless, there was and still is 
+    /// software that always inserts a BOM when writing UTF-8, and refuses to correctly interpret UTF-8 unless the first character is a BOM
+    type FileStreamWithoutPreamble(filePath, mode: System.IO.FileMode) =
+        inherit System.IO.FileStream(filePath, mode)
+
+        let preamble = System.Text.UTF8Encoding.UTF8.GetString(System.Text.UTF8Encoding.UTF8.GetPreamble())
+
+        override __.Write(s, offset, count) =
+            let str = System.Text.UTF8Encoding.UTF8.GetString(s, offset, count)
+            if str = preamble then
+                ()
+            else
+                base.Write(s, offset, count)
