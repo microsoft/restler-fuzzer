@@ -14,7 +14,7 @@ open Microsoft.FSharpLu.Diagnostics.Process
 open Restler.Telemetry
 
 [<Literal>]
-let CurrentVersion = "7.1.0"
+let CurrentVersion = "7.2.0"
 let EngineErrorCode = -2
 
 let usage() =
