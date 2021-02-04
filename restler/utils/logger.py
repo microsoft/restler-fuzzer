@@ -249,6 +249,12 @@ def raw_network_logging(data):
     @rtype : None
 
     """
+    if data is None:
+        # This case may occur when converting the response payload does not have a string
+        # representation.  As a workaround, print text to the log so that it contains
+        # a received response.
+        data = '_OMITTED_UNKNOWN_DATA_'
+
     # To make sure binary data are not flushed out in the logs we drop anything
     # around CUSTOM_BOUNDARY, which is the binary payload
     if ('octet-stream' in data) and ('_CUSTOM_BOUNDARY_' in data):
