@@ -140,7 +140,7 @@ email to ensure we received your original message. Further information,
 including the [MSRC PGP](https://technet.microsoft.com/en-us/security/dn606155)
 key, can be found in the [Security TechCenter](https://technet.microsoft.com/en-us/security/default).
 
-For additional details, see [Security.md](Security.md).
+For additional details, see [Security.md](SECURITY.md).
 
 
 # Privacy & Cookies
