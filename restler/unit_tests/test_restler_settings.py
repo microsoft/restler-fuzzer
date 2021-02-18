@@ -477,6 +477,7 @@ class RestlerSettingsTest(unittest.TestCase):
         self.assertEqual(45, settings.max_async_resource_creation_time)
         self.assertEqual(11, settings.max_sequence_length)
         self.assertFalse(settings.connection_settings.use_ssl)
+        self.assertTrue(settings.connection_settings.disable_cert_validation)
         self.assertTrue(settings.no_tokens_in_logs)
         self.assertEqual('(\w*)/ddosProtectionPlans(\w*)', settings.path_regex)
         self.assertEqual(500, settings.request_throttle_ms)

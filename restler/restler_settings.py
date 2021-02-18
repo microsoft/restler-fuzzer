@@ -20,7 +20,7 @@ class OptionValidationError(Exception):
     pass
 
 class ConnectionSettings(object):
-    def __init__(self, target_ip, target_port, use_ssl=True, include_user_agent=False):
+    def __init__(self, target_ip, target_port, use_ssl=True, include_user_agent=False, disable_cert_validation=False):
         """ Initializes an object that contains the connection settings for the socket
         @param target_ip: The ip of the target service.
         @type  target_ip: Str
@@ -30,6 +30,8 @@ class ConnectionSettings(object):
         @type  use_ssl: Boolean
         @param include_user_agent: Whether or not to add User-Agent to request headers
         @type  include_user_agent: Boolean
+        @param disable_cert_validation: Whether or not to disable SSL certificate validation
+        @type  disable_cert_validation: Bool
 
         @return: None
         @rtype : None
@@ -39,6 +41,7 @@ class ConnectionSettings(object):
         self.target_port = target_port
         self.use_ssl = use_ssl
         self.include_user_agent = include_user_agent
+        self.disable_cert_validation = disable_cert_validation
 
 class SettingsArg(object):
     """ Holds a setting's information """
@@ -366,6 +369,8 @@ class RestlerSettings(object):
         self._custom_dictionaries = SettingsDictArg('custom_dictionary', str, key_convert=str_to_hex_def)
         ## List of status codes that represent "non-bugs". All other status codes will be treated as bugs.
         self._custom_non_bug_codes = SettingsListArg('custom_non_bug_codes', re.Pattern, user_args, val_convert=convert_wildcards_to_regex)
+        ## Disables SSL certificate validation
+        self._disable_cert_validation = SettingsArg('disable_cert_validation', bool, False, user_args)
         ## Max number of objects of one type before deletion by the garbage collector
         self._dyn_objects_cache_size = SettingsArg('dyn_objects_cache_size', int, DYN_OBJECTS_CACHE_SIZE_DEFAULT, user_args, minval=0)
         # The number of simultaneous fuzzing jobs to perform
@@ -435,7 +440,8 @@ class RestlerSettings(object):
         self._connection_settings = ConnectionSettings(self._target_ip.val,
                                         self._target_port.val,
                                         not self._no_ssl.val,
-                                        self._include_user_agent.val)
+                                        self._include_user_agent.val,
+                                        self._disable_cert_validation.val)
 
         # Set per resource arguments
         if 'per_resource_settings' in user_args:
