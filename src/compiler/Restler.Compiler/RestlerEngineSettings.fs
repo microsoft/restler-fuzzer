@@ -11,8 +11,18 @@ open Newtonsoft.Json.Linq
 module Constants =
     [<Literal>]
     let PerResourceSettingsKey = "per_resource_settings"
+
+    [<Literal>]
     let ProducerTimingDelayKey = "producer_timing_delay"
+
+    [<Literal>]
     let CustomDictionaryKey = "custom_dictionary"
+
+    [<Literal>]
+    let MaxParameterCombinationsKey = "max_combinations"
+
+    [<Literal>]
+    let DefaultParameterCombinations = 20
 
 type EngineSettings = {
         settings : JObject
@@ -157,6 +167,13 @@ type EngineSettings = {
             x.settings.Remove(Constants.PerResourceSettingsKey) |> ignore
             x.settings.Add(Constants.PerResourceSettingsKey, perResourceSettings)
 
+        /// Serialize the per-resource dictionaries (by ID, to prevent name conflicts)
+        member x.addMaxCombinations =
+            if not (x.settings.ContainsKey(Constants.MaxParameterCombinationsKey)) then
+                // create the property
+                let maxCombinations = JProperty(Constants.MaxParameterCombinationsKey, Constants.DefaultParameterCombinations)
+                x.settings.Add(maxCombinations)
+
 let getEngineSettings engineSettingsFilePath =
     if System.IO.File.Exists engineSettingsFilePath then
         try
@@ -189,6 +206,7 @@ let updateEngineSettings (requests:Request list)
     | Ok settings ->
         settings.addPerResourceTimingDelays requests
         settings.addPerResourceDictionaries perResourceDictionaries engineSettingsFilePath grammarOutputDirectoryPath
+        settings.addMaxCombinations
         System.IO.File.WriteAllText(newEngineSettingsFilePath, settings.settings.ToString(Newtonsoft.Json.Formatting.Indented))
         Ok ()
     | Error str ->
