@@ -305,6 +305,7 @@ def custom_network_logging(sequence, candidate_values_pool, **kwargs):
             remaining = request.num_combinations(candidate_values_pool)\
                 - request._current_combination_id
             network_log.write(f"\n\tRequest: {req_i + 1} (Remaining candidate combinations: {remaining})")
+            network_log.write(f"\tRequest hash: {request.method_endpoint_hex_definition}\n")
         else:
             network_log.write(f"\n\tRequest: {req_i + 1}"
                               " (Current combination: "
