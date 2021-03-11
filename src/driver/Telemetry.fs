@@ -25,12 +25,11 @@ module Telemetry =
     let getMachineIdFilePath() =
         let machineTelemetryIdFileName = "restler.telemetry.uuid"
         let restlerSettingsCacheDir =
-            if RuntimeInformation.IsOSPlatform(OSPlatform.Linux) then
+            match Types.Platform.getOSPlatform() with
+            | Types.Platform.Platform.Linux ->
                 "~/.config/microsoft/restler"
-            else if RuntimeInformation.IsOSPlatform(OSPlatform.Windows) then
+            | Types.Platform.Platform.Windows ->
                 Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + @"\Microsoft\Restler";
-            else
-                raise (Exception("Platform not supported."))
         if not (Directory.Exists(restlerSettingsCacheDir)) then
             // Re-tries are needed in case several RESTler instances are started on a new machine
             let retryCount = 3
