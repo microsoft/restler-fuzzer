@@ -165,7 +165,7 @@ def publish_dotnet_apps(dirs, configuration):
             print("Build failed!")
             print(str(output.stderr))
             sys.exit(-1)
-        output = subprocess.run(f"dotnet publish {proj_file_path} --no-restore -o {proj_output_dir} -c {configuration} -f netcoreapp3.1", shell=True, stderr=subprocess.PIPE)
+        output = subprocess.run(f"dotnet publish {proj_file_path} --no-restore -o {proj_output_dir} -c {configuration} -f netcoreapp5.0", shell=True, stderr=subprocess.PIPE)
         if output.stderr:
             print("Build failed!")
             print(str(output.stderr))
