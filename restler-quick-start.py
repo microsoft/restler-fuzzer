@@ -38,7 +38,7 @@ def compile_spec(api_spec_path, restler_dll_path):
         os.makedirs(RESTLER_TEMP_DIR)
 
     with usedir(RESTLER_TEMP_DIR):
-        subprocess.run(f'dotnet {restler_dll_path} compile --api_spec {api_spec_path}', shell=True)
+        subprocess.run(f'dotnet \"{restler_dll_path}\" compile --api_spec \"{api_spec_path}\"', shell=True)
 
 def test_spec(ip, port, host, use_ssl, restler_dll_path):
     """ Runs RESTler's test mode on a specified Compile directory
@@ -60,10 +60,12 @@ def test_spec(ip, port, host, use_ssl, restler_dll_path):
     """
     with usedir(RESTLER_TEMP_DIR):
         compile_dir = Path(f'Compile')
-
+        grammar_file_path = compile_dir.joinpath('grammar.py')
+        dictionary_file_path = compile_dir.joinpath('dict.json')
+        settings_file_path = compile_dir.joinpath('engine_settings.json')
         command = (
-            f"dotnet {restler_dll_path} test --grammar_file {compile_dir.joinpath('grammar.py')} --dictionary_file {compile_dir.joinpath('dict.json')}"
-            f" --settings {compile_dir.joinpath('engine_settings.json')}"
+            f"dotnet \"{restler_dll_path}\" test --grammar_file \"{grammar_file_path}\" --dictionary_file \"{dictionary_file_path}\""
+            f" --settings \"{settings_file_path}\""
         )
         if not use_ssl:
             command = f"{command} --no_ssl"
