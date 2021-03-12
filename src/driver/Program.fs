@@ -232,7 +232,7 @@ module Fuzz =
              | Some r -> sprintf "--path_regex %s" r
              | None -> "")
             (if String.IsNullOrWhiteSpace parameters.settingsFilePath then ""
-             else sprintf "--settings %s" parameters.settingsFilePath)
+             else sprintf "--settings \"%s\"" parameters.settingsFilePath)
 
             // Checkers
             (if parameters.checkerOptions.Length > 0 then
@@ -294,7 +294,7 @@ module Fuzz =
                     usage()
                 | Some (pythonFilePath, versionString) ->
                     printfn "Using python: '%s' (%s)" pythonFilePath (versionString.Trim())
-                    pythonFilePath, (sprintf "-B %s %s" Paths.RestlerPyPath restlerParameterCmdLine)
+                    pythonFilePath, (sprintf "-B \"%s\" %s" Paths.RestlerPyPath restlerParameterCmdLine)
 
         let! result =
             startProcessAsync
