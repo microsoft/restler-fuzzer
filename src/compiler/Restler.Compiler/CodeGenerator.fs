@@ -81,7 +81,7 @@ let rec getRestlerPythonPayload (payload:FuzzingPayload) (isQuoted:bool) : Reque
                     | None -> ""
                 let groupValue =
                     (sprintf "\"fuzzable_group_tag\", [%s] %s "
-                             (enumeration |> Seq.map (fun s -> sprintf "'%s'" s) |> String.concat ",")
+                             (enumeration |> List.map (fun s -> sprintf "'%s'" s) |> String.concat ",")
                              defaultStr
                     )
                 Restler_fuzzable_group
@@ -107,7 +107,6 @@ let rec getRestlerPythonPayload (payload:FuzzingPayload) (isQuoted:bool) : Reque
 
 /// Generate the RESTler grammar for a request parameter
 let generatePythonParameter includeOptionalParameters parameterKind (parameterName, parameterPayload) =
-
     let formatParameterName name =
         match parameterKind with
         | ParameterKind.Query ->
@@ -125,7 +124,7 @@ let generatePythonParameter includeOptionalParameters parameterKind (parameterNa
 
     let getTabIndentedLineStart level =
         if level > 0 then
-            let tabs = [1..level] |> Seq.map (fun x -> TAB) |> String.Concat
+            let tabs = [1..level] |> List.map (fun x -> TAB) |> String.Concat
             Some ("\n" + tabs)
         else
             None
@@ -149,9 +148,9 @@ let generatePythonParameter includeOptionalParameters parameterKind (parameterNa
         if p.isRequired  || includeOptionalParameters then
             let nameSeq =
                 if String.IsNullOrEmpty p.name then
-                    Seq.empty
+                    List.empty
                 else
-                    stn (formatPropertyName p.name)
+                    [ formatPropertyName p.name ]
 
             let needQuotes, isFuzzable =
                 match p.payload with
@@ -186,93 +185,88 @@ let generatePythonParameter includeOptionalParameters parameterKind (parameterNa
             let tabSeq =
                 if parameterKind = ParameterKind.Body then
                     match getTabIndentedLineStart level with
-                    | None -> Seq.empty
-                    | Some s -> stn (Restler_static_string_constant s)
+                    | None -> []
+                    | Some s -> [ Restler_static_string_constant s ]
                 else
-                    Seq.empty
+                    []
 
             let payloadSeq =
-                seq {
-                        // If the value is a constant, quotes are inserted at compile time.
-                        // If the value is a fuzzable, quotes are inserted at run time, because
-                        // the user may choose to fuzz with quoted or unquoted values.
-                        let needStaticStringQuotes =
-                            needQuotes && not isFuzzable && parameterKind = ParameterKind.Body
-                        if needStaticStringQuotes then
-                            yield Restler_static_string_constant "\""
+                [
+                    // If the value is a constant, quotes are inserted at compile time.
+                    // If the value is a fuzzable, quotes are inserted at run time, because
+                    // the user may choose to fuzz with quoted or unquoted values.
+                    let needStaticStringQuotes =
+                        needQuotes && not isFuzzable && parameterKind = ParameterKind.Body
+                    if needStaticStringQuotes then
+                        yield Restler_static_string_constant "\""
 
-                        let isQuoted = (needQuotes && isFuzzable && (parameterKind = ParameterKind.Body || level > 0))
-                        for k in getRestlerPythonPayload p.payload isQuoted do
-                            yield k
+                    let isQuoted = (needQuotes && isFuzzable && (parameterKind = ParameterKind.Body || level > 0))
+                    for k in getRestlerPythonPayload p.payload isQuoted do
+                        yield k
 
-                        if needStaticStringQuotes then
-                            yield Restler_static_string_constant "\""
-                    }
+                    if needStaticStringQuotes then
+                        yield Restler_static_string_constant "\""
+                ]
 
-            [ tabSeq ; nameSeq ; payloadSeq ] |> Seq.concat
+            [ tabSeq ; nameSeq ; payloadSeq ] |> List.concat
         else
-            Seq.empty
+            []
 
-    let visitInner level (p:InnerProperty) (innerProperties:seq<seq<RequestPrimitiveType>>) =
+    let visitInner level (p:InnerProperty) (innerProperties: RequestPrimitiveType list seq) =
         if p.isRequired || includeOptionalParameters then
             // Pretty-printing is only required for the body
             let tabSeq =
                 if parameterKind = ParameterKind.Body then
                     match getTabIndentedLineStart level with
-                    | None -> Seq.empty
-                    | Some s -> stn (Restler_static_string_constant s)
-                else Seq.empty
+                    | None -> []
+                    | Some s -> [ Restler_static_string_constant s ]
+                else []
 
             match p.payload with
             | Some payload ->
                 // Use the payload specified at this level.
                 let namePayloadSeq =
-                    seq {
-                          yield formatPropertyName p.name
-                          // Because this is a custom payload for an object, it should not be quoted.
-                          for k in getRestlerPythonPayload payload false (*isQuoted*) do
-                            yield k
-                        }
-                [ tabSeq ; namePayloadSeq ] |> Seq.concat
+                    (formatPropertyName p.name) ::
+                    // Because this is a custom payload for an object, it should not be quoted.
+                    (getRestlerPythonPayload payload false (*isQuoted*))
+                tabSeq @ namePayloadSeq
             | None ->
                 // The payload is not specified at this level, so use the one specified at lower levels.
                 // The inner properties must be comma separated
                 let cs = innerProperties
                             |> Seq.mapi (fun i s ->
-                                        if i > 0 && not (s |> Seq.isEmpty) then
+                                        if i > 0 && not (s |> List.isEmpty) then
                                             [
-                                                stn (Restler_static_string_jtoken_delim ",")
+                                                [ Restler_static_string_jtoken_delim "," ]
                                                 s
                                             ]
-                                            |> Seq.concat
+                                            |> List.concat
                                         else s)
                             |> Seq.concat
-                [
-                    tabSeq
-                    seq {
-                            yield formatPropertyName p.name
-                    }
-                    tabSeq
-                    seq {
-                            yield Restler_static_string_jtoken_delim
-                                    (match p.propertyType with
-                                        | Object -> "{"
-                                        | Array -> "["
-                                        | Property -> "")
-                        }
-                    cs
-                    tabSeq
-                    seq {
-                            yield Restler_static_string_jtoken_delim
-                                    (match p.propertyType with
-                                        | Object -> "}"
-                                        | Array -> "]"
-                                        | Property -> "")
-                        }
+                            |> List.ofSeq
+
+                tabSeq
+                @ [formatPropertyName p.name]
+                @ tabSeq
+                @ [
+                    Restler_static_string_jtoken_delim
+                        (match p.propertyType with
+                            | Object -> "{"
+                            | Array -> "["
+                            | Property -> "")
                 ]
-                |> Seq.concat
+                @ cs
+                @ tabSeq
+
+                @ [
+                    Restler_static_string_jtoken_delim
+                        (match p.propertyType with
+                            | Object -> "}"
+                            | Array -> "]"
+                            | Property -> "")
+                ]
         else
-            Seq.empty
+            []
 
     let getTreeLevel parentLevel (p:InnerProperty) =
         parentLevel + 1
@@ -283,16 +277,14 @@ let generatePythonParameter includeOptionalParameters parameterKind (parameterNa
     | ParameterKind.Query ->
         let payloadPrimitives =
             // Remove the beginning and ending quotes - these must not be specified for query parameters.
-            if payloadPrimitives |> Seq.head = Restler_static_string_constant "\"" then
-                let length = payloadPrimitives |> Seq.length
+            if payloadPrimitives |> List.head = Restler_static_string_constant "\"" then
+                let length = payloadPrimitives |> List.length
                 payloadPrimitives
-                |> Seq.skip 1 |> Seq.take (length - 2)
+                |> List.skip 1 |> List.take (length - 2)
             else
                 payloadPrimitives
 
-        seq { yield stn (formatParameterName parameterName)
-              yield payloadPrimitives }
-        |> Seq.concat
+        (formatParameterName parameterName) :: payloadPrimitives 
     | ParameterKind.Body
     | ParameterKind.Path ->
         payloadPrimitives
@@ -300,70 +292,83 @@ let generatePythonParameter includeOptionalParameters parameterKind (parameterNa
 /// Generates the python restler grammar definitions corresponding to the request
 let generatePythonFromRequestElement includeOptionalParameters (e:RequestElement) =
     match e with
-    | Method m -> Restler_static_string_constant (sprintf "%s%s" (m.ToString().ToUpper()) SPACE) |> stn
+    | Method m ->
+        [Restler_static_string_constant (sprintf "%s%s" (m.ToString().ToUpper()) SPACE)]
     | RequestElement.Path parts ->
         let x = parts
                 |> List.map (fun p -> getRestlerPythonPayload p false (*isQuoted*))
-                |> List.mapi (fun i primitive->
-                                     seq { yield Restler_static_string_constant "/"
-                                           for k in primitive do
-                                              yield k } )
-        x |> Seq.concat
+                |> (fun xs ->
+                    [
+                        for primitive in xs do
+                            yield Restler_static_string_constant "/"
+                            yield! primitive
+                    ]
+                )
+        x
     | QueryParameters qp ->
         match qp with
         | ParameterList bp ->
             let parameters =
-                bp |> Seq.map (fun p -> generatePythonParameter includeOptionalParameters ParameterKind.Query p)
-                   |> Seq.mapi (fun i primitive ->
+                bp |> List.ofSeq
+                   |> List.map (fun p -> generatePythonParameter includeOptionalParameters ParameterKind.Query p)
+                   |> List.mapi (fun i primitive ->
                                     if i > 0 then
-                                        [ Restler_static_string_constant "&" |> stn
-                                          primitive ]
-                                        |> Seq.concat
+                                        [
+                                            yield Restler_static_string_constant "&"
+                                            yield! primitive 
+                                        ]
+                                        
                                     else primitive
                                )
-                   |> Seq.concat
-            if parameters |> Seq.isEmpty then Seq.empty
+                   |> List.concat
+            if parameters |> List.isEmpty then
+                []
             else
-                [ Restler_static_string_constant "?" |> stn
-                  parameters ]
-                |> Seq.concat
+                [
+                    yield Restler_static_string_constant "?"
+                    yield! parameters 
+                ]
         | _ ->
             raise (UnsupportedType (sprintf "This request parameters payload type is not supported: %A" qp))
     | Body b ->
         match b with
         | ParameterList bp ->
             let parameters =
-                bp |> Seq.map (fun p -> generatePythonParameter includeOptionalParameters ParameterKind.Body p)
-                   |> Seq.mapi (fun i primitive->
+                bp |> List.ofSeq
+                   |> List.map (fun p -> generatePythonParameter includeOptionalParameters ParameterKind.Body p)
+                   |> List.mapi (fun i primitive->
                                     if i > 0 then
-                                        [ stn (Restler_static_string_jtoken_delim ",") ; primitive ] |> Seq.concat
-                                    else primitive
+                                        (Restler_static_string_jtoken_delim ",") :: primitive
+                                    else
+                                        primitive
                                )
-                   |> Seq.concat
-            if parameters |> Seq.isEmpty then Seq.empty
+                   |> List.concat
+            if parameters |> List.isEmpty then []
             else
-                [ stn (Restler_static_string_constant RETURN) ; parameters ] |> Seq.concat
+                (Restler_static_string_constant RETURN) :: parameters
         | Example (FuzzingPayload.Constant (PrimitiveType.String, exString)) ->
-            if String.IsNullOrEmpty exString then Seq.empty
+            if String.IsNullOrEmpty exString then []
             else
-                seq { yield Restler_static_string_constant RETURN
-                      yield Restler_static_string_constant exString }
+                [
+                    Restler_static_string_constant RETURN
+                    Restler_static_string_constant exString
+                ]
         | _ ->
             raise (UnsupportedType (sprintf "This request parameters payload type is not supported: %A." b))
 
     | Token t->
         match t with
         | tokStr ->
-            stn (Restler_static_string_constant (sprintf "%s%s" tokStr RETURN))
+            [Restler_static_string_constant (sprintf "%s%s" tokStr RETURN)]
     | RefreshableToken ->
-        stn (Restler_refreshable_authentication_token "authentication_token_tag")
+        [Restler_refreshable_authentication_token "authentication_token_tag"]
     | Headers h ->
-        h |> Seq.map (fun (name, content) -> Restler_static_string_constant (sprintf "%s: %s%s" name content RETURN))
+        h |> List.map (fun (name, content) -> Restler_static_string_constant (sprintf "%s: %s%s" name content RETURN))
     | HttpVersion v->
-        stn (Restler_static_string_constant (sprintf "%sHTTP/%s%s" SPACE v RETURN))
+        [Restler_static_string_constant (sprintf "%sHTTP/%s%s" SPACE v RETURN)]
     | ResponseParser r ->
         match r with
-        | None -> Seq.empty
+        | None -> []
         | Some responseParser ->
             let generateWriterStatement var =
                sprintf "%s.writer()" var
@@ -392,27 +397,28 @@ let generatePythonFromRequestElement includeOptionalParameters (e:RequestElement
                     (NameGenerators.generateProducerEndpointResponseParserFunctionName responseParser.writerVariables.Head.requestId)
                     writerVariablesList
 
-            stn (Response_parser postSend)
+            [Response_parser postSend]
     | Delimiter ->
-        stn (Restler_static_string_constant RETURN)
+        [Restler_static_string_constant RETURN]
 
 /// Generates the python restler grammar definitions corresponding to the request
 let generatePythonFromRequest (request:Request) includeOptionalParameters mergeStaticStrings =
     let getParameterPayload queryOrBodyParameters =
         queryOrBodyParameters |> List.head |> snd
 
-    let getMergedStaticStringSeq (strList:string list) =
+    let getMergedStaticStringSeq (strList:string seq) =
+
         let str =
             strList
             |> Seq.map (fun s ->
                             if isNull s then
                                 "null"
                             else s)
-            |> Seq.mapi (fun i line -> if i < strList.Length - 1 &&
+            |> Seq.mapi (fun i line -> if i < Seq.length strList - 1 &&
                                             // If both this and the next entry are blank lines,
                                             // the current one is not needed for indentation. Remove it.
                                             line.StartsWith("\n") &&
-                                            String.IsNullOrWhiteSpace (strList.[i+1]) then ""
+                                            String.IsNullOrWhiteSpace (Seq.item (i+1) strList) then ""
                                         else line)
             |> String.concat ""
         // Special handling is needed for the ending quote, because
@@ -423,14 +429,13 @@ let generatePythonFromRequest (request:Request) includeOptionalParameters mergeS
         //               "id":""");
         //      static_string('"');
         if str.EndsWith("\"") then
-            seq {
+            [
                 yield (str.[0..str.Length-2]
                        |> RequestPrimitiveType.Restler_static_string_constant)
                 yield ("\"" |> RequestPrimitiveType.Restler_static_string_constant)
-            }
+            ]
         else
-            stn (str
-                 |> RequestPrimitiveType.Restler_static_string_constant)
+            [str |> RequestPrimitiveType.Restler_static_string_constant]
 
     let requestElements = [
         Method request.method
@@ -447,14 +452,14 @@ let generatePythonFromRequest (request:Request) includeOptionalParameters mergeS
     ]
 
     requestElements
-    |> Seq.map (fun requestElement ->
+    |> List.map (fun requestElement ->
                     let primitives = generatePythonFromRequestElement includeOptionalParameters requestElement
                     match requestElement with
-                    | Body _ when mergeStaticStrings && primitives |> Seq.length > 1 ->
+                    | Body _ when mergeStaticStrings && primitives |> List.length > 1 ->
                         let filteredPrimitives =
                             primitives
                             // Filter empty strings
-                            |> Seq.filter (fun requestPrimitive ->
+                            |> List.filter (fun requestPrimitive ->
                                                 match requestPrimitive with
                                                 | RequestPrimitiveType.Restler_static_string_jtoken_delim s ->
                                                     not (String.IsNullOrEmpty s)
@@ -471,48 +476,50 @@ let generatePythonFromRequest (request:Request) includeOptionalParameters mergeS
                             // body checker to recognize the start of the body
                             // TODO: this should be removed and a special element for the start of the body should be
                             // used
-                            |> Seq.skip 2
+                            |> List.skip 2
                             // Combine static strings
-                            |> Seq.fold (fun (newPrimitiveSeq, nextList) requestPrimitive ->
-                                            match nextList |> List.tryLast with
+                            |> List.fold (fun (newPrimitiveSeq: RequestPrimitiveType ResizeArray, nextList: string ResizeArray) requestPrimitive ->
+                                            match nextList |> Seq.tryLast with
                                             | None ->
                                                 match requestPrimitive with
                                                 | RequestPrimitiveType.Restler_static_string_jtoken_delim s
                                                 | RequestPrimitiveType.Restler_static_string_constant s ->
-                                                    (newPrimitiveSeq, [ s ])
+                                                    let newList = ResizeArray<_>()
+                                                    newList.Add(s)
+                                                    (newPrimitiveSeq, newList)
                                                 | _ ->
-                                                    ([ newPrimitiveSeq ; stn requestPrimitive ]
-                                                     |> Seq.concat,
-                                                     [])
+                                                    newPrimitiveSeq.Add(requestPrimitive)
+                                                    (newPrimitiveSeq, ResizeArray<_>())
                                             | Some prev ->
                                                 match requestPrimitive with
                                                 | RequestPrimitiveType.Restler_static_string_jtoken_delim currentDelim ->
-                                                    (newPrimitiveSeq, nextList @ [currentDelim])
+                                                    nextList.Add(currentDelim)
+                                                    (newPrimitiveSeq, nextList)
                                                 | RequestPrimitiveType.Restler_static_string_constant currentStr ->
                                                     // The two strings should be combined.
-                                                    (newPrimitiveSeq, nextList @ [currentStr])
+                                                    nextList.Add(currentStr)
+                                                    (newPrimitiveSeq, nextList)
                                                 | _ ->
                                                     // Merge the list and append to the sequence
                                                     // Also append the current element
                                                     let mergedStaticStringSeq = getMergedStaticStringSeq nextList
-                                                    ([ newPrimitiveSeq
-                                                       mergedStaticStringSeq
-                                                       stn requestPrimitive
-                                                     ] |> Seq.concat, [])
+                                                    newPrimitiveSeq.AddRange(mergedStaticStringSeq)
+                                                    newPrimitiveSeq.Add(requestPrimitive)
+                                                    (newPrimitiveSeq, ResizeArray())
 
-                                        ) (Seq.empty, [])
+                                        ) (ResizeArray<_>(), ResizeArray<_>())
                         // Process the remaining elements in the body
                         let mergedStaticStringSeq = getMergedStaticStringSeq nextList
-                        [
-                          // Add back the first two elements
-                          filteredPrimitives |> Seq.take 2
-                          newPrimitiveSeq
-                          mergedStaticStringSeq ]
-                        |> Seq.concat
+
+                        // Add back the first two elements
+                        (filteredPrimitives |> List.take 2)
+                        @ (newPrimitiveSeq |> List.ofSeq)
+                        @ mergedStaticStringSeq 
+
                     | _ ->
                         primitives
                )
-    |> Seq.concat
+    |> List.concat
 
 /// The definitions required for the RESTler python grammar.
 /// Note: the purpose of this type is to aid in generating the grammar file.
@@ -538,17 +545,18 @@ type PythonGrammarElement =
     /// Comment
     | Comment of string
 
-let getResponseParsers (responseParsers:seq<ResponseParser>) =
+let getResponseParsers (responseParsers:ResponseParser list) =
 
     let random = System.Random(0)
 
     // First, define the dynamic variables initialized by the response parser
-    let dynamicObjectDefinitions = seq {
-        for r in responseParsers do
-            for writerVariable in r.writerVariables do
-                yield PythonGrammarElement.DynamicObjectDefinition
-                        (NameGenerators.generateDynamicObjectVariableDefinition writerVariable.accessPathParts writerVariable.requestId)
-    }
+    let dynamicObjectDefinitions = 
+        [
+            for r in responseParsers do
+                for writerVariable in r.writerVariables do
+                    yield PythonGrammarElement.DynamicObjectDefinition
+                            (NameGenerators.generateDynamicObjectVariableDefinition writerVariable.accessPathParts writerVariable.requestId)
+        ]
 
     let formatParserFunction (parser:ResponseParser) =
         let functionName = NameGenerators.generateProducerEndpointResponseParserFunctionName
@@ -556,7 +564,7 @@ let getResponseParsers (responseParsers:seq<ResponseParser>) =
 
         // Go through the producer fields and parse them all out of the response
         let responseParsingStatements =
-            let r = seq {
+            [
                 for w in parser.writerVariables do
                     let dynamicObjectVariableName = generateDynamicObjectVariableName w.requestId (Some w.accessPathParts) "_"
                     let tempVariableName = sprintf "temp_%d" (random.Next(10000))
@@ -578,8 +586,7 @@ let getResponseParsers (responseParsers:seq<ResponseParser>) =
                                             dynamicObjectVariableName
                                             tempVariableName
                     yield (emptyInitStatement, parsingStatement, initCheck, initStatement, tempVariableName)
-            }
-            r |> Seq.toList
+            ]
 
         let parsingStatementWithTryExcept parsingStatement =
             sprintf "
@@ -636,12 +643,11 @@ def %s(data):
         PythonGrammarElement.ResponseParserDefinition functionDefinition
 
     [
-        dynamicObjectDefinitions
-        responseParsers |> Seq.map (fun r -> formatParserFunction r)
+        yield! dynamicObjectDefinitions
+        yield! (responseParsers |> List.map (fun r -> formatParserFunction r))
     ]
-    |> Seq.concat
 
-let getRequests(requests:seq<Request>) includeOptionalParameters =
+let getRequests(requests:Request list) includeOptionalParameters =
     let quoteStringForPythonGrammar (s:string) =
         let s, delim =
             if s.Contains("\n") then s, "\"\"\""
@@ -733,55 +739,56 @@ let getRequests(requests:seq<Request>) includeOptionalParameters =
                 generatePythonFromRequest request includeOptionalParameters true
         let definition =
                 definition
-                |> Seq.map (fun p ->
-                                let str = (formatRestlerPrimitive p)
-                                if String.IsNullOrEmpty str then ""
-                                else sprintf "%s%s,\n" TAB str)
+                |> List.map formatRestlerPrimitive
+                |> List.filter (fun s -> not <| String.IsNullOrWhiteSpace s)
+                |> List.map (fun str -> sprintf "%s%s,\n" TAB str)
                 |> String.concat ""
 
         let requestIdComment = sprintf "# Endpoint: %s, method: %A" request.id.endpoint request.id.method
         let grammarRequestId = sprintf "requestId=\"%s\"" request.id.endpoint
 
         let assignAndAdd =
-            seq {
-                    yield requestIdComment
-                    yield "request = requests.Request(["
-                    yield definition
-                    yield "],"
-                    yield grammarRequestId
-                    yield ")"
-                    yield "req_collection.add_request(request)\n"
-                }
+            [
+                requestIdComment
+                "request = requests.Request(["
+                definition
+                "],"
+                grammarRequestId
+                ")"
+                "req_collection.add_request(request)\n"
+            ]
 
         let reqTxt = assignAndAdd |> String.concat "\n"
         reqTxt
 
     requests
-    |> Seq.map (fun r -> generatePythonRequest r)
+    |> List.map (fun r -> generatePythonRequest r)
 
 let generatePythonGrammar (grammar:GrammarDefinition) includeOptionalParameters =
     let getImportStatements() =
-        seq {
+        [
             yield PythonGrammarElement.Import (Some "__future__", "print_function")
             yield PythonGrammarElement.Import (None, "json")
             yield PythonGrammarElement.Import (Some "engine", "primitives")
             yield PythonGrammarElement.Import (Some "engine.core", "requests")
             yield PythonGrammarElement.Import (Some "engine.errors", "ResponseParsingException")
             yield PythonGrammarElement.Import (Some "engine", "dependencies")
-        }
+        ]
 
-    seq {
+    [
         yield PythonGrammarElement.Comment "\"\"\" THIS IS AN AUTOMATICALLY GENERATED FILE!\"\"\""
         yield! getImportStatements()
 
-        yield! getResponseParsers (grammar.Requests |> Seq.choose (fun req -> req.responseParser))
+        yield! getResponseParsers (grammar.Requests |> List.choose (fun req -> req.responseParser))
 
         yield PythonGrammarElement.RequestCollectionDefinition "req_collection = requests.RequestCollection([])"
 
+        Restler.Utilities.Logging.logTimingInfo "Get requests"
         let requests = getRequests grammar.Requests includeOptionalParameters
+        Restler.Utilities.Logging.logTimingInfo "Done get requests"
 
-        yield PythonGrammarElement.Requests (requests |> Seq.toList)
-    }
+        yield PythonGrammarElement.Requests requests
+    ]
 
 let codeGenElement element =
     match element with
@@ -798,8 +805,16 @@ let codeGenElement element =
     | PythonGrammarElement.Requests requests ->
         requests |> String.concat "\n"
 
-let generateCode (grammar:GrammarDefinition) includeOptionalParameters =
 
-    generatePythonGrammar grammar includeOptionalParameters
-    |> Seq.map (fun x -> codeGenElement x)
-    |> String.concat "\n"
+let generateCode (grammar:GrammarDefinition) includeOptionalParameters (write : string -> unit) =
+
+    let grammar = generatePythonGrammar grammar includeOptionalParameters
+
+    grammar
+    |> Seq.iteri (fun i x -> 
+        let element = codeGenElement x
+        if i = (Seq.length grammar) - 1 then
+            write(element)
+        else
+            write(element + "\n")
+    )

@@ -192,7 +192,7 @@ module private Parameters =
                                 match found.payload with
                                 | PayloadFormat.JToken payloadValue->
                                     let parameterGrammarElement =
-                                        generateGrammarElementForSchema declaredParameter.ActualSchema (Some payloadValue) []
+                                        generateGrammarElementForSchema declaredParameter.ActualSchema (Some payloadValue) [] id
                                     Some (declaredParameter.Name, parameterGrammarElement)
                         )
 
@@ -214,7 +214,7 @@ module private Parameters =
 
         let schemaPayload =
             if dataFuzzing || examplePayloads.IsNone then
-                Some (parameterList |> Seq.map (fun p -> (p.Name, generateGrammarElementForSchema p.ActualSchema None [])))
+                Some (parameterList |> Seq.map (fun p -> (p.Name, generateGrammarElementForSchema p.ActualSchema None [] id)))
             else None
 
         match examplePayloads, schemaPayload with
@@ -461,7 +461,7 @@ let generateRequestGrammar (swaggerDocs:Types.ApiSpecFuzzingConfig list)
                         let allResponseProperties = seq {
                             for r in m.Value.Responses do
                                 if validResponseCodes |> List.contains r.Key && not (isNull r.Value.ActualResponse.Schema) then
-                                    yield generateGrammarElementForSchema r.Value.ActualResponse.Schema None []
+                                    yield generateGrammarElementForSchema r.Value.ActualResponse.Schema None [] id
                         }
 
                         // 'allResponseProperties' contains the schemas of all possible responses

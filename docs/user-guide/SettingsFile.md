@@ -91,7 +91,7 @@ Set to false to disable sending user agent with requests
 ### max_async_resource_creation_time: float (default 20)
 The maximum amount of time, in seconds, to wait for a resource to be created before continuing.
 
-### max_combinations: int (default 1000)
+### max_combinations: int (default 20)
 The maximum number of parameter value combinations for parameters within a given request payload.
 
 ### max_request_execution_time: float (default 120, max 600)

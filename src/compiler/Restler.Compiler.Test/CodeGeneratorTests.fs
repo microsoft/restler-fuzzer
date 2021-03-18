@@ -33,9 +33,12 @@ module CodeGenerator =
                                 (Path.Combine(grammarOutputDirectory1, Restler.Workflow.Constants.DefaultJsonGrammarFileName))
             let pythonGrammar1 = File.ReadAllText (Path.Combine(grammarOutputDirectory1, Restler.Workflow.Constants.DefaultRestlerGrammarFileName))
 
-            let pythonGrammar2 = Restler.CodeGenerator.Python.generateCode
-                                    grammar1 configs.["demo_server"].IncludeOptionalParameters
-            Assert.True((pythonGrammar1 = pythonGrammar2), "grammars are not equal")
+            use sw = new System.IO.StringWriter()
+
+            Restler.CodeGenerator.Python.generateCode
+                grammar1 configs.["demo_server"].IncludeOptionalParameters sw.Write
+            
+            Assert.True((pythonGrammar1 = sw.GetStringBuilder().ToString()), "grammars are not equal")
 
 
         [<Fact>]
@@ -76,7 +79,7 @@ module CodeGenerator =
                     responseParser = None
                     requestMetadata = { isLongRunningOperation = false }
                 }
-            let elements = Restler.CodeGenerator.Python.getRequests (stn request) true
+            let elements = Restler.CodeGenerator.Python.getRequests [request] true
 
             Assert.True(elements |> Seq.length > 0)
 

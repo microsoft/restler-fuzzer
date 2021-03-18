@@ -814,7 +814,7 @@ let extractDependencies (requestData:(RequestId*RequestData)[])
             |> Seq.concat
         | _ -> Seq.empty
 
-    logTimingInfo "Get consumers."
+    logTimingInfo "Getting consumers..."
 
     let pathConsumers =
         requestData
@@ -889,7 +889,7 @@ let extractDependencies (requestData:(RequestId*RequestData)[])
                                 )
                 r, distinctConsumers)
 
-    logTimingInfo "Get producers."
+    logTimingInfo "Getting producers..."
 
     requestData
     // Only include POST, PUT, PATCH, and GET requests.  Others are never producers.
@@ -1245,6 +1245,7 @@ module DependencyLookup =
         let (parameterName, properties) = requestParameter
         let defaultPayload = (Fuzzable (PrimitiveType.String, ""))
         let dependencyPayload = getConsumerPayload dependencies pathPayload requestId parameterName EmptyAccessPath defaultPayload
+
         let payloadWithDependencies =
             if dependencyPayload <> defaultPayload then
                 Tree.LeafNode

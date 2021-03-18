@@ -39,7 +39,7 @@ RESTler was designed to run on 64-bit machines with Windows or Linux.
 ### **Build instructions**
 
 Prerequisites: Install [Python 3.8.2](https://www.python.org/downloads/) and
-[.NET core SDK 3.1](https://dotnet.microsoft.com/download/dotnet-core?utm_source=getdotnetcorecli&utm_medium=referral), for your appropriate OS.
+[.NET 5.0](https://dotnet.microsoft.com/download/dotnet-core?utm_source=getdotnetcorecli&utm_medium=referral), for your appropriate OS.
 
 Create a directory where you'd like to place the RESTler binaries:
 
@@ -59,7 +59,7 @@ Note: if you get nuget error NU1403 when building, a quick workaround is to clea
 RESTler binary drops are coming soon.
 
 Prerequisites: Install [Python 3.8.2](https://www.python.org/downloads/) and
-[.NET core SDK 3.1](https://dotnet.microsoft.com/download/dotnet-core?utm_source=getdotnetcorecli&utm_medium=referral) or higher, for your appropriate OS.
+[.NET 5.0](https://dotnet.microsoft.com/download/dotnet-core?utm_source=getdotnetcorecli&utm_medium=referral) or higher, for your appropriate OS.
 
 
 ## Using RESTler
@@ -140,7 +140,7 @@ email to ensure we received your original message. Further information,
 including the [MSRC PGP](https://technet.microsoft.com/en-us/security/dn606155)
 key, can be found in the [Security TechCenter](https://technet.microsoft.com/en-us/security/default).
 
-For additional details, see [Security.md](Security.md).
+For additional details, see [Security.md](SECURITY.md).
 
 
 # Privacy & Cookies

@@ -14,8 +14,11 @@ open Microsoft.FSharpLu.Diagnostics.Process
 open Restler.Telemetry
 
 [<Literal>]
-let CurrentVersion = "7.1.0"
+let CurrentVersion = "7.3.0"
 let EngineErrorCode = -2
+
+let exitRestler status =
+    exit status
 
 let usage() =
     // Usage instructions should be formatted to ~100 characters per line.
@@ -24,6 +27,7 @@ let usage() =
 
   restler --version
           [--disable_log_upload] [--logsUploadRootDirPath <log upload directory>]
+          [--python_path <full path to python executable>]
           [ compile <compile options> |
             test <test options> |
             fuzz-lean <test options> |
@@ -34,6 +38,8 @@ let usage() =
             Disable uploading full logs to the configured log upload directory.
         --logsUploadRootDirPath <path where to upload logs>
             Upload full logs to this upload directory.
+        --python_path <full path to python executable>
+            Specify the full path to the python executable with which to launch the RESTler engine.
 
     compile options:
         <compiler config file>
@@ -89,7 +95,7 @@ let usage() =
         <Required options from 'test' mode as above:
             --token_refresh_cmd. >
         --replay_log <path to the RESTler bug bucket repro file>. "
-    exit 1
+    exitRestler 1
 
 module Paths =
 
@@ -174,6 +180,27 @@ module Fuzz =
             ("--disable_checkers", "namespacerule")
         ]
 
+    let getPythonVersionString pythonExeName workingDirectory = async {
+        let! versionStr = async {
+            try
+                let! result =
+                    startProcessAsync
+                        pythonExeName
+                        "--version"
+                        workingDirectory
+                        (ProcessStartFlags.RedirectStandardError ||| ProcessStartFlags.RedirectStandardOutput)
+                        NoTimeout
+                        None
+                if result.ExitCode = 0 then
+                    return Some result.StandardOutput
+                else
+                    return None
+            with ex ->
+                return None
+        }
+        return versionStr
+    }
+
     /// Gets the RESTler engine parameters common to any fuzzing mode
     let getCommonParameters (parameters:EngineParameters) maxDurationHours =
 
@@ -206,7 +233,7 @@ module Fuzz =
              | Some r -> sprintf "--path_regex %s" r
              | None -> "")
             (if String.IsNullOrWhiteSpace parameters.settingsFilePath then ""
-             else sprintf "--settings %s" parameters.settingsFilePath)
+             else sprintf "--settings \"%s\"" parameters.settingsFilePath)
 
             // Checkers
             (if parameters.checkerOptions.Length > 0 then
@@ -230,17 +257,45 @@ module Fuzz =
             "--garbage_collection_interval 30"
         ]
 
-    let runRestlerEngine workingDirectory engineArguments = async {
+    let runRestlerEngine workingDirectory engineArguments pythonFilePath = async {
         if not (File.Exists Paths.RestlerPyInstallerPath || File.Exists Paths.RestlerPyPath) then
             Trace.failwith "Could not find path to RESTler engine.  Please re-install RESTler or contact support."
 
         let restlerParameterCmdLine = engineArguments |> String.concat " "
+        let pythonFilePaths =
+            match pythonFilePath with
+            | None ->
+                match Platform.getOSPlatform() with
+                | Platform.Platform.Linux ->
+                    ["python3" ; "python"]
+                | Platform.Platform.Windows ->
+                    ["python.exe"]
+            | Some p -> [p]
+
+        let! validPythonFilePaths =
+            pythonFilePaths
+            |> List.map (fun fp ->
+                            // Use the first python executable that can be successfully invoked
+                            async {
+                                let! versionString = getPythonVersionString fp workingDirectory
+                                match versionString with
+                                | None -> return None
+                                | Some str ->
+                                    return Some (fp, str)
+                            })
+            |> Async.Parallel
 
         let processName, commandArgs =
             if (File.Exists Paths.RestlerPyInstallerPath) then
                 Paths.RestlerPyInstallerPath, restlerParameterCmdLine
             else
-                "python", (sprintf "-B %s %s" Paths.RestlerPyPath restlerParameterCmdLine)
+                match validPythonFilePaths |> Seq.choose (id) |> Seq.tryHead with
+                | None ->
+                    printfn "ERROR: python (%A) was not found on the path" pythonFilePaths
+                    usage()
+                | Some (pythonFilePath, versionString) ->
+                    printfn "Using python: '%s' (%s)" pythonFilePath (versionString.Trim())
+                    pythonFilePath, (sprintf "-B \"%s\" %s" Paths.RestlerPyPath restlerParameterCmdLine)
 
         let! result =
             startProcessAsync
@@ -289,7 +344,7 @@ module Fuzz =
         return result.ExitCode
     }
 
-    let runSmokeTest workingDirectory (parameters:EngineParameters) = async {
+    let runSmokeTest workingDirectory (parameters:EngineParameters) pythonFilePath = async {
         let maxDurationHours =
             if parameters.maxDurationHours = float 0 then None
             else Some parameters.maxDurationHours
@@ -301,10 +356,10 @@ module Fuzz =
                 "--fuzzing_mode directed-smoke-test"
             ]
 
-        return! runRestlerEngine workingDirectory smokeTestParameters
+        return! runRestlerEngine workingDirectory smokeTestParameters pythonFilePath
     }
 
-    let fuzz workingDirectory (parameters:EngineParameters) = async {
+    let fuzz workingDirectory (parameters:EngineParameters) pythonFilePath = async {
         let maxDurationHours =
             if parameters.maxDurationHours = float 0 then DefaultFuzzingDurationHours
             else parameters.maxDurationHours
@@ -316,10 +371,10 @@ module Fuzz =
                 "--fuzzing_mode bfs-cheap"
             ]
 
-        return! runRestlerEngine workingDirectory fuzzingParameters
+        return! runRestlerEngine workingDirectory fuzzingParameters pythonFilePath
     }
 
-    let replayLog workingDirectory (parameters:EngineParameters) = async {
+    let replayLog workingDirectory (parameters:EngineParameters) pythonFilePath = async {
         let replayLogFilePath =
             match parameters.replayLogFilePath with
             | None ->
@@ -334,7 +389,7 @@ module Fuzz =
                sprintf "--replay_log %s" replayLogFilePath
             ]
 
-        return! runRestlerEngine workingDirectory fuzzingParameters
+        return! runRestlerEngine workingDirectory fuzzingParameters pythonFilePath
     }
 
 /// Analyzes the checker arguments specified by the user and returns
@@ -484,6 +539,11 @@ let rec parseArgs (args:DriverArgs) = function
             Logging.logError <| sprintf "Directory %s does not exist." logsUploadDirPath
             usage()
         parseArgs { args with logsUploadRootDirectoryPath = Some logsUploadDirPath } rest
+    | "--python_path"::pythonFilePath::rest ->
+        if not (File.Exists pythonFilePath) then
+            Logging.logError <| sprintf "The specified python path %s does not exist." pythonFilePath
+            usage()
+        parseArgs { args with pythonFilePath = Some pythonFilePath } rest
     | "compile"::"--api_spec"::swaggerSpecFilePath::rest ->
         if not (File.Exists swaggerSpecFilePath) then
             Logging.logError <| sprintf "API specification file %s does not exist." swaggerSpecFilePath
@@ -627,7 +687,7 @@ let tryRecreateDir dirPath =
                                    close them, and re-try RESTler."
                                   dirPath
             Logging.logError <| message
-            exit 1
+            exitRestler 1
 
     Directory.CreateDirectory(dirPath) |> ignore
 
@@ -655,6 +715,7 @@ let main argv =
                            taskParameters = Undefined
                            workingDirectoryPath = Environment.CurrentDirectory
                            logsUploadRootDirectoryPath = logShareDirPath
+                           pythonFilePath = None
                          }
                          (argv |> Array.toList)
 
@@ -677,10 +738,9 @@ let main argv =
         tryRecreateDir taskWorkingDirectory
         let logsUploadDirPath =
             match args.logsUploadRootDirectoryPath with
-            | None ->
-                Logging.logInfo <| "Log share was not specified.  Logs will not be uploaded."
-                None
+            | None -> None
             | Some rootDir ->
+                Logging.logInfo <| sprintf "Log share was specified.  Logs will be uploaded to %s." rootDir
                 Some (sprintf "%s_%s" (LogCollection.getLogsDirPath rootDir) taskName)
 
         try
@@ -708,7 +768,7 @@ let main argv =
                         |}
                 | Test, EngineParameters p
                 | FuzzLean, EngineParameters p ->
-                    let! result = Fuzz.runSmokeTest taskWorkingDirectory p
+                    let! result = Fuzz.runSmokeTest taskWorkingDirectory p args.pythonFilePath
                     let! analyzerResult = async {
                         if p.runResultsAnalyzer then
                             let! analyzerResult = Fuzz.runResultsAnalyzer taskWorkingDirectory p.mutationsFilePath
@@ -734,7 +794,7 @@ let main argv =
                         |}
 
                 | Fuzz, EngineParameters p ->
-                    let! result =  Fuzz.fuzz taskWorkingDirectory p
+                    let! result =  Fuzz.fuzz taskWorkingDirectory p args.pythonFilePath
                     let! analyzerResult = async {
                         if p.runResultsAnalyzer then
                             let! analyzerResult = Fuzz.runResultsAnalyzer taskWorkingDirectory p.mutationsFilePath
@@ -759,7 +819,7 @@ let main argv =
                             testingSummary = testingSummary
                         |}
                 | Replay, EngineParameters p ->
-                    let! result = Fuzz.replayLog taskWorkingDirectory p
+                    let! result = Fuzz.replayLog taskWorkingDirectory p args.pythonFilePath
                     return
                         {|
                             taskResult = result.ExitCode

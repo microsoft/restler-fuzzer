@@ -22,10 +22,10 @@ module Constants =
     let DefaultEngineSettingsFileName = "engine_settings.json"
 
 let generatePython grammarOutputDirectoryPath config grammar =
-    let code = Restler.CodeGenerator.Python.generateCode grammar config.IncludeOptionalParameters
-
     let codeFile = Path.Combine(grammarOutputDirectoryPath, Constants.DefaultRestlerGrammarFileName)
-    System.IO.File.WriteAllText(codeFile, code)
+    use stream = System.IO.File.CreateText(codeFile)
+    Restler.CodeGenerator.Python.generateCode grammar config.IncludeOptionalParameters stream.Write
+
 
 let getSwaggerDataForDoc doc workingDirectory =
     let swaggerDoc = Restler.Swagger.getSwaggerDocument doc.SpecFilePath workingDirectory
@@ -65,7 +65,7 @@ let getSwaggerDataForDoc doc workingDirectory =
     {   swaggerDoc = swaggerDoc
         dictionary = dictionary
         globalAnnotations = globalAnnotations
-    }
+    }   
 
 let generateGrammarFromSwagger grammarOutputDirectoryPath swaggerDoc config =
 
@@ -156,10 +156,16 @@ let generateGrammarFromSwagger grammarOutputDirectoryPath swaggerDoc config =
                         globalExternalAnnotations
 
     let grammarFilePath = Path.Combine(grammarOutputDirectoryPath, Constants.DefaultJsonGrammarFileName)
-    Microsoft.FSharpLu.Json.Compact.serializeToFile grammarFilePath grammar
+
+    use fs = new Restler.Utilities.Stream.FileStreamWithoutPreamble(grammarFilePath, IO.FileMode.Create)
+    Microsoft.FSharpLu.Json.Compact.serializeToStream fs grammar
+    fs.Flush()
+    fs.Dispose()
     // The below statement is present as an assertion, to check for deserialization issues for
     // specific grammars.
-    Microsoft.FSharpLu.Json.Compact.deserializeFile<GrammarDefinition> grammarFilePath
+
+    let ignoreStream = new System.IO.MemoryStream()
+    Microsoft.FSharpLu.Json.Compact.deserializeStream<GrammarDefinition>(ignoreStream)
     |> ignore
 
     let examplesFilePath = Path.Combine(grammarOutputDirectoryPath, Constants.DefaultExampleMetadataFileName)
@@ -226,8 +232,8 @@ let generateRestlerGrammar swaggerDoc (config:Config) =
     let grammar =
         match config.GrammarInputFilePath with
         | Some grammarFilePath when File.Exists grammarFilePath ->
-            Microsoft.FSharpLu.Json.Compact.deserializeFile<GrammarDefinition>
-                    grammarFilePath
+            use f = System.IO.File.OpenRead(grammarFilePath)
+            Microsoft.FSharpLu.Json.Compact.deserializeStream<GrammarDefinition> f
         | None ->
              logTimingInfo "Generating grammar..."
              generateGrammarFromSwagger grammarOutputDirectoryPath swaggerDoc config

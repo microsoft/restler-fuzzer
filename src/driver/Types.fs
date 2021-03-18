@@ -131,6 +131,10 @@ type DriverArgs =
         /// The root directory to which logs should be uploaded
         /// If 'None', telemetry is not written
         logsUploadRootDirectoryPath : string option
+
+        /// The full path to the python executable that should be used
+        /// to launch the RESTler engine
+        pythonFilePath : string option
     }
 
 
@@ -187,3 +191,18 @@ module Logging =
     let logError (message:string) =
         printfn "\nERROR: %s\n" message
         Trace.error "%s" message
+
+module Platform =
+    type Platform =
+        | Linux
+        | Windows
+
+    open System
+    open System.Runtime.InteropServices
+    let getOSPlatform() =
+        if RuntimeInformation.IsOSPlatform(OSPlatform.Linux) then
+            Platform.Linux
+        else if RuntimeInformation.IsOSPlatform(OSPlatform.Windows) then
+            Platform.Windows
+        else
+            raise (Exception("Platform not supported."))
