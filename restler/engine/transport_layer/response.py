@@ -67,6 +67,21 @@ class HttpResponse(object):
             return None
 
     @property
+    def headers(self):
+        """ The headers of the response
+
+        @return: The headers
+        @rtype : List[Str]
+
+        """
+        try:
+            response_without_body = self._str.split(DELIM)[0]
+            # assumed format: HTTP/1.1 STATUS_CODE STATUS TEXT\r\nresponse...
+            return response_without_body.split(" ", 2)[2].split('\r\n')[1:]
+        except:
+            return None
+
+    @property
     def json_body(self):
         """ The json portion of the body if exists.
 

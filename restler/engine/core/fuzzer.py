@@ -5,6 +5,7 @@ import threading
 
 import engine.core.driver as driver
 import utils.logger as logger
+import traceback
 
 from engine.core.fuzzing_monitor import Monitor
 from engine.core.requests import GrammarRequestCollection
@@ -52,7 +53,7 @@ class FuzzingThread(threading.Thread):
         except InvalidDictionaryException:
             pass
         except Exception as err:
-            self._exception = str(err)
+            self._exception = traceback.format_exc()
 
     def join(self, *args):
         """ Overrides thread join function

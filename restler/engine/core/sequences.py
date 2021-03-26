@@ -8,6 +8,7 @@ import sys
 import copy
 import time
 import json
+import datetime
 
 import engine.core.async_request_utilities as async_request_utilities
 import engine.core.request_utilities as request_utilities
@@ -42,7 +43,8 @@ class SentRequestData(object):
 
 class RenderedSequence(object):
     """ RenderedSequence class """
-    def __init__(self, sequence=None, valid=False, failure_info=None, final_request_response=None):
+    def __init__(self, sequence=None, valid=False, failure_info=None, final_request_response=None,
+                 response_datetime=None):
         """ Initializes RenderedSequence object
 
         @param sequence: The sequence that was rendered
@@ -59,6 +61,7 @@ class RenderedSequence(object):
         self.valid = valid
         self.failure_info = failure_info
         self.final_request_response = final_request_response
+        self.final_response_datetime = response_datetime
 
 class Sequence(object):
     """ Implements basic sequence logic.  """
@@ -413,7 +416,9 @@ class Sequence(object):
                 and not resource_error\
                 and response.has_valid_code()
             # register latest client/server interaction and add to the status codes list
-            timestamp_micro = int(time.time()*10**6)
+            response_datetime = datetime.datetime.now(datetime.timezone.utc)
+            timestamp_micro = int(response_datetime.timestamp()*10**6)
+
             self.status_codes.append(status_codes_monitor.RequestExecutionStatus(timestamp_micro,
                                                                      request.hex_definition,
                                                                      status_code,
@@ -449,9 +454,11 @@ class Sequence(object):
             if lock is not None:
                 lock.release()
 
+            datetime_format = "%Y-%m-%d %H:%M:%S"
             # return a rendered clone if response indicates a valid status code
             if rendering_is_valid or Settings().ignore_feedback:
-                return RenderedSequence(duplicate, valid=True, final_request_response=response)
+                return RenderedSequence(duplicate, valid=True, final_request_response=response,
+                                        response_datetime=response_datetime.strftime(datetime_format))
             else:
                 information = None
                 if response.has_valid_code():
@@ -461,7 +468,9 @@ class Sequence(object):
                         information = FailureInformation.RESOURCE_CREATION
                 elif response.has_bug_code():
                     information = FailureInformation.BUG
-                return RenderedSequence(duplicate, valid=False, failure_info=information, final_request_response=response)
+                return RenderedSequence(duplicate, valid=False, failure_info=information,
+                                        final_request_response=response,
+                                        response_datetime=response_datetime.strftime(datetime_format))
 
         return RenderedSequence(None)
 

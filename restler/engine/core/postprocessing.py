@@ -54,6 +54,12 @@ def delete_create_once_resources(destructors, fuzzing_requests):
                 destructor.stats.valid = 1
                 destructor.stats.status_code = renderings.final_request_response.status_code
                 destructor.stats.status_text = renderings.final_request_response.status_text
+
+                destructor.stats.sample_request.set_request_stats(
+                    renderings.sequence.sent_request_data_list[-1].rendered_data)
+                destructor.stats.sample_request.set_response_stats(renderings.final_request_response,
+                                                                   renderings.final_response_datetime)
+
         except Exception as error:
             msg = f"Failed to delete create_once resource: {error!s}"
             logger.raw_network_logging(msg)
@@ -65,6 +71,10 @@ def delete_create_once_resources(destructors, fuzzing_requests):
                     destructor.stats.status_code = renderings.final_request_response.status_code
                     destructor.stats.status_text = renderings.final_request_response.status_text
                     destructor.stats.error_msg = renderings.final_request_response.body
+                    destructor.stats.sample_request.set_request_stats(
+                        renderings.sequence.sent_request_data_list[-1].rendered_data)
+                    destructor.stats.sample_request.set_response_stats(renderings.final_request_response, renderings.final_response_datetime)
+
             pass
 
     Monitor().current_fuzzing_generation += 1

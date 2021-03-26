@@ -211,6 +211,11 @@ def apply_create_once_resources(fuzzing_requests):
                         resource_gen_req.stats.valid = 1
                         resource_gen_req.stats.status_code = renderings.final_request_response.status_code
                         resource_gen_req.stats.status_text = renderings.final_request_response.status_text
+                        resource_gen_req.stats.sample_request.set_request_stats(
+                            renderings.sequence.sent_request_data_list[-1].rendered_data)
+                        resource_gen_req.stats.sample_request.set_response_stats(renderings.final_request_response,
+                                                                                 renderings.final_response_datetime)
+
                 if req.is_destructor():
                     # Add destructors to the destructor list that will be returned
                     destructors.add(req)

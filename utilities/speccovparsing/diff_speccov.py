@@ -28,6 +28,9 @@ def diff_reqs(left_req, right_req):
     # NOTE: Any differences in keys here will either cause a failure or be
     # ignored. The files are expected to have matching formats.
     for key in left_req.keys():
+        # Skip the sample request, which contains concrete values in paths, timestamps, etc.
+        if key == "sample_request":
+            continue
         try:
             if (type(left_req[key]) != type(right_req[key]))\
             or left_req[key] != right_req[key]:
