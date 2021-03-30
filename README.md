@@ -1,5 +1,21 @@
 # RESTler
 
+## Setting up RESTler Docker CLI
+As part of our practical computer security project, we've decided to create a docker container for RESTler to increase its portability. With this docker container, we don't have to manage RESTler's dependencies locally. We also built a shell script that can be used as a command-line tool.
+
+1. Build the docker container
+```
+./build_docker.sh
+```
+1. Use the restler.sh script to execute RESTler.
+Example run RESTler from the command line.
+```
+wget https://petstore.swagger.io/v2/swagger.json
+./restler.sh compile swagger.json
+```
+
+You can add `restler.sh` to your PATH or to an alias for easy access in your CLI.
+
 ## What is RESTler?
 
 RESTler is the *first stateful REST API fuzzing tool* for automatically
