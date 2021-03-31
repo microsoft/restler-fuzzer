@@ -39,6 +39,8 @@ class HttpSock(object):
 
         self.connection_settings = connection_settings
 
+        self.ignore_decoding_failures = Settings().ignore_decoding_failures
+
         try:
             self._sock = None
             host = Settings().host
@@ -208,7 +210,16 @@ class HttpSock(object):
             if len(buf) == 0:
                 return data
 
-            data += buf.decode(UTF8)
+            try:
+                data += buf.decode(UTF8)
+            except Exception as ex:
+                if self.ignore_decoding_failures:
+                    RAW_LOGGING(f'Failed to decode header data due to {ex} \
+                        when decoding received bytes. \
+                        Trying again and ignoring offending bytes.')
+                    data += buf.decode(UTF8, "ignore")
+                else:
+                    raise
 
         # Handle chunk encoding
         chuncked_encoding = False
@@ -226,7 +237,16 @@ class HttpSock(object):
                 if len(buf) == 0:
                     return data
 
-                data += buf.decode(UTF8)
+                try:
+                    data += buf.decode(UTF8)
+                except Exception as ex:
+                    if self.ignore_decoding_failures:
+                        RAW_LOGGING(f'Failed to decode chunk encoding data due to {ex}. \
+                            Trying again while ignoring offending bytes.')
+                        data += buf.decode(UTF8, "ignore")
+                    else:
+                        raise
+
                 if data.endswith(DELIM):
                     return data
 
@@ -255,7 +275,15 @@ class HttpSock(object):
                 return data
 
             bytes_remain -= len(buf)
-            data += buf.decode(UTF8)
+            try:
+                data += buf.decode(UTF8)
+            except Exception as ex:
+                if self.ignore_decoding_failures:
+                    RAW_LOGGING(f'Failed to decode rest of socket data due to {ex}. \
+                        Trying again while ignoring offending bytes.')
+                    data += buf.decode(UTF8, "ignore")
+                else:
+                    raise
 
         return data
 
