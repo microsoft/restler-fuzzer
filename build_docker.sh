@@ -1,1 +1,1 @@
-docker build -t microsoft/restler-fuzzer:7.3.0
+docker build -t microsoft/restler-fuzzer:7.3.0 .
