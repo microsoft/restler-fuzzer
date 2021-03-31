@@ -22,6 +22,7 @@ import engine.primitives as primitives
 import engine.dependencies as dependencies
 import engine.mime.multipart_formdata as multipart_formdata
 from enum import Enum
+from engine.transport_layer import messaging
 
 class EmptyRequestException(Exception):
     pass
@@ -35,6 +36,58 @@ class FailureInformation(Enum):
     PARSER = 3
     BUG = 4
 
+class RenderedRequestStats(object):
+    """ Class used for encapsulating data about a specific rendered request and its response.
+        This data is included in the spec coverage report.
+        However, this data includes run-specific information
+        and should not be used for diffing spec coverage. """
+    def __init__(self):
+        self.request_sent_timestamp = None
+        self.response_received_timestamp = None
+
+        self.request_uri = None
+        self.request_headers = None
+        self.request_body = None
+
+        self.response_headers = None
+        self.response_body = None
+
+    def set_request_stats(self, request_text):
+        """ Helper to set the request statistics from the text.
+            Parses the request text and initializes headers, uri, and body
+            separately.
+
+        @return: None
+        @rtype : None
+
+        """
+        try:
+            split_body = request_text.split(messaging.DELIM)
+            split_headers = split_body[0].split("\r\n")
+            self.request_uri = split_headers[0].split(" ")[1]
+            self.request_headers = split_headers[1:]
+
+            if len(split_body) > 0 and split_body[1]:
+                self.request_body = split_body[1]
+        except:
+            logger.write_to_main(
+                            f"Error setting request stats for text: {request_text}",
+                            print_to_console=True
+                        )
+            pass
+
+    def set_response_stats(self, final_request_response, final_response_datetime):
+        """ Helper to set the response headers and body.
+
+        @return: None
+        @rtype : None
+
+        """
+        self.response_headers = final_request_response.headers
+        self.response_body = final_request_response.body
+        self.response_received_timestamp = final_response_datetime
+
+
 class SmokeTestStats(object):
     """ Class used for logging stats during directed-smoke-test """
     def __init__(self):
@@ -42,9 +95,12 @@ class SmokeTestStats(object):
         self.matching_prefix = {} # {"id": <prefix_hex>, "valid": <0/1>}
         self.valid = 0
         self.failure = None
+
         self.error_msg = None
         self.status_code = None
         self.status_text = None
+
+        self.sample_request = RenderedRequestStats()
 
 class Request(object):
     """ Request Class. """

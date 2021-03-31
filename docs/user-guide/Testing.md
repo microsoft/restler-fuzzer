@@ -71,6 +71,24 @@ Each request is represented by a hash of its definition.
         "status_code": "400",
         "status_text": "BAD REQUEST",
         "error_message": "{\n    \"errors\": {\n        \"id\": \"'5882' is not of type 'integer'\"\n    },\n    \"message\": \"Input payload validation failed\"\n}\n",
+        "sample_request": {
+            "request_sent_timestamp": null,
+            "response_received_timestamp": "2021-03-31 18:20:14",
+            "request_uri": "/api/blog/posts/5882",
+            "request_headers": [
+                "Accept: application/json",
+                "Host: localhost:8888",
+                "Content-Type: application/json"
+            ],
+            "request_body": "{\n    \"id\":\"5882\",\n    \"checksum\":\"fuzzstring\",\n    \"body\":\"fuzzstring\"}\r\n",
+            "response_headers": [
+                "Content-Type: application/json",
+                "Content-Length: 124",
+                "Server: Werkzeug/0.16.0 Python/3.7.8",
+                "Date: Wed, 31 Mar 2021 18:20:14 GMT"
+            ],
+            "response_body": "{\n    \"errors\": {\n        \"id\": \"'5882' is not of type 'integer'\"\n    },\n    \"message\": \"Input payload validation failed\"\n}\n"
+        },
         "request_order": 4
     },
 ```
@@ -92,6 +110,8 @@ the appropriate __"invalid_due_to_..."__ value will be set to 1.
   but there was a failure while parsing the response data.
   * "500" will be set if a 5xx bug was detected.
 * The __"status_code"__ and __"status_text"__ values are the response values received from the server.
+* The __"sample_request"__ contains the concrete values of the sent request and received response for which
+the coverage data is being reported.
 * The __"error_message"__ value will be set to the response body if the request was not "valid".
 * The __"request_order"__ value is the 0 indexed order that the request was sent.
   * Requests sent during "preprocessing" or "postprocessing" will explicitely say so.
