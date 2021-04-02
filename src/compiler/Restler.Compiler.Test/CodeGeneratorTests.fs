@@ -37,7 +37,7 @@ module CodeGenerator =
 
             Restler.CodeGenerator.Python.generateCode
                 grammar1 configs.["demo_server"].IncludeOptionalParameters sw.Write
-            
+
             Assert.True((pythonGrammar1 = sw.GetStringBuilder().ToString()), "grammars are not equal")
 
 
@@ -55,8 +55,9 @@ module CodeGenerator =
                 [
                     Method OperationMethod.Get
                     Path pathPayload
-                    QueryParameters (ParameterList ["page", q1 ; "payload", q2])
-                    Body (ParameterList  ["theBody",b1])
+                    QueryParameters (ParameterList [{ name = "page" ; payload = q1 ; serialization = None }
+                                                    { name = "payload"; payload = q2; serialization = None} ])
+                    Body (ParameterList  [{ name = "theBody" ; payload = b1 ; serialization = None}])
                     RequestElement.HttpVersion "1.1"
                     Headers [("Accept", "application/json")
                              ("Host", "fromSwagger")
@@ -69,8 +70,9 @@ module CodeGenerator =
 
                     method = OperationMethod.Get
                     path = pathPayload
-                    queryParameters = [(ParameterPayloadSource.Examples, ParameterList ["page", q1 ; "payload", q2])]
-                    bodyParameters =  [ParameterPayloadSource.Examples, (ParameterList ["thebody", b1]) ]
+                    queryParameters = [(ParameterPayloadSource.Examples, ParameterList [{ name = "page"; payload = q1; serialization = None}
+                                                                                        { name = "payload"; payload = q2; serialization = None}])]
+                    bodyParameters =  [ParameterPayloadSource.Examples, (ParameterList [{ name = "thebody"; payload = b1; serialization = None}]) ]
                     httpVersion = "1.1"
                     headers = [("Accept", "application/json")
                                ("Host", "fromSwagger")
@@ -97,7 +99,7 @@ module CodeGenerator =
             let l2 = LeafNode p2
             let par = InternalNode (r, [l1 ; l2])
 
-            let result = Restler.CodeGenerator.Python.generatePythonParameter true ParameterKind.Body ("theBody", par)
+            let result = Restler.CodeGenerator.Python.generatePythonParameter true ParameterKind.Body { name = "theBody"; payload = par; serialization = None }
 
             let hasRegion = result |> Seq.tryFind (fun s -> s = (Restler_static_string_constant "\"region\":"))
             Assert.True(hasRegion.IsSome, "region not found")

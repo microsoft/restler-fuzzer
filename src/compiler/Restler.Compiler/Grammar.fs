@@ -227,9 +227,31 @@ type ParameterPayloadSource =
     /// Parameters were defined in a payload example
     | Examples
 
+/// The parameter serialization style
+type StyleKind =
+    | Form
+
+/// Information related to how to serialize the parameter
+type ParameterSerialization =
+    {
+        /// Defines how multiple values are delimited
+        style : StyleKind
+
+        /// Specifies whether arrays and objects should generate
+        /// separate parameters for each array item or object property
+        explode : bool
+    }
+
+type RequestParameter =
+    {
+        name: string
+        payload: ParameterPayload
+        serialization: ParameterSerialization option
+    }
+
 /// The payload for request parameters
 type RequestParametersPayload =
-    | ParameterList of seq<string * ParameterPayload>
+    | ParameterList of seq<RequestParameter>
     | Example of FuzzingPayload
 
 /// All request parameters

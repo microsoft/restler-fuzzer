@@ -106,7 +106,8 @@ let rec getRestlerPythonPayload (payload:FuzzingPayload) (isQuoted:bool) : Reque
     | p -> [ getPrimitivePayload p ]
 
 /// Generate the RESTler grammar for a request parameter
-let generatePythonParameter includeOptionalParameters parameterKind (parameterName, parameterPayload) =
+let generatePythonParameter includeOptionalParameters parameterKind (p:RequestParameter) =
+    let (parameterName, parameterPayload) = p.name, p.payload
     let formatParameterName name =
         match parameterKind with
         | ParameterKind.Query ->
@@ -284,7 +285,7 @@ let generatePythonParameter includeOptionalParameters parameterKind (parameterNa
             else
                 payloadPrimitives
 
-        (formatParameterName parameterName) :: payloadPrimitives 
+        (formatParameterName parameterName) :: payloadPrimitives
     | ParameterKind.Body
     | ParameterKind.Path ->
         payloadPrimitives
@@ -315,9 +316,9 @@ let generatePythonFromRequestElement includeOptionalParameters (e:RequestElement
                                     if i > 0 then
                                         [
                                             yield Restler_static_string_constant "&"
-                                            yield! primitive 
+                                            yield! primitive
                                         ]
-                                        
+
                                     else primitive
                                )
                    |> List.concat
@@ -326,7 +327,7 @@ let generatePythonFromRequestElement includeOptionalParameters (e:RequestElement
             else
                 [
                     yield Restler_static_string_constant "?"
-                    yield! parameters 
+                    yield! parameters
                 ]
         | _ ->
             raise (UnsupportedType (sprintf "This request parameters payload type is not supported: %A" qp))
@@ -514,7 +515,7 @@ let generatePythonFromRequest (request:Request) includeOptionalParameters mergeS
                         // Add back the first two elements
                         (filteredPrimitives |> List.take 2)
                         @ (newPrimitiveSeq |> List.ofSeq)
-                        @ mergedStaticStringSeq 
+                        @ mergedStaticStringSeq
 
                     | _ ->
                         primitives
@@ -550,7 +551,7 @@ let getResponseParsers (responseParsers:ResponseParser list) =
     let random = System.Random(0)
 
     // First, define the dynamic variables initialized by the response parser
-    let dynamicObjectDefinitions = 
+    let dynamicObjectDefinitions =
         [
             for r in responseParsers do
                 for writerVariable in r.writerVariables do
@@ -811,7 +812,7 @@ let generateCode (grammar:GrammarDefinition) includeOptionalParameters (write : 
     let grammar = generatePythonGrammar grammar includeOptionalParameters
 
     grammar
-    |> Seq.iteri (fun i x -> 
+    |> Seq.iteri (fun i x ->
         let element = codeGenElement x
         if i = (Seq.length grammar) - 1 then
             write(element)

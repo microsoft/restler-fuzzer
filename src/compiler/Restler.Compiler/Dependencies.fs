@@ -686,11 +686,12 @@ let getProducer (request:RequestId) (response:ResponseProperties) =
     accessPaths
 
 let getParameterDependencies parameterKind globalAnnotations
-                             (requestData:(RequestId*RequestData)[])
+                             (requestData:(RequestId * RequestData)[])
                              (requestId:RequestId)
-                             (parameterName, parameterPayload)
+                             (requestParameter:RequestParameter)
                              namingConvention =
 
+    let parameterName, parameterPayload = requestParameter.name, requestParameter.payload
     let consumerList = new List<Consumer>()
     let annotatedRequests = requestData
                             |> Seq.filter (fun (_, reqData) -> reqData.localAnnotations |> Seq.length > 0)
@@ -803,7 +804,8 @@ let extractDependencies (requestData:(RequestId*RequestData)[])
         match parameters with
         | ParameterList parameterList when resolveDependencies ->
             parameterList
-            |> Seq.map (fun p -> getParameterDependencies
+            |> Seq.map (fun p ->
+                            getParameterDependencies
                                                     parameterKind
                                                     globalAnnotations
                                                     requestData
@@ -1172,12 +1174,15 @@ module DependencyLookup =
 
     let getDependencyPayload
             (dependencies:Dictionary<string, List<ProducerConsumerDependency>>)
-            pathPayload requestId (requestParameter:(string * ParameterPayload)) (dictionary:MutationsDictionary) =
+            pathPayload
+            requestId
+            (requestParameter:RequestParameter)
+            (dictionary:MutationsDictionary) =
 
         // First, pre-compute producer-consumer relationships within the same body payload.
         // These then need to be passed through each property in order to substitute dynamic objects.
 
-        let parameterPayload = snd requestParameter
+        let parameterPayload = requestParameter.payload
 
         let visitLeaf (resourceAccessPath:string list) (p:LeafProperty) =
 #if DEBUG
@@ -1242,7 +1247,7 @@ module DependencyLookup =
                 Tree.InternalNode ({ p with payload = dependencyPayload }, innerProperties)
 
         // First, check if the parameter itself has a dependency
-        let (parameterName, properties) = requestParameter
+        let (parameterName, properties) = requestParameter.name, requestParameter.payload
         let defaultPayload = (Fuzzable (PrimitiveType.String, ""))
         let dependencyPayload = getConsumerPayload dependencies pathPayload requestId parameterName EmptyAccessPath defaultPayload
 
@@ -1281,7 +1286,13 @@ module DependencyLookup =
                                     payloadWithDependencies
         let newDictionary =
             { dictionary with restler_custom_payload_uuid4_suffix = Some newCustomPayloads }
-        (parameterName, payloadWithDependencies), newDictionary
+        let newRequestParameter =
+            {
+                name = parameterName
+                payload = payloadWithDependencies
+                serialization = requestParameter.serialization
+            }
+        newRequestParameter, newDictionary
 
 /// Serialize dependencies with all of the information available
 /// This is primarily used for debugging
