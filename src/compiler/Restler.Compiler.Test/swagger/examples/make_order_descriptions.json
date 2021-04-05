@@ -1,7 +1,9 @@
 {
   "parameters": {
     "storeId": "23456",
-    "arrayQueryParameter": [ 40.0, 50.1234 ],
+    "arrayQueryParameter": [],
+    "arrayQueryParameter2": [ "a", "b", "c" ],
+    "arrayQueryParameter3": [ "ddd", "eee", "fff" ],
     "apiVersion": "2020-02-02",
     "expiration": 10,
     "orderDetails": {
@@ -9,8 +11,10 @@
       "rush": "True",
       "bagType": "paperfestive",
       "item_descriptions": [
-        "a green apple",
-        "a yellow pear"
+      ],
+      "item_feedback": [
+        "great",
+        "awesome"
       ]
     }
   },

@@ -33,38 +33,46 @@
             }
         },
         "GroceryList": {
-            "properties": {
-                "storeId": {
-                    "description": "The unique identifier of the store",
-                    "type": "integer"
-                },
-                "rush": {
-                    "description": "Is it a rush order",
-                    "type": "boolean"
-                },
-                "bagType": {
-                    "description": "The type of bags to use",
-                    "type": "string"
-                },
-              "item_descriptions": {
-                "description": "The type of bags to use",
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
-              },
-                "useDoubleBags": {
-                    "description": "Whether to use double bags",
-                    "type": "boolean"
-                },
-                "bannedBrands": {
-                    "description": "do not use these brands",
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                }
+          "properties": {
+            "storeId": {
+              "description": "The unique identifier of the store",
+              "type": "integer"
+            },
+            "rush": {
+              "description": "Is it a rush order",
+              "type": "boolean"
+            },
+            "bagType": {
+              "description": "The type of bags to use",
+              "type": "string"
+            },
+            "item_descriptions": {
+              "description": "The type of bags to use",
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "item_feedback": {
+              "description": "The type of bags to use",
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+
+            "useDoubleBags": {
+              "description": "Whether to use double bags",
+              "type": "boolean"
+            },
+            "bannedBrands": {
+              "description": "do not use these brands",
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
             }
+          }
         },
         "GroceryListItem": {
             "properties": {
@@ -155,7 +163,7 @@
                   "in": "query",
                   "name": "expiration",
                   "required": true,
-                  "type": "inteter"
+                  "type": "integer"
                 },
                 {
                   "in": "query",
@@ -168,6 +176,26 @@
                   }
                 },
                 {
+                  "in": "query",
+                  "name": "arrayQueryParameter2",
+                  "required": true,
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "in": "query",
+                  "name": "arrayQueryParameter3",
+                  "required": true,
+                  "type": "array",
+                  "style": "form",
+                  "explode":  false,
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
                   "name": "orderDetails",
                   "in": "body",
                   "required": true,
@@ -176,7 +204,7 @@
                   }
                 }
               ],
-                "x-ms-examples": {
+                "examples": {
                     "Make an order": {
                         "$ref": "./examples/make_order_descriptions.json"
                     }
