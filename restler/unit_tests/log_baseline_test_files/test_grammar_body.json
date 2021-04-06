@@ -80,9 +80,9 @@
             "Schema",
             {
               "ParameterList": [
-                [
-                  "payload",
-                  {
+                {
+                  "name": "payload",
+                  "payload": {
                     "InternalNode": [
                       {
                         "name": "",
@@ -114,8 +114,8 @@
                                         "name": "population",
                                         "payload": {
                                           "Fuzzable": [
-                                              "Int",
-                                              "1000"
+                                            "Int",
+                                            "1000"
                                           ]
                                         },
                                         "isRequired": false,
@@ -139,10 +139,10 @@
                                       "LeafNode": {
                                         "name": "strtest",
                                         "payload": {
-                                            "Fuzzable": [
-                                                "String",
-                                                "true"
-                                            ]
+                                          "Fuzzable": [
+                                            "String",
+                                            "true"
+                                          ]
                                         },
                                         "isRequired": true,
                                         "isReadOnly": false
@@ -194,7 +194,7 @@
                       ]
                     ]
                   }
-                ]
+                }
               ]
             }
           ]
@@ -236,41 +236,45 @@
             "Schema",
             {
               "ParameterList": [
-                "location",
                 {
-                  "LeafNode": {
-                    "name": "",
-                    "payload": {
-                      "Custom": {
-                        "payloadType": "String",
-                        "primitiveType": "String",
-                        "payloadValue": "location",
-                        "isObject": false
-                      }
-                    },
-                    "isRequired": true,
-                    "isReadOnly": false
+                  "name": "location",
+                  "payload": {
+                    "LeafNode": {
+                      "name": "",
+                      "payload": {
+                        "Custom": {
+                          "payloadType": "String",
+                          "primitiveType": "String",
+                          "payloadValue": "location",
+                          "isObject": false
+                        }
+                      },
+                      "isRequired": true,
+                      "isReadOnly": false
+                    }
                   }
                 },
-                "group",
                 {
-                  "LeafNode": {
-                    "name": "",
-                    "payload": {
-                      "Fuzzable": [
-                        {
-                          "Enum": [
-                            "String",
-                            [
-                              "A",
-                              "BB",
-                              "CCC"
-                            ],
-                            null
-                          ]
-                        },
-                        "A"
-                      ]
+                  "name": "group",
+                  "payload": {
+                    "LeafNode": {
+                      "name": "",
+                      "payload": {
+                        "Fuzzable": [
+                          {
+                            "Enum": [
+                              "String",
+                              [
+                                "A",
+                                "BB",
+                                "CCC"
+                              ],
+                              null
+                            ]
+                          },
+                          "A"
+                        ]
+                      }
                     }
                   }
                 }
@@ -446,9 +450,9 @@
               "Schema",
               {
                 "ParameterList": [
-                  [
-                    "payload",
-                    {
+                  {
+                    "name": "payload",
+                    "payload": {
                       "InternalNode": [
                         {
                           "name": "",
@@ -535,7 +539,7 @@
                         ]
                       ]
                     }
-                  ]
+                  }
                 ]
               }
             ]

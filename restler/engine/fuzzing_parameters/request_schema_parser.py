@@ -55,13 +55,13 @@ def des_request_param_payload(request_param_payload_json):
         param_list_seq = request_param_payload_json['ParameterList']
 
         for param_payload_pair in param_list_seq:
-            # pair must have size 2
-            if len(param_payload_pair) != 2:
-                logger.write_to_main('string - param payload pair size mismatch')
-                return [KeyPayload(None, None)]
 
-            key = param_payload_pair[0]
-            payload = param_payload_pair[1]
+            if not ('name' in param_payload_pair and 'payload' in param_payload_pair):
+                logger.write_to_main('string - param payload does not contain expected elements')
+                raise Exception("Error parsing param payload json.  See the main log for more details.")
+
+            key = param_payload_pair['name']
+            payload = param_payload_pair['payload']
 
             payloads.append(KeyPayload(key, payload))
 

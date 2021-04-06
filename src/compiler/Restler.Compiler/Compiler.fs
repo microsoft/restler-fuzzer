@@ -175,8 +175,7 @@ module private Parameters =
                                                                         (tryGetDefault schema)
 
                                            let payload = LeafNode leafProperty
-                                           Some (parameterName, payload))
-
+                                           Some { name = parameterName ; payload = payload ; serialization = None })
         ParameterList parameterList
 
     let private getParametersFromExample (examplePayload:ExampleRequestPayload)
@@ -193,7 +192,7 @@ module private Parameters =
                                 | PayloadFormat.JToken payloadValue->
                                     let parameterGrammarElement =
                                         generateGrammarElementForSchema declaredParameter.ActualSchema (Some payloadValue) [] id
-                                    Some (declaredParameter.Name, parameterGrammarElement)
+                                    Some { name = declaredParameter.Name ; payload = parameterGrammarElement ; serialization = None }
                         )
 
     let private getParameters (parameterList:seq<OpenApiParameter>)
@@ -214,7 +213,14 @@ module private Parameters =
 
         let schemaPayload =
             if dataFuzzing || examplePayloads.IsNone then
-                Some (parameterList |> Seq.map (fun p -> (p.Name, generateGrammarElementForSchema p.ActualSchema None [] id)))
+                Some (parameterList
+                      |> Seq.map (fun p ->
+                                    let parameterPayload = generateGrammarElementForSchema p.ActualSchema None [] id
+                                    {
+                                        name = p.Name
+                                        payload = parameterPayload
+                                        serialization = None
+                                    }))
             else None
 
         match examplePayloads, schemaPayload with
@@ -275,28 +281,30 @@ let generateRequestPrimitives (requestId:RequestId)
     let pathParameters =
         match requestParameters.path with
         | ParameterList parameterList ->
-            parameterList |> Map.ofSeq
+            parameterList
+            |> Seq.map (fun p -> p.name, p)
+            |> Map.ofSeq
         | _ -> raise (UnsupportedType "Only a list of path parameters is supported.")
 
     let path =
         (basePath + requestId.endpoint).Split([|'/'|], StringSplitOptions.RemoveEmptyEntries)
         |> Array.choose (fun p ->
-                        if Parameters.isPathParameter p then
+                          if Parameters.isPathParameter p then
                             let consumerResourceName = Parameters.getPathParameterName p
                             match pathParameters |> Map.tryFind consumerResourceName with
-                            | Some parameterPayload ->
-                                let (propertyName, propertyPayload), _ =
+                            | Some rp ->
+                                let newRequestParameter, _ =
                                     Restler.Dependencies.DependencyLookup.getDependencyPayload
                                                 dependencies
                                                 None
                                                 requestId
-                                                (consumerResourceName, parameterPayload)
+                                                rp
                                                 dictionary
-                                Some (Parameters.getPathParameterPayload propertyPayload)
+                                Some (Parameters.getPathParameterPayload newRequestParameter.payload)
                             | None ->
                                 // Parameter not found in parameter list.  This error was previously reported.
                                 None
-                        else
+                          else
                             Some (Constant (PrimitiveType.String, p))
                       )
         |> Array.toList
