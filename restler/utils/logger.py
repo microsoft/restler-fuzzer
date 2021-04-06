@@ -890,9 +890,9 @@ def print_spec_coverage(fuzzing_requests):
             req_spec['invalid_due_to_500'] = 1
         req_spec['status_code'] = req.stats.status_code
         req_spec['status_text'] = req.stats.status_text
-        req_spec['sample_request'] = vars(req.stats.sample_request)
         req_spec['error_message'] = req.stats.error_msg
         req_spec['request_order'] = req.stats.request_order
+        req_spec['sample_request'] = vars(req.stats.sample_request)
 
     with open(os.path.join(LOGS_DIR, 'speccov.json'), 'w') as file:
         json.dump(spec_file, file, indent=4)
