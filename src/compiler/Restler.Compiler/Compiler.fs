@@ -141,6 +141,8 @@ module private Parameters =
          match p.Style with
          | OpenApiParameterStyle.Form ->
             Some { style = StyleKind.Form ; explode = p.Explode }
+         | OpenApiParameterStyle.Simple ->
+           Some { style = StyleKind.Simple ; explode = p.Explode }
          | OpenApiParameterStyle.Undefined ->
             None
          | _ ->
@@ -209,7 +211,7 @@ module private Parameters =
                         )
 
     let private getParameters (parameterList:seq<OpenApiParameter>)
-                               (exampleConfig:ExampleRequestPayload list option) (dataFuzzing:bool) =
+                              (exampleConfig:ExampleRequestPayload list option) (dataFuzzing:bool) =
 
         // When data fuzzing is specified, both the full schema and examples should be available for analysis.
         // Otherwise, use the first example if it exists, or the schema, and return a single schema.
@@ -223,7 +225,6 @@ module private Parameters =
                 let restOfPayloads =
                     remainingExamples |> List.map (fun e -> getParametersFromExample e parameterList)
                 Some (firstPayload::restOfPayloads)
-
 
         let schemaPayload =
             if dataFuzzing || examplePayloads.IsNone then
@@ -258,27 +259,18 @@ module private Parameters =
             parameters
             |> Seq.filter (fun p -> p.Kind = parameterKind)
 
-    let queryParameters (swaggerMethodDefinition:OpenApiOperation) exampleConfig dataFuzzing =
-        let queryParameters = swaggerMethodDefinition.ActualParameters
-                                   |> Seq.filter (fun p -> p.Kind = NSwag.OpenApiParameterKind.Query)
+    let getAllParameters (swaggerMethodDefinition:OpenApiOperation)
+                         (parameterKind:NSwag.OpenApiParameterKind)
+                         exampleConfig dataFuzzing =
+        let localParameters = swaggerMethodDefinition.ActualParameters
+                              |> Seq.filter (fun p -> p.Kind = parameterKind)
         // add shared parameters for the endpoint, if any
-        let declaredSharedQueryParameters =
-            getSharedParameters swaggerMethodDefinition.Parent.Parameters NSwag.OpenApiParameterKind.Query
+        let declaredSharedParameters =
+            getSharedParameters swaggerMethodDefinition.Parent.Parameters parameterKind
 
-        let allQueryParameters =
-            [queryParameters ; declaredSharedQueryParameters ] |> Seq.concat
-        getParameters allQueryParameters exampleConfig dataFuzzing
-
-    let bodyParameters (swaggerMethodDefinition:OpenApiOperation) exampleConfig dataFuzzing =
-        let bodyParameters = swaggerMethodDefinition.ActualParameters
-                                   |> Seq.filter (fun p -> p.Kind = NSwag.OpenApiParameterKind.Body)
-        // add shared parameters for the endpoint, if any
-        let declaredSharedBodyParameters =
-            getSharedParameters swaggerMethodDefinition.Parent.Parameters NSwag.OpenApiParameterKind.Body
-
-        let allBodyParameters =
-            [bodyParameters ; declaredSharedBodyParameters ] |> Seq.concat
-        getParameters allBodyParameters exampleConfig dataFuzzing
+        let allParameters =
+            [localParameters ; declaredSharedParameters ] |> Seq.concat
+        getParameters allParameters exampleConfig dataFuzzing
 
 let generateRequestPrimitives (requestId:RequestId)
                                (responseParser:ResponseParser option)
@@ -322,6 +314,57 @@ let generateRequestPrimitives (requestId:RequestId)
                             Some (Constant (PrimitiveType.String, p))
                       )
         |> Array.toList
+
+    // Generate header parameters.
+    // Do not compute dependencies for header parameters.
+    let headerParameters, replacedCustomPayloadHeaders =
+        requestParameters.header
+        |> List.mapFold (fun newReplacedPayloadHeaders (payloadSource, requestHeaders) ->
+                            let newParameterList =
+                                // The grammar should always have examples, if they exist here,
+                                // which implies that 'useExamples' was specified by the user.
+                                match requestHeaders with
+                                | ParameterList parameterList ->
+                                    // Filter out the headers specified as custom payloads.
+                                    // They will be added separately.
+                                    parameterList
+                                    |> Seq.map (fun requestParameter ->
+                                                      match dictionary.restler_custom_payload_header with
+                                                      | None -> requestParameter, false
+                                                      | Some custom_payload_headers ->
+                                                            if (custom_payload_headers |> Map.containsKey requestParameter.name) then
+                                                                let newParameter =
+                                                                    { requestParameter with
+                                                                        payload =
+                                                                            Tree.LeafNode
+                                                                                {
+                                                                                    LeafProperty.name = ""
+                                                                                    LeafProperty.payload =
+                                                                                        FuzzingPayload.Custom
+                                                                                            {
+                                                                                                payloadType = CustomPayloadType.Header
+                                                                                                primitiveType = PrimitiveType.String
+                                                                                                payloadValue = requestParameter.name
+                                                                                                isObject = false
+                                                                                            }
+                                                                                    LeafProperty.isRequired = true
+                                                                                    LeafProperty.isReadOnly = false
+                                                                                }}
+                                                                newParameter, true
+                                                            else
+                                                                requestParameter, false)
+                                | _ -> raise (UnsupportedType "Only a list of header parameters is supported.")
+                            let parameterList =
+                                newParameterList |> Seq.map fst |> Seq.toList
+                            let replacedPayloadHeaders =
+                                newParameterList
+                                |> Seq.filter (fun (_, isReplaced) -> isReplaced)
+                                |> Seq.map (fun (p,_) -> p.name)
+                                |> Seq.toList
+                            (payloadSource, ParameterList parameterList),
+                            [ replacedPayloadHeaders ; newReplacedPayloadHeaders ]
+                            |> List.concat
+                         ) []
 
     // Assign dynamic objects to query parameters if they have dependencies.
     // When there is more than one parameter set, the dictionary must be the one for the schema.
@@ -389,29 +432,52 @@ let generateRequestPrimitives (requestId:RequestId)
             [("Content-Type","application/json")]
         else []
 
-    let customHeaders =
-        match dictionary.restler_custom_payload_header with
-        | None -> []
-        | Some headersMap ->
-            headersMap |>
-            Map.fold (fun headers headerKey headerValues ->
-                match headerValues with
-                | [] -> (headerKey, "") :: headers
-                | [singleHeaderValue] -> (headerKey, singleHeaderValue) :: headers
-                | multipleHeaderValues -> (headerKey, Microsoft.FSharpLu.Json.Compact.serialize multipleHeaderValues ) :: headers
-            ) []
-            |> List.rev
+    let customPayloadHeaderParameters =
+        let parameterNames =
+            match dictionary.restler_custom_payload_header with
+            | None -> Seq.empty
+            | Some headersMap ->
+                headersMap
+                |> Map.toSeq
+                |> Seq.filter (fun (k,_) -> not (replacedCustomPayloadHeaders |> List.contains k))
+                |> Seq.map (fun (k,_) -> k)
+        parameterNames
+            |> Seq.map (fun headerName ->
+                            let newParameter =
+                                {
+                                    RequestParameter.name = headerName
+                                    serialization = None
+                                    payload =
+                                        Tree.LeafNode
+                                            {
+                                                LeafProperty.name = ""
+                                                LeafProperty.payload =
+                                                    FuzzingPayload.Custom
+                                                        {
+                                                            payloadType = CustomPayloadType.Header
+                                                            primitiveType = PrimitiveType.String
+                                                            payloadValue = headerName
+                                                            isObject = false
+                                                        }
+                                                LeafProperty.isRequired = true
+                                                LeafProperty.isReadOnly = false
+                                            }}
+                            newParameter)
+                |> Seq.toList
 
     let headers =
         ([ ("Accept", "application/json")
            ("Host", host)] @
-           contentHeaders @ customHeaders
+           contentHeaders
            )
     {
         id = requestId
         Request.method = method
         Request.path = path
         queryParameters = queryParameters
+        headerParameters = headerParameters @
+                                [(ParameterPayloadSource.DictionaryCustomPayload,
+                                  RequestParametersPayload.ParameterList customPayloadHeaderParameters)]
         httpVersion = "1.1"
         headers = headers
         token = TokenKind.Refreshable
@@ -441,8 +507,10 @@ let generateRequestGrammar (swaggerDocs:Types.ApiSpecFuzzingConfig list)
                             config.UseBodyExamples |> Option.defaultValue false
                         let useQueryExamples =
                             config.UseQueryExamples |> Option.defaultValue false
+                        let useHeaderExamples =
+                            config.UseHeaderExamples |> Option.defaultValue false
 
-                        if useBodyExamples || useQueryExamples || config.DiscoverExamples then
+                        if useBodyExamples || useQueryExamples || useHeaderExamples || config.DiscoverExamples then
                             let exampleRequestPayloads = getExampleConfig m.Value config.DiscoverExamples config.ExamplesDirectory
                             // If 'discoverExamples' is specified, create a local copy in the specified examples directory for
                             // all the examples found.
@@ -470,14 +538,31 @@ let generateRequestGrammar (swaggerDocs:Types.ApiSpecFuzzingConfig list)
                         let requestParameters =
                             {
                                 RequestParameters.path = Parameters.pathParameters m.Value ep
+                                RequestParameters.header =
+                                    let useHeaderExamples =
+                                        config.UseHeaderExamples |> Option.defaultValue false
+                                    Parameters.getAllParameters
+                                        m.Value
+                                        OpenApiParameterKind.Header
+                                        (if useHeaderExamples then exampleConfig else None)
+                                        config.DataFuzzing
+
                                 RequestParameters.query =
                                     let useQueryExamples =
                                         config.UseQueryExamples |> Option.defaultValue false
-                                    Parameters.queryParameters m.Value (if useQueryExamples then exampleConfig else None) config.DataFuzzing
+                                    Parameters.getAllParameters
+                                        m.Value
+                                        OpenApiParameterKind.Query
+                                        (if useQueryExamples then exampleConfig else None)
+                                        config.DataFuzzing
                                 RequestParameters.body =
                                     let useBodyExamples =
                                         config.UseBodyExamples |> Option.defaultValue false
-                                    Parameters.bodyParameters m.Value (if useBodyExamples then exampleConfig else None) config.DataFuzzing
+                                    Parameters.getAllParameters
+                                        m.Value
+                                        OpenApiParameterKind.Body
+                                        (if useBodyExamples then exampleConfig else None)
+                                        config.DataFuzzing
                             }
 
                         let allResponseProperties = seq {

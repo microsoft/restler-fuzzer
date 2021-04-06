@@ -1,6 +1,6 @@
 # Fuzzing Dictionary
 
-The fuzzing dictionary allows users to configure sets of values for specific data types or individual parameters.  
+The fuzzing dictionary allows users to configure sets of values for specific data types or individual parameters.
 
 There are three categories of configurable values in the dictionary:
 
@@ -10,7 +10,7 @@ There are three categories of configurable values in the dictionary:
 
 
 
-RESTler *automatically* generates references to the dictionary when it compiles a Swagger specification.  The dictionary elements correspond to grammar elements in the RESTler grammar, and will determine part of a payload for one or more requests.  
+RESTler *automatically* generates references to the dictionary when it compiles a Swagger specification.  The dictionary elements correspond to grammar elements in the RESTler grammar, and will determine part of a payload for one or more requests.
 
 The following describes how each property in the dictionary is used in a RESTler grammar.  If needed, users may also customize the grammar further by referring directly to the dictionary.
 
@@ -20,16 +20,30 @@ The following describes how each property in the dictionary is used in a RESTler
 
 - *restler_custom_payload* - specifies constants corresponding to "magic values" or pre-provisioned resources that are not created by the API under test.  These are usually single constant values, such as IDs for pre-provisioned resources.  In some cases, a list of strings may need to be specified, for example if an enum specifies dozens of constants, but only a few of them should be used during fuzzing.  Below are a few example custom payloads:
 
-  ``` json 
+  ``` json
   {
      "restler_custom_payload": {
          "api-version": "2020-10-27",
-         "/feedback/[0]/tags": [ "happy", "sad"]    
-     }   
+         "/feedback/[0]/tags": [ "happy", "sad"]
+     }
   }
   ```
 
-- *restler_custom_payload_header* - specifies custom header names and sets of values to include as custom headers.
+- *restler_custom_payload_header* - specifies a list of specific values required for header parameters.
+
+  There are two use cases:
+
+  1) specifying values that should be plugged into header parameters which are declared in the spec.  This works in the same way as *restler_custom_payload*.
+  2) specifying custom header names that are not included in the specification.  This allows passing in extra custom headers.
+
+  ``` json
+  {
+     "restler_custom_payload_header": {
+         "firstHeader": ["v1"],
+         "secondHeader": [ "a", "b"]
+     }
+  }
+  ```
 
 - *restler_custom_payload_uuid4_suffix* specifies constant values to which random GUID values will be appended.
 
@@ -38,4 +52,4 @@ Note: to specify a double-quote " in a string in a fuzzing dictionary, use `\"`
 
 #### **Per resource dictionaries**
 
-Usually, it is sufficient to specify a dictionary for the entire API under test, or one dictionary per API specification when several API specifications are tested together.  However, there may be cases when a specific endpoint requires a different custom payload from the rest of the APIs.  An example of this is when a service uses different API versions for different endpoints in the same API: the ```api-version``` parameter needs to be one of several values, but for specific endpoints, so it cannot be specified in one *restler_custom_payload*.  Such cases are handled with a per-resource dictionary for individual endpoints, which takes precedence over the global dictionary.  See [SettingsFile](SettingsFile.md) for how to configure a per-resource dictionary.   
+Usually, it is sufficient to specify a dictionary for the entire API under test, or one dictionary per API specification when several API specifications are tested together.  However, there may be cases when a specific endpoint requires a different custom payload from the rest of the APIs.  An example of this is when a service uses different API versions for different endpoints in the same API: the ```api-version``` parameter needs to be one of several values, but for specific endpoints, so it cannot be specified in one *restler_custom_payload*.  Such cases are handled with a per-resource dictionary for individual endpoints, which takes precedence over the global dictionary.  See [SettingsFile](SettingsFile.md) for how to configure a per-resource dictionary.

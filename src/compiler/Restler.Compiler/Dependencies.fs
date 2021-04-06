@@ -300,6 +300,8 @@ let findProducerWithResourceName
 
     let producerEndpoint, producerContainer =
         match consumer.parameterKind with
+        | ParameterKind.Header ->
+            raise (Exception("producer-consumer dependencies in headers are not supported."))
         | ParameterKind.Body
         | ParameterKind.Query -> None, None
         | ParameterKind.Path ->
@@ -702,6 +704,8 @@ let getParameterDependencies parameterKind globalAnnotations
         let resourceReference =
 
             match parameterKind with
+            | ParameterKind.Header ->
+                raise (Exception("producer-consumer dependencies in headers are not supported."))
             | ParameterKind.Path ->
 
                 let pathToParameter =
@@ -744,6 +748,8 @@ let getParameterDependencies parameterKind globalAnnotations
             consumerList.Add(c)
 
     match parameterKind with
+    | ParameterKind.Header ->
+        raise (Exception("producer-consumer dependencies in headers are not supported."))
     | ParameterKind.Path ->
         let c = getConsumer parameterName [] None
         consumerList.Add(c)

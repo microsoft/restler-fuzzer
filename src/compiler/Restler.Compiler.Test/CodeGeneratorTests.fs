@@ -59,6 +59,7 @@ module CodeGenerator =
                                                     { name = "payload"; payload = q2; serialization = None} ])
                     Body (ParameterList  [{ name = "theBody" ; payload = b1 ; serialization = None}])
                     RequestElement.HttpVersion "1.1"
+                    HeaderParameters (ParameterList [])
                     Headers [("Accept", "application/json")
                              ("Host", "fromSwagger")
                              ("Content-Type", "application/json")]
@@ -73,6 +74,7 @@ module CodeGenerator =
                     queryParameters = [(ParameterPayloadSource.Examples, ParameterList [{ name = "page"; payload = q1; serialization = None}
                                                                                         { name = "payload"; payload = q2; serialization = None}])]
                     bodyParameters =  [ParameterPayloadSource.Examples, (ParameterList [{ name = "thebody"; payload = b1; serialization = None}]) ]
+                    headerParameters =  [ParameterPayloadSource.Schema, (ParameterList []) ]
                     httpVersion = "1.1"
                     headers = [("Accept", "application/json")
                                ("Host", "fromSwagger")

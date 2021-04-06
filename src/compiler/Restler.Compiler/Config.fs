@@ -58,6 +58,8 @@ type Config =
 
         IncludeOptionalParameters : bool
 
+        UseHeaderExamples : bool option
+
         UseQueryExamples : bool option
 
         UseBodyExamples : bool option
@@ -183,6 +185,7 @@ let SampleConfig =
         IncludeOptionalParameters = true
         UseQueryExamples = None
         UseBodyExamples = None
+        UseHeaderExamples = None
         DiscoverExamples = false
         ExamplesDirectory = ""
         ResolveQueryDependencies = true
@@ -208,6 +211,7 @@ let DefaultConfig =
         GrammarOutputDirectoryPath = None
         IncludeOptionalParameters = true
         UseQueryExamples = Some true
+        UseHeaderExamples = None
         UseBodyExamples = Some true
         DiscoverExamples = false
         ExamplesDirectory = ""
