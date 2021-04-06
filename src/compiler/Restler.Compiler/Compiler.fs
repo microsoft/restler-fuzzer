@@ -20,6 +20,8 @@ open Restler.Dictionary
 open Restler.Compiler.SwaggerVisitors
 open Restler.Utilities.Logging
 
+exception UnsupportedParameterSerialization of string
+
 module Types =
     /// A configuration associated with a single Swagger document
     type ApiSpecFuzzingConfig =
@@ -135,6 +137,15 @@ module private Parameters =
 
     let getPathParameterName(p:string) = p.[1 .. p.Length-2]
 
+    let getParameterSerialization (p:OpenApiParameter) =
+         match p.Style with
+         | OpenApiParameterStyle.Form ->
+            Some { style = StyleKind.Form ; explode = p.Explode }
+         | OpenApiParameterStyle.Undefined ->
+            None
+         | _ ->
+            raise (UnsupportedParameterSerialization(sprintf "%A" p.Style))
+
     let getPathParameterPayload (payload:ParameterPayload) =
         match payload with
         | LeafNode ln ->
@@ -189,10 +200,12 @@ module private Parameters =
                             | None -> None
                             | Some found ->
                                 match found.payload with
-                                | PayloadFormat.JToken payloadValue->
+                                | PayloadFormat.JToken payloadValue ->
                                     let parameterGrammarElement =
                                         generateGrammarElementForSchema declaredParameter.ActualSchema (Some payloadValue) [] id
-                                    Some { name = declaredParameter.Name ; payload = parameterGrammarElement ; serialization = None }
+                                    Some { name = declaredParameter.Name
+                                           payload = parameterGrammarElement
+                                           serialization = getParameterSerialization declaredParameter }
                         )
 
     let private getParameters (parameterList:seq<OpenApiParameter>)
@@ -211,6 +224,7 @@ module private Parameters =
                     remainingExamples |> List.map (fun e -> getParametersFromExample e parameterList)
                 Some (firstPayload::restOfPayloads)
 
+
         let schemaPayload =
             if dataFuzzing || examplePayloads.IsNone then
                 Some (parameterList
@@ -219,7 +233,7 @@ module private Parameters =
                                     {
                                         name = p.Name
                                         payload = parameterPayload
-                                        serialization = None
+                                        serialization = getParameterSerialization p
                                     }))
             else None
 

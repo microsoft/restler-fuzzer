@@ -191,7 +191,7 @@ let SampleConfig =
         UseRefreshableToken = Some true
         AllowGetProducers = false
         EngineSettingsFilePath = None
-        DataFuzzing = false
+        DataFuzzing = true
         ApiNamingConvention = None
     }
 

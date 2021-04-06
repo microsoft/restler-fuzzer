@@ -37,17 +37,28 @@ module Examples =
 
         [<Fact>]
         let ``array example in grammar without dependencies`` () =
-
+            let grammarDirectoryPath = ctx.testRootDirPath
             let config = { Restler.Config.SampleConfig with
                              IncludeOptionalParameters = true
-                             GrammarOutputDirectoryPath = Some ctx.testRootDirPath
+                             GrammarOutputDirectoryPath = Some grammarDirectoryPath
                              ResolveBodyDependencies = false
                              UseBodyExamples = Some true
                              UseQueryExamples = Some true
+                             DataFuzzing = true
                              SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, @"swagger\array_example.json"))]
                              CustomDictionaryFilePath = Some (Path.Combine(Environment.CurrentDirectory, @"swagger\example_demo_dictionary.json"))
                          }
             Restler.Workflow.generateRestlerGrammar None config
+            // Read the baseline and make sure it matches the expected one
+            //
+            let expectedGrammarFilePath = Path.Combine(Environment.CurrentDirectory,
+                                                       @"baselines\exampleTests\array_example_grammar.py")
+            let actualGrammarFilePath = Path.Combine(grammarDirectoryPath,
+                                                     Restler.Workflow.Constants.DefaultRestlerGrammarFileName)
+            let grammarDiff = getLineDifferences expectedGrammarFilePath actualGrammarFilePath
+            let message = sprintf "Grammar Does not match baseline.  First difference: %A" grammarDiff
+            Assert.True(grammarDiff.IsNone, message)
+
 
         [<Fact>]
         let ``object example in grammar without dependencies`` () =
@@ -174,17 +185,19 @@ module Examples =
         /// if there is a POST /item request that has a body with {"blog" : {"name": "x", ...<blog body>...}}
         /// This will be covered in a different test.
         let ``body dependency nested object can be inferred via parent`` () =
+            let grammarOutputDirectoryPath =  ctx.testRootDirPath
             let config = { Restler.Config.SampleConfig with
                             IncludeOptionalParameters = true
-                            GrammarOutputDirectoryPath = Some ctx.testRootDirPath
+                            GrammarOutputDirectoryPath = Some grammarOutputDirectoryPath
                             ResolveBodyDependencies = true
                             ResolveQueryDependencies = true
                             UseBodyExamples = Some true
+                            DataFuzzing = true  // TODO: also test with false, dependencies here should work in both cases.
                             SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, @"swagger\dependencyTests\subnet_id.json"))]
                             CustomDictionaryFilePath = None
                          }
             Restler.Workflow.generateRestlerGrammar None config
-            let grammarFilePath = Path.Combine(ctx.testRootDirPath, "grammar.py")
+            let grammarFilePath = Path.Combine(grammarOutputDirectoryPath, "grammar.py")
             let grammar = File.ReadAllText(grammarFilePath)
 
             // Note: the subnet name for creating a virtual network should not be a dynamic object (per usage of the API).
