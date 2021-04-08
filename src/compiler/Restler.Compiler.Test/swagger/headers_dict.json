@@ -1,0 +1,7 @@
+{
+  "restler_custom_payload_header": {
+    "rating": [ "555", "999" ],
+    "extra1": [ "one" ],
+    "extra2":  ["two"]
+  }
+}

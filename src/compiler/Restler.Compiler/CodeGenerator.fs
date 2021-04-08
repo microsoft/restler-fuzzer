@@ -119,6 +119,9 @@ let generatePythonParameter includeOptionalParameters parameterKind (requestPara
     let formatQueryParameterName name =
         Restler_static_string_constant (sprintf "%s=" name)
 
+    let formatHeaderParameterName name =
+        Restler_static_string_constant (sprintf "%s: " name)
+
     let getTabIndentedLineStart level =
         if level > 0 then
             let tabs = [1..level] |> List.map (fun x -> TAB) |> String.Concat
@@ -176,6 +179,35 @@ let generatePythonParameter includeOptionalParameters parameterKind (requestPara
     let formatQueryObjectParameters (parameterName:string) (innerProperties:RequestPrimitiveType list seq) =
         raise (NotImplementedException("Objects in query parameters are not supported yet."))
 
+    let formatHeaderObjectParameters (parameterName:string) (innerProperties:RequestPrimitiveType list seq) =
+        // The default is "style: simple, explode: false"
+        raise (NotImplementedException("Objects in header parameters are not supported yet."))
+
+    let formatHeaderArrayParameters (parameterName:string) (innerProperties:RequestPrimitiveType list seq) =
+        let cs =
+            innerProperties
+            |> Seq.filter (fun ip -> ip.Length > 0)
+            |> Seq.mapi (fun i arrayItemPrimitives ->
+                            [
+                                if i > 0 then
+                                    match requestParameter.serialization with
+                                    | None ->
+                                        [ Restler_static_string_constant "," ]
+                                    | Some ps when ps.style = Simple ->
+                                        [ Restler_static_string_constant "," ]
+                                    | Some s ->
+                                        raise (NotImplementedException (sprintf "Serialization type %A is not implemented yet." s))
+                                arrayItemPrimitives
+                            ]
+                            |> List.concat)
+            |> Seq.concat
+            |> List.ofSeq
+        [
+            [ formatHeaderParameterName parameterName ]
+            cs
+        ]
+        |> List.concat
+
     let formatQueryArrayParameters (parameterName:string) (innerProperties:RequestPrimitiveType list seq) =
         // The default is "style: form, explode: true"
         let expOption =
@@ -217,6 +249,25 @@ let generatePythonParameter includeOptionalParameters parameterKind (requestPara
         else
             cs
 
+    /// Format a header parameter that is either an array or object
+    /// See https://swagger.io/docs/specification/serialization/#query.
+    /// Any other type of serialization (e.g. encoding and passing complex json objects)
+    /// will need to be added as a config option for RESTler.
+    let formatNestedHeaderParameter (parameterName:string)
+                                    (propertyType:NestedType)
+                                    (namePayloadSeq:RequestPrimitiveType list option)
+                                    (innerProperties:RequestPrimitiveType list seq) =
+        match namePayloadSeq with
+        | Some nps -> nps
+        | None ->
+            match propertyType with
+                | Object ->
+                    formatHeaderObjectParameters parameterName innerProperties
+                | Array ->
+                    formatHeaderArrayParameters parameterName innerProperties
+                | Property ->
+                    raise (ArgumentException("Invalid context for property type."))
+
     /// Format a query parameter that is either an array or object
     /// See https://swagger.io/docs/specification/serialization/#query.
     /// Any other type of serialization (e.g. encoding and passing complex json objects)
@@ -257,6 +308,8 @@ let generatePythonParameter includeOptionalParameters parameterKind (requestPara
                 if String.IsNullOrEmpty p.name then
                     if level = 0 && parameterKind = ParameterKind.Query then
                         [ formatQueryParameterName requestParameter.name ]
+                    else if level = 0 && parameterKind = ParameterKind.Header then
+                        [ formatHeaderParameterName requestParameter.name ]
                     else
                         List.empty
                 else
@@ -342,6 +395,8 @@ let generatePythonParameter includeOptionalParameters parameterKind (requestPara
                 formatJsonBodyParameter p.name p.propertyType nameAndCustomPayloadSeq innerProperties level
             | ParameterKind.Query ->
                 formatNestedQueryParameter parameterName p.propertyType nameAndCustomPayloadSeq innerProperties
+            | ParameterKind.Header ->
+                formatNestedHeaderParameter parameterName p.propertyType nameAndCustomPayloadSeq innerProperties
 
             | ParameterKind.Path ->
                 raise (InvalidOperationException("Path parameters must not be formatted here."))
@@ -370,6 +425,23 @@ let generatePythonFromRequestElement includeOptionalParameters (e:RequestElement
                     ]
                 )
         x
+    | HeaderParameters hp ->
+        match hp with
+        | ParameterList hp ->
+            let parameters =
+                hp |> List.ofSeq
+                   |> List.map (fun p ->
+                                  [
+
+                                      generatePythonParameter includeOptionalParameters ParameterKind.Header p
+                                      [ Restler_static_string_constant RETURN ]
+                                  ]
+                                  |> List.concat
+                                  )
+                   |> List.concat
+            parameters
+        | _ ->
+            raise (UnsupportedType (sprintf "This request parameters payload type is not supported: %A" hp))
     | QueryParameters qp ->
         match qp with
         | ParameterList bp ->
@@ -428,7 +500,8 @@ let generatePythonFromRequestElement includeOptionalParameters (e:RequestElement
     | RefreshableToken ->
         [Restler_refreshable_authentication_token "authentication_token_tag"]
     | Headers h ->
-        h |> List.map (fun (name, content) -> Restler_static_string_constant (sprintf "%s: %s%s" name content RETURN))
+        h |> List.map (fun (name, content) ->
+            Restler_static_string_constant (sprintf "%s: %s%s" name content RETURN))
     | HttpVersion v->
         [Restler_static_string_constant (sprintf "%sHTTP/%s%s" SPACE v RETURN)]
     | ResponseParser r ->
@@ -508,6 +581,12 @@ let generatePythonFromRequest (request:Request) includeOptionalParameters mergeS
         QueryParameters (getParameterPayload request.queryParameters)
         HttpVersion request.httpVersion
         Headers request.headers
+        HeaderParameters (getParameterPayload request.headerParameters)
+        // custom parameters special case
+        HeaderParameters (match request.headerParameters
+                                |> List.tryFind (fun (ps,_) -> ps = DictionaryCustomPayload) with
+                          | None -> ParameterList []
+                          | Some x -> getParameterPayload [x])
         (match request.token with
             | TokenKind.Refreshable -> RefreshableToken
             | (TokenKind.Static token) -> Token (token))
@@ -792,6 +871,8 @@ let getRequests(requests:Request list) includeOptionalParameters =
 
             | Restler_custom_payload_uuid4_suffix p ->
                 sprintf "primitives.restler_custom_payload_uuid4_suffix(\"%s\")" p
+            | Restler_custom_payload_header p ->
+                sprintf "primitives.restler_custom_payload_header(\"%s\")" p
             | Restler_refreshable_authentication_token tok ->
                 sprintf "primitives.restler_refreshable_authentication_token(\"%s\")" tok
             | Response_parser s -> s

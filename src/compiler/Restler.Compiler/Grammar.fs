@@ -89,6 +89,7 @@ type ParameterKind =
     | Path
     | Body
     | Query
+    | Header
 
 /// The primitive types supported by RESTler
 type PrimitiveType =
@@ -226,10 +227,13 @@ type ParameterPayloadSource =
     | Schema
     /// Parameters were defined in a payload example
     | Examples
+    /// Parameters were defined as a custom payload
+    | DictionaryCustomPayload
 
 /// The parameter serialization style
 type StyleKind =
     | Form
+    | Simple
 
 /// Information related to how to serialize the parameter
 type ParameterSerialization =
@@ -258,6 +262,8 @@ type RequestParametersPayload =
 type RequestParameters =
     {
         path: RequestParametersPayload
+
+        header: (ParameterPayloadSource * RequestParametersPayload) list
 
         /// List of several possible parameter sets that may be used to invoke a request.
         /// The payload source is not expected to be unique. For example, there may be several schemas
@@ -294,6 +300,7 @@ type RequestElement =
     | Method of OperationMethod
     | Path of FuzzingPayload list
     | QueryParameters of RequestParametersPayload
+    | HeaderParameters of RequestParametersPayload
     | Body of RequestParametersPayload
     | Token of string
     | RefreshableToken
@@ -327,6 +334,8 @@ type Request =
         queryParameters : (ParameterPayloadSource * RequestParametersPayload) list
 
         bodyParameters : (ParameterPayloadSource * RequestParametersPayload) list
+
+        headerParameters : (ParameterPayloadSource * RequestParametersPayload) list
 
         /// The token required to access the API
         token : TokenKind

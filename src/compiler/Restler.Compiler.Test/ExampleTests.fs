@@ -99,6 +99,35 @@ module Examples =
                          }
             Restler.Workflow.generateRestlerGrammar None config
 
+
+        [<Fact>]
+        let ``header example with and without dependencies`` () =
+            let grammarOutputDirectoryPath = ctx.testRootDirPath
+            let config = { Restler.Config.SampleConfig with
+                             IncludeOptionalParameters = true
+                             GrammarOutputDirectoryPath = Some grammarOutputDirectoryPath
+                             UseHeaderExamples = Some true
+                             SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, @"swagger\headers.json"))]
+                             CustomDictionaryFilePath = Some (Path.Combine(Environment.CurrentDirectory, @"swagger\headers_dict.json"))
+                         }
+            Restler.Workflow.generateRestlerGrammar None config
+            let grammarFilePath = Path.Combine(grammarOutputDirectoryPath, "grammar.py")
+            let grammar = File.ReadAllText(grammarFilePath)
+
+            // The grammar should only contain the computer dimensions, because
+            // computerName is missing from the example
+            Assert.False(grammar.Contains("primitives.restler_static_string(\"computerName: \")"))
+            Assert.True(grammar.Contains("primitives.restler_static_string(\"computerDimensions: \")"))
+
+            // The grammar should contain the array items from the example
+            Assert.True(grammar.Contains("1.11"))
+            Assert.True(grammar.Contains("2.22"))
+
+            // The grammar contains the custom payload element
+            Assert.True(grammar.Contains("primitives.restler_custom_payload_header(\"rating\"),"))
+            Assert.True(grammar.Contains("primitives.restler_custom_payload_header(\"extra1\"),"))
+            Assert.True(grammar.Contains("primitives.restler_custom_payload_header(\"extra2\"),"))
+
         [<Fact>]
         let ``example in grammar without dependencies`` () =
 

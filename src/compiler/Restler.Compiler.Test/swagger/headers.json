@@ -1,0 +1,66 @@
+{
+    "basePath": "/api",
+    "consumes": [
+        "application/json"
+    ],
+    "host": "localhost:8888",
+    "info": {
+        "description": "A simple swagger spec that uses headers",
+        "title": "Header example spec",
+        "version": "1.0"
+    },
+    "paths": {
+        "/servers/{serverId}/restart": {
+            "post": {
+              "parameters": [
+                {
+                  "in": "path",
+                  "name": "serverId",
+                  "required": true,
+                  "type": "integer"
+                },
+                {
+                  "in": "header",
+                  "name": "computerName",
+                  "description": "The name of the server computer (targetMachine).",
+                  "type": "string",
+                  "fullTypeName": "System.String",
+                  "required": true
+                },
+                {
+                  "in": "header",
+                  "name": "rating",
+                  "description": "The name of the server computer (targetMachine).",
+                  "type": "Number",
+                  "required": true
+                },
+                {
+                  "in": "header",
+                  "name": "computerDimensions",
+                  "required": true,
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "explode": false,
+                  "style": "simple"
+                }
+              ],
+                "examples": {
+                    "Example with header": {
+                        "$ref": "./examples/headers_example.json"
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    },
+                    "404": {
+                        "description": "Server not found."
+                    }
+                }
+            }
+        }
+    },
+    "swagger": "2.0"
+}
