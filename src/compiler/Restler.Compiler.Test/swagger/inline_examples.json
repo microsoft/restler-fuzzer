@@ -1,0 +1,97 @@
+{
+  "basePath": "/api",
+  "consumes": [
+    "application/json"
+  ],
+  "host": "localhost:8888",
+  "info": {
+    "description": "A simple swagger spec that uses inline examples",
+    "title": "Inline example spec",
+    "version": "1.0"
+  },
+  "definitions": {
+    "ComputerSpecs": {
+      "properties": {
+        "cpu": {
+          "description": "The cpu type",
+          "type": "string",
+          "example":  "i5"
+        },
+        "memory": {
+          "description": "The amount of memory in GB",
+          "type": "integer",
+          "example":  "32"
+        }
+      }
+    }
+    },
+    "paths": {
+      "/servers/{serverId}/restart": {
+        "post": {
+          "parameters": [
+            {
+              "in": "path",
+              "name": "serverId",
+              "required": true,
+              "type": "integer",
+              "example": "1234567"
+            },
+            {
+              "in": "header",
+              "name": "computerName",
+              "description": "The name of the server computer (targetMachine).",
+              "type": "string",
+              "fullTypeName": "System.String",
+              "required": true,
+              "example": "inline_example_value_laptop1"
+            },
+            {
+              "in": "query",
+              "name": "computerSize",
+              "required": true,
+              "type": "number",
+              "example": "1.23"
+            },
+            {
+              "in": "query",
+              "name": "computerDimensions",
+              "required": true,
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "example": [ "inline_ex_1", "inline_ex_2" ],
+              "style": "form",
+              "explode": false
+            },
+            {
+              "in": "body",
+              "name": "computerSpecs",
+              "required": true,
+              "schema": {
+                "$ref": "#/definitions/ComputerSpecs"
+              },
+              "example": {
+                "cpu": "i7",
+                "memory": 12
+              }
+            }
+          ],
+          "examples": {
+            "Example with header": {
+              "$ref": "./examples/inline_payload_examples.json"
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Success"
+            },
+            "404": {
+              "description": "Server not found."
+            }
+          }
+        }
+      }
+    },
+    "swagger": "2.0"
+  }

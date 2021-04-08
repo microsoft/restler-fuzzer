@@ -19,6 +19,7 @@ open Restler.Examples
 open Restler.Dictionary
 open Restler.Compiler.SwaggerVisitors
 open Restler.Utilities.Logging
+open Restler.Utilities.Operators
 
 exception UnsupportedParameterSerialization of string
 
@@ -142,7 +143,7 @@ module private Parameters =
          | OpenApiParameterStyle.Form ->
             Some { style = StyleKind.Form ; explode = p.Explode }
          | OpenApiParameterStyle.Simple ->
-           Some { style = StyleKind.Simple ; explode = p.Explode }
+            Some { style = StyleKind.Simple ; explode = p.Explode }
          | OpenApiParameterStyle.Undefined ->
             None
          | _ ->
@@ -154,7 +155,28 @@ module private Parameters =
             ln.payload
         | _ -> raise (UnsupportedType "Complex path parameters are not supported")
 
-    let pathParameters (swaggerMethodDefinition:OpenApiOperation) (endpoint:string) =
+    let private getParametersFromExample (examplePayload:ExampleRequestPayload)
+                                         (parameterList:seq<OpenApiParameter>) =
+        parameterList
+        |> Seq.choose (fun declaredParameter ->
+                            // If the declared parameter isn't in the example, skip it.  Here, the example is used to
+                            // select which parameters must be passed to the API.
+                            match examplePayload.parameterExamples
+                                  |> List.tryFind (fun r -> r.parameterName = declaredParameter.Name) with
+                            | None -> None
+                            | Some found ->
+                                match found.payload with
+                                | PayloadFormat.JToken payloadValue ->
+                                    let parameterGrammarElement =
+                                        generateGrammarElementForSchema declaredParameter.ActualSchema
+                                                                        (Some payloadValue, false) [] id
+                                    Some { name = declaredParameter.Name
+                                           payload = parameterGrammarElement
+                                           serialization = getParameterSerialization declaredParameter }
+                        )
+
+    let pathParameters (swaggerMethodDefinition:OpenApiOperation) (endpoint:string)
+                       (exampleConfig: ExampleRequestPayload list option) =
         let declaredPathParameters = swaggerMethodDefinition.ActualParameters
                                      |> Seq.filter (fun p -> p.Kind = NSwag.OpenApiParameterKind.Path)
 
@@ -174,41 +196,47 @@ module private Parameters =
             // By default, all path parameters are fuzzable (unless a producer or custom value is found for them later)
             |> Seq.choose (fun part -> let parameterName = getPathParameterName part
                                        let declaredParameter = allDeclaredPathParameters |> Seq.tryFind (fun p -> p.Name = parameterName)
+
                                        match declaredParameter with
                                        | None ->
                                            printfn "Error: path parameter not found for parameter name: %s.  This usually indicates an invalid Swagger file." parameterName
                                            None
                                        | Some parameter ->
-                                           let schema = parameter.ActualSchema
-                                           let leafProperty = getFuzzableValueForProperty ""
-                                                                        schema
-                                                                        true (*IsRequired*)
-                                                                        false (*IsReadOnly*)
-                                                                        (tryGetEnumeration schema)
-                                                                        (tryGetDefault schema)
+                                            let serialization = getParameterSerialization parameter
+                                            let schema = parameter.ActualSchema
+                                           // Check for path examples in the Swagger specification
+                                           // External path examples are not currently supported
+                                            match exampleConfig with
+                                            | None
+                                            | Some [] ->
+                                                let leafProperty =
+                                                     if schema.IsArray then
+                                                         raise (Exception("Arrays in path examples are not supported yet."))
+                                                     else
+                                                         let exampleFromSwaggerSpec =
+                                                             // Check for path examples in the Swagger specification
+                                                             if isNull schema.Example then None
+                                                             else
+                                                                Some (schema.Example.ToString())
 
-                                           let payload = LeafNode leafProperty
-                                           Some { name = parameterName ; payload = payload ; serialization = None })
+                                                         getFuzzableValueForProperty ""
+                                                                                     schema
+                                                                                     true (*IsRequired*)
+                                                                                     false (*IsReadOnly*)
+                                                                                     (tryGetEnumeration schema)
+                                                                                     (tryGetDefault schema)
+                                                                                     exampleFromSwaggerSpec
+
+                                                Some { name = parameterName
+                                                       payload = LeafNode leafProperty
+                                                       serialization = serialization }
+                                            | Some (firstExample::remainingExamples) ->
+                                                // Use the first example specified to determine the parameter value.
+                                                getParametersFromExample firstExample (parameter |> stn)
+                                                |> Seq.head
+                                                |> Some
+                            )
         ParameterList parameterList
-
-    let private getParametersFromExample (examplePayload:ExampleRequestPayload)
-                                         (parameterList:seq<OpenApiParameter>) =
-        parameterList
-        |> Seq.choose (fun declaredParameter ->
-                            // If the declared parameter isn't in the example, skip it.  Here, the example is used to
-                            // select which parameters must be passed to the API.
-                            match examplePayload.parameterExamples
-                                  |> List.tryFind (fun r -> r.parameterName = declaredParameter.Name) with
-                            | None -> None
-                            | Some found ->
-                                match found.payload with
-                                | PayloadFormat.JToken payloadValue ->
-                                    let parameterGrammarElement =
-                                        generateGrammarElementForSchema declaredParameter.ActualSchema (Some payloadValue) [] id
-                                    Some { name = declaredParameter.Name
-                                           payload = parameterGrammarElement
-                                           serialization = getParameterSerialization declaredParameter }
-                        )
 
     let private getParameters (parameterList:seq<OpenApiParameter>)
                               (exampleConfig:ExampleRequestPayload list option) (dataFuzzing:bool) =
@@ -230,7 +258,7 @@ module private Parameters =
             if dataFuzzing || examplePayloads.IsNone then
                 Some (parameterList
                       |> Seq.map (fun p ->
-                                    let parameterPayload = generateGrammarElementForSchema p.ActualSchema None [] id
+                                    let parameterPayload = generateGrammarElementForSchema p.ActualSchema (None, false) [] id
                                     {
                                         name = p.Name
                                         payload = parameterPayload
@@ -510,9 +538,11 @@ let generateRequestGrammar (swaggerDocs:Types.ApiSpecFuzzingConfig list)
                             config.UseQueryExamples |> Option.defaultValue false
                         let useHeaderExamples =
                             config.UseHeaderExamples |> Option.defaultValue false
-
-                        if useBodyExamples || useQueryExamples || useHeaderExamples || config.DiscoverExamples then
-
+                        let usePathExamples =
+                            config.UsePathExamples |> Option.defaultValue false
+                        let useExamples =
+                            usePathExamples || useBodyExamples || useQueryExamples || useHeaderExamples
+                        if useExamples || config.DiscoverExamples then
                             let exampleRequestPayloads = getExampleConfig (ep,m.Key) m.Value config.DiscoverExamples config.ExamplesDirectory userSpecifiedExamples
                             // If 'discoverExamples' is specified, create a local copy in the specified examples directory for
                             // all the examples found.
@@ -539,7 +569,12 @@ let generateRequestGrammar (swaggerDocs:Types.ApiSpecFuzzingConfig list)
                     if not config.ReadOnlyFuzz || readerMethods |> List.contains requestId.method then
                         let requestParameters =
                             {
-                                RequestParameters.path = Parameters.pathParameters m.Value ep
+                                RequestParameters.path =
+                                    let usePathExamples =
+                                        config.UsePathExamples |> Option.defaultValue false
+                                    Parameters.pathParameters
+                                            m.Value ep
+                                            (if usePathExamples then exampleConfig else None)
                                 RequestParameters.header =
                                     let useHeaderExamples =
                                         config.UseHeaderExamples |> Option.defaultValue false
@@ -570,7 +605,7 @@ let generateRequestGrammar (swaggerDocs:Types.ApiSpecFuzzingConfig list)
                         let allResponseProperties = seq {
                             for r in m.Value.Responses do
                                 if validResponseCodes |> List.contains r.Key && not (isNull r.Value.ActualResponse.Schema) then
-                                    yield generateGrammarElementForSchema r.Value.ActualResponse.Schema None [] id
+                                    yield generateGrammarElementForSchema r.Value.ActualResponse.Schema (None, false) [] id
                         }
 
                         // 'allResponseProperties' contains the schemas of all possible responses

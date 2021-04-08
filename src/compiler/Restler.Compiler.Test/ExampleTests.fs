@@ -416,4 +416,16 @@ module Examples =
 
             Assert.True(grammar.Contains("_networkInterfaces__networkInterfaceName__put_properties_ipConfigurations_0_name.reader()"))
 
+        [<Fact>]
+        let ``inline examples are used instead of fuzzstring`` () =
+            let grammarOutputDirectoryPath = ctx.testRootDirPath
+            let config = { Restler.Config.SampleConfig with
+                             IncludeOptionalParameters = true
+                             GrammarOutputDirectoryPath = Some grammarOutputDirectoryPath
+                             SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, @"swagger\inline_examples.json"))]
+                             CustomDictionaryFilePath = None
+                         }
+            Restler.Workflow.generateRestlerGrammar None config
+            // TODO: baseline
+
         interface IClassFixture<Fixtures.TestSetupAndCleanup>
