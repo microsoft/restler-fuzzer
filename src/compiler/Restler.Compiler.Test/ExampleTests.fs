@@ -13,7 +13,6 @@ module Examples =
 
         [<Fact>]
         let ``no example in grammar with dependencies`` () =
-
             let config = { Restler.Config.SampleConfig with
                              IncludeOptionalParameters = true
                              GrammarOutputDirectoryPath = Some ctx.testRootDirPath
@@ -36,6 +35,13 @@ module Examples =
             Assert.True(grammar.Contains("restler_fuzzable_object"))
 
         [<Fact>]
+        let ``example config file test`` () =
+            let exampleConfigFilePath = Path.Combine(Environment.CurrentDirectory, @"swagger\example_config_file.json")
+            let x = Restler.Examples.tryDeserializeExampleConfigFile exampleConfigFilePath
+            Assert.True(x.IsSome)
+            Assert.True(x.Value.paths |> List.exists (fun x -> x.path = "/vm"))
+
+        [<Fact>]
         let ``array example in grammar without dependencies`` () =
             let grammarDirectoryPath = ctx.testRootDirPath
             let config = { Restler.Config.SampleConfig with
@@ -48,17 +54,23 @@ module Examples =
                              SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, @"swagger\array_example.json"))]
                              CustomDictionaryFilePath = Some (Path.Combine(Environment.CurrentDirectory, @"swagger\example_demo_dictionary.json"))
                          }
-            Restler.Workflow.generateRestlerGrammar None config
-            // Read the baseline and make sure it matches the expected one
-            //
-            let expectedGrammarFilePath = Path.Combine(Environment.CurrentDirectory,
-                                                       @"baselines\exampleTests\array_example_grammar.py")
-            let actualGrammarFilePath = Path.Combine(grammarDirectoryPath,
-                                                     Restler.Workflow.Constants.DefaultRestlerGrammarFileName)
-            let grammarDiff = getLineDifferences expectedGrammarFilePath actualGrammarFilePath
-            let message = sprintf "Grammar Does not match baseline.  First difference: %A" grammarDiff
-            Assert.True(grammarDiff.IsNone, message)
-
+            // Run the example test using the Swagger example and using the external example.
+            let runTest testConfig =
+                Restler.Workflow.generateRestlerGrammar None config
+                // Read the baseline and make sure it matches the expected one
+                //
+                let expectedGrammarFilePath = Path.Combine(Environment.CurrentDirectory,
+                                                           @"baselines\exampleTests\array_example_grammar.py")
+                let actualGrammarFilePath = Path.Combine(grammarDirectoryPath,
+                                                         Restler.Workflow.Constants.DefaultRestlerGrammarFileName)
+                let grammarDiff = getLineDifferences expectedGrammarFilePath actualGrammarFilePath
+                let message = sprintf "Grammar Does not match baseline.  First difference: %A" grammarDiff
+                Assert.True(grammarDiff.IsNone, message)
+            runTest config
+            let exampleConfigFile = Path.Combine(Environment.CurrentDirectory, "examples\example_config_file.json")
+            runTest {config with
+                        SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, @"swagger\array_example_external.json"))]
+                        ExampleConfigFilePath = Some exampleConfigFile }
 
         [<Fact>]
         let ``object example in grammar without dependencies`` () =

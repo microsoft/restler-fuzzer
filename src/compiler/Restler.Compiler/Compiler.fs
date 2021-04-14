@@ -491,7 +491,8 @@ let generateRequestPrimitives (requestId:RequestId)
 let generateRequestGrammar (swaggerDocs:Types.ApiSpecFuzzingConfig list)
                            (dictionary:MutationsDictionary)
                            (config:Restler.Config.Config)
-                           (globalExternalAnnotations: ProducerConsumerAnnotation list) =
+                           (globalExternalAnnotations: ProducerConsumerAnnotation list)
+                           (userSpecifiedExamples:ExampleConfigFile option) =
     let getRequestData (swaggerDoc:OpenApiDocument) =
         let requestDataSeq = seq {
             for path in swaggerDoc.Paths do
@@ -511,7 +512,8 @@ let generateRequestGrammar (swaggerDocs:Types.ApiSpecFuzzingConfig list)
                             config.UseHeaderExamples |> Option.defaultValue false
 
                         if useBodyExamples || useQueryExamples || useHeaderExamples || config.DiscoverExamples then
-                            let exampleRequestPayloads = getExampleConfig m.Value config.DiscoverExamples config.ExamplesDirectory
+
+                            let exampleRequestPayloads = getExampleConfig (ep,m.Key) m.Value config.DiscoverExamples config.ExamplesDirectory userSpecifiedExamples
                             // If 'discoverExamples' is specified, create a local copy in the specified examples directory for
                             // all the examples found.
                             if config.DiscoverExamples then

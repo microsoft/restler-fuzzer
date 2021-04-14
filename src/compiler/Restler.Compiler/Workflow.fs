@@ -65,7 +65,7 @@ let getSwaggerDataForDoc doc workingDirectory =
     {   swaggerDoc = swaggerDoc
         dictionary = dictionary
         globalAnnotations = globalAnnotations
-    }   
+    }
 
 let generateGrammarFromSwagger grammarOutputDirectoryPath swaggerDoc config =
 
@@ -147,6 +147,11 @@ let generateGrammarFromSwagger grammarOutputDirectoryPath swaggerDoc config =
     if config.DiscoverExamples then
         Microsoft.FSharpLu.File.recreateDir examplesDirectory
 
+    let userSpecifiedExamples =
+        match config.ExampleConfigFilePath with
+        | Some fp when File.Exists fp ->
+            Examples.tryDeserializeExampleConfigFile fp
+        | _ -> None
 
     let grammar, dependencies, (newDictionary, perResourceDictionaries), examples =
         Restler.Compiler.Main.generateRequestGrammar
@@ -154,6 +159,7 @@ let generateGrammarFromSwagger grammarOutputDirectoryPath swaggerDoc config =
                         dictionary
                         { config with ExamplesDirectory = examplesDirectory }
                         globalExternalAnnotations
+                        userSpecifiedExamples
 
     let grammarFilePath = Path.Combine(grammarOutputDirectoryPath, Constants.DefaultJsonGrammarFileName)
 
@@ -168,8 +174,10 @@ let generateGrammarFromSwagger grammarOutputDirectoryPath swaggerDoc config =
     Microsoft.FSharpLu.Json.Compact.deserializeStream<GrammarDefinition>(ignoreStream)
     |> ignore
 
-    let examplesFilePath = Path.Combine(grammarOutputDirectoryPath, Constants.DefaultExampleMetadataFileName)
-    Microsoft.FSharpLu.Json.Compact.serializeToFile examplesFilePath examples
+    // If examples were discovered, create a new examples file
+    if config.DiscoverExamples then
+        let discoveredExamplesFilePath = Path.Combine(examplesDirectory, Constants.DefaultExampleMetadataFileName)
+        Microsoft.FSharpLu.Json.Compact.serializeToFile discoveredExamplesFilePath examples
 
     // Write the updated dictionary.
     let writeDictionary dictionaryName newDict =
