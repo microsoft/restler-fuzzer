@@ -52,11 +52,31 @@
 
 * *EngineSettingsFilePath* is the path to the RESTler engine settings file.  This argument is optional.  If specified, the contents of the engine settings may be updated during compilation, and the updated version is placed in the output directory.  This updated version should be used when fuzzing.
 
-* *ExampleConfigFilePath* is the path to the file containing metadata about example parameter payloads.  If it is not specified, and *DiscoverExamples* is set to ```false```, the compiler looks for a default file named ```examples.json``` in the specified examples directory.  If *DiscoverExamples* is false, every time an example is used in the Swagger file, RESTler will first look for it in metadata, and if found this will override the payload in the spec.
+* *DiscoverExamples* If true, any examples found in the Swagger specification are
+copied to a local directory, which can be configured through the *ExamplesDirectory*
+setting (see below).  If the examples directory is not specified, a new sub-directory named
+'examples' is created in the output directory.  If true, an examples metadata
+file named ```examples.json``` will also be generated in the examples directory.
+This file can be augmented with additional examples, and passed as an input to the
+compilation using the *ExampleConfigFilePath* parameter (see below).
 
-* *ExamplesDirectory* is the directory where the compiler will copy example payloads found in the Swagger file if *DiscoverExamples* (see below) is true.  This allows first discovering, then updating the examples to set your own values, and maintaining them separately from the Swagger file.
+* *ExampleConfigFilePath* is the path to the file containing metadata about example parameter payloads.  See /docs/user-guide/Examples.md for a description of the file format.
+If this setting is not specified, and *DiscoverExamples* is set to ```false```,
+the compiler looks for a default file named ```examples.json``` in the specified examples
+directory.  If *DiscoverExamples* is false, every time an example is used
+in the Swagger file, RESTler will first look for it in metadata,
+and, if found, the externally specified example will override the example from the specification.
 
-* *DiscoverExamples* If true, any examples found in the Swagger specification are copied to the *ExamplesDirectory* specified above.  If not specified, a new sub-directory named 'examples' is created in the output directory.
+* *ExamplesDirectory* is the directory where the compiler will copy example payloads
+found in the Swagger file if *DiscoverExamples* is set to ```true```.
+If *DiscoverExamples* is set to ```false```, RESTler tries to use examples in the
+metadata file configured in *ExampleConfigFilePath*.  If *ExampleConfigFilePath* is not set,
+then RESTler checks whether a file with the same name is present in the *ExamplesDirectory*,
+and, if it is found, uses this local file instead of the file referenced in the specification.
+This directory allows first discovering examples, then updating the local copy of the examples
+with different values and maintaining them separately from the Swagger file.
+The recommended way to use the updated examples in the compilation is to set *DiscoverExamples* to
+```false``` and *ExampleConfigFilePath* to the generated ```examples.json``` in this directory.
 
 * *DataFuzzing* True by default. When true, the compiler performs extra steps to enable data fuzzing. This parameter is true by default, and should only be set to false if you intend to disable the payload body checker.
 * *AllowGetProducers* False by default.  By default, RESTler only assigns producer-consumer dependencies where the producer is a POST or PUT method (which will be used to create the resource).  When this option is set to true, the compiler will also allow resources returned from GET requests to be the producer.  Note: any endpoint+method specified in an annotation will be used as-is, regardless of this parameter, i.e., setting this parameter is not needed if explicit annotations are being used for dependencies involving GET producers.
