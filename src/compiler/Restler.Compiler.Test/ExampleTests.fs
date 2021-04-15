@@ -6,6 +6,7 @@ open System
 open System.IO
 open Xunit
 open Restler.Test.Utilities
+open Restler.Config
 
 [<Trait("TestCategory", "Examples")>]
 module Examples =
@@ -99,18 +100,41 @@ module Examples =
             Restler.Workflow.generateRestlerGrammar None config
 
         [<Fact>]
-        let ``empty array example in grammar without dependencies`` () =
-
+        let ``empty array example in grammar`` () =
+            let swaggerSpecConfig =
+                  {
+                      SpecFilePath =
+                         (Path.Combine(Environment.CurrentDirectory, @"swagger\empty_array_example.json"))
+                      Dictionary = None
+                      DictionaryFilePath = None
+                      AnnotationFilePath = None
+                  }
             let config = { Restler.Config.SampleConfig with
+                             SwaggerSpecConfig = Some [swaggerSpecConfig]
                              IncludeOptionalParameters = true
                              GrammarOutputDirectoryPath = Some ctx.testRootDirPath
                              ResolveBodyDependencies = false
                              UseBodyExamples = Some true
-                             SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, @"swagger\empty_array_example.json"))]
-                             CustomDictionaryFilePath = Some (Path.Combine(Environment.CurrentDirectory, @"swagger\example_demo_dictionary.json"))
                          }
-            Restler.Workflow.generateRestlerGrammar None config
 
+            let resolveDependencies = [true; false]
+            resolveDependencies
+            |> List.iter (fun x ->
+                            Restler.Workflow.generateRestlerGrammar None
+                                { config with
+                                    ResolveBodyDependencies = x
+                                    ResolveQueryDependencies = x }
+                            )
+            // Also test that an empty array that is a custom payload works
+            // This is a special case, because empty arrays are represented without a leaf node
+            let customDictionary = Some "{ \"restler_custom_payload\": { \"item_descriptions\": [\"zzz\"] }}"
+
+            Restler.Workflow.generateRestlerGrammar None
+                { config with
+                    ResolveBodyDependencies = true
+                    ResolveQueryDependencies = true
+                    SwaggerSpecConfig = Some [{ swaggerSpecConfig with Dictionary = customDictionary }]
+                }
 
         [<Fact>]
         let ``header example with and without dependencies`` () =

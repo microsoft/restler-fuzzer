@@ -1231,26 +1231,7 @@ module DependencyLookup =
                         Some payload
                     else
                         None
-
-            // Handle the special case that this payload is an array.
-            match dependencyPayload, p.propertyType with
-            | Some dp, NestedType.Array ->
-                if innerProperties |> Seq.length <> 1 then
-                    raise (UnsupportedType (sprintf "Inner properties of an array should always be one item, found %d"
-                                                    (innerProperties |> Seq.length)))
-                let arrayItem = innerProperties |> Seq.head
-
-                let dependencyArrayItem =
-                    Tree.LeafNode
-                        {
-                            name = ""
-                            payload = dp
-                            isRequired = p.isRequired
-                            isReadOnly = p.isReadOnly
-                        }
-                Tree.InternalNode (p, stn dependencyArrayItem)
-            | _ ->
-                Tree.InternalNode ({ p with payload = dependencyPayload }, innerProperties)
+            Tree.InternalNode ({ p with payload = dependencyPayload }, innerProperties)
 
         // First, check if the parameter itself has a dependency
         let (parameterName, properties) = requestParameter.name, requestParameter.payload

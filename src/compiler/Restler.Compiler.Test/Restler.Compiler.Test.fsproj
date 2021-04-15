@@ -71,6 +71,9 @@
     <Content Include="swagger\dictionaryTests\multipleIdenticalUuidSuffix.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="swagger\dependencyTests\array_dep_multiple_items.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="swagger\dictionaryTests\multipleIdenticalUuidSuffixDict.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
