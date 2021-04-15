@@ -54,19 +54,15 @@ The format of the example file is as follows.  Note that either an external file
     "paths": {
         "/blog/posts": {
             "post": {
-                "examples": {
-
-                  "1": {
-                        "parameters": {
-                          "payload": {
-                            "body": "first blog",
-                            "tags": ["spring", "outdoors"]
-                          }
+                "1": {
+                    "parameters": {
+                        "payload": {
+                        "body": "first blog",
+                        "tags": ["spring", "outdoors"]
                         }
-                    },
-                    "2": "c:\\secondExample.json"
-
-                }
+                    }
+                },
+                "2": "c:\\secondExample.json"
             }
         }
     }

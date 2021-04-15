@@ -177,7 +177,7 @@ let generateGrammarFromSwagger grammarOutputDirectoryPath swaggerDoc config =
     // If examples were discovered, create a new examples file
     if config.DiscoverExamples then
         let discoveredExamplesFilePath = Path.Combine(examplesDirectory, Constants.DefaultExampleMetadataFileName)
-        Microsoft.FSharpLu.Json.Compact.serializeToFile discoveredExamplesFilePath examples
+        Examples.serializeExampleConfigFile discoveredExamplesFilePath examples
 
     // Write the updated dictionary.
     let writeDictionary dictionaryName newDict =

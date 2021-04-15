@@ -42,10 +42,8 @@ type ExampleConfigFile =
 "paths": {
   "/.../": {
      "get": {
-         "examples": {
-            "one": "/path/to/1",
-             "two": "/path/to/2"
-          }
+        "one": "/path/to/1",
+        "two": "/path/to/2"
      },
      "put": {},
      ...
@@ -70,6 +68,34 @@ let tryDeserializeJObjectFromToken (inlinedExampleObject:JToken) =
         printfn "example is not a valid object. %A" inlinedExampleObject
         None
 
+let serializeExampleConfigFile filePath (examplePaths:seq<ExamplePath>) =
+    let paths =
+        examplePaths
+        |> Seq.toList
+        |> List.map (fun p ->
+                        let exampleMethods =
+                            p.methods
+                            |> Seq.map (fun m ->
+                                            let examplePayloads =
+                                                m.examplePayloads
+                                                |> Seq.map (fun e ->
+                                                                let exValue =
+                                                                    match e.filePathOrInlinedPayload with
+                                                                    | FilePath fp -> fp :> obj
+                                                                    | ExamplePayloadKind.InlineExample ex -> ex :> obj
+
+                                                                JProperty(e.name, exValue))
+
+                                            JProperty(m.name, JObject(examplePayloads)))
+                        JProperty(p.path, JObject(exampleMethods))
+                    )
+    let pathProperty = JProperty("paths", JObject(paths))
+    let rootObject = JObject(pathProperty)
+    use stream = System.IO.File.CreateText(filePath)
+    use writer = new Newtonsoft.Json.JsonTextWriter(stream)
+
+    rootObject.WriteTo(writer)
+
 let tryDeserializeExampleConfigFile exampleConfigFilePath =
     match tryDeserializeJObjectFromFile exampleConfigFilePath with
     | Some (jObject, _) ->
@@ -87,28 +113,17 @@ let tryDeserializeExampleConfigFile exampleConfigFilePath =
                                                     methodProperty.Value.Value<JObject>().Properties()
                                                     |> Seq.choose
                                                         (fun exampleProperty ->
-                                                            let exampleName = exampleProperty.Name
-                                                            if exampleProperty.Name <> "examples" then
-                                                                raise (exn("The example file is invalid.  The 'examples' property must be specified."))
-                                                            let examples = exampleProperty.Value
-                                                            if examples.Type <> JTokenType.Object then
-                                                                raise (exn("The example file is invalid.  The 'examples' property must be an object."))
-
-                                                            match examples.Children() |> Seq.tryHead with
-                                                            | None -> None
-                                                            | Some ex ->
-                                                                let firstExample = ex.Value<JProperty>()
-                                                                let examplePayload =
-                                                                    match firstExample.Value.Type with
-                                                                    | JTokenType.String ->
-                                                                        ExamplePayloadKind.FilePath (firstExample.Value.ToString())
-                                                                    | JTokenType.Object ->
-                                                                        ExamplePayloadKind.InlineExample (firstExample.Value)
-                                                                    | _ ->
-                                                                        raise (invalidArg exampleProperty.Name (sprintf "Invalid token found in example file: %A" exampleProperty.Value))
-                                                                {   ExamplePayload.name = exampleName
-                                                                    ExamplePayload.filePathOrInlinedPayload = examplePayload }
-                                                                |> Some
+                                                            let examplePayload =
+                                                                match exampleProperty.Value.Type with
+                                                                | JTokenType.String ->
+                                                                    ExamplePayloadKind.FilePath (exampleProperty.Value.ToString())
+                                                                | JTokenType.Object ->
+                                                                    ExamplePayloadKind.InlineExample (exampleProperty.Value)
+                                                                | _ ->
+                                                                    raise (invalidArg exampleProperty.Name (sprintf "Invalid token found in example file: %A" exampleProperty.Value))
+                                                            {   ExamplePayload.name = exampleProperty.Name
+                                                                ExamplePayload.filePathOrInlinedPayload = examplePayload }
+                                                            |> Some
                                                         )
                                                 { ExampleMethod.name = methodName
                                                   examplePayloads = methodExamples |> Seq.toList }

@@ -1,24 +1,20 @@
 {
   "paths": {
     "/stores/{storeId}/order": {
-      "post": {
-        "examples": {
+      "Post": {
           "one": "./examples/make_order_descriptions.json"
-        }
       }
     },
     "/vm": {
       "post": {
-        "examples": {
-          "one": "/path/to/1",
-          "two": {
-            "parameters": {
-              "a": "a1",
-              "count": "1"
-            },
-            "responses": {
+        "one": "/path/to/1",
+        "two": {
+          "parameters": {
+            "a": "a1",
+            "count": "1"
+          },
+          "responses": {
 
-            }
           }
         }
       }
@@ -26,15 +22,11 @@
 
     "/vm/{vmName}": {
       "get": {
-        "examples": {
-          "one": "/path/to/1"
-        }
+        "one": "/path/to/1"
       },
       "put": {
-        "examples": {
-          "one": "/path/to/1",
-          "two": "/path/to/2"
-        }
+        "one": "/path/to/1",
+        "two": "/path/to/2"
       }
     }
   }

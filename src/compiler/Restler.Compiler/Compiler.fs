@@ -703,7 +703,7 @@ let generateRequestGrammar (swaggerDocs:Types.ApiSpecFuzzingConfig list)
                                 rd.requestMetadata
                         ) newDictionary
 
-    // Get the examples
+    // If discoverExamples was specified, return the newly discovered examples
     let examples =
         requestData
         |> Seq.choose ( fun (requestId, rd) ->
@@ -711,10 +711,22 @@ let generateRequestGrammar (swaggerDocs:Types.ApiSpecFuzzingConfig list)
                             | None -> None
                             | Some [] -> None
                             | Some ep ->
-                                let exampleFiles =
-                                    ep |> List.choose (fun x -> x.exampleFilePath)
-                                Some ((requestId.endpoint, requestId.method.ToString()), exampleFiles))
-        |> Map.ofSeq
+                                let examplePayloads =
+                                    ep
+                                    |> List.choose (fun x -> x.exampleFilePath)
+                                    |> List.mapi (fun i fp ->
+                                                    { ExamplePayload.name = i.ToString()
+                                                      filePathOrInlinedPayload = ExamplePayloadKind.FilePath fp
+                                                    })
+                                let method =
+                                    { ExampleMethod.name = requestId.method.ToString()
+                                      examplePayloads = examplePayloads }
+
+                                Some (requestId.endpoint, method))
+        |> Seq.groupBy (fun (endpoint, _) -> endpoint)
+        |> Seq.map (fun (endpoint, methods) ->
+                        { ExamplePath.path = endpoint
+                          ExamplePath.methods = methods |> Seq.map snd |> Seq.toList })
 
     // Make sure the grammar will be stable by sorting elements as required before returning it.
     let requests =
