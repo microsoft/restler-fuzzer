@@ -7,6 +7,8 @@ open System
 open Restler.Grammar
 open Tree
 open Restler.Utilities.Operators
+open Newtonsoft.Json.Linq
+open NJsonSchema
 
 exception UnsupportedType of string
 exception NullArraySchema of string
@@ -14,6 +16,49 @@ exception UnsupportedArrayExample of string
 exception UnsupportedRecursiveExample of string
 
 module SchemaUtilities =
+
+    /// Get an example value as a string, either directly from the 'example' attribute or
+    /// from the extension 'Examples' property.
+    let tryGetSchemaExampleValue (schema:NJsonSchema.JsonSchema) =
+        if not (isNull schema.Example) then
+            Some (schema.Example.ToString())
+        else if not (isNull schema.ExtensionData) then
+            let extensionDataExample =
+                schema.ExtensionData
+                |> Seq.tryFind (fun kvp -> kvp.Key.ToLower() = "examples")
+
+            match extensionDataExample with
+            | None -> None
+            | Some example ->
+                let dict = example.Value :?> System.Collections.IDictionary
+                let specExampleValues = seq {
+                    for exampleValue in dict.Values do
+                        let valueAsJson =
+                            match exampleValue with
+                            | :? string -> (exampleValue.ToString())
+                            | _ ->
+                                Microsoft.FSharpLu.Json.Compact.serialize exampleValue
+                        yield valueAsJson
+                }
+                specExampleValues |> Seq.tryHead
+        else None
+
+    /// Get the example from the schema.
+    /// 'None' will be returned if the example for an
+    /// object or array cannot be successfully parsed.
+    let tryGetSchemaExampleAsString (schema:NJsonSchema.JsonSchema) =
+        tryGetSchemaExampleValue schema
+
+    let tryGetSchemaExampleAsJToken (schema:NJsonSchema.JsonSchema) =
+        match tryGetSchemaExampleValue schema with
+        | Some valueAsString ->
+            try
+                JToken.Parse(valueAsString)
+                |> Some
+            with ex ->
+                None
+        | None -> None
+
     let getGrammarPrimitiveTypeWithDefaultValue (objectType:NJsonSchema.JsonObjectType) (format:string) (exampleValue:string option) =
         let defaultTypeWithValue =
             match objectType with
@@ -71,8 +116,6 @@ module SchemaUtilities =
 open SchemaUtilities
 
 module SwaggerVisitors =
-    open Newtonsoft.Json.Linq
-    open NJsonSchema
 
     let getFuzzableValueForProperty propertyName (propertySchema:NJsonSchema.JsonSchema) isRequired isReadOnly enumeration defaultValue (exampleValue:string option) =
         let payload =
@@ -187,22 +230,6 @@ module SwaggerVisitors =
                 |> Some
             | None -> None
 
-        /// Get the example from the schema.
-        /// 'None' will be returned if the example for an
-        /// object or array cannot be successfully parsed.
-        let tryGetSchemaExampleAsString (schema:NJsonSchema.JsonSchema) =
-            if isNull schema.Example then None
-            else
-                Some (schema.Example.ToString())
-
-        let tryGetSchemaExampleAsJToken (schema:NJsonSchema.JsonSchema) =
-            if isNull schema.Example then None
-            else
-                try
-                    JToken.Parse(schema.Example.ToString())
-                    |> Some
-                with ex ->
-                    None
 
         let tryGetArraySchemaExample (schema:NJsonSchema.JsonSchema) =
             // Check for local examples from the Swagger spec if external examples were not specified.
@@ -237,7 +264,7 @@ module SwaggerVisitors =
             | NJsonSchema.JsonObjectType.Boolean ->
                 let fuzzablePropertyPayload =
                     let propertySchema = (property :> NJsonSchema.JsonSchema)
-                    let schemaExampleValue = ExampleHelpers.tryGetSchemaExampleAsString property
+                    let schemaExampleValue = SchemaUtilities.tryGetSchemaExampleAsString property
                     getFuzzableValueForProperty propertyName
                              propertySchema
                              property.IsRequired
@@ -442,11 +469,7 @@ module SwaggerVisitors =
                         else
                             // Check for local examples from the Swagger spec if external examples were not specified.
                             // A fuzzable payload with a local example as the default value will be generated.
-                            let exampleValueFromSpec =
-                                if not (isNull schema.Example) then
-                                    Some (schema.Example.ToString())
-                                else
-                                    None
+                            let specExampleValue = tryGetSchemaExampleAsString schema
                             getFuzzableValueForProperty
                                 ""
                                 schema
@@ -454,7 +477,7 @@ module SwaggerVisitors =
                                 false (*IsReadOnly*)
                                 (tryGetEnumeration schema) (*enumeration*)
                                 (tryGetDefault schema) (*defaultValue*)
-                                exampleValueFromSpec
+                                specExampleValue
                     LeafNode leafProperty
                     |> cont
                 | Some v ->

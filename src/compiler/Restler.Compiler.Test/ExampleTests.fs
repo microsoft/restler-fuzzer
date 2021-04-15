@@ -421,11 +421,21 @@ module Examples =
             let grammarOutputDirectoryPath = ctx.testRootDirPath
             let config = { Restler.Config.SampleConfig with
                              IncludeOptionalParameters = true
+                             // Make sure inline examples are used even if using examples is not specified
+                             UseQueryExamples = None
+                             UseBodyExamples = None
                              GrammarOutputDirectoryPath = Some grammarOutputDirectoryPath
                              SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, @"swagger\inline_examples.json"))]
                              CustomDictionaryFilePath = None
                          }
             Restler.Workflow.generateRestlerGrammar None config
-            // TODO: baseline
+            let grammarFilePath = Path.Combine(grammarOutputDirectoryPath, "grammar.py")
+            let grammar = File.ReadAllText(grammarFilePath)
+
+            Assert.True(grammar.Contains("primitives.restler_fuzzable_string(\"i5\","))
+            Assert.True(grammar.Contains("primitives.restler_fuzzable_int(\"32\"),"))
+            Assert.True(grammar.Contains("primitives.restler_fuzzable_string(\"inline_example_value_laptop1\", quoted=False),"))
+            Assert.True(grammar.Contains("primitives.restler_fuzzable_string(\"inline_ex_2\", quoted=False),"))
+            Assert.True(grammar.Contains("primitives.restler_fuzzable_number(\"1.67\"),"))
 
         interface IClassFixture<Fixtures.TestSetupAndCleanup>

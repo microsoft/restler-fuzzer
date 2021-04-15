@@ -50,8 +50,11 @@
               "name": "computerSize",
               "required": true,
               "type": "number",
-              "example": "1.23"
-            },
+              "examples": {
+                "firstExample": "1.67",
+                  "secondExample": "999.99"
+                }
+              },
             {
               "in": "query",
               "name": "computerDimensions",
@@ -78,9 +81,6 @@
             }
           ],
           "examples": {
-            "Example with header": {
-              "$ref": "./examples/inline_payload_examples.json"
-            }
           },
           "responses": {
             "200": {
