@@ -32,7 +32,7 @@ module Dependencies =
                                     dictionary
                                     config
                                     List.empty
-
+                                    None
             let unresolvedPathDeps =
                 dependencies
                 |> List.filter (fun d -> d.producer.IsNone)

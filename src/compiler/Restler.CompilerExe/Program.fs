@@ -22,7 +22,8 @@ let main argv =
                 let config = Json.Compact.deserializeFile<Config> configFilePath
                 let config =
                     match config.GrammarOutputDirectoryPath with
-                    | None -> { config with GrammarOutputDirectoryPath = Some System.Environment.CurrentDirectory }
+                    | None ->
+                        raise (exn("'GrammarOutputDirectoryPath' must be specified in the config file."))
                     | Some _ -> config
                 convertRelativeToAbsPaths configFilePath config
             else

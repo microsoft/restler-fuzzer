@@ -75,6 +75,9 @@ type Config =
         /// Swagger file, RESTler will first look for it in this directory.
         ExamplesDirectory : string
 
+        /// File path specifying the example config file
+        ExampleConfigFilePath : string option
+
         /// Perform data fuzzing
         DataFuzzing : bool
 
@@ -163,6 +166,11 @@ let convertRelativeToAbsPaths configFilePath config =
         | Some p -> Some (convertToAbsPath configFileDirPath p)
         | None -> None
 
+    let exampleConfigFilePath =
+        match config.ExampleConfigFilePath with
+        | Some p -> Some (convertToAbsPath configFileDirPath p)
+        | None -> None
+
     { config with
         SwaggerSpecFilePath = swaggerSpecFilePath
         CustomDictionaryFilePath = customDictionaryFilePath
@@ -170,6 +178,7 @@ let convertRelativeToAbsPaths configFilePath config =
         EngineSettingsFilePath = engineSettingsFilePath
         SwaggerSpecConfig = apiSpecs
         AnnotationFilePath = annotationsFilePath
+        ExampleConfigFilePath = exampleConfigFilePath
     }
 
 
@@ -181,6 +190,7 @@ let SampleConfig =
         GrammarInputFilePath = None
         CustomDictionaryFilePath = None
         AnnotationFilePath = None
+        ExampleConfigFilePath = None
         GrammarOutputDirectoryPath = None
         IncludeOptionalParameters = true
         UseQueryExamples = None
@@ -208,6 +218,7 @@ let DefaultConfig =
         GrammarInputFilePath = None
         CustomDictionaryFilePath = None
         AnnotationFilePath = None
+        ExampleConfigFilePath = None
         GrammarOutputDirectoryPath = None
         IncludeOptionalParameters = true
         UseQueryExamples = Some true

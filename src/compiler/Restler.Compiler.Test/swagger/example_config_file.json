@@ -1,0 +1,33 @@
+{
+  "paths": {
+    "/stores/{storeId}/order": {
+      "Post": {
+          "one": "./examples/make_order_descriptions.json"
+      }
+    },
+    "/vm": {
+      "post": {
+        "one": "/path/to/1",
+        "two": {
+          "parameters": {
+            "a": "a1",
+            "count": "1"
+          },
+          "responses": {
+
+          }
+        }
+      }
+    },
+
+    "/vm/{vmName}": {
+      "get": {
+        "one": "/path/to/1"
+      },
+      "put": {
+        "one": "/path/to/1",
+        "two": "/path/to/2"
+      }
+    }
+  }
+}
