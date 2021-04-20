@@ -197,6 +197,17 @@ class HttpSock(object):
         global DELIM
         data = ''
 
+        def decode_buf (buf):
+            try:
+                return buf.decode(UTF8)
+            except Exception as ex:
+                if self.ignore_decoding_failures:
+                    RAW_LOGGING(f'Failed to decode data due to {ex}. \
+                        Trying again while ignoring offending bytes.')
+                    return buf.decode(UTF8, "ignore")
+                else:
+                    raise
+
         # get the data of header (and maybe more)
         bytes_received = 0
         while DELIM not in data:
@@ -210,16 +221,7 @@ class HttpSock(object):
             if len(buf) == 0:
                 return data
 
-            try:
-                data += buf.decode(UTF8)
-            except Exception as ex:
-                if self.ignore_decoding_failures:
-                    RAW_LOGGING(f'Failed to decode header data due to {ex} \
-                        when decoding received bytes. \
-                        Trying again and ignoring offending bytes.')
-                    data += buf.decode(UTF8, "ignore")
-                else:
-                    raise
+            data += decode_buf(buf)
 
         # Handle chunk encoding
         chuncked_encoding = False
@@ -237,15 +239,7 @@ class HttpSock(object):
                 if len(buf) == 0:
                     return data
 
-                try:
-                    data += buf.decode(UTF8)
-                except Exception as ex:
-                    if self.ignore_decoding_failures:
-                        RAW_LOGGING(f'Failed to decode chunk encoding data due to {ex}. \
-                            Trying again while ignoring offending bytes.')
-                        data += buf.decode(UTF8, "ignore")
-                    else:
-                        raise
+                data += decode_buf(buf)
 
                 if data.endswith(DELIM):
                     return data
@@ -264,6 +258,7 @@ class HttpSock(object):
 
         bytes_remain = content_len - bytes_received + header_len
 
+
         # get rest of socket data
         while bytes_remain > 0:
             try:
@@ -275,15 +270,7 @@ class HttpSock(object):
                 return data
 
             bytes_remain -= len(buf)
-            try:
-                data += buf.decode(UTF8)
-            except Exception as ex:
-                if self.ignore_decoding_failures:
-                    RAW_LOGGING(f'Failed to decode rest of socket data due to {ex}. \
-                        Trying again while ignoring offending bytes.')
-                    data += buf.decode(UTF8, "ignore")
-                else:
-                    raise
+            data += decode_buf(buf)
 
         return data
 
