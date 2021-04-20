@@ -38,7 +38,9 @@ def compile_spec(api_spec_path, restler_dll_path):
         os.makedirs(RESTLER_TEMP_DIR)
 
     with usedir(RESTLER_TEMP_DIR):
-        subprocess.run(f'dotnet \"{restler_dll_path}\" compile --api_spec \"{api_spec_path}\"', shell=True)
+        command=f"dotnet \"{restler_dll_path}\" compile --api_spec \"{api_spec_path}\""
+        print(command)
+        subprocess.run(command, shell=True)
 
 def test_spec(ip, port, host, use_ssl, restler_dll_path):
     """ Runs RESTler's test mode on a specified Compile directory
@@ -76,6 +78,7 @@ def test_spec(ip, port, host, use_ssl, restler_dll_path):
         if host is not None:
             command = f"{command} --host {host}"
 
+        print(command)
         subprocess.run(command, shell=True)
 
 if __name__ == '__main__':
