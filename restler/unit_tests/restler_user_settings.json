@@ -15,6 +15,7 @@
     "disable_cert_validation": true,
     "no_tokens_in_logs": true,
     "path_regex": "(\\w*)/ddosProtectionPlans(\\w*)",
+    "ignore_decoding_failures": true,
     "request_throttle_ms": 500,
     "target_ip": "100.100.100.100",
     "target_port": 500,
