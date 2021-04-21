@@ -54,6 +54,9 @@ Ex: '2*' will match 200, 201, 210, etc.
 Use wildcard '?' to allow any value in that specific location.
 Ex: '2?1' will match 201 or 211, but not 202.
 
+### disable_cert_validation: bool (default False)
+Disable TLS certificate validation.
+
 ### dyn_objects_cache_size: int (default 10)
 Max number of objects of one type before deletion by the garbage collector
 
