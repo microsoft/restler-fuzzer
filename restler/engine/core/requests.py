@@ -597,14 +597,6 @@ class Request(object):
                         values = current_fuzzable_values
                     else:
                         values = [current_fuzzable_values]
-                    if values:
-                        values = list(
-                            map(
-                                lambda x: "{}: {}\r\n".\
-                                format(default_val, x),
-                                values
-                            )
-                        )
                 except primitives.CandidateValueException:
                     _raise_dict_err(primitive_type, default_val)
                 except Exception as err:
