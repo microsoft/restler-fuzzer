@@ -32,13 +32,14 @@ module SchemaUtilities =
             | Some example ->
                 let dict = example.Value :?> System.Collections.IDictionary
                 let specExampleValues = seq {
-                    for exampleValue in dict.Values do
-                        let valueAsJson =
-                            match exampleValue with
-                            | :? string -> (exampleValue.ToString())
-                            | _ ->
-                                Microsoft.FSharpLu.Json.Compact.serialize exampleValue
-                        yield valueAsJson
+                    if not (isNull dict) then
+                        for exampleValue in dict.Values do
+                            let valueAsJson =
+                                match exampleValue with
+                                | :? string -> (exampleValue.ToString())
+                                | _ ->
+                                    Microsoft.FSharpLu.Json.Compact.serialize exampleValue
+                            yield valueAsJson
                 }
                 specExampleValues |> Seq.tryHead
         else None
@@ -49,14 +50,17 @@ module SchemaUtilities =
     let tryGetSchemaExampleAsString (schema:NJsonSchema.JsonSchema) =
         tryGetSchemaExampleValue schema
 
+    let tryParseJToken (exampleValue:String) =
+        try
+            JToken.Parse(exampleValue)
+            |> Some
+        with ex ->
+            None
+
     let tryGetSchemaExampleAsJToken (schema:NJsonSchema.JsonSchema) =
         match tryGetSchemaExampleValue schema with
         | Some valueAsString ->
-            try
-                JToken.Parse(valueAsString)
-                |> Some
-            with ex ->
-                None
+            tryParseJToken valueAsString
         | None -> None
 
     let getGrammarPrimitiveTypeWithDefaultValue (objectType:NJsonSchema.JsonObjectType) (format:string) (exampleValue:string option) =

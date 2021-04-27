@@ -24,7 +24,8 @@ let getYamlSwaggerDocumentAsync (path:string) = async {
 
 let getSwaggerDocument (swaggerPath:string) (workingDirectory:string) =
     async {
-        let specExtension = System.IO.Path.GetExtension(swaggerPath)
+        // When a spec is preprocessed, it is converted to json
+        let specExtension = ".json"
 
         let specName = sprintf "%s%s%s" (System.IO.Path.GetFileNameWithoutExtension(swaggerPath))
                                          "_preprocessed"

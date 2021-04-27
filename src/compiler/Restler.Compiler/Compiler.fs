@@ -175,6 +175,35 @@ module private Parameters =
                                            serialization = getParameterSerialization declaredParameter }
                         )
 
+    // Gets the first example found from the open API parameter:
+    // The priority is:
+    // - first, check the 'Example' property
+    // - then, check the 'Examples' property
+    let getExamplesFromParameter (p:OpenApiParameter) =
+        let schemaExample =
+            if isNull p.Schema then None
+            else
+                SchemaUtilities.tryGetSchemaExampleAsString p.Schema
+        match schemaExample with
+        | Some e ->
+            Some e
+        | None ->
+            if not (isNull p.Examples) then
+                if p.Examples.Count > 0 then
+                    let firstExample = p.Examples.First()
+                    let exValue =
+                        let v = firstExample.Value.Value.ToString()
+                        if p.Type = NJsonSchema.JsonObjectType.Array ||
+                            p.Type = NJsonSchema.JsonObjectType.Object then
+                            v
+                        else
+                            sprintf "\"%s\"" v
+                    Some exValue
+                else
+                    None
+            else
+                None
+
     let pathParameters (swaggerMethodDefinition:OpenApiOperation) (endpoint:string)
                        (exampleConfig: ExampleRequestPayload list option) =
         let declaredPathParameters = swaggerMethodDefinition.ActualParameters
@@ -213,7 +242,7 @@ module private Parameters =
                                                      if schema.IsArray then
                                                          raise (Exception("Arrays in path examples are not supported yet."))
                                                      else
-                                                        let specExampleValue = SchemaUtilities.tryGetSchemaExampleAsString schema
+                                                        let specExampleValue = getExamplesFromParameter parameter
                                                         getFuzzableValueForProperty ""
                                                                                      schema
                                                                                      true (*IsRequired*)
@@ -252,7 +281,15 @@ module private Parameters =
             if dataFuzzing || examplePayloads.IsNone then
                 Some (parameterList
                       |> Seq.map (fun p ->
-                                    let parameterPayload = generateGrammarElementForSchema p.ActualSchema (None, false) [] id
+                                    let specExampleValue =
+                                        match getExamplesFromParameter p with
+                                        | None -> None
+                                        | Some exValue ->
+                                            SchemaUtilities.tryParseJToken exValue
+
+                                    let parameterPayload = generateGrammarElementForSchema
+                                                                p.ActualSchema
+                                                                (specExampleValue, true) [] id
                                     {
                                         name = p.Name
                                         payload = parameterPayload
