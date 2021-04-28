@@ -111,6 +111,12 @@ The time, in milliseconds, to throttle each request being sent.
 This is here for special cases where the server will block requests from connections that arrive too quickly.
 Using this setting is not recommended.
 
+### target_ip: str (default None)
+The IP address of the target webserver.
+
+### target_port: int (default None)
+The port of the target webserver.
+
 ### time_budget: float (default 30 days)
 Once this time is reached, the fuzzing will stop.
 Time is in hours.
