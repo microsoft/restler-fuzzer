@@ -7,6 +7,7 @@ import sys
 import time
 import datetime
 import uuid
+from collections import OrderedDict
 
 from restler_settings import Settings
 
@@ -291,17 +292,17 @@ class CandidateValuesPool(object):
 
         if quoted:
             default_value = f'"{default_value}"'
-        # Only use the default value if no values are defined in
-        # the dictionary for that fuzzable type
-        if not fuzzable_values:
-            fuzzable_values.append(default_value)
-        elif primitive_type == FUZZABLE_DATETIME and\
-        len(fuzzable_values) == 2:
-            # Special case for fuzzable_datetime because there will always be
-            # two additional values for past/future in the list
-            fuzzable_values.insert(0, default_value)
 
-        return fuzzable_values
+        fuzzable_values.insert(0, default_value)
+
+        # Eliminate duplicates.
+        # Note: for the case when a default (non-example) value is in the grammar,
+        # the RESTler compiler initializes the dictionary and grammar with the same
+        # values.  These duplicates will be eliminated here.
+        unique_fuzzable_values = []
+        [unique_fuzzable_values.append(x) for x in fuzzable_values if x not in unique_fuzzable_values]
+
+        return unique_fuzzable_values
 
     def set_candidate_values(self, custom_values, per_endpoint_custom_mutations=None):
         """ Overrides default primitive type values with user-provided ones.
