@@ -400,3 +400,19 @@ let generatePrefixForCustomUuidSuffixPayload (suffixPayloadId:string) =
         sprintf "%s" suffixPayloadId
     else
         sprintf "%s" (suffixPayloadIdRestricted |> Seq.map string |> String.concat "")
+
+
+/// This map lists the default primitive values for fuzzable primitives
+/// These will be used both in the grammar and dictionary file.
+let DefaultPrimitiveValues =
+    [
+        PrimitiveType.String, "fuzzstring" // Note: quotes are intentionally omitted.
+        PrimitiveType.Uuid, "566048da-ed19-4cd3-8e0a-b7e0e1ec4d72" // Note: quotes are intentionally omitted.
+        PrimitiveType.DateTime, "2019-06-26T20:20:39+00:00" // Note: quotes are intentionally omitted.
+        PrimitiveType.Number, "1.23" // Note: quotes are intentionally omitted.
+        PrimitiveType.Int, "1"
+        PrimitiveType.Bool, "true"
+        PrimitiveType.Object, "{ \"fuzz\": false }"
+    ]
+    |> Map.ofSeq
+

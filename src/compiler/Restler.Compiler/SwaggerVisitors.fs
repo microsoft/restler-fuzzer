@@ -68,30 +68,36 @@ module SchemaUtilities =
             match objectType with
             | NJsonSchema.JsonObjectType.String ->
                 let defaultStringType =
-                    PrimitiveType.String, "fuzzstring" // Note: quotes are intentionally omitted.
+                    PrimitiveType.String, DefaultPrimitiveValues.[PrimitiveType.String]
                 if not (isNull format) then
                     match (format.ToLower()) with
                     | "uuid"
                     | "guid" ->
                         PrimitiveType.Uuid,
-                        "566048da-ed19-4cd3-8e0a-b7e0e1ec4d72" // Note: quotes are intentionally omitted.
+                        DefaultPrimitiveValues.[PrimitiveType.Uuid]
                     | "date-time" ->
-                        PrimitiveType.DateTime, "2019-06-26T20:20:39+00:00" // Note: quotes are intentionally omitted.
+                         PrimitiveType.DateTime,
+                         DefaultPrimitiveValues.[PrimitiveType.DateTime]
                     | "double" ->
-                        PrimitiveType.Number, "1.23" // Note: quotes are intentionally omitted.
+                        PrimitiveType.Number,
+                        DefaultPrimitiveValues.[PrimitiveType.Number]
                     | _ ->
                         printfn "found unsupported format: %s" format
                         defaultStringType
                 else
                     defaultStringType
             | NJsonSchema.JsonObjectType.Number ->
-                PrimitiveType.Number, "1.23"
+                PrimitiveType.Number,
+                DefaultPrimitiveValues.[PrimitiveType.Number]
             | NJsonSchema.JsonObjectType.Integer ->
-                PrimitiveType.Int, "1"
+                PrimitiveType.Int,
+                DefaultPrimitiveValues.[PrimitiveType.Int]
             | NJsonSchema.JsonObjectType.Boolean ->
-                PrimitiveType.Bool, "true"
+                PrimitiveType.Bool,
+                DefaultPrimitiveValues.[PrimitiveType.Bool]
             | NJsonSchema.JsonObjectType.Object ->
-                PrimitiveType.Object, "{ \"fuzz\": false }"
+                PrimitiveType.Object,
+                DefaultPrimitiveValues.[PrimitiveType.Object]
             | NJsonSchema.JsonObjectType.Array
             | _ ->
                 raise (UnsupportedType (sprintf "%A is not a fuzzable primitive type.  Please make sure your Swagger file is valid." objectType))

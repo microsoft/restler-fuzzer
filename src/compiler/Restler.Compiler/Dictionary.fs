@@ -121,15 +121,15 @@ type MutationsDictionary =
 /// The default mutations dictionary generated when a user does not specify it
 let DefaultMutationsDictionary =
     {
-        restler_fuzzable_string = ["fuzzstring"]
+        restler_fuzzable_string = [DefaultPrimitiveValues.[PrimitiveType.String]]
         restler_fuzzable_string_unquoted = []
-        restler_fuzzable_int = ["0" ; "1"]
-        restler_fuzzable_number = ["0.1"; "1.2"]
-        restler_fuzzable_bool = ["true"]
-        restler_fuzzable_datetime = ["6/25/2019 12:00:00 AM"]
+        restler_fuzzable_int = [DefaultPrimitiveValues.[PrimitiveType.Int]; "0"]
+        restler_fuzzable_number = [DefaultPrimitiveValues.[PrimitiveType.Number]]
+        restler_fuzzable_bool = [DefaultPrimitiveValues.[PrimitiveType.Bool]]
+        restler_fuzzable_datetime = [DefaultPrimitiveValues.[PrimitiveType.DateTime]]
         restler_fuzzable_datetime_unquoted = []
-        restler_fuzzable_object = ["{}"]
-        restler_fuzzable_uuid4 = ["903bcc44-30cf-4ea7-968a-d9d0da7c072f"]
+        restler_fuzzable_object = [DefaultPrimitiveValues.[PrimitiveType.Object]]
+        restler_fuzzable_uuid4 = [DefaultPrimitiveValues.[PrimitiveType.Uuid]]
         restler_fuzzable_uuid4_unquoted = []
         restler_custom_payload = Some (Map.empty<string, string list>)
         restler_custom_payload_unquoted = Some (Map.empty<string, string list>)
