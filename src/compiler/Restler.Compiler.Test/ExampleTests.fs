@@ -432,10 +432,12 @@ module Examples =
             let grammarFilePath = Path.Combine(grammarOutputDirectoryPath, "grammar.py")
             let grammar = File.ReadAllText(grammarFilePath)
 
-            Assert.True(grammar.Contains("primitives.restler_fuzzable_string(\"i5\","))
-            Assert.True(grammar.Contains("primitives.restler_fuzzable_int(\"32\"),"))
-            Assert.True(grammar.Contains("primitives.restler_fuzzable_string(\"inline_example_value_laptop1\", quoted=False),"))
-            Assert.True(grammar.Contains("primitives.restler_fuzzable_string(\"inline_ex_2\", quoted=False),"))
-            Assert.True(grammar.Contains("primitives.restler_fuzzable_number(\"1.67\"),"))
+            Assert.True(grammar.Contains("primitives.restler_fuzzable_string(\"fuzzstring\", quoted=True, examples=[\"i5\"]),"))
+            Assert.True(grammar.Contains("primitives.restler_fuzzable_int(\"1\", examples=[\"32\"]),"))
+
+            Assert.True(grammar.Contains("primitives.restler_fuzzable_string(\"fuzzstring\", quoted=False, examples=[\"inline_example_value_laptop1\"]),"))
+
+            Assert.True(grammar.Contains("primitives.restler_fuzzable_string(\"fuzzstring\", quoted=False, examples=[\"inline_ex_2\"]),"))
+            Assert.True(grammar.Contains("primitives.restler_fuzzable_number(\"1.23\", examples=[\"1.67\"]),"))
 
         interface IClassFixture<Fixtures.TestSetupAndCleanup>
