@@ -543,6 +543,7 @@ class Request(object):
             primitive_type = request_block[0]
             default_val = request_block[1]
             quoted = request_block[2]
+            examples = request_block[3]
 
             values = []
             # Handling dynamic primitives that need fresh rendering every time
@@ -615,7 +616,7 @@ class Request(object):
                 values = [primitives.restler_refreshable_authentication_token]
             # Handle all the rest
             else:
-                values = candidate_values_pool.get_fuzzable_values(primitive_type, default_val, self._request_id, quoted)
+                values = candidate_values_pool.get_fuzzable_values(primitive_type, default_val, self._request_id, quoted, examples)
 
             if Settings().fuzzing_mode == 'random-walk' and not preprocessing:
                 random.shuffle(values)

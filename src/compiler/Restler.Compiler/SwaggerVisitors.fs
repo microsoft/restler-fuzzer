@@ -107,10 +107,6 @@ module SchemaUtilities =
 
         let (primitiveType, defaultValue) = defaultTypeWithValue
         primitiveType, defaultValue, exampleValue
-        //match exampleValue with
-        //| None -> defaultTypeWithValue
-        //| Some v ->
-        //    fst defaultTypeWithValue, v
 
     let getFuzzableValueForObjectType (objectType:NJsonSchema.JsonObjectType) (format:string) (exampleValue: string option) =
         Fuzzable (getGrammarPrimitiveTypeWithDefaultValue objectType format exampleValue)
