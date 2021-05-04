@@ -416,4 +416,28 @@ module Examples =
 
             Assert.True(grammar.Contains("_networkInterfaces__networkInterfaceName__put_properties_ipConfigurations_0_name.reader()"))
 
+        [<Fact>]
+        let ``inline examples are used instead of fuzzstring`` () =
+            let grammarOutputDirectoryPath = ctx.testRootDirPath
+            let config = { Restler.Config.SampleConfig with
+                             IncludeOptionalParameters = true
+                             // Make sure inline examples are used even if using examples is not specified
+                             UseQueryExamples = None
+                             UseBodyExamples = None
+                             GrammarOutputDirectoryPath = Some grammarOutputDirectoryPath
+                             SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, @"swagger\inline_examples.json"))]
+                             CustomDictionaryFilePath = None
+                         }
+            Restler.Workflow.generateRestlerGrammar None config
+            let grammarFilePath = Path.Combine(grammarOutputDirectoryPath, "grammar.py")
+            let grammar = File.ReadAllText(grammarFilePath)
+
+            Assert.True(grammar.Contains("primitives.restler_fuzzable_string(\"fuzzstring\", quoted=True, examples=[\"i5\"]),"))
+            Assert.True(grammar.Contains("primitives.restler_fuzzable_int(\"1\", examples=[\"32\"]),"))
+
+            Assert.True(grammar.Contains("primitives.restler_fuzzable_string(\"fuzzstring\", quoted=False, examples=[\"inline_example_value_laptop1\"]),"))
+
+            Assert.True(grammar.Contains("primitives.restler_fuzzable_string(\"fuzzstring\", quoted=False, examples=[\"inline_ex_2\"]),"))
+            Assert.True(grammar.Contains("primitives.restler_fuzzable_number(\"1.23\", examples=[\"1.67\"]),"))
+
         interface IClassFixture<Fixtures.TestSetupAndCleanup>

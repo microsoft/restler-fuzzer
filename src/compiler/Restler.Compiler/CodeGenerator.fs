@@ -20,6 +20,7 @@ module Types =
         {
             defaultValue : string
             isQuoted : bool
+            exampleValue : string option
         }
 
     /// RESTler grammar built-in types
@@ -30,13 +31,13 @@ module Types =
         | Restler_static_string_jtoken_delim of string
         | Restler_fuzzable_string of RequestPrimitiveTypeData
         | Restler_fuzzable_datetime of RequestPrimitiveTypeData
-        | Restler_fuzzable_object of string
-        | Restler_fuzzable_delim of string
+        | Restler_fuzzable_object of RequestPrimitiveTypeData
+        | Restler_fuzzable_delim of RequestPrimitiveTypeData
         | Restler_fuzzable_uuid4 of RequestPrimitiveTypeData
         | Restler_fuzzable_group of RequestPrimitiveTypeData
-        | Restler_fuzzable_bool of string
-        | Restler_fuzzable_int of string
-        | Restler_fuzzable_number of string
+        | Restler_fuzzable_bool of RequestPrimitiveTypeData
+        | Restler_fuzzable_int of RequestPrimitiveTypeData
+        | Restler_fuzzable_number of RequestPrimitiveTypeData
         | Restler_multipart_formdata of string
         | Restler_custom_payload of RequestPrimitiveTypeData
         | Restler_custom_payload_header of string
@@ -61,18 +62,18 @@ let rec getRestlerPythonPayload (payload:FuzzingPayload) (isQuoted:bool) : Reque
         match p with
         | Constant (t,v) ->
             Restler_static_string_constant v
-        | Fuzzable (t,v) ->
+        | Fuzzable (t,v,exv) ->
             match t with
-            | Bool -> Restler_fuzzable_bool v
+            | Bool -> Restler_fuzzable_bool { defaultValue = v ; isQuoted = false ; exampleValue = exv }
             | PrimitiveType.DateTime ->
-                Restler_fuzzable_datetime { defaultValue = v ; isQuoted = isQuoted }
+                Restler_fuzzable_datetime { defaultValue = v ; isQuoted = isQuoted ; exampleValue = exv }
             | PrimitiveType.String ->
-                Restler_fuzzable_string { defaultValue = v ; isQuoted = isQuoted }
-            | PrimitiveType.Object -> Restler_fuzzable_object v
-            | Int -> Restler_fuzzable_int v
-            | Number -> Restler_fuzzable_number v
+                Restler_fuzzable_string { defaultValue = v ; isQuoted = isQuoted ; exampleValue = exv }
+            | PrimitiveType.Object -> Restler_fuzzable_object { defaultValue = v ; isQuoted = false ; exampleValue = exv }
+            | Int -> Restler_fuzzable_int { defaultValue = v ; isQuoted = false; exampleValue = exv }
+            | Number -> Restler_fuzzable_number { defaultValue = v ; isQuoted = false ; exampleValue = exv }
             | Uuid ->
-                Restler_fuzzable_uuid4 { defaultValue = v ; isQuoted = isQuoted }
+                Restler_fuzzable_uuid4 { defaultValue = v ; isQuoted = isQuoted ; exampleValue = exv }
             | PrimitiveType.Enum (_, enumeration, defaultValue) ->
                 // TODO: should this be generating unique fuzzable group tags?  Why is one needed?
                 let defaultStr =
@@ -85,11 +86,11 @@ let rec getRestlerPythonPayload (payload:FuzzingPayload) (isQuoted:bool) : Reque
                              defaultStr
                     )
                 Restler_fuzzable_group
-                    { defaultValue = groupValue ; isQuoted = isQuoted }
+                    { defaultValue = groupValue ; isQuoted = isQuoted ; exampleValue = exv }
         | Custom c ->
             match c.payloadType with
             | CustomPayloadType.String ->
-                Restler_custom_payload { defaultValue = c.payloadValue ; isQuoted = isQuoted }
+                Restler_custom_payload { defaultValue = c.payloadValue ; isQuoted = isQuoted ; exampleValue = None }
             | CustomPayloadType.UuidSuffix ->
                 Restler_custom_payload_uuid4_suffix c.payloadValue
             | CustomPayloadType.Header ->
@@ -334,7 +335,7 @@ let generatePythonParameter includeOptionalParameters parameterKind (requestPara
                 | FuzzingPayload.Constant (primitiveType, v) ->
                     isPrimitiveTypeQuoted primitiveType (isNull v),
                     false
-                | FuzzingPayload.Fuzzable (primitiveType, _) ->
+                | FuzzingPayload.Fuzzable (primitiveType, _, _) ->
                     // Note: this is a current RESTler limitation -
                     // fuzzable values may not be set to null without changing the grammar.
                     isPrimitiveTypeQuoted primitiveType false,
@@ -808,6 +809,14 @@ let getRequests(requests:Request list) includeOptionalParameters =
         s, delim
 
     let formatRestlerPrimitive p =
+        let getExamplePrimitiveParameter exv =
+            match exv with
+            | None -> ""
+            | Some str ->
+                let exStr, exDelim = quoteStringForPythonGrammar str
+                let quotedStr = sprintf "%s%s%s" exDelim exStr exDelim
+                sprintf ", examples=[%s]" quotedStr
+
         let str =
             match p with
             | Restler_static_string_jtoken_delim s ->
@@ -835,40 +844,56 @@ let getRequests(requests:Request list) includeOptionalParameters =
                     ""
                 else
                     let str, delim = quoteStringForPythonGrammar s.defaultValue
-                    sprintf "primitives.restler_fuzzable_string(%s%s%s, quoted=%s)"
-                             delim str delim
+                    let quotedDefaultString =
+                        sprintf "%s%s%s" delim str delim
+                    let exampleParameter = getExamplePrimitiveParameter s.exampleValue
+                    sprintf "primitives.restler_fuzzable_string(%s, quoted=%s%s)"
+                             quotedDefaultString
                              (if s.isQuoted then "True" else "False")
+                             exampleParameter
             | Restler_fuzzable_group s ->
-                sprintf "primitives.restler_fuzzable_group(%s,quoted=%s)"
+                sprintf "primitives.restler_fuzzable_group(%s,quoted=%s%s)"
                         s.defaultValue
                         (if s.isQuoted then "True" else "False")
+                        (getExamplePrimitiveParameter s.exampleValue)
             | Restler_fuzzable_int s ->
-                sprintf "primitives.restler_fuzzable_int(\"%s\")" s
+                sprintf "primitives.restler_fuzzable_int(\"%s\"%s)"
+                        s.defaultValue
+                        (getExamplePrimitiveParameter s.exampleValue)
             | Restler_fuzzable_number s ->
-                sprintf "primitives.restler_fuzzable_number(\"%s\")" s
+                sprintf "primitives.restler_fuzzable_number(\"%s\"%s)"
+                        s.defaultValue
+                        (getExamplePrimitiveParameter s.exampleValue)
             | Restler_fuzzable_bool s ->
-                sprintf "primitives.restler_fuzzable_bool(\"%s\")" s
+                sprintf "primitives.restler_fuzzable_bool(\"%s\"%s)"
+                        s.defaultValue
+                        (getExamplePrimitiveParameter s.exampleValue)
             | Restler_fuzzable_datetime s ->
-                sprintf "primitives.restler_fuzzable_datetime(\"%s\", quoted=%s)"
+                sprintf "primitives.restler_fuzzable_datetime(\"%s\", quoted=%s%s)"
                         s.defaultValue
                         (if s.isQuoted then "True" else "False")
+                        (getExamplePrimitiveParameter s.exampleValue)
             | Restler_fuzzable_object s ->
-                if String.IsNullOrEmpty s then
+                if String.IsNullOrEmpty s.defaultValue then
                     printfn "ERROR: fuzzable objects should not be empty.  Skipping."
                     ""
                 else
-                    let s, delim = quoteStringForPythonGrammar s
-                    sprintf "primitives.restler_fuzzable_object(%s%s%s)" delim s delim
+                    let str, delim = quoteStringForPythonGrammar s.defaultValue
+                    let quotedDefaultString =
+                        sprintf "%s%s%s" delim str delim
+                    let exampleParameter = getExamplePrimitiveParameter s.exampleValue
+                    sprintf "primitives.restler_fuzzable_object(%s%s)"
+                            quotedDefaultString
+                            exampleParameter
             | Restler_fuzzable_uuid4 s ->
-                sprintf "primitives.restler_fuzzable_uuid4(\"%s\", quoted=%s)"
+                sprintf "primitives.restler_fuzzable_uuid4(\"%s\", quoted=%s%s)"
                         s.defaultValue
                         (if s.isQuoted then "True" else "False")
-
+                        (getExamplePrimitiveParameter s.exampleValue)
             | Restler_custom_payload p ->
                 sprintf "primitives.restler_custom_payload(\"%s\", quoted=%s)"
                         p.defaultValue
                         (if p.isQuoted then "True" else "False")
-
             | Restler_custom_payload_uuid4_suffix p ->
                 sprintf "primitives.restler_custom_payload_uuid4_suffix(\"%s\")" p
             | Restler_custom_payload_header p ->

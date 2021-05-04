@@ -187,11 +187,13 @@
             "properties": {
                 "id": {
                     "type": "integer",
-                    "description": "The unique identifier of a blog post"
+                    "description": "The unique identifier of a blog post",
+                    "example": 123
                 },
                 "body": {
                     "type": "string",
-                    "description": "Article content"
+                    "description": "Article content",
+                    "example": "first blog"
                 }
             },
             "type": "object"

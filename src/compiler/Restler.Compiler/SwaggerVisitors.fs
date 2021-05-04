@@ -7,6 +7,8 @@ open System
 open Restler.Grammar
 open Tree
 open Restler.Utilities.Operators
+open Newtonsoft.Json.Linq
+open NJsonSchema
 
 exception UnsupportedType of string
 exception NullArraySchema of string
@@ -14,38 +16,100 @@ exception UnsupportedArrayExample of string
 exception UnsupportedRecursiveExample of string
 
 module SchemaUtilities =
-    let getGrammarPrimitiveTypeWithDefaultValue (objectType:NJsonSchema.JsonObjectType) (format:string) =
-        match objectType with
-        | NJsonSchema.JsonObjectType.String ->
-            let defaultStringType = PrimitiveType.String, "fuzzstring" // Note: quotes are intentionally omitted.
-            if not (isNull format) then
-                match (format.ToLower()) with
-                | "uuid"
-                | "guid" ->
-                    PrimitiveType.Uuid, "566048da-ed19-4cd3-8e0a-b7e0e1ec4d72" // Note: quotes are intentionally omitted.
-                | "date-time" ->
-                    PrimitiveType.DateTime, "2019-06-26T20:20:39+00:00" // Note: quotes are intentionally omitted.
-                | "double" ->
-                    PrimitiveType.Number, "1.23" // Note: quotes are intentionally omitted.
-                | _ ->
-                    printfn "found unsupported format: %s" format
-                    defaultStringType
-            else
-                defaultStringType
-        | NJsonSchema.JsonObjectType.Number ->
-            PrimitiveType.Number, "1.23"
-        | NJsonSchema.JsonObjectType.Integer ->
-            PrimitiveType.Int, "1"
-        | NJsonSchema.JsonObjectType.Boolean ->
-            PrimitiveType.Bool, "true"
-        | NJsonSchema.JsonObjectType.Object ->
-            PrimitiveType.Object, "{ \"fuzz\": false }"
-        | NJsonSchema.JsonObjectType.Array
-        | _ ->
-            raise (UnsupportedType (sprintf "%A is not a fuzzable primitive type.  Please make sure your Swagger file is valid." objectType))
 
-    let getFuzzableValueForObjectType (objectType:NJsonSchema.JsonObjectType) (format:string) =
-        Fuzzable (getGrammarPrimitiveTypeWithDefaultValue objectType format)
+    /// Get an example value as a string, either directly from the 'example' attribute or
+    /// from the extension 'Examples' property.
+    let tryGetSchemaExampleValue (schema:NJsonSchema.JsonSchema) =
+        if not (isNull schema.Example) then
+            Some (schema.Example.ToString())
+        else if not (isNull schema.ExtensionData) then
+            let extensionDataExample =
+                schema.ExtensionData
+                |> Seq.tryFind (fun kvp -> kvp.Key.ToLower() = "examples")
+
+            match extensionDataExample with
+            | None -> None
+            | Some example ->
+                let dict = example.Value :?> System.Collections.IDictionary
+                let specExampleValues = seq {
+                    if not (isNull dict) then
+                        for exampleValue in dict.Values do
+                            let valueAsJson =
+                                match exampleValue with
+                                | :? string -> (exampleValue.ToString())
+                                | _ ->
+                                    Microsoft.FSharpLu.Json.Compact.serialize exampleValue
+                            yield valueAsJson
+                }
+                specExampleValues |> Seq.tryHead
+        else None
+
+    /// Get the example from the schema.
+    /// 'None' will be returned if the example for an
+    /// object or array cannot be successfully parsed.
+    let tryGetSchemaExampleAsString (schema:NJsonSchema.JsonSchema) =
+        tryGetSchemaExampleValue schema
+
+    let tryParseJToken (exampleValue:String) =
+        try
+            JToken.Parse(exampleValue)
+            |> Some
+        with ex ->
+            None
+
+    let tryGetSchemaExampleAsJToken (schema:NJsonSchema.JsonSchema) =
+        match tryGetSchemaExampleValue schema with
+        | Some valueAsString ->
+            tryParseJToken valueAsString
+        | None -> None
+
+    let getGrammarPrimitiveTypeWithDefaultValue (objectType:NJsonSchema.JsonObjectType)
+                                                (format:string)
+                                                (exampleValue:string option) :
+                                                (PrimitiveType * string * string option) =
+        let defaultTypeWithValue =
+            match objectType with
+            | NJsonSchema.JsonObjectType.String ->
+                let defaultStringType =
+                    PrimitiveType.String, DefaultPrimitiveValues.[PrimitiveType.String]
+                if not (isNull format) then
+                    match (format.ToLower()) with
+                    | "uuid"
+                    | "guid" ->
+                        PrimitiveType.Uuid,
+                        DefaultPrimitiveValues.[PrimitiveType.Uuid]
+                    | "date-time" ->
+                         PrimitiveType.DateTime,
+                         DefaultPrimitiveValues.[PrimitiveType.DateTime]
+                    | "double" ->
+                        PrimitiveType.Number,
+                        DefaultPrimitiveValues.[PrimitiveType.Number]
+                    | _ ->
+                        printfn "found unsupported format: %s" format
+                        defaultStringType
+                else
+                    defaultStringType
+            | NJsonSchema.JsonObjectType.Number ->
+                PrimitiveType.Number,
+                DefaultPrimitiveValues.[PrimitiveType.Number]
+            | NJsonSchema.JsonObjectType.Integer ->
+                PrimitiveType.Int,
+                DefaultPrimitiveValues.[PrimitiveType.Int]
+            | NJsonSchema.JsonObjectType.Boolean ->
+                PrimitiveType.Bool,
+                DefaultPrimitiveValues.[PrimitiveType.Bool]
+            | NJsonSchema.JsonObjectType.Object ->
+                PrimitiveType.Object,
+                DefaultPrimitiveValues.[PrimitiveType.Object]
+            | NJsonSchema.JsonObjectType.Array
+            | _ ->
+                raise (UnsupportedType (sprintf "%A is not a fuzzable primitive type.  Please make sure your Swagger file is valid." objectType))
+
+        let (primitiveType, defaultValue) = defaultTypeWithValue
+        primitiveType, defaultValue, exampleValue
+
+    let getFuzzableValueForObjectType (objectType:NJsonSchema.JsonObjectType) (format:string) (exampleValue: string option) =
+        Fuzzable (getGrammarPrimitiveTypeWithDefaultValue objectType format exampleValue)
 
     /// Get a boolean property from 'ExtensionData', if it exists.
     let getExtensionDataBooleanPropertyValue (extensionData:System.Collections.Generic.IDictionary<string, obj>) (extensionDataKeyName:string) =
@@ -64,11 +128,8 @@ module SchemaUtilities =
 open SchemaUtilities
 
 module SwaggerVisitors =
-    open Newtonsoft.Json.Linq
-    open NJsonSchema
 
-    let getFuzzableValueForProperty propertyName (propertySchema:NJsonSchema.JsonSchema) isRequired isReadOnly enumeration defaultValue =
-
+    let getFuzzableValueForProperty propertyName (propertySchema:NJsonSchema.JsonSchema) isRequired isReadOnly enumeration defaultValue (exampleValue:string option) =
         let payload =
             match propertySchema.Type with
                 | NJsonSchema.JsonObjectType.String
@@ -76,23 +137,23 @@ module SwaggerVisitors =
                 | NJsonSchema.JsonObjectType.Integer
                 | NJsonSchema.JsonObjectType.Boolean ->
                     match enumeration with
-                    | None -> getFuzzableValueForObjectType propertySchema.Type propertySchema.Format
+                    | None -> getFuzzableValueForObjectType propertySchema.Type propertySchema.Format exampleValue
                     | Some ev ->
                         let enumValues = ev |> Seq.map (fun e -> string e) |> Seq.toList
-                        let grammarPrimitiveType, _ = getGrammarPrimitiveTypeWithDefaultValue propertySchema.Type propertySchema.Format
+                        let grammarPrimitiveType,_,exv = getGrammarPrimitiveTypeWithDefaultValue propertySchema.Type propertySchema.Format exampleValue
                         let defaultFuzzableEnumValue =
                             match enumValues with
                             | [] -> "null"
                             | h::rest -> h
-                        Fuzzable (PrimitiveType.Enum (grammarPrimitiveType, enumValues, defaultValue), defaultFuzzableEnumValue)
+                        Fuzzable (PrimitiveType.Enum (grammarPrimitiveType, enumValues, defaultValue), defaultFuzzableEnumValue, exv)
                 | NJsonSchema.JsonObjectType.Object
                 | NJsonSchema.JsonObjectType.None ->
                     // Example of JsonObjectType.None: "content": {} without a type specified in Swagger.
                     // Let's treat these the same as Object.
-                    getFuzzableValueForObjectType NJsonSchema.JsonObjectType.Object propertySchema.Format
+                    getFuzzableValueForObjectType NJsonSchema.JsonObjectType.Object propertySchema.Format exampleValue
                 | NJsonSchema.JsonObjectType.File ->
                     // Fuzz it as a string.
-                    Fuzzable (PrimitiveType.String, "file object")
+                    Fuzzable (PrimitiveType.String, "file object", None)
                 | nst ->
                     raise (UnsupportedType (sprintf "Unsupported type formatting: %A" nst))
         { LeafProperty.name = propertyName; payload = payload ;isRequired = isRequired ; isReadOnly = isReadOnly }
@@ -107,12 +168,11 @@ module SwaggerVisitors =
         then None
         else Some (property.Default.ToString())
 
-
-
     module GenerateGrammarElements =
         /// Returns the specified property when the object contains it.
         /// Note: if the example object does not contain the property,
-        let extractPropertyFromObject propertyName (objectType:NJsonSchema.JsonObjectType) (exampleObj: JToken option) =
+        let extractPropertyFromObject propertyName (objectType:NJsonSchema.JsonObjectType)
+                                                   (exampleObj: JToken option) =
             if (String.IsNullOrWhiteSpace propertyName && objectType <> NJsonSchema.JsonObjectType.Array) then
                 failwith "non-array should always have a property name"
             let pv, includeProperty =
@@ -170,27 +230,35 @@ module SwaggerVisitors =
                 else rawValue
             | _ -> rawValue
 
+    module ExampleHelpers =
 
-    /// Given a JSON array, returns the example value that should be used.
-    let getArrayExamples (pv:JToken option) =
-        let arrayExamples =
+        /// Given a JSON array, returns the example value that should be used.
+        let getArrayExamples (pv:JToken option) =
             match pv with
-            | Some exv -> exv.Children() |> seq
-            | None -> Seq.empty
+            | Some exv ->
+                let maxArrayElementsFromExample = 5
+                exv.Children() |> seq
+                |> Seq.truncate maxArrayElementsFromExample
+                |> Some
+            | None -> None
 
-        if arrayExamples |> Seq.isEmpty then
-            None |> stn
-        else
-            let maxArrayElementsFromExample = 5
-            arrayExamples
-            |> Seq.truncate maxArrayElementsFromExample
-            |> Seq.map (fun example -> Some example)
+
+        let tryGetArraySchemaExample (schema:NJsonSchema.JsonSchema) =
+            // Check for local examples from the Swagger spec if external examples were not specified.
+            let schemaExampleValue = tryGetSchemaExampleAsJToken schema
+            let schemaArrayExamples = getArrayExamples schemaExampleValue
+
+            if schemaArrayExamples.IsNone || schemaArrayExamples.Value |> Seq.isEmpty then
+                None
+            else
+                schemaArrayExamples.Value
+                |> Seq.map (fun example -> (Some example, true))
+                |> Some
 
     let rec processProperty (propertyName, property:NJsonSchema.JsonSchemaProperty)
-                        (propertyValue: JToken option)
-                        (parents:NJsonSchema.JsonSchema list)
-                        (cont: Tree<LeafProperty, InnerProperty> -> Tree<LeafProperty, InnerProperty>) =
-
+                            (propertyPayloadExampleValue: JToken option, generateFuzzablePayload:bool)
+                            (parents:NJsonSchema.JsonSchema list)
+                            (cont: Tree<LeafProperty, InnerProperty> -> Tree<LeafProperty, InnerProperty>) =
 
         // 'isReadOnly' is not correctly initialized in NJsonSchema.  Instead, it appears
         // in ExtensionData
@@ -199,43 +267,51 @@ module SwaggerVisitors =
             | None -> property.IsReadOnly
             | Some v -> v
 
+        // If an example value was not specified, also check for a locally defined example
+        // in the Swagger specification.
         match property.Type with
             | NJsonSchema.JsonObjectType.String
             | NJsonSchema.JsonObjectType.Number
             | NJsonSchema.JsonObjectType.Integer
             | NJsonSchema.JsonObjectType.Boolean ->
-                let propertyPayload =
+                let fuzzablePropertyPayload =
                     let propertySchema = (property :> NJsonSchema.JsonSchema)
-
+                    let schemaExampleValue = SchemaUtilities.tryGetSchemaExampleAsString property
                     getFuzzableValueForProperty propertyName
                              propertySchema
                              property.IsRequired
                              (propertyIsReadOnly property)
                              (tryGetEnumeration propertySchema)
                              (tryGetDefault propertySchema)
+                             schemaExampleValue
+                let propertyPayload =
+                    match propertyPayloadExampleValue with
+                    | None ->
+                        // If a payload example is not specified, generate a fuzzable payload.
+                        fuzzablePropertyPayload
+                    | Some v ->
+                        let examplePropertyPayload =
+                            match fuzzablePropertyPayload.payload with
+                            | Fuzzable (primitiveType, defaultValue, _) ->
+                                let payloadValue = GenerateGrammarElements.formatJTokenProperty primitiveType v
+                                // Replace the default payload with the example payload, preserving type information.
+                                // 'generateFuzzablePayload' is specified a schema example is found for the parent
+                                // object (e.g. an array).
+                                if generateFuzzablePayload then
+                                    Fuzzable (primitiveType, defaultValue, Some payloadValue)
+                                else
+                                    Constant (primitiveType, payloadValue)
+                            | _ -> raise (invalidOp(sprintf "invalid payload %A, expected fuzzable" fuzzablePropertyPayload))
 
-                match propertyValue with
-                | None ->
-                    LeafNode propertyPayload
-                    |> cont
-                | Some v ->
-                    let examplePayload =
-                        match propertyPayload.payload with
-                        | Fuzzable (primitiveType, _) ->
-                            // Replace the default payload with the example payload, preserving type information.
-                            Constant (primitiveType, GenerateGrammarElements.formatJTokenProperty primitiveType v)
-                        | _ -> raise (invalidOp(sprintf "invalid payload %A, expected fuzzable" propertyValue))
-
-                    LeafNode { propertyPayload with payload = examplePayload }
-                    |> cont
-
+                        { fuzzablePropertyPayload with payload = examplePropertyPayload }
+                LeafNode propertyPayload
             | NJsonSchema.JsonObjectType.None ->
                 // When the object type is 'None', simply pass through the example value ('propertyValue')
                 // For example: the schema of a property whose schema is declared as a $ref will be visited here.
                 // The example property value needs to be examined according to the 'ActualSchema', which
                 // is passed through below.
 
-                generateGrammarElementForSchema property.ActualSchema propertyValue parents (fun tree ->
+                generateGrammarElementForSchema property.ActualSchema (propertyPayloadExampleValue, generateFuzzablePayload) parents (fun tree ->
                     let innerProperty = { InnerProperty.name = propertyName
                                           payload = None
                                           propertyType = Property
@@ -245,50 +321,25 @@ module SwaggerVisitors =
                     |> cont
                 )
             | NJsonSchema.JsonObjectType.Array ->
-                let pv, includeProperty = GenerateGrammarElements.extractPropertyFromObject propertyName property.Type propertyValue
-                if not includeProperty then
-                    // TODO: need test case for this example.  Raise an exception to flag these cases.
-                    raise (UnsupportedArrayExample (sprintf "Property name: %s" propertyName))
-                else
-                    // Exit gracefully in case the Swagger is not valid and does not declare the array schema
-                    if isNull property.Item then
-                        raise (NullArraySchema "Make sure the array definition has an element type in Swagger.")
+                let innerArrayProperty =
+                    {   InnerProperty.name = propertyName
+                        payload = None; propertyType = Array
+                        isRequired = true
+                        isReadOnly = (propertyIsReadOnly property) }
 
-                    let arrayExamples = getArrayExamples pv
-
-                    if arrayExamples |> Seq.length = 1 then
-                        generateGrammarElementForSchema property.Item.ActualSchema (arrayExamples |> Seq.head) parents (fun tree ->
-                            let innerProperty =
-                                {   InnerProperty.name = propertyName
-                                    payload = None; propertyType = Array
-                                    isRequired = true
-                                    isReadOnly = (propertyIsReadOnly property) }
-                            if pv.IsSome then
-                                InternalNode (innerProperty, Seq.empty)
-                            else
-                                InternalNode (innerProperty, stn tree)
-                            |> cont
-                        )
-                    else
-                        let arrayElements =
-                            arrayExamples
-                            |> Seq.map (fun example ->
-                                            generateGrammarElementForSchema property.Item.ActualSchema
-                                                example
-                                                parents
-                                                (fun tree -> tree)
-                                            |> cont
-                                        )
-                        let innerArrayProperty =
-                            { InnerProperty.name = propertyName; payload = None; propertyType = Array
-                              isRequired = true
-                              isReadOnly = (propertyIsReadOnly property) }
-                        InternalNode (innerArrayProperty, arrayElements)
-
+                let arrayWithElements =
+                    generateGrammarElementForSchema property (propertyPayloadExampleValue, generateFuzzablePayload)
+                                                        parents (fun tree -> tree)
+                                                        |> cont
+                match arrayWithElements with
+                | InternalNode (n, tree) ->
+                    InternalNode (innerArrayProperty, tree)
+                | LeafNode _ ->
+                    raise (invalidOp("An array should be an internal node."))
             | NJsonSchema.JsonObjectType.Object ->
                 // This object may or may not have nested properties.
                 // Similar to type 'None', just pass through the object and it will be taken care of downstream.
-                generateGrammarElementForSchema property.ActualSchema None parents (fun tree ->
+                generateGrammarElementForSchema property.ActualSchema (None, false) parents (fun tree ->
                     // If the object has no properties, it should be set to its primitive type.
                     match tree with
                     | LeafNode l ->
@@ -307,7 +358,7 @@ module SwaggerVisitors =
                 raise (UnsupportedType (sprintf "Found unsupported type in body parameters: %A" nst))
 
     and generateGrammarElementForSchema (schema:NJsonSchema.JsonSchema)
-                                        (exampleValue:JToken option)
+                                        (exampleValue:JToken option, generateFuzzablePayloadsForExamples:bool)
                                         (parents:NJsonSchema.JsonSchema list)
                                         (cont: Tree<LeafProperty, InnerProperty> -> Tree<LeafProperty, InnerProperty>) =
 
@@ -328,7 +379,7 @@ module SwaggerVisitors =
                 // TODO: need test case for this example.  Raise an exception to flag these cases.
                 // Most likely, the current example value should simply be used in the leaf property
                 raise (UnsupportedRecursiveExample (sprintf "%A" exampleValue))
-            let leafProperty = { LeafProperty.name = ""; payload = Fuzzable (PrimitiveType.String, ""); isRequired = true ; isReadOnly = false }
+            let leafProperty = { LeafProperty.name = ""; payload = Fuzzable (PrimitiveType.String, "", None); isRequired = true ; isReadOnly = false }
             LeafNode leafProperty
             |> cont
         else
@@ -341,31 +392,40 @@ module SwaggerVisitors =
                                     let exValue, includeProperty = GenerateGrammarElements.extractPropertyFromObject name NJsonSchema.JsonObjectType.String exampleValue
                                     if not includeProperty then None
                                     else
-                                        Some (processProperty (name, item.Value) exValue (schema::parents) id))
-
+                                        Some (processProperty (name, item.Value)
+                                                              (exValue, generateFuzzablePayloadsForExamples)
+                                                              (schema::parents) id))
             let arrayProperties =
                 if schema.IsArray then
                     // An example of this is an array type query parameter.
-                    let exValue, includeProperty = GenerateGrammarElements.extractPropertyFromArray exampleValue
-                    if not includeProperty then Seq.empty
+                    let arrayPayloadExampleValue, includeProperty = GenerateGrammarElements.extractPropertyFromArray exampleValue
+                    if not includeProperty then
+                        Seq.empty
                     else
-                        let arrayExamples = getArrayExamples exValue
-
-                        if arrayExamples |> Seq.length = 1 then
-                            // Corner case: if this is an array element with a specified empty array as an example,
-                            // set the array element payload to the override value (an empty string).
-                            if exValue.IsSome then
-                                Seq.empty
-                            else
-                                generateGrammarElementForSchema schema.Item.ActualSchema (arrayExamples |> Seq.head) (schema::parents) id
+                        let payloadArrayExamples = ExampleHelpers.getArrayExamples arrayPayloadExampleValue
+                        match payloadArrayExamples with
+                        | None ->
+                            let schemaArrayExamples = ExampleHelpers.tryGetArraySchemaExample schema
+                            match schemaArrayExamples with
+                            | None ->
+                                generateGrammarElementForSchema schema.Item.ActualSchema (None, false) (schema::parents) id
                                 |> stn
-                        else
+                            | Some sae ->
+                                sae |> Seq.map (fun (schemaExampleValue, generateFuzzablePayload) ->
+                                                    generateGrammarElementForSchema schema.Item.ActualSchema
+                                                                                    (schemaExampleValue, generateFuzzablePayload)
+                                                                                    (schema::parents)
+                                                                                    id
+                                                )
+                        | Some payloadArrayExamples when payloadArrayExamples |> Seq.isEmpty ->
+                            Seq.empty
+                        | Some payloadArrayExamples ->
                             let arrayElements =
-                                arrayExamples
+                                payloadArrayExamples
                                 |> Seq.map (fun example ->
                                                 generateGrammarElementForSchema
                                                     schema.Item.ActualSchema
-                                                    example
+                                                    (Some example, false)
                                                     (schema::parents)
                                                     id |> stn)
                                 |> Seq.concat
@@ -374,7 +434,7 @@ module SwaggerVisitors =
 
             let allOfParameterSchemas =
                 schema.AllOf
-                |> Seq.map (fun ao -> ao, generateGrammarElementForSchema ao.ActualSchema exampleValue (schema::parents) id)
+                |> Seq.map (fun ao -> ao, generateGrammarElementForSchema ao.ActualSchema (exampleValue, false) (schema::parents) id)
 
             let allOfProperties =
                 allOfParameterSchemas
@@ -412,24 +472,27 @@ module SwaggerVisitors =
                     } |> Seq.concat
 
             if internalNodes |> Seq.isEmpty then
-
                 // If there is an example, use it (constant) instead of the token
                 match exampleValue with
                 | None ->
-                    if schema.Type = JsonObjectType.None && allOfSchema.IsSome then
-                        LeafNode allOfSchema.Value
-                        |> cont
-                    else
-                        LeafNode (getFuzzableValueForProperty
-                                        ""
-                                        schema
-                                        true (*IsRequired*)
-                                        false (*IsReadOnly*)
-                                        (tryGetEnumeration schema) (*enumeration*)
-                                        (tryGetDefault schema) (*defaultValue*))
-                        |> cont
+                    let leafProperty =
+                        if schema.Type = JsonObjectType.None && allOfSchema.IsSome then
+                            allOfSchema.Value
+                        else
+                            // Check for local examples from the Swagger spec if external examples were not specified.
+                            // A fuzzable payload with a local example as the default value will be generated.
+                            let specExampleValue = tryGetSchemaExampleAsString schema
+                            getFuzzableValueForProperty
+                                ""
+                                schema
+                                true (*IsRequired*)
+                                false (*IsReadOnly*)
+                                (tryGetEnumeration schema) (*enumeration*)
+                                (tryGetDefault schema) (*defaultValue*)
+                                specExampleValue
+                    LeafNode leafProperty
+                    |> cont
                 | Some v ->
-
                     // Either none of the above properties matched, or there are no properties and
                     // this is a leaf object.
                     let isLeafObject = (schema.Properties |> Seq.isEmpty &&
@@ -441,10 +504,15 @@ module SwaggerVisitors =
                             if schema.Type = JsonObjectType.None then JsonObjectType.Object
                             else schema.Type
 
-                        let primitiveType, _ = getGrammarPrimitiveTypeWithDefaultValue schemaType schema.Format
+                        let primitiveType, defaultValue, _ = getGrammarPrimitiveTypeWithDefaultValue schemaType schema.Format None
 
                         let leafPayload =
-                            FuzzingPayload.Constant (primitiveType, GenerateGrammarElements.formatJTokenProperty primitiveType v)
+                            let exampleValue = GenerateGrammarElements.formatJTokenProperty primitiveType v
+                            if generateFuzzablePayloadsForExamples then
+                                FuzzingPayload.Fuzzable (primitiveType, defaultValue, Some exampleValue)
+                            else
+                                FuzzingPayload.Constant (primitiveType, exampleValue)
+
                         LeafNode ({ LeafProperty.name = ""
                                     payload = leafPayload
                                     isRequired = true
