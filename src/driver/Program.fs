@@ -208,6 +208,7 @@ module Fuzz =
             sprintf "--restler_grammar \"%s\"" parameters.grammarFilePath
             sprintf "--custom_mutations \"%s\"" parameters.mutationsFilePath
             sprintf "--set_version %s" CurrentVersion
+            sprintf "--client_certificate_path \"%s\"" parameters.certFilePath
 
             (match parameters.refreshableTokenOptions with
                 | None -> ""
@@ -515,6 +516,11 @@ let rec parseEngineArgs task (args:EngineParameters) = function
         parseEngineArgs task { args with checkerOptions = args.checkerOptions @ [(checkerAction, specifiedCheckers |> String.concat " ")] } rest
     | "--no_results_analyzer"::rest ->
         parseEngineArgs task { args with runResultsAnalyzer = false } rest
+    | "--client_certificate_path"::certFilePath::rest ->
+        if not (File.Exists certFilePath) then
+            Logging.logError <| sprintf "The RESTler client certificate file path %s does not exist." certFilePath
+            usage()
+        parseEngineArgs task  { args with certFilePath = Path.GetFullPath(certFilePath) } rest
     | invalidArgument::rest ->
         Logging.logError <| sprintf "Invalid argument: %s" invalidArgument
         usage()

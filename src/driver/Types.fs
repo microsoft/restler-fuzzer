@@ -65,6 +65,8 @@ type EngineParameters =
         /// Specifies whether to run results analyzer.
         runResultsAnalyzer : bool
 
+        /// File path to the client certificate.
+        certFilePath : string
     }
 
 let DefaultEngineParameters =
@@ -83,6 +85,7 @@ let DefaultEngineParameters =
         pathRegex = None
         replayLogFilePath = None
         runResultsAnalyzer = true
+        certFilePath = ""
     }
 
 /// Restler tasks that may be specified by the user
