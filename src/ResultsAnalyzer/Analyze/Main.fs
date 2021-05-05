@@ -123,8 +123,7 @@ let main (args:AnalyzeArgs) =
     let runDataMap = failedByResponseCode |> Map.ofSeq
     let runSummary =
         {
-            RunSummary.requestsCount = failedStatusRequestResponsePairs |> Seq.length
-            sequencesCount = 0
+            RunSummary.failedRequestsCount = failedStatusRequestResponsePairs |> Seq.length
             RunSummary.bugCount = match runDataMap |> Map.tryFind BugResponseCode with
                                   | Some x -> x |> Seq.length
                                   | None -> 0
