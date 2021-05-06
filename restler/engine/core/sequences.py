@@ -199,6 +199,30 @@ class Sequence(object):
         """
         return self._sent_request_data_list
 
+    @property
+    def current_combination_id(self):
+        """ Returns the concatenation of the current combination IDs
+            of requests in this Sequence
+
+        @return: A string describing the unique combination ID for this sequence
+        @rtype : str
+        """
+        combination_ids = [ f"{str(req._current_combination_id)}" for req in self.requests ]
+        separator="_"
+        return separator.join(combination_ids)
+
+    @property
+    def prefix(self):
+        """ Returns the longest prefix of this sequence, which contains all
+            requests except the last request.
+
+        @return: The prefix sequence
+        @rtype : Sequence
+        """
+        if len(self.requests) < 1:
+            return Sequence([])
+        return Sequence(self.requests[:-1])
+
     def has_destructor(self):
         """ Helper to decide whether the current sequence instance contains any
         request which is a destructor.
@@ -455,10 +479,12 @@ class Sequence(object):
                 lock.release()
 
             datetime_format = "%Y-%m-%d %H:%M:%S"
+            response_datetime=response_datetime.strftime(datetime_format)
+
             # return a rendered clone if response indicates a valid status code
             if rendering_is_valid or Settings().ignore_feedback:
                 return RenderedSequence(duplicate, valid=True, final_request_response=response,
-                                        response_datetime=response_datetime.strftime(datetime_format))
+                                        response_datetime=response_datetime)
             else:
                 information = None
                 if response.has_valid_code():
@@ -470,7 +496,7 @@ class Sequence(object):
                     information = FailureInformation.BUG
                 return RenderedSequence(duplicate, valid=False, failure_info=information,
                                         final_request_response=response,
-                                        response_datetime=response_datetime.strftime(datetime_format))
+                                        response_datetime=response_datetime)
 
         return RenderedSequence(None)
 

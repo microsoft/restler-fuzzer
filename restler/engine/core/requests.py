@@ -102,6 +102,32 @@ class SmokeTestStats(object):
 
         self.sample_request = RenderedRequestStats()
 
+    def set_all_stats(self, renderings):
+        self.status_code = renderings.final_request_response.status_code
+        self.status_text = renderings.final_request_response.status_text
+        # Get the last rendered request.  The corresponding response should be
+        # the last received response.
+        self.sample_request.set_request_stats(
+            renderings.sequence.sent_request_data_list[-1].rendered_data)
+        self.sample_request.set_response_stats(renderings.final_request_response,
+                                               renderings.final_response_datetime)
+
+        # Set the prefix of the request, if it exists.
+        if len(renderings.sequence.requests) > 1:
+            prev_req = renderings.sequence.requests[-2]
+            prefix_seq = renderings.sequence.prefix
+            prev_req_hash = f"{prev_req.method_endpoint_hex_definition}_{str(prefix_seq.current_combination_id)}"
+            self.matching_prefix["id"] = prev_req_hash
+
+        response_body = renderings.final_request_response.body
+        if renderings.sequence:
+            self.valid = 1 if renderings.valid else 0
+            self.failure = renderings.failure_info
+
+            if not renderings.valid:
+                self.error_msg = response_body
+
+
 class Request(object):
     """ Request Class. """
     def __init__(self, definition=[], requestId=None):

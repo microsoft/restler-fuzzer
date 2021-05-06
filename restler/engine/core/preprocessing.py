@@ -50,16 +50,23 @@ def create_fuzzing_req_collection(path_regex):
 
     """
     fuzz_reqs = fuzzing_requests.FuzzingRequestCollection()
-
     if path_regex:
+        included_requests = []
         for request in GrammarRequestCollection():
             if re.findall(path_regex, request.endpoint):
                 reqs = driver.compute_request_goal_seq(
                     request, GrammarRequestCollection())
                 for req in reqs:
-                    fuzz_reqs.add_request(req)
+                    included_requests.add(req)
     else:
-        fuzz_reqs.set_all_requests(GrammarRequestCollection()._requests)
+        included_requests = list (GrammarRequestCollection()._requests)
+
+    # Sort the request list by hex definition so the requests are
+    # always traversed in the same order.
+    included_requests.sort(key=lambda x : x.method_endpoint_hex_definition)
+    for idx, req in enumerate(included_requests):
+        req.stats.request_order = idx
+    fuzz_reqs.set_all_requests(included_requests)
 
     return fuzz_reqs
 
