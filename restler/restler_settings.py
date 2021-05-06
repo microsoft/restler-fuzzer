@@ -419,7 +419,7 @@ class RestlerSettings(object):
         self._path_regex = SettingsArg('path_regex', str, None, user_args)
         ## Minimum time, in milliseconds, to wait between sending requests
         self._request_throttle_ms = SettingsArg('request_throttle_ms', (int, float), None, user_args, minval=0)
-        ## Ignore data UTF decoding failures (see https://github.com/microsoft/restler-fuzzer/issues/164) 
+        ## Ignore data UTF decoding failures (see https://github.com/microsoft/restler-fuzzer/issues/164)
         self._ignore_decoding_failures = SettingsArg('ignore_decoding_failures', bool, False, user_args)
         ## Collection of endpoint specific producer timing delays - will be set with other per_resource settings
         self._resource_producer_timing_delays = SettingsDictArg('per_resource_producer_timing_delay', int, key_convert=str_to_hex_def)
@@ -648,7 +648,8 @@ class RestlerSettings(object):
         @return: True if we are running a smoke test
 
         """
-        return self._fuzzing_mode.val == 'directed-smoke-test'
+        return self._fuzzing_mode.val == 'directed-smoke-test' or \
+               self._fuzzing_mode.val == 'test-all-combinations'
 
     def get_endpoint_custom_mutations_paths(self) -> dict:
         """ Returns the dict containing the endpoint specific custom mutations

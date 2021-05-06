@@ -50,16 +50,25 @@ def create_fuzzing_req_collection(path_regex):
 
     """
     fuzz_reqs = fuzzing_requests.FuzzingRequestCollection()
-
     if path_regex:
+        included_requests = []
         for request in GrammarRequestCollection():
             if re.findall(path_regex, request.endpoint):
                 reqs = driver.compute_request_goal_seq(
                     request, GrammarRequestCollection())
                 for req in reqs:
-                    fuzz_reqs.add_request(req)
+                    included_requests.add(req)
     else:
-        fuzz_reqs.set_all_requests(GrammarRequestCollection()._requests)
+        included_requests = list (GrammarRequestCollection()._requests)
+
+    # Sort the request list by hex definition so the requests are
+    # always traversed in the same order.
+    # TODO: GitHub #233 Un-comment the below line
+    # included_requests.sort(key=lambda x : x.method_endpoint_hex_definition)
+    if Settings().in_smoke_test_mode():
+        for idx, req in enumerate(included_requests):
+            req.stats.request_order = idx
+    fuzz_reqs.set_all_requests(included_requests)
 
     return fuzz_reqs
 
@@ -196,6 +205,12 @@ def apply_create_once_resources(fuzzing_requests):
                                             None,
                                             preprocessing=True)
 
+                    if Settings().in_smoke_test_mode():
+                        if renderings.sequence:
+                            renderings.sequence.last_request.stats.request_order = 'Preprocessing'
+                            renderings.sequence.last_request.stats.set_all_stats(renderings)
+                            logger.print_request_coverage_incremental(rendered_sequence=renderings, log_rendered_hash=True)
+
                     # Make sure we were able to successfully create the create_once resource
                     if not renderings.valid:
                         logger.write_to_main(f"{formatting.timestamp()}: Rendering INVALID")
@@ -206,15 +221,6 @@ def apply_create_once_resources(fuzzing_requests):
                     logger.format_rendering_stats_definition(
                         resource_gen_req, GrammarRequestCollection().candidate_values_pool
                     )
-                    if Settings().in_smoke_test_mode():
-                        resource_gen_req.stats.request_order = 'Preprocessing'
-                        resource_gen_req.stats.valid = 1
-                        resource_gen_req.stats.status_code = renderings.final_request_response.status_code
-                        resource_gen_req.stats.status_text = renderings.final_request_response.status_text
-                        resource_gen_req.stats.sample_request.set_request_stats(
-                            renderings.sequence.sent_request_data_list[-1].rendered_data)
-                        resource_gen_req.stats.sample_request.set_response_stats(renderings.final_request_response,
-                                                                                 renderings.final_response_datetime)
 
                 if req.is_destructor():
                     # Add destructors to the destructor list that will be returned

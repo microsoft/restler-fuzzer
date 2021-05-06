@@ -123,7 +123,7 @@ let DefaultMutationsDictionary =
     {
         restler_fuzzable_string = [DefaultPrimitiveValues.[PrimitiveType.String]]
         restler_fuzzable_string_unquoted = []
-        restler_fuzzable_int = [DefaultPrimitiveValues.[PrimitiveType.Int]; "0"]
+        restler_fuzzable_int = [DefaultPrimitiveValues.[PrimitiveType.Int]]
         restler_fuzzable_number = [DefaultPrimitiveValues.[PrimitiveType.Number]]
         restler_fuzzable_bool = [DefaultPrimitiveValues.[PrimitiveType.Bool]]
         restler_fuzzable_datetime = [DefaultPrimitiveValues.[PrimitiveType.DateTime]]

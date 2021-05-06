@@ -849,51 +849,95 @@ def print_request_rendering_stats_never_rendered_requests(fuzzing_requests,
         print("-------------------------\n", file=log_file)
         log_file.flush()
 
-def print_spec_coverage(fuzzing_requests):
-    """ Prints the speccov run summary in json format
+def get_request_coverage_summary_stats(rendered_request, request_hash=None):
+    """ Constructs a json object with the coverage information for a request
+    from the rendered request.  This info will be reported in a spec coverage file.
 
-    @param fuzzing_requests: The fuzzing request collection
-    @type  fuzzing_requests: FuzzingRequests
+    @param rendered_request: The rendered request.
+    @type  rendered_request: Request
+
+    @return: A dictionary containing a single entry with the key set to the request hash,
+             and the value to a dictionary with the coverage data.
+    @rtype : Dict
+
+    """
+    from engine.core.requests import FailureInformation
+
+    req=rendered_request
+    coverage_data = {}
+    req_hash = request_hash if request_hash else req.method_endpoint_hex_definition
+    coverage_data[req_hash] = {}
+    req_spec = coverage_data[req_hash]
+    req_spec['verb'] = req.method
+    req_spec['endpoint'] = req.endpoint_no_dynamic_objects
+    req_spec['verb_endpoint'] = f"{req.method} {req.endpoint_no_dynamic_objects}"
+    req_spec['valid'] = req.stats.valid
+    if req.stats.matching_prefix:
+        req_spec['matching_prefix'] = req.stats.matching_prefix
+    else:
+        req_spec['matching_prefix'] = 'None'
+    req_spec['invalid_due_to_sequence_failure'] = 0
+    req_spec['invalid_due_to_resource_failure'] = 0
+    req_spec['invalid_due_to_parser_failure'] = 0
+    req_spec['invalid_due_to_500'] = 0
+    if req.stats.failure == FailureInformation.SEQUENCE:
+        req_spec['invalid_due_to_sequence_failure'] = 1
+    elif req.stats.failure == FailureInformation.RESOURCE_CREATION:
+        req_spec['invalid_due_to_resource_failure'] = 1
+    elif req.stats.failure == FailureInformation.PARSER:
+        req_spec['invalid_due_to_parser_failure'] = 1
+    elif req.stats.failure == FailureInformation.BUG:
+        req_spec['invalid_due_to_500'] = 1
+    req_spec['status_code'] = req.stats.status_code
+    req_spec['status_text'] = req.stats.status_text
+    req_spec['error_message'] = req.stats.error_msg
+    req_spec['request_order'] = req.stats.request_order
+    req_spec['sample_request'] = vars(req.stats.sample_request)
+
+    return coverage_data
+
+def print_request_coverage_incremental(request=None, rendered_sequence=None, log_rendered_hash=True):
+    """ Prints the coverage information for a request to the spec
+    coverage file.  Pre-requisite: the file contains a json dictionary with
+    zero or more elements.  The json object will be written into the
+    top-level object.
+
+    @param rendered_sequence: The rendered sequence
+    @type  rendered_sequence: RenderedSequence
 
     @return: None
     @rtype : None
 
     """
     from engine.core.requests import FailureInformation
-    # Sort the requests by request_order
-    spec_list = fuzzing_requests.preprocessing_requests + \
-                sorted(fuzzing_requests.requests, key=lambda x : x.stats.request_order) + \
-                fuzzing_requests.postprocessing_requests
+    if rendered_sequence:
+        req=rendered_sequence.sequence.last_request
+    else:
+        if not request:
+            raise Exception("Either the rendered sequence or request must be specified.")
+        req = request
+    file_path = os.path.join(LOGS_DIR, 'speccov.json')
+    if not os.path.exists(file_path):
+        with open(file_path, 'w') as file:
+           file.write("{}")
 
-    spec_file = OrderedDict()
-    for req in spec_list:
-        spec_file[req.method_endpoint_hex_definition] = {}
-        req_spec = spec_file[req.method_endpoint_hex_definition]
-        req_spec['verb'] = req.method
-        req_spec['endpoint'] = req.endpoint_no_dynamic_objects
-        req_spec['verb_endpoint'] = f"{req.method} {req.endpoint_no_dynamic_objects}"
-        req_spec['valid'] = req.stats.valid
-        if req.stats.matching_prefix:
-            req_spec['matching_prefix'] = req.stats.matching_prefix
-        else:
-            req_spec['matching_prefix'] = 'None'
-        req_spec['invalid_due_to_sequence_failure'] = 0
-        req_spec['invalid_due_to_resource_failure'] = 0
-        req_spec['invalid_due_to_parser_failure'] = 0
-        req_spec['invalid_due_to_500'] = 0
-        if req.stats.failure == FailureInformation.SEQUENCE:
-            req_spec['invalid_due_to_sequence_failure'] = 1
-        elif req.stats.failure == FailureInformation.RESOURCE_CREATION:
-            req_spec['invalid_due_to_resource_failure'] = 1
-        elif req.stats.failure == FailureInformation.PARSER:
-            req_spec['invalid_due_to_parser_failure'] = 1
-        elif req.stats.failure == FailureInformation.BUG:
-            req_spec['invalid_due_to_500'] = 1
-        req_spec['status_code'] = req.stats.status_code
-        req_spec['status_text'] = req.stats.status_text
-        req_spec['error_message'] = req.stats.error_msg
-        req_spec['request_order'] = req.stats.request_order
-        req_spec['sample_request'] = vars(req.stats.sample_request)
+    # For uniqueness, the rendered request hash should include
+    # the current combination IDs of every request in the sequence.
+    if log_rendered_hash and rendered_sequence:
+        req_hash = f"{req.method_endpoint_hex_definition}_{str(rendered_sequence.sequence.current_combination_id)}"
+    else:
+        req_hash = req.method_endpoint_hex_definition
+    req_coverage = get_request_coverage_summary_stats(req, request_hash=req_hash)
+    coverage_as_json = json.dumps(req_coverage, indent=4)
+    # remove the start and end brackets, since they will already be present
+    # also remove the end newline
+    coverage_as_json = coverage_as_json[1:len(coverage_as_json)-2]
+    with open(file_path, 'r+') as file:
+        pos = file.seek(0, os.SEEK_END)
+        file_size = file.tell()
+        pos = file.seek(file_size - 1, 0)
 
-    with open(os.path.join(LOGS_DIR, 'speccov.json'), 'w') as file:
-        json.dump(spec_file, file, indent=4)
+        if file_size > 2:
+            file.write(",")
+        file.write(coverage_as_json)
+        file.write("}")

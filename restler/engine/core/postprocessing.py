@@ -50,30 +50,20 @@ def delete_create_once_resources(destructors, fuzzing_requests):
                 destructor, GrammarRequestCollection().candidate_values_pool
             )
             if Settings().in_smoke_test_mode():
-                destructor.stats.request_order = 'Postprocessing'
-                destructor.stats.valid = 1
-                destructor.stats.status_code = renderings.final_request_response.status_code
-                destructor.stats.status_text = renderings.final_request_response.status_text
-
-                destructor.stats.sample_request.set_request_stats(
-                    renderings.sequence.sent_request_data_list[-1].rendered_data)
-                destructor.stats.sample_request.set_response_stats(renderings.final_request_response,
-                                                                   renderings.final_response_datetime)
+                if renderings.sequence:
+                    renderings.sequence.last_request.stats.request_order = 'Postprocessing'
+                    renderings.sequence.last_request.stats.set_all_stats(renderings)
+                    logger.print_request_coverage_incremental(rendered_sequence=renderings, log_rendered_hash=True)
 
         except Exception as error:
             msg = f"Failed to delete create_once resource: {error!s}"
             logger.raw_network_logging(msg)
             logger.write_to_main(msg, print_to_console=True)
-            if Settings().in_smoke_test_mode():
-                destructor.stats.request_order = 'Postprocessing'
-                destructor.stats.valid = 0
-                if renderings and renderings.final_request_response:
-                    destructor.stats.status_code = renderings.final_request_response.status_code
-                    destructor.stats.status_text = renderings.final_request_response.status_text
-                    destructor.stats.error_msg = renderings.final_request_response.body
-                    destructor.stats.sample_request.set_request_stats(
-                        renderings.sequence.sent_request_data_list[-1].rendered_data)
-                    destructor.stats.sample_request.set_response_stats(renderings.final_request_response, renderings.final_response_datetime)
+            if settings.in_smoke_test_mode():
+                if renderings.sequence:
+                    renderings.sequence.last_request.stats.request_order = 'Postprocessing'
+                    renderings.sequence.last_request.stats.set_all_stats(renderings)
+                    logger.print_request_coverage_incremental(rendered_sequence=renderings, log_rendered_hash=True)
 
             pass
 

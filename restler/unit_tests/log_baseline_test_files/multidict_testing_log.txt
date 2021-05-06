@@ -33,7 +33,7 @@ Generation-1: Rendering Sequence-1
 2020-12-08 18:31:11.573: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "Thing<test!>-5387e7999d"}'
 
 
-Generation-1: Rendering Sequence-1
+Generation-1: Rendering Sequence-2
 
 	Request: 1 (Remaining candidate combinations: 1)
 		- restler_static_string: 'GET '
@@ -50,7 +50,7 @@ Generation-1: Rendering Sequence-1
 2020-12-08 18:31:11.844: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"item": {"Thing<test!>-5387e7999d": {"name": "Thing<test!>-5387e7999d"}}}'
 
 
-Generation-1: Rendering Sequence-1
+Generation-1: Rendering Sequence-3
 
 	Request: 1 (Remaining candidate combinations: 8)
 		- restler_static_string: 'PUT '
@@ -80,7 +80,7 @@ Generation-1: Rendering Sequence-1
 2020-12-08 18:31:12.174: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "farmName<test!>-06f74bc7ea"}'
 
 
-Generation-1: Rendering Sequence-1
+Generation-1: Rendering Sequence-4
 
 	Request: 1 (Remaining candidate combinations: 1)
 		- restler_static_string: 'GET '
@@ -97,7 +97,7 @@ Generation-1: Rendering Sequence-1
 2020-12-08 18:31:12.445: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"city": {}}'
 
 
-Generation-1: Rendering Sequence-1
+Generation-1: Rendering Sequence-5
 
 	Request: 1 (Remaining candidate combinations: 4)
 		- restler_static_string: 'PUT '
@@ -125,7 +125,7 @@ Generation-1: Rendering Sequence-1
 2020-12-08 18:31:12.756: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "cityName<test!>-d1e3117c98", "properties": {"population": "0", "area": "5000"}}'
 
 
-Generation-1: Rendering Sequence-1
+Generation-1: Rendering Sequence-6
 
 	Request: 1 (Remaining candidate combinations: 1)
 		- restler_static_string: 'GET '
@@ -142,7 +142,7 @@ Generation-1: Rendering Sequence-1
 2020-12-08 18:31:13.006: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"group": {}}'
 
 
-Generation-1: Rendering Sequence-1
+Generation-1: Rendering Sequence-7
 
 	Request: 1 (Remaining candidate combinations: 1)
 		- restler_static_string: 'GET '
@@ -159,7 +159,7 @@ Generation-1: Rendering Sequence-1
 2020-12-08 18:31:13.190: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"farm": {"farmName<test!>-06f74bc7ea": {"name": "farmName<test!>-06f74bc7ea"}}}'
 
 
-Generation-1: Rendering Sequence-1
+Generation-1: Rendering Sequence-8
 
 	Request: 1 (Remaining candidate combinations: 1)
 		- restler_static_string: 'GET '
@@ -764,33 +764,6 @@ Generation-2: Rendering Sequence-1
 
 2020-12-08 18:31:19.514: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"road": {}}'
 
-
-Generation-1: Rendering Sequence-1
-
-	Request: 1 (Remaining candidate combinations: 4)
-		- restler_static_string: 'PUT '
-		- restler_static_string: '/'
-		- restler_static_string: 'city'
-		- restler_static_string: '/'
-		+ restler_custom_payload_uuid4_suffix: cityName<test!>-
-		- restler_static_string: ' HTTP/1.1\r\n'
-		- restler_static_string: 'Accept: application/json\r\n'
-		- restler_static_string: 'Host: unittest\r\n'
-		- restler_static_string: 'Content-Type: application/json\r\n'
-		- restler_static_string: '\r\n'
-		- restler_static_string: '{'
-		- restler_static_string: '"population":'
-		+ restler_fuzzable_int: ['"0"', '"1"']
-		- restler_static_string: ', "area": "5000",'
-		- restler_fuzzable_string: '"customfuzz"'
-		- restler_static_string: ':'
-		+ restler_fuzzable_bool: ['"true"', '"false"']
-		- restler_static_string: '}'
-		- restler_static_string: '\r\n'
-
-2020-12-08 18:31:19.830: Sending: 'PUT /city/cityName<test!>-7ee9edd7d8 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 56\r\n\r\n{"population":"0", "area": "5000","customfuzz":"true"}\r\n'
-
-2020-12-08 18:31:19.847: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "cityName<test!>-7ee9edd7d8", "properties": {"population": "0", "area": "5000"}}'
 
 
 Generation-2: Rendering Sequence-1

@@ -83,6 +83,11 @@ let usage() =
             If specified, do not run results analyzer on the network logs.
             Results analyzer may be run separately.
 
+        --test_all_combinations
+            Only valid in 'test' mode.
+            If specified, test all parameter combinations (instead of up to just one
+            valid rendering) in 'test' mode.
+
     fuzz-lean options:
         <The same options as 'test'>
             This task runs test mode with a subset of checkers, which performs some limited fuzzing.
@@ -351,12 +356,15 @@ module Fuzz =
         let maxDurationHours =
             if parameters.maxDurationHours = float 0 then None
             else Some parameters.maxDurationHours
-
+        let fuzzingMode =
+            if parameters.testAllCombinations then
+                "test-all-combinations"
+            else "directed-smoke-test"
         let smokeTestParameters =
             (getCommonParameters parameters maxDurationHours)
             @
             [
-                "--fuzzing_mode directed-smoke-test"
+                sprintf "--fuzzing_mode %s" fuzzingMode
             ]
 
         return! runRestlerEngine workingDirectory smokeTestParameters pythonFilePath
@@ -522,8 +530,13 @@ let rec parseEngineArgs task (args:EngineParameters) = function
     | "--client_certificate_path"::certFilePath::rest ->
         if not (File.Exists certFilePath) then
             Logging.logError <| sprintf "The Client Certificate Path %s does not exist." certFilePath
-            usage()
         parseEngineArgs task  { args with certFilePath = Some (Path.GetFullPath(certFilePath)) } rest
+    | "--test_all_combinations"::rest ->
+        if task <> Test then
+            Logging.logError <| "test_all_combinations is only valid in Test mode."
+            usage()
+        parseEngineArgs task { args with testAllCombinations = true } rest
+
     | invalidArgument::rest ->
         Logging.logError <| sprintf "Invalid argument: %s" invalidArgument
         usage()
