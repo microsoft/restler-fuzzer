@@ -247,7 +247,7 @@ if __name__ == '__main__':
                             ' (default: None)',
                        type=str, default=None, required=False)
     parser.add_argument('--client_certificate_path',
-                        help='Flag to use Certificate Based Authentication'
+                        help='Path to your X.509 certificate in PEM format. Provide for Certificate Based Authentication'
                             ' (default: None)',
                        type=str, default=None, required=False)
     parser.add_argument('--producer_timing_delay',
