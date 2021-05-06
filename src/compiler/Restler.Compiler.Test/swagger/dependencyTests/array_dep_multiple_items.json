@@ -42,37 +42,36 @@
               "description": "Is it a rush order",
               "type": "boolean"
             },
-            "bagType": {
-              "description": "The type of bags to use",
-              "type": "string"
+            "metadata_properties": {
+              "description": "Custom properties",
+              "type": "object"
             },
-            "item_descriptions": {
-              "description": "The type of bags to use",
-              "type": "array",
-              "items": {
+            "callback_parameters": {
+               "$ref":  "#/definitions/GetCallbackUrlParameters"
+            },
+              "bagType": {
+                "description": "The type of bags to use",
                 "type": "string"
-              }
-            },
-            "item_feedback": {
-              "description": "The type of bags to use",
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            },
-
-            "useDoubleBags": {
-              "description": "Whether to use double bags",
-              "type": "boolean"
-            },
-            "bannedBrands": {
-              "description": "do not use these brands",
-              "type": "array",
-              "items": {
-                "type": "string"
+              },
+              "item_descriptions": {
+                "description": "The type of bags to use",
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "useDoubleBags": {
+                "description": "Whether to use double bags",
+                "type": "boolean"
+              },
+              "bannedBrands": {
+                "description": "do not use these brands",
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
               }
             }
-          }
         },
         "GroceryListItem": {
             "properties": {
@@ -146,67 +145,25 @@
         "/stores/{storeId}/order": {
             "post": {
                 "operationId": "make_an_order",
-              "parameters": [
-                {
-                  "in": "path",
-                  "name": "storeId",
-                  "required": true,
-                  "type": "integer"
-                },
-                {
-                  "in": "query",
-                  "name": "apiVersion",
-                  "required": true,
-                  "type": "string"
-                },
-                {
-                  "in": "query",
-                  "name": "expiration",
-                  "required": true,
-                  "type": "integer"
-                },
-                {
-                  "in": "query",
-                  "name": "arrayQueryParameter",
-                  "required": true,
-                  "type": "array",
-                  "items": {
-                    "type": "number",
-                    "format": "double"
-                  }
-                },
-                {
-                  "in": "query",
-                  "name": "arrayQueryParameter2",
-                  "required": true,
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                },
-                {
-                  "in": "query",
-                  "name": "arrayQueryParameter3",
-                  "required": true,
-                  "type": "array",
-                  "style": "form",
-                  "explode":  false,
-                  "items": {
-                    "type": "string"
-                  }
-                },
-                {
-                  "name": "orderDetails",
-                  "in": "body",
-                  "required": true,
-                  "schema": {
-                    "$ref": "#/definitions/GroceryList"
-                  }
-                }
-              ],
-                "examples": {
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "storeId",
+                        "required": true,
+                        "type": "integer"
+                    },
+                    {
+                        "name": "orderDetails",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/GroceryList"
+                        }
+                    }
+                ],
+                "x-ms-examples": {
                     "Make an order": {
-                        "$ref": "./examples/make_order_descriptions.json"
+                        "$ref": "../examples/make_order_empty_descriptions.json"
                     }
                 },
                 "responses": {

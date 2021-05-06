@@ -63,11 +63,8 @@ type RequestExecutionSummary =
 
 type RunSummary =
     {
-        /// Total number of executed requests
-        requestsCount : int
-
-        /// Total number of executed sequences
-        sequencesCount : int
+        /// Total number of requests that were classified as a failure (e.g. 40x or 50x)
+        failedRequestsCount : int
 
         /// The number of bugs found.  Note: for now, this will be
         /// the same as the number of 'BugResponseCode' errors above.

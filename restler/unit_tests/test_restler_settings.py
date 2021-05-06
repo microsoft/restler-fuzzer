@@ -345,7 +345,8 @@ class RestlerSettingsTest(unittest.TestCase):
                      'target_ip': '192.168.0.1',
                      'token_refresh_cmd': 'some command',
                      'token_refresh_interval': 30,
-                     'fuzzing_mode': 'random-walk'}
+                     'fuzzing_mode': 'random-walk',
+                     'ignore_decoding_failures': True}
         try:
             settings = RestlerSettings(user_args)
             settings.validate_options()
@@ -487,6 +488,7 @@ class RestlerSettingsTest(unittest.TestCase):
         self.assertEqual('some refresh command', settings.token_refresh_cmd)
         self.assertEqual(60, settings.token_refresh_interval)
         self.assertEqual(False, settings.wait_for_async_resource_creation)
+        self.assertEqual(True, settings.ignore_decoding_failures)
         self.assertEqual('0.0.0', settings.version)
         code1 = re.compile('400')
         code2 = re.compile('2.4')

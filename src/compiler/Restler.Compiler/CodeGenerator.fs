@@ -20,6 +20,7 @@ module Types =
         {
             defaultValue : string
             isQuoted : bool
+            exampleValue : string option
         }
 
     /// RESTler grammar built-in types
@@ -30,13 +31,13 @@ module Types =
         | Restler_static_string_jtoken_delim of string
         | Restler_fuzzable_string of RequestPrimitiveTypeData
         | Restler_fuzzable_datetime of RequestPrimitiveTypeData
-        | Restler_fuzzable_object of string
-        | Restler_fuzzable_delim of string
+        | Restler_fuzzable_object of RequestPrimitiveTypeData
+        | Restler_fuzzable_delim of RequestPrimitiveTypeData
         | Restler_fuzzable_uuid4 of RequestPrimitiveTypeData
         | Restler_fuzzable_group of RequestPrimitiveTypeData
-        | Restler_fuzzable_bool of string
-        | Restler_fuzzable_int of string
-        | Restler_fuzzable_number of string
+        | Restler_fuzzable_bool of RequestPrimitiveTypeData
+        | Restler_fuzzable_int of RequestPrimitiveTypeData
+        | Restler_fuzzable_number of RequestPrimitiveTypeData
         | Restler_multipart_formdata of string
         | Restler_custom_payload of RequestPrimitiveTypeData
         | Restler_custom_payload_header of string
@@ -61,18 +62,18 @@ let rec getRestlerPythonPayload (payload:FuzzingPayload) (isQuoted:bool) : Reque
         match p with
         | Constant (t,v) ->
             Restler_static_string_constant v
-        | Fuzzable (t,v) ->
+        | Fuzzable (t,v,exv) ->
             match t with
-            | Bool -> Restler_fuzzable_bool v
+            | Bool -> Restler_fuzzable_bool { defaultValue = v ; isQuoted = false ; exampleValue = exv }
             | PrimitiveType.DateTime ->
-                Restler_fuzzable_datetime { defaultValue = v ; isQuoted = isQuoted }
+                Restler_fuzzable_datetime { defaultValue = v ; isQuoted = isQuoted ; exampleValue = exv }
             | PrimitiveType.String ->
-                Restler_fuzzable_string { defaultValue = v ; isQuoted = isQuoted }
-            | PrimitiveType.Object -> Restler_fuzzable_object v
-            | Int -> Restler_fuzzable_int v
-            | Number -> Restler_fuzzable_number v
+                Restler_fuzzable_string { defaultValue = v ; isQuoted = isQuoted ; exampleValue = exv }
+            | PrimitiveType.Object -> Restler_fuzzable_object { defaultValue = v ; isQuoted = false ; exampleValue = exv }
+            | Int -> Restler_fuzzable_int { defaultValue = v ; isQuoted = false; exampleValue = exv }
+            | Number -> Restler_fuzzable_number { defaultValue = v ; isQuoted = false ; exampleValue = exv }
             | Uuid ->
-                Restler_fuzzable_uuid4 { defaultValue = v ; isQuoted = isQuoted }
+                Restler_fuzzable_uuid4 { defaultValue = v ; isQuoted = isQuoted ; exampleValue = exv }
             | PrimitiveType.Enum (_, enumeration, defaultValue) ->
                 // TODO: should this be generating unique fuzzable group tags?  Why is one needed?
                 let defaultStr =
@@ -85,11 +86,11 @@ let rec getRestlerPythonPayload (payload:FuzzingPayload) (isQuoted:bool) : Reque
                              defaultStr
                     )
                 Restler_fuzzable_group
-                    { defaultValue = groupValue ; isQuoted = isQuoted }
+                    { defaultValue = groupValue ; isQuoted = isQuoted ; exampleValue = exv }
         | Custom c ->
             match c.payloadType with
             | CustomPayloadType.String ->
-                Restler_custom_payload { defaultValue = c.payloadValue ; isQuoted = isQuoted }
+                Restler_custom_payload { defaultValue = c.payloadValue ; isQuoted = isQuoted ; exampleValue = None }
             | CustomPayloadType.UuidSuffix ->
                 Restler_custom_payload_uuid4_suffix c.payloadValue
             | CustomPayloadType.Header ->
@@ -106,15 +107,9 @@ let rec getRestlerPythonPayload (payload:FuzzingPayload) (isQuoted:bool) : Reque
     | p -> [ getPrimitivePayload p ]
 
 /// Generate the RESTler grammar for a request parameter
-let generatePythonParameter includeOptionalParameters parameterKind (parameterName, parameterPayload) =
-    let formatParameterName name =
-        match parameterKind with
-        | ParameterKind.Query ->
-            Restler_static_string_constant (sprintf "%s=" name)
-        | ParameterKind.Body ->
-            Restler_static_string_constant (sprintf "\"%s\":" name)
-        | ParameterKind.Path ->
-            raise (UnsupportedType "Invalid context for Path parameters")
+let generatePythonParameter includeOptionalParameters parameterKind (requestParameter:RequestParameter) =
+    let (parameterName, parameterPayload, parameterSerialization) =
+        requestParameter.name, requestParameter.payload, requestParameter.serialization
 
     let formatPropertyName name =
         if String.IsNullOrEmpty name then
@@ -122,12 +117,176 @@ let generatePythonParameter includeOptionalParameters parameterKind (parameterNa
         else
             Restler_static_string_constant (sprintf "\"%s\":" name)
 
+    let formatQueryParameterName name =
+        Restler_static_string_constant (sprintf "%s=" name)
+
+    let formatHeaderParameterName name =
+        Restler_static_string_constant (sprintf "%s: " name)
+
     let getTabIndentedLineStart level =
         if level > 0 then
             let tabs = [1..level] |> List.map (fun x -> TAB) |> String.Concat
             Some ("\n" + tabs)
         else
             None
+
+    let formatJsonBodyParameter (propertyName:string)
+                                (propertyType:NestedType)
+                                (namePayloadSeq:RequestPrimitiveType list option)
+                                (innerProperties:RequestPrimitiveType list seq)
+                                (tabLevel:int) =
+        // Pretty-printing is only required for the body
+        let tabSeq =
+            match getTabIndentedLineStart tabLevel with
+            | None -> []
+            | Some s -> [ Restler_static_string_constant s ]
+        match namePayloadSeq with
+        | Some nps ->
+            tabSeq @ nps
+        | None ->
+            // The payload is not specified at this level, so use the one specified at lower levels.
+            // The inner properties must be comma separated
+            let cs = innerProperties
+                     |> Seq.mapi (fun i s ->
+                                      if i > 0 && not (s |> List.isEmpty) then
+                                          [
+                                            [ Restler_static_string_jtoken_delim "," ]
+                                            s
+                                          ]
+                                          |> List.concat
+                                      else s)
+                     |> Seq.concat
+                     |> List.ofSeq
+            tabSeq
+            @ [formatPropertyName propertyName]
+            @ tabSeq
+            @ [
+                Restler_static_string_jtoken_delim
+                    (match propertyType with
+                        | Object -> "{"
+                        | Array -> "["
+                        | Property -> "")
+            ]
+            @ cs
+            @ tabSeq
+            @ [
+                Restler_static_string_jtoken_delim
+                    (match propertyType with
+                        | Object -> "}"
+                        | Array -> "]"
+                        | Property -> "")
+            ]
+
+    let formatQueryObjectParameters (parameterName:string) (innerProperties:RequestPrimitiveType list seq) =
+        raise (NotImplementedException("Objects in query parameters are not supported yet."))
+
+    let formatHeaderObjectParameters (parameterName:string) (innerProperties:RequestPrimitiveType list seq) =
+        // The default is "style: simple, explode: false"
+        raise (NotImplementedException("Objects in header parameters are not supported yet."))
+
+    let formatHeaderArrayParameters (parameterName:string) (innerProperties:RequestPrimitiveType list seq) =
+        let cs =
+            innerProperties
+            |> Seq.filter (fun ip -> ip.Length > 0)
+            |> Seq.mapi (fun i arrayItemPrimitives ->
+                            [
+                                if i > 0 then
+                                    match requestParameter.serialization with
+                                    | None ->
+                                        [ Restler_static_string_constant "," ]
+                                    | Some ps when ps.style = Simple ->
+                                        [ Restler_static_string_constant "," ]
+                                    | Some s ->
+                                        raise (NotImplementedException (sprintf "Serialization type %A is not implemented yet." s))
+                                arrayItemPrimitives
+                            ]
+                            |> List.concat)
+            |> Seq.concat
+            |> List.ofSeq
+        [
+            [ formatHeaderParameterName parameterName ]
+            cs
+        ]
+        |> List.concat
+
+    let formatQueryArrayParameters (parameterName:string) (innerProperties:RequestPrimitiveType list seq) =
+        // The default is "style: form, explode: true"
+        let expOption =
+            match requestParameter.serialization with
+            | None -> true
+            | Some eo -> eo.explode
+
+        let cs =
+            innerProperties
+            |> Seq.filter (fun ip -> ip.Length > 0)
+            |> Seq.mapi (fun i arrayItemPrimitives ->
+                            [
+                                // If 'explode': true is specified, the array name is printed before each array item
+                                if expOption then
+                                    if i > 0 then
+                                        [ Restler_static_string_constant "&" ]
+                                    [ formatQueryParameterName parameterName ]
+                                    arrayItemPrimitives
+                                else
+                                    if i > 0 then
+                                        match requestParameter.serialization with
+                                        | None ->
+                                            [ Restler_static_string_constant "," ]
+                                        | Some ps when ps.style = Form ->
+                                            [ Restler_static_string_constant "," ]
+                                        | Some s ->
+                                            raise (NotImplementedException (sprintf "Serialization type %A is not implemented yet." s))
+                                    arrayItemPrimitives
+                            ]
+                            |> List.concat)
+            |> Seq.concat
+            |> List.ofSeq
+        if (not expOption) || cs |> List.isEmpty then
+            [
+                [ formatQueryParameterName parameterName ]
+                cs
+            ]
+            |> List.concat
+        else
+            cs
+
+    /// Format a header parameter that is either an array or object
+    /// See https://swagger.io/docs/specification/serialization/#query.
+    /// Any other type of serialization (e.g. encoding and passing complex json objects)
+    /// will need to be added as a config option for RESTler.
+    let formatNestedHeaderParameter (parameterName:string)
+                                    (propertyType:NestedType)
+                                    (namePayloadSeq:RequestPrimitiveType list option)
+                                    (innerProperties:RequestPrimitiveType list seq) =
+        match namePayloadSeq with
+        | Some nps -> nps
+        | None ->
+            match propertyType with
+                | Object ->
+                    formatHeaderObjectParameters parameterName innerProperties
+                | Array ->
+                    formatHeaderArrayParameters parameterName innerProperties
+                | Property ->
+                    raise (ArgumentException("Invalid context for property type."))
+
+    /// Format a query parameter that is either an array or object
+    /// See https://swagger.io/docs/specification/serialization/#query.
+    /// Any other type of serialization (e.g. encoding and passing complex json objects)
+    /// will need to be added as a config option for RESTler.
+    let formatNestedQueryParameter (parameterName:string)
+                                   (propertyType:NestedType)
+                                   (namePayloadSeq:RequestPrimitiveType list option)
+                                   (innerProperties:RequestPrimitiveType list seq) =
+        match namePayloadSeq with
+        | Some nps -> nps
+        | None ->
+            match propertyType with
+                | Object ->
+                    formatQueryObjectParameters parameterName innerProperties
+                | Array ->
+                    formatQueryArrayParameters parameterName innerProperties
+                | Property ->
+                    raise (ArgumentException("Invalid context for property type."))
 
     let visitLeaf level (p:LeafProperty) =
         let rec isPrimitiveTypeQuoted primitiveType isNullValue =
@@ -148,7 +307,12 @@ let generatePythonParameter includeOptionalParameters parameterKind (parameterNa
         if p.isRequired  || includeOptionalParameters then
             let nameSeq =
                 if String.IsNullOrEmpty p.name then
-                    List.empty
+                    if level = 0 && parameterKind = ParameterKind.Query then
+                        [ formatQueryParameterName requestParameter.name ]
+                    else if level = 0 && parameterKind = ParameterKind.Header then
+                        [ formatHeaderParameterName requestParameter.name ]
+                    else
+                        List.empty
                 else
                     [ formatPropertyName p.name ]
 
@@ -171,7 +335,7 @@ let generatePythonParameter includeOptionalParameters parameterKind (parameterNa
                 | FuzzingPayload.Constant (primitiveType, v) ->
                     isPrimitiveTypeQuoted primitiveType (isNull v),
                     false
-                | FuzzingPayload.Fuzzable (primitiveType, _) ->
+                | FuzzingPayload.Fuzzable (primitiveType, _, _) ->
                     // Note: this is a current RESTler limitation -
                     // fuzzable values may not be set to null without changing the grammar.
                     isPrimitiveTypeQuoted primitiveType false,
@@ -196,11 +360,12 @@ let generatePythonParameter includeOptionalParameters parameterKind (parameterNa
                     // If the value is a fuzzable, quotes are inserted at run time, because
                     // the user may choose to fuzz with quoted or unquoted values.
                     let needStaticStringQuotes =
-                        needQuotes && not isFuzzable && parameterKind = ParameterKind.Body
+                        parameterKind = ParameterKind.Body &&
+                        needQuotes && not isFuzzable
                     if needStaticStringQuotes then
                         yield Restler_static_string_constant "\""
 
-                    let isQuoted = (needQuotes && isFuzzable && (parameterKind = ParameterKind.Body || level > 0))
+                    let isQuoted = parameterKind = ParameterKind.Body && needQuotes && isFuzzable
                     for k in getRestlerPythonPayload p.payload isQuoted do
                         yield k
 
@@ -214,57 +379,28 @@ let generatePythonParameter includeOptionalParameters parameterKind (parameterNa
 
     let visitInner level (p:InnerProperty) (innerProperties: RequestPrimitiveType list seq) =
         if p.isRequired || includeOptionalParameters then
-            // Pretty-printing is only required for the body
-            let tabSeq =
-                if parameterKind = ParameterKind.Body then
-                    match getTabIndentedLineStart level with
-                    | None -> []
-                    | Some s -> [ Restler_static_string_constant s ]
-                else []
+            // Check for the custom payload
+            let nameAndCustomPayloadSeq =
+                match p.payload with
+                | Some payload ->
+                    // Use the payload specified at this level.
+                    let namePayloadSeq =
+                        (formatPropertyName p.name) ::
+                        // Because this is a custom payload for an object, it should not be quoted.
+                        (getRestlerPythonPayload payload false (*isQuoted*))
+                    Some namePayloadSeq
+                | None -> None
 
-            match p.payload with
-            | Some payload ->
-                // Use the payload specified at this level.
-                let namePayloadSeq =
-                    (formatPropertyName p.name) ::
-                    // Because this is a custom payload for an object, it should not be quoted.
-                    (getRestlerPythonPayload payload false (*isQuoted*))
-                tabSeq @ namePayloadSeq
-            | None ->
-                // The payload is not specified at this level, so use the one specified at lower levels.
-                // The inner properties must be comma separated
-                let cs = innerProperties
-                            |> Seq.mapi (fun i s ->
-                                        if i > 0 && not (s |> List.isEmpty) then
-                                            [
-                                                [ Restler_static_string_jtoken_delim "," ]
-                                                s
-                                            ]
-                                            |> List.concat
-                                        else s)
-                            |> Seq.concat
-                            |> List.ofSeq
+            match parameterKind with
+            | ParameterKind.Body ->
+                formatJsonBodyParameter p.name p.propertyType nameAndCustomPayloadSeq innerProperties level
+            | ParameterKind.Query ->
+                formatNestedQueryParameter parameterName p.propertyType nameAndCustomPayloadSeq innerProperties
+            | ParameterKind.Header ->
+                formatNestedHeaderParameter parameterName p.propertyType nameAndCustomPayloadSeq innerProperties
 
-                tabSeq
-                @ [formatPropertyName p.name]
-                @ tabSeq
-                @ [
-                    Restler_static_string_jtoken_delim
-                        (match p.propertyType with
-                            | Object -> "{"
-                            | Array -> "["
-                            | Property -> "")
-                ]
-                @ cs
-                @ tabSeq
-
-                @ [
-                    Restler_static_string_jtoken_delim
-                        (match p.propertyType with
-                            | Object -> "}"
-                            | Array -> "]"
-                            | Property -> "")
-                ]
+            | ParameterKind.Path ->
+                raise (InvalidOperationException("Path parameters must not be formatted here."))
         else
             []
 
@@ -272,22 +408,7 @@ let generatePythonParameter includeOptionalParameters parameterKind (parameterNa
         parentLevel + 1
 
     let payloadPrimitives = Tree.cataCtx visitLeaf visitInner getTreeLevel 0 parameterPayload
-
-    match parameterKind with
-    | ParameterKind.Query ->
-        let payloadPrimitives =
-            // Remove the beginning and ending quotes - these must not be specified for query parameters.
-            if payloadPrimitives |> List.head = Restler_static_string_constant "\"" then
-                let length = payloadPrimitives |> List.length
-                payloadPrimitives
-                |> List.skip 1 |> List.take (length - 2)
-            else
-                payloadPrimitives
-
-        (formatParameterName parameterName) :: payloadPrimitives 
-    | ParameterKind.Body
-    | ParameterKind.Path ->
-        payloadPrimitives
+    payloadPrimitives
 
 /// Generates the python restler grammar definitions corresponding to the request
 let generatePythonFromRequestElement includeOptionalParameters (e:RequestElement) =
@@ -305,6 +426,23 @@ let generatePythonFromRequestElement includeOptionalParameters (e:RequestElement
                     ]
                 )
         x
+    | HeaderParameters hp ->
+        match hp with
+        | ParameterList hp ->
+            let parameters =
+                hp |> List.ofSeq
+                   |> List.map (fun p ->
+                                  [
+
+                                      generatePythonParameter includeOptionalParameters ParameterKind.Header p
+                                      [ Restler_static_string_constant RETURN ]
+                                  ]
+                                  |> List.concat
+                                  )
+                   |> List.concat
+            parameters
+        | _ ->
+            raise (UnsupportedType (sprintf "This request parameters payload type is not supported: %A" hp))
     | QueryParameters qp ->
         match qp with
         | ParameterList bp ->
@@ -315,9 +453,9 @@ let generatePythonFromRequestElement includeOptionalParameters (e:RequestElement
                                     if i > 0 then
                                         [
                                             yield Restler_static_string_constant "&"
-                                            yield! primitive 
+                                            yield! primitive
                                         ]
-                                        
+
                                     else primitive
                                )
                    |> List.concat
@@ -326,7 +464,7 @@ let generatePythonFromRequestElement includeOptionalParameters (e:RequestElement
             else
                 [
                     yield Restler_static_string_constant "?"
-                    yield! parameters 
+                    yield! parameters
                 ]
         | _ ->
             raise (UnsupportedType (sprintf "This request parameters payload type is not supported: %A" qp))
@@ -363,7 +501,8 @@ let generatePythonFromRequestElement includeOptionalParameters (e:RequestElement
     | RefreshableToken ->
         [Restler_refreshable_authentication_token "authentication_token_tag"]
     | Headers h ->
-        h |> List.map (fun (name, content) -> Restler_static_string_constant (sprintf "%s: %s%s" name content RETURN))
+        h |> List.map (fun (name, content) ->
+            Restler_static_string_constant (sprintf "%s: %s%s" name content RETURN))
     | HttpVersion v->
         [Restler_static_string_constant (sprintf "%sHTTP/%s%s" SPACE v RETURN)]
     | ResponseParser r ->
@@ -443,6 +582,12 @@ let generatePythonFromRequest (request:Request) includeOptionalParameters mergeS
         QueryParameters (getParameterPayload request.queryParameters)
         HttpVersion request.httpVersion
         Headers request.headers
+        HeaderParameters (getParameterPayload request.headerParameters)
+        // custom parameters special case
+        HeaderParameters (match request.headerParameters
+                                |> List.tryFind (fun (ps,_) -> ps = DictionaryCustomPayload) with
+                          | None -> ParameterList []
+                          | Some x -> getParameterPayload [x])
         (match request.token with
             | TokenKind.Refreshable -> RefreshableToken
             | (TokenKind.Static token) -> Token (token))
@@ -514,7 +659,7 @@ let generatePythonFromRequest (request:Request) includeOptionalParameters mergeS
                         // Add back the first two elements
                         (filteredPrimitives |> List.take 2)
                         @ (newPrimitiveSeq |> List.ofSeq)
-                        @ mergedStaticStringSeq 
+                        @ mergedStaticStringSeq
 
                     | _ ->
                         primitives
@@ -550,7 +695,7 @@ let getResponseParsers (responseParsers:ResponseParser list) =
     let random = System.Random(0)
 
     // First, define the dynamic variables initialized by the response parser
-    let dynamicObjectDefinitions = 
+    let dynamicObjectDefinitions =
         [
             for r in responseParsers do
                 for writerVariable in r.writerVariables do
@@ -664,6 +809,14 @@ let getRequests(requests:Request list) includeOptionalParameters =
         s, delim
 
     let formatRestlerPrimitive p =
+        let getExamplePrimitiveParameter exv =
+            match exv with
+            | None -> ""
+            | Some str ->
+                let exStr, exDelim = quoteStringForPythonGrammar str
+                let quotedStr = sprintf "%s%s%s" exDelim exStr exDelim
+                sprintf ", examples=[%s]" quotedStr
+
         let str =
             match p with
             | Restler_static_string_jtoken_delim s ->
@@ -691,42 +844,60 @@ let getRequests(requests:Request list) includeOptionalParameters =
                     ""
                 else
                     let str, delim = quoteStringForPythonGrammar s.defaultValue
-                    sprintf "primitives.restler_fuzzable_string(%s%s%s, quoted=%s)"
-                             delim str delim
+                    let quotedDefaultString =
+                        sprintf "%s%s%s" delim str delim
+                    let exampleParameter = getExamplePrimitiveParameter s.exampleValue
+                    sprintf "primitives.restler_fuzzable_string(%s, quoted=%s%s)"
+                             quotedDefaultString
                              (if s.isQuoted then "True" else "False")
+                             exampleParameter
             | Restler_fuzzable_group s ->
-                sprintf "primitives.restler_fuzzable_group(%s,quoted=%s)"
+                sprintf "primitives.restler_fuzzable_group(%s,quoted=%s%s)"
                         s.defaultValue
                         (if s.isQuoted then "True" else "False")
+                        (getExamplePrimitiveParameter s.exampleValue)
             | Restler_fuzzable_int s ->
-                sprintf "primitives.restler_fuzzable_int(\"%s\")" s
+                sprintf "primitives.restler_fuzzable_int(\"%s\"%s)"
+                        s.defaultValue
+                        (getExamplePrimitiveParameter s.exampleValue)
             | Restler_fuzzable_number s ->
-                sprintf "primitives.restler_fuzzable_number(\"%s\")" s
+                sprintf "primitives.restler_fuzzable_number(\"%s\"%s)"
+                        s.defaultValue
+                        (getExamplePrimitiveParameter s.exampleValue)
             | Restler_fuzzable_bool s ->
-                sprintf "primitives.restler_fuzzable_bool(\"%s\")" s
+                sprintf "primitives.restler_fuzzable_bool(\"%s\"%s)"
+                        s.defaultValue
+                        (getExamplePrimitiveParameter s.exampleValue)
             | Restler_fuzzable_datetime s ->
-                sprintf "primitives.restler_fuzzable_datetime(\"%s\", quoted=%s)"
+                sprintf "primitives.restler_fuzzable_datetime(\"%s\", quoted=%s%s)"
                         s.defaultValue
                         (if s.isQuoted then "True" else "False")
+                        (getExamplePrimitiveParameter s.exampleValue)
             | Restler_fuzzable_object s ->
-                if String.IsNullOrEmpty s then
+                if String.IsNullOrEmpty s.defaultValue then
                     printfn "ERROR: fuzzable objects should not be empty.  Skipping."
                     ""
                 else
-                    let s, delim = quoteStringForPythonGrammar s
-                    sprintf "primitives.restler_fuzzable_object(%s%s%s)" delim s delim
+                    let str, delim = quoteStringForPythonGrammar s.defaultValue
+                    let quotedDefaultString =
+                        sprintf "%s%s%s" delim str delim
+                    let exampleParameter = getExamplePrimitiveParameter s.exampleValue
+                    sprintf "primitives.restler_fuzzable_object(%s%s)"
+                            quotedDefaultString
+                            exampleParameter
             | Restler_fuzzable_uuid4 s ->
-                sprintf "primitives.restler_fuzzable_uuid4(\"%s\", quoted=%s)"
+                sprintf "primitives.restler_fuzzable_uuid4(\"%s\", quoted=%s%s)"
                         s.defaultValue
                         (if s.isQuoted then "True" else "False")
-
+                        (getExamplePrimitiveParameter s.exampleValue)
             | Restler_custom_payload p ->
                 sprintf "primitives.restler_custom_payload(\"%s\", quoted=%s)"
                         p.defaultValue
                         (if p.isQuoted then "True" else "False")
-
             | Restler_custom_payload_uuid4_suffix p ->
                 sprintf "primitives.restler_custom_payload_uuid4_suffix(\"%s\")" p
+            | Restler_custom_payload_header p ->
+                sprintf "primitives.restler_custom_payload_header(\"%s\")" p
             | Restler_refreshable_authentication_token tok ->
                 sprintf "primitives.restler_refreshable_authentication_token(\"%s\")" tok
             | Response_parser s -> s
@@ -811,7 +982,7 @@ let generateCode (grammar:GrammarDefinition) includeOptionalParameters (write : 
     let grammar = generatePythonGrammar grammar includeOptionalParameters
 
     grammar
-    |> Seq.iteri (fun i x -> 
+    |> Seq.iteri (fun i x ->
         let element = codeGenElement x
         if i = (Seq.length grammar) - 1 then
             write(element)

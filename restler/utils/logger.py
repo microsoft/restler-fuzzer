@@ -314,6 +314,7 @@ def custom_network_logging(sequence, candidate_values_pool, **kwargs):
             primitive = request_block[0]
             default_val = request_block[1]
             quoted = request_block[2]
+            examples = request_block[3]
             # Handling dynamic primitives that need fresh rendering every time
             if primitive == "restler_fuzzable_uuid4":
                 values = [primitives.restler_fuzzable_uuid4]
@@ -347,7 +348,7 @@ def custom_network_logging(sequence, candidate_values_pool, **kwargs):
                 default_val = values[0]
             # Handle all the rest
             else:
-                values = candidate_values_pool.get_fuzzable_values(primitive, default_val, request.request_id, quoted=quoted)
+                values = candidate_values_pool.get_fuzzable_values(primitive, default_val, request.request_id, quoted=quoted, examples=examples)
 
             if len(values) > 1:
                 network_log.write(f"\t\t+ {primitive}: {values}")
@@ -892,6 +893,7 @@ def print_spec_coverage(fuzzing_requests):
         req_spec['status_text'] = req.stats.status_text
         req_spec['error_message'] = req.stats.error_msg
         req_spec['request_order'] = req.stats.request_order
+        req_spec['sample_request'] = vars(req.stats.sample_request)
 
     with open(os.path.join(LOGS_DIR, 'speccov.json'), 'w') as file:
         json.dump(spec_file, file, indent=4)

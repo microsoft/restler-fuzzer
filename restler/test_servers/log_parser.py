@@ -115,6 +115,7 @@ class FuzzingLogParser(LogParser):
         """
         if self._seq_list != other._seq_list:
             print("Fuzzing sequence lists do not match.")
+            print(f"First Sequence:{self._seq_list}\n\n, Second sequence:{other._seq_list}\n\n")
             return False
         return True
 

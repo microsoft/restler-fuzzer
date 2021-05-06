@@ -514,7 +514,7 @@ let rec parseEngineArgs task (args:EngineParameters) = function
                             Logging.logWarning <| sprintf "Unknown checker %s specified. If this is a custom checker, ignore this message." x
                       )
         parseEngineArgs task { args with checkerOptions = args.checkerOptions @ [(checkerAction, specifiedCheckers |> String.concat " ")] } rest
-    | "no_results_analyzer"::rest ->
+    | "--no_results_analyzer"::rest ->
         parseEngineArgs task { args with runResultsAnalyzer = false } rest
     | "--client_certificate_path"::certFilePath::rest ->
         if not (File.Exists certFilePath) then

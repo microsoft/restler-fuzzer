@@ -89,6 +89,7 @@ type ParameterKind =
     | Path
     | Body
     | Query
+    | Header
 
 /// The primitive types supported by RESTler
 type PrimitiveType =
@@ -133,8 +134,9 @@ type FuzzingPayload =
     /// Example: (Int "1")
     | Constant of PrimitiveType * string
 
-    /// Example: (Int "1")
-    | Fuzzable of PrimitiveType * string
+    /// (data type, default value, example value)
+    /// Example: (Int "1", "2")
+    | Fuzzable of PrimitiveType * string * string option
 
     /// The custom payload, as specified in the fuzzing dictionary
     | Custom of CustomPayload
@@ -226,16 +228,43 @@ type ParameterPayloadSource =
     | Schema
     /// Parameters were defined in a payload example
     | Examples
+    /// Parameters were defined as a custom payload
+    | DictionaryCustomPayload
+
+/// The parameter serialization style
+type StyleKind =
+    | Form
+    | Simple
+
+/// Information related to how to serialize the parameter
+type ParameterSerialization =
+    {
+        /// Defines how multiple values are delimited
+        style : StyleKind
+
+        /// Specifies whether arrays and objects should generate
+        /// separate parameters for each array item or object property
+        explode : bool
+    }
+
+type RequestParameter =
+    {
+        name: string
+        payload: ParameterPayload
+        serialization: ParameterSerialization option
+    }
 
 /// The payload for request parameters
 type RequestParametersPayload =
-    | ParameterList of seq<string * ParameterPayload>
+    | ParameterList of seq<RequestParameter>
     | Example of FuzzingPayload
 
 /// All request parameters
 type RequestParameters =
     {
         path: RequestParametersPayload
+
+        header: (ParameterPayloadSource * RequestParametersPayload) list
 
         /// List of several possible parameter sets that may be used to invoke a request.
         /// The payload source is not expected to be unique. For example, there may be several schemas
@@ -272,6 +301,7 @@ type RequestElement =
     | Method of OperationMethod
     | Path of FuzzingPayload list
     | QueryParameters of RequestParametersPayload
+    | HeaderParameters of RequestParametersPayload
     | Body of RequestParametersPayload
     | Token of string
     | RefreshableToken
@@ -305,6 +335,8 @@ type Request =
         queryParameters : (ParameterPayloadSource * RequestParametersPayload) list
 
         bodyParameters : (ParameterPayloadSource * RequestParametersPayload) list
+
+        headerParameters : (ParameterPayloadSource * RequestParametersPayload) list
 
         /// The token required to access the API
         token : TokenKind
@@ -369,3 +401,19 @@ let generatePrefixForCustomUuidSuffixPayload (suffixPayloadId:string) =
         sprintf "%s" suffixPayloadId
     else
         sprintf "%s" (suffixPayloadIdRestricted |> Seq.map string |> String.concat "")
+
+
+/// This map lists the default primitive values for fuzzable primitives
+/// These will be used both in the grammar and dictionary file.
+let DefaultPrimitiveValues =
+    [
+        PrimitiveType.String, "fuzzstring" // Note: quotes are intentionally omitted.
+        PrimitiveType.Uuid, "566048da-ed19-4cd3-8e0a-b7e0e1ec4d72" // Note: quotes are intentionally omitted.
+        PrimitiveType.DateTime, "2019-06-26T20:20:39+00:00" // Note: quotes are intentionally omitted.
+        PrimitiveType.Number, "1.23" // Note: quotes are intentionally omitted.
+        PrimitiveType.Int, "1"
+        PrimitiveType.Bool, "true"
+        PrimitiveType.Object, "{ \"fuzz\": false }"
+    ]
+    |> Map.ofSeq
+

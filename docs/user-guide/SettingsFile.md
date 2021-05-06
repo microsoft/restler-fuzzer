@@ -54,6 +54,9 @@ Ex: '2*' will match 200, 201, 210, etc.
 Use wildcard '?' to allow any value in that specific location.
 Ex: '2?1' will match 201 or 211, but not 202.
 
+### disable_cert_validation: bool (default False)
+Disable TLS certificate validation.
+
 ### dyn_objects_cache_size: int (default 10)
 Max number of objects of one type before deletion by the garbage collector
 
@@ -108,6 +111,12 @@ The time, in milliseconds, to throttle each request being sent.
 This is here for special cases where the server will block requests from connections that arrive too quickly.
 Using this setting is not recommended.
 
+### target_ip: str (default None)
+The IP address of the target webserver.
+
+### target_port: int (default None)
+The port of the target webserver.
+
 ### time_budget: float (default 30 days)
 Once this time is reached, the fuzzing will stop.
 Time is in hours.
@@ -121,6 +130,10 @@ in seconds.
 
 ### wait_for_async_resource_creation: bool (default True)
 When set, polls for async resource creation before continuing
+
+### ignore_decoding_failures: bool (default False)
+Set to True to ignore socked data decoding failures 
+See: https://github.com/microsoft/restler-fuzzer/issues/164
 
 ## Per resource settings:
 Certain settings can be applied to specific endpoints.

@@ -419,6 +419,8 @@ class RestlerSettings(object):
         self._path_regex = SettingsArg('path_regex', str, None, user_args)
         ## Minimum time, in milliseconds, to wait between sending requests
         self._request_throttle_ms = SettingsArg('request_throttle_ms', (int, float), None, user_args, minval=0)
+        ## Ignore data UTF decoding failures (see https://github.com/microsoft/restler-fuzzer/issues/164) 
+        self._ignore_decoding_failures = SettingsArg('ignore_decoding_failures', bool, False, user_args)
         ## Collection of endpoint specific producer timing delays - will be set with other per_resource settings
         self._resource_producer_timing_delays = SettingsDictArg('per_resource_producer_timing_delay', int, key_convert=str_to_hex_def)
         ## If the settings file was used (and not just command-line arguments)
@@ -545,6 +547,10 @@ class RestlerSettings(object):
     @property
     def request_throttle_ms(self):
         return self._request_throttle_ms.val
+
+    @property
+    def ignore_decoding_failures(self):
+        return self._ignore_decoding_failures.val
 
     @property
     def settings_file_exists(self):

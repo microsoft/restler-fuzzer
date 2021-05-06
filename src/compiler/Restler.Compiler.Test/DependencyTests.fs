@@ -32,7 +32,7 @@ module Dependencies =
                                     dictionary
                                     config
                                     List.empty
-
+                                    None
             let unresolvedPathDeps =
                 dependencies
                 |> List.filter (fun d -> d.producer.IsNone)
@@ -277,6 +277,41 @@ module Dependencies =
             |> Seq.iter (fun x -> Assert.True(grammar.Contains(x),
                                               sprintf "Grammar does not contain %s" x))
 
+        [<Fact>]
+        let ``array dependencies with multiple array items`` () =
+            // A custom dictionary payload is considered a dependency payload.
+            let customDictionary = Some ("{ \"restler_custom_payload\":\
+                                            { \"item_descriptions\": [\"[zzz, yyy]\"], \
+                                              \"callback_parameters\": [\"{\\\"data1\\\": 5}\"] } }\
+                                         ")
+            let grammarOutputDirPath = ctx.testRootDirPath
+
+            let config = { Restler.Config.SampleConfig with
+                             SwaggerSpecConfig =
+                                Some
+                                  [{
+                                      SpecFilePath =
+                                         Path.Combine(Environment.CurrentDirectory, @"swagger\dependencyTests\array_dep_multiple_items.json")
+                                      Dictionary = customDictionary
+                                      DictionaryFilePath = None
+                                      AnnotationFilePath = None
+                                  }]
+                             IncludeOptionalParameters = true
+                             GrammarOutputDirectoryPath = Some grammarOutputDirPath
+                             ResolveBodyDependencies = true
+                             ResolveQueryDependencies = true
+                             UseBodyExamples = None
+                         }
+
+            Restler.Workflow.generateRestlerGrammar None config
+            // Make sure the grammar file exists and there is just one dynamic object for the array, regardless of how
+            // many elements it had before.
+            let grammarFilePath = Path.Combine(grammarOutputDirPath,
+                                               Restler.Workflow.Constants.DefaultRestlerGrammarFileName)
+            let grammar = File.ReadAllLines(grammarFilePath)
+            let grammarDynamicObject = "primitives.restler_custom_payload(\"item_descriptions\", quoted=False),"
+            let numberOfDynamicObjects = grammar |> Seq.filter (fun x -> x.Contains(grammarDynamicObject)) |> Seq.length
+            Assert.Equal( 1, numberOfDynamicObjects)
 
         interface IClassFixture<Fixtures.TestSetupAndCleanup>
 

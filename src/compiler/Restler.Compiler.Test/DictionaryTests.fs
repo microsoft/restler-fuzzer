@@ -37,7 +37,7 @@ module Dictionary =
         [<Fact>]
         /// Test for custom payload uuid suffix
         let ``path and body parameter set to the same uuid suffix payload`` () =
-            let grammarOutputDirPath = @"c:\temp\restlertest" //ctx.testRootDirPath
+            let grammarOutputDirPath = ctx.testRootDirPath
             let config = { Restler.Config.SampleConfig with
                              IncludeOptionalParameters = true
                              GrammarOutputDirectoryPath = Some grammarOutputDirPath

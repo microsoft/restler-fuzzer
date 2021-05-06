@@ -204,11 +204,6 @@
                   }
                 }
               ],
-                "examples": {
-                    "Make an order": {
-                        "$ref": "./examples/make_order_descriptions.json"
-                    }
-                },
                 "responses": {
                     "200": {
                         "description": "Success",

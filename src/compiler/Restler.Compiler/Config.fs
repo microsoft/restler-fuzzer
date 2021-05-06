@@ -58,6 +58,10 @@ type Config =
 
         IncludeOptionalParameters : bool
 
+        UseHeaderExamples : bool option
+
+        UsePathExamples : bool option
+
         UseQueryExamples : bool option
 
         UseBodyExamples : bool option
@@ -72,6 +76,9 @@ type Config =
         /// If 'discoverExamples' is false, every time an example is used in the
         /// Swagger file, RESTler will first look for it in this directory.
         ExamplesDirectory : string
+
+        /// File path specifying the example config file
+        ExampleConfigFilePath : string option
 
         /// Perform data fuzzing
         DataFuzzing : bool
@@ -161,6 +168,11 @@ let convertRelativeToAbsPaths configFilePath config =
         | Some p -> Some (convertToAbsPath configFileDirPath p)
         | None -> None
 
+    let exampleConfigFilePath =
+        match config.ExampleConfigFilePath with
+        | Some p -> Some (convertToAbsPath configFileDirPath p)
+        | None -> None
+
     { config with
         SwaggerSpecFilePath = swaggerSpecFilePath
         CustomDictionaryFilePath = customDictionaryFilePath
@@ -168,6 +180,7 @@ let convertRelativeToAbsPaths configFilePath config =
         EngineSettingsFilePath = engineSettingsFilePath
         SwaggerSpecConfig = apiSpecs
         AnnotationFilePath = annotationsFilePath
+        ExampleConfigFilePath = exampleConfigFilePath
     }
 
 
@@ -179,10 +192,13 @@ let SampleConfig =
         GrammarInputFilePath = None
         CustomDictionaryFilePath = None
         AnnotationFilePath = None
+        ExampleConfigFilePath = None
         GrammarOutputDirectoryPath = None
         IncludeOptionalParameters = true
+        UsePathExamples = None
         UseQueryExamples = None
         UseBodyExamples = None
+        UseHeaderExamples = None
         DiscoverExamples = false
         ExamplesDirectory = ""
         ResolveQueryDependencies = true
@@ -191,7 +207,7 @@ let SampleConfig =
         UseRefreshableToken = Some true
         AllowGetProducers = false
         EngineSettingsFilePath = None
-        DataFuzzing = false
+        DataFuzzing = true
         ApiNamingConvention = None
     }
 
@@ -205,10 +221,13 @@ let DefaultConfig =
         GrammarInputFilePath = None
         CustomDictionaryFilePath = None
         AnnotationFilePath = None
+        ExampleConfigFilePath = None
         GrammarOutputDirectoryPath = None
         IncludeOptionalParameters = true
         UseQueryExamples = Some true
+        UseHeaderExamples = None
         UseBodyExamples = Some true
+        UsePathExamples = None
         DiscoverExamples = false
         ExamplesDirectory = ""
         ResolveQueryDependencies = true
