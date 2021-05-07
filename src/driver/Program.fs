@@ -211,7 +211,7 @@ module Fuzz =
 
             (match parameters.certFilePath with
              | None -> ""
-             | Some cfPath -> sprintf "--client_certificate_path %s\"" parameters.certFilePath
+             | Some cfPath -> sprintf "--client_certificate_path \"%s\"" cfPath
             )
             (match parameters.refreshableTokenOptions with
                 | None -> ""
