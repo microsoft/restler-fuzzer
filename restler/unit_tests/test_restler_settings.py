@@ -345,7 +345,7 @@ class RestlerSettingsTest(unittest.TestCase):
                      'target_ip': '192.168.0.1',
                      'token_refresh_cmd': 'some command',
                      'token_refresh_interval': 30,
-                     'client_certificate_path': 'path/to/file.pem',
+                     'client_certificate_path': '\\path\\to\\file.pem',
                      'fuzzing_mode': 'random-walk',
                      'ignore_decoding_failures': True}
         try:
@@ -469,7 +469,7 @@ class RestlerSettingsTest(unittest.TestCase):
         self.assertEqual(True, hex_def(request1) in settings.create_once_endpoints)
         self.assertNotEqual(True, hex_def(request2) in settings.create_once_endpoints)
 
-        self.assertEqual("/path/to/file.pem", settings.client_certificate_path)
+        self.assertEqual("\\path\\to\\file.pem", settings.client_certificate_path)
         self.assertEqual(200, settings.dyn_objects_cache_size)
         self.assertEqual(2, settings.fuzzing_jobs)
         self.assertEqual('directed-smoke-test', settings.fuzzing_mode)
