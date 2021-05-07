@@ -345,7 +345,7 @@ class RestlerSettingsTest(unittest.TestCase):
                      'target_ip': '192.168.0.1',
                      'token_refresh_cmd': 'some command',
                      'token_refresh_interval': 30,
-                     'client_certificate_path': 'path/to/file.pem'
+                     'client_certificate_path': 'path/to/file.pem',
                      'fuzzing_mode': 'random-walk',
                      'ignore_decoding_failures': True}
         try:
