@@ -246,6 +246,10 @@ if __name__ == '__main__':
                         help='The cmd to execute in order to refresh the authentication token'
                             ' (default: None)',
                        type=str, default=None, required=False)
+    parser.add_argument('--client_certificate_path',
+                        help='Path to your X.509 certificate in PEM format. Provide for Certificate Based Authentication'
+                            ' (default: None)',
+                       type=str, default=None, required=False)
     parser.add_argument('--producer_timing_delay',
                         help='The time interval to wait after a resource-generating '
                              'producer is executed (in seconds)'

@@ -209,6 +209,10 @@ module Fuzz =
             sprintf "--custom_mutations \"%s\"" parameters.mutationsFilePath
             sprintf "--set_version %s" CurrentVersion
 
+            (match parameters.certFilePath with
+             | None -> ""
+             | Some cfPath -> sprintf "--client_certificate_path \"%s\"" cfPath
+            )
             (match parameters.refreshableTokenOptions with
                 | None -> ""
                 | Some options ->
@@ -515,6 +519,11 @@ let rec parseEngineArgs task (args:EngineParameters) = function
         parseEngineArgs task { args with checkerOptions = args.checkerOptions @ [(checkerAction, specifiedCheckers |> String.concat " ")] } rest
     | "--no_results_analyzer"::rest ->
         parseEngineArgs task { args with runResultsAnalyzer = false } rest
+    | "--client_certificate_path"::certFilePath::rest ->
+        if not (File.Exists certFilePath) then
+            Logging.logError <| sprintf "The Client Certificate Path %s does not exist." certFilePath
+            usage()
+        parseEngineArgs task  { args with certFilePath = Some (Path.GetFullPath(certFilePath)) } rest
     | invalidArgument::rest ->
         Logging.logError <| sprintf "Invalid argument: %s" invalidArgument
         usage()

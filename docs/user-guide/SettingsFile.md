@@ -27,6 +27,11 @@ Checkers' Friendly Names:
 * PayloadBody
 * Examples
 
+### client_certificate_path: str (default None)
+Path to your X.509 certificate file in PEM format.
+
+If provided and valid, RESTler will attempt to use it during the SSL handshake.
+
 ### custom_bug_codes: list(str)
 List of status codes that will be flagged as bugs.
 
