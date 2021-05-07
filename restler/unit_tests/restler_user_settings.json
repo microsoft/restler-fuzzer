@@ -1,4 +1,5 @@
 {
+    "client_certificate_path": "path/to/file.pem",
     "max_combinations": 20,
     "max_request_execution_time": 90,
     "global_producer_timing_delay": 2,
