@@ -523,7 +523,7 @@ let rec parseEngineArgs task (args:EngineParameters) = function
         if not (File.Exists certFilePath) then
             Logging.logError <| sprintf "The Client Certificate Path %s does not exist." certFilePath
             usage()
-        parseEngineArgs task  { args with certFilePath = Path.GetFullPath(certFilePath) } rest
+        parseEngineArgs task  { args with certFilePath = Some (Path.GetFullPath(certFilePath)) } rest
     | invalidArgument::rest ->
         Logging.logError <| sprintf "Invalid argument: %s" invalidArgument
         usage()
