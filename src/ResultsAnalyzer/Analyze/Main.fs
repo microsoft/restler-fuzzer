@@ -16,9 +16,6 @@ open Restler.ResultsAnalyzer.Common.Log
 open Restler.ResultsAnalyzer.Common.Http
 
 [<Literal>]
-let UnknownResponseCode = 0
-
-[<Literal>]
 let DefaultMaxInstancesPerBucket = Int32.MaxValue
 
 type AnalyzeArgs =
