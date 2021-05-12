@@ -358,7 +358,7 @@ module Fuzz =
             else Some parameters.maxDurationHours
         let fuzzingMode =
             if parameters.testAllCombinations then
-                "all-renderings-test"
+                "test-all-combinations"
             else "directed-smoke-test"
         let smokeTestParameters =
             (getCommonParameters parameters maxDurationHours)

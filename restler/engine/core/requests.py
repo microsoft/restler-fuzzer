@@ -94,6 +94,7 @@ class SmokeTestStats(object):
         self.request_order = -1
         self.matching_prefix = {} # {"id": <prefix_hex>, "valid": <0/1>}
         self.valid = 0
+        self.has_valid_rendering = 0
         self.failure = None
 
         self.error_msg = None
@@ -122,6 +123,8 @@ class SmokeTestStats(object):
         response_body = renderings.final_request_response.body
         if renderings.sequence:
             self.valid = 1 if renderings.valid else 0
+            if self.valid:
+                self.has_valid_rendering = 1
             self.failure = renderings.failure_info
 
             if not renderings.valid:

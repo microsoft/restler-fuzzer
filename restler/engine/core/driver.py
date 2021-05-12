@@ -215,9 +215,9 @@ def render_one(seq_collection, ith, checkers, generation, global_lock):
             break
 
         # If in exhaustive test mode, log the spec coverage.
-        if Settings().fuzzing_mode == 'all-renderings-test':
+        if Settings().fuzzing_mode == 'test-all-combinations':
             renderings.sequence.last_request.stats.set_all_stats(renderings)
-            logger.print_request_coverage_incremental(renderings, log_rendered_hash=True)
+            logger.print_request_coverage_incremental(rendered_sequence=renderings, log_rendered_hash=True)
 
         # Exit after a valid rendering was found
         if renderings.valid:
@@ -240,10 +240,10 @@ def render_one(seq_collection, ith, checkers, generation, global_lock):
         if Settings().fuzzing_mode == 'directed-smoke-test':
             logged_renderings = renderings if renderings.sequence else prev_renderings
             logged_renderings.sequence.last_request.stats.set_all_stats(logged_renderings)
-            logger.print_request_coverage_incremental(logged_renderings, log_rendered_hash=True)
+            logger.print_request_coverage_incremental(rendered_sequence=logged_renderings, log_rendered_hash=True)
 
     # bfs needs to be exhaustive to provide full grammar coverage
-    elif Settings().fuzzing_mode in ['bfs', 'bfs-fast', 'all-renderings-test']:
+    elif Settings().fuzzing_mode in ['bfs', 'bfs-fast', 'test-all-combinations']:
 
         # This loop will iterate over possible remaining renderings of the
         # current sequence.
@@ -255,9 +255,9 @@ def render_one(seq_collection, ith, checkers, generation, global_lock):
 
             # If in exhaustive test mode, log the spec coverage.
             if renderings.sequence:
-                if Settings().fuzzing_mode == 'all-renderings-test':
+                if Settings().fuzzing_mode == 'test-all-combinations':
                     renderings.sequence.last_request.stats.set_all_stats(renderings)
-                    logger.print_request_coverage_incremental(renderings, log_rendered_hash=True)
+                    logger.print_request_coverage_incremental(rendered_sequence=renderings, log_rendered_hash=True)
 
                 # Save the previous rendering in order to log statistics in cases when all renderings
                 # were invalid
@@ -418,6 +418,7 @@ def generate_sequences(fuzzing_requests, checkers, fuzzing_jobs=1):
     timeout_reached = False
     seq_collection_exhausted = False
     num_total_sequences = 0
+    covered_requests = []
     while not should_stop:
 
         seq_collection = [sequences.Sequence()]
@@ -498,10 +499,11 @@ def generate_sequences(fuzzing_requests, checkers, fuzzing_jobs=1):
             logger.print_generation_stats(GrammarRequestCollection(), Monitor(), global_lock)
 
             # Special handling for test modes
-            if fuzzing_mode == 'directed-smoke-test' or fuzzing_mode == 'all-renderings-test':
+            if fuzzing_mode == 'directed-smoke-test' or fuzzing_mode == 'test-all-combinations':
                 # When in a test mode, remove the extended requests from fuzzing_requests,
                 # because the goal is to test each request once.
-                remaining_requests = [req for req in fuzzing_requests if req not in extended_requests ]
+                remaining_requests = [ req for req in fuzzing_requests if req not in extended_requests ]
+                covered_requests.extend(extended_requests)
                 fuzzing_requests = FuzzingRequestCollection()
                 fuzzing_requests.set_all_requests(remaining_requests)
 
@@ -510,9 +512,19 @@ def generate_sequences(fuzzing_requests, checkers, fuzzing_jobs=1):
 
                 # Print an error message if finished and there are remaining requests that were not used.
                 if not extended_requests:
+                    all_requests = covered_requests + fuzzing_requests.requests
                     for request in fuzzing_requests:
                         logger.write_to_main(f"\nSkipping request {request.method} {request.endpoint}\n"
                                              f"Could not render request because of missing dependencies.", True)
+
+                        # Log spec coverage for each of these never rendered requests
+                        req_list = compute_request_goal_seq(request, all_requests)
+                        if len(req_list) < 2:
+                            raise Exception("ERROR: no valid renderings exist for request, and it has no dependencies.")
+                        request.stats.matching_prefix["id"] = req_list[-2].method_endpoint_hex_definition
+                        request.stats.matching_prefix["valid"] = req_list[-2].stats.has_valid_rendering
+                        request.stats.valid = 0
+                        logger.print_request_coverage_incremental(request=request, log_rendered_hash=False)
 
             num_total_sequences += len(seq_collection)
 

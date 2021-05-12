@@ -896,7 +896,7 @@ def get_request_coverage_summary_stats(rendered_request, request_hash=None):
 
     return coverage_data
 
-def print_request_coverage_incremental(rendered_sequence, log_rendered_hash=True):
+def print_request_coverage_incremental(request=None, rendered_sequence=None, log_rendered_hash=True):
     """ Prints the coverage information for a request to the spec
     coverage file.  Pre-requisite: the file contains a json dictionary with
     zero or more elements.  The json object will be written into the
@@ -910,7 +910,12 @@ def print_request_coverage_incremental(rendered_sequence, log_rendered_hash=True
 
     """
     from engine.core.requests import FailureInformation
-    req=rendered_sequence.sequence.last_request
+    if rendered_sequence:
+        req=rendered_sequence.sequence.last_request
+    else:
+        if not request:
+            raise Exception("Either the rendered sequence or request must be specified.")
+        req = request
     file_path = os.path.join(LOGS_DIR, 'speccov.json')
     if not os.path.exists(file_path):
         with open(file_path, 'w') as file:
@@ -918,7 +923,7 @@ def print_request_coverage_incremental(rendered_sequence, log_rendered_hash=True
 
     # For uniqueness, the rendered request hash should include
     # the current combination IDs of every request in the sequence.
-    if log_rendered_hash:
+    if log_rendered_hash and rendered_sequence:
         req_hash = f"{req.method_endpoint_hex_definition}_{str(rendered_sequence.sequence.current_combination_id)}"
     else:
         req_hash = req.method_endpoint_hex_definition

@@ -483,8 +483,6 @@ if __name__ == '__main__':
             print_to_console=True
         )
         postprocessing.delete_create_once_resources(failobj.destructors, fuzzing_requests)
-        if settings.in_smoke_test_mode():
-            logger.print_spec_coverage(fuzzing_requests)
         sys.exit(-1)
     except InvalidDictionaryException:
         print(f"Failed preprocessing:\n\t"
@@ -548,9 +546,6 @@ if __name__ == '__main__':
     except Exception as error:
         print("Exception occurred in delete create_once_resources: {}".
             format(str(error)))
-
-    if settings.in_smoke_test_mode():
-        logger.print_spec_coverage(fuzzing_requests)
 
     # If garbage collection is on, deallocate everything possible.
     if gc_thread:

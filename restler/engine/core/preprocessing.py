@@ -203,6 +203,12 @@ def apply_create_once_resources(fuzzing_requests):
                                             None,
                                             preprocessing=True)
 
+                    if settings.in_smoke_test_mode():
+                        if renderings.sequence:
+                            renderings.sequence.last_request.stats.request_order = 'Preprocessing'
+                            renderings.sequence.last_request.stats.set_all_stats(renderings)
+                            logger.print_request_coverage_incremental(rendered_sequence=renderings, log_rendered_hash=True)
+
                     # Make sure we were able to successfully create the create_once resource
                     if not renderings.valid:
                         logger.write_to_main(f"{formatting.timestamp()}: Rendering INVALID")
@@ -213,15 +219,6 @@ def apply_create_once_resources(fuzzing_requests):
                     logger.format_rendering_stats_definition(
                         resource_gen_req, GrammarRequestCollection().candidate_values_pool
                     )
-                    if Settings().in_smoke_test_mode():
-                        resource_gen_req.stats.request_order = 'Preprocessing'
-                        resource_gen_req.stats.valid = 1
-                        resource_gen_req.stats.status_code = renderings.final_request_response.status_code
-                        resource_gen_req.stats.status_text = renderings.final_request_response.status_text
-                        resource_gen_req.stats.sample_request.set_request_stats(
-                            renderings.sequence.sent_request_data_list[-1].rendered_data)
-                        resource_gen_req.stats.sample_request.set_response_stats(renderings.final_request_response,
-                                                                                 renderings.final_response_datetime)
 
                 if req.is_destructor():
                     # Add destructors to the destructor list that will be returned

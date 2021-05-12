@@ -649,7 +649,7 @@ class RestlerSettings(object):
 
         """
         return self._fuzzing_mode.val == 'directed-smoke-test' or \
-               self._fuzzing_mode.val == 'all-renderings-test'
+               self._fuzzing_mode.val == 'test-all-combinations'
 
     def get_endpoint_custom_mutations_paths(self) -> dict:
         """ Returns the dict containing the endpoint specific custom mutations
