@@ -2,7 +2,7 @@ variables:
   - name: version.major
     value: 7
   - name: version.minor
-    value: 3
+    value: 4
   - name: devRevision
     value: 0
   - name: buildPlatform
