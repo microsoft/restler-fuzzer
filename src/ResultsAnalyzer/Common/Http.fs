@@ -57,6 +57,8 @@ module Types =
             uri: Uri
             headers: Headers
             body: 'T
+            /// The raw request string
+            str : string option
         }
 
         override this.ToString() =
@@ -75,6 +77,8 @@ module Types =
             statusDescription: string
             headers: Headers
             body: 'T
+            /// The raw response string
+            str : string option
         }
 
         override this.ToString() =
@@ -193,6 +197,7 @@ module Request =
             uri = uri
             headers = headers
             body = body
+            str = None
         }
     }
 
@@ -211,6 +216,7 @@ module Request =
             uri = req.uri
             headers = req.headers
             body = f req.body
+            str = req.str
         }
 
     /// Hash to identify a particular request without having to compare or print the full contents.
@@ -235,6 +241,7 @@ module Response =
             statusDescription = description
             headers = headers
             body = body
+            str = None
         }
     }
 
@@ -251,6 +258,7 @@ module Response =
             statusDescription = resp.statusDescription
             headers = resp.headers
             body = f resp.body
+            str = resp.str
         }
 
 // Utility functions to map over parts of (request, response) pairs.

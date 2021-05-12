@@ -7,9 +7,14 @@ open System
 open System.Text.RegularExpressions
 
 [<Literal>]
+let UnknownResponseCode = 0
+
+[<Literal>]
 let BugResponseCode = 500
 let isFailure x =
-    x >= 400
+    x >= 400 ||
+    // Consider these a failure as well, so they are analyzed.
+    x = UnknownResponseCode
 
 let isBug x =
     x = BugResponseCode

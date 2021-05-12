@@ -44,7 +44,18 @@ module Log =
                 |> String.ofPythonRepr
                 |> Request.parse
             match parsedRequest with
-            | None -> eprintfn "Error: Could not parse request in line %d: %s" lineNo request; None
+            | None ->
+                eprintfn "Warning: could not parse request in line %d: %s" lineNo request
+                let r =
+                    {
+                        Request.version = ""
+                        Request.uri = {path = [] ; queryString = Map.empty<string, string>}
+                        Request.method = ""
+                        Request.headers = Map.empty<string, string>
+                        Request.body = ""
+                        str = Some request
+                    }
+                Some (Sending (date, r))
             | Some request -> Some (Sending (date, request))
         | Regex "^([^']*): Received: '(.*)'" [ date; response ] ->
             let date = parseDateTime date
@@ -53,7 +64,18 @@ module Log =
                 |> String.ofPythonRepr
                 |> Response.parse
             match parsedResponse with
-            | None -> eprintfn "Error: Could not parse response in line %d: %s" lineNo response; None
+            | None ->
+                eprintfn "Warning: could not parse response in line %d: %s" lineNo response
+                let r =
+                    {
+                        version = ""
+                        statusCode = 0
+                        statusDescription = ""
+                        headers = Map.empty<string, string>
+                        body = ""
+                        str = Some response
+                    }
+                Some (Received (date, r))
             | Some response -> Some (Received (date, response))
         | _ignoreOtherLogLines -> None
 
