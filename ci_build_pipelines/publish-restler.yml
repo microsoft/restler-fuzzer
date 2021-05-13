@@ -56,7 +56,7 @@ stages:
           inputs:
               buildContext: $(Build.SourcesDirectory)/artifacts/restler-fuzzer-drop
               command: buildAndPush
-              containerRegistry: RAFTProductionRegistry
+              containerRegistry: RestApiFuzzTesting
               repository: public/restlerfuzzer/restler
               Dockerfile: $(Build.SourcesDirectory)/docker/Dockerfile
               tags: |
