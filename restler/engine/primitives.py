@@ -523,6 +523,7 @@ def restler_fuzzable_group(*args, **kwargs):
     @rtype : Tuple
 
     """
+    field_name = args[0]
     try:
         enum_vals = args[1]
     except IndexError:
@@ -535,7 +536,7 @@ def restler_fuzzable_group(*args, **kwargs):
     examples=None
     if EXAMPLES_ARG in kwargs:
         examples = kwargs[EXAMPLES_ARG]
-    return sys._getframe().f_code.co_name, enum_vals, quoted, examples
+    return sys._getframe().f_code.co_name, field_name, enum_vals, quoted, examples
 
 
 def restler_fuzzable_uuid4(*args, **kwargs):

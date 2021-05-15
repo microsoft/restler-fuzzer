@@ -145,7 +145,7 @@ module SwaggerVisitors =
                             match enumValues with
                             | [] -> "null"
                             | h::rest -> h
-                        Fuzzable (PrimitiveType.Enum (grammarPrimitiveType, enumValues, defaultValue), defaultFuzzableEnumValue, exv)
+                        Fuzzable (PrimitiveType.Enum (propertyName, grammarPrimitiveType, enumValues, defaultValue), defaultFuzzableEnumValue, exv)
                 | NJsonSchema.JsonObjectType.Object
                 | NJsonSchema.JsonObjectType.None ->
                     // Example of JsonObjectType.None: "content": {} without a type specified in Swagger.
@@ -214,7 +214,7 @@ module SwaggerVisitors =
             | _ when v.Type = JTokenType.Null -> null
             | PrimitiveType.String
             | PrimitiveType.DateTime
-            | PrimitiveType.Enum (PrimitiveType.String, _, _)
+            | PrimitiveType.Enum (_, PrimitiveType.String, _, _)
             | PrimitiveType.Uuid ->
                 // Remove the start and end quotes, which are preserved with 'Formatting.None'.
                 if rawValue.Length > 1 then

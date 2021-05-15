@@ -74,14 +74,14 @@ let rec getRestlerPythonPayload (payload:FuzzingPayload) (isQuoted:bool) : Reque
             | Number -> Restler_fuzzable_number { defaultValue = v ; isQuoted = false ; exampleValue = exv }
             | Uuid ->
                 Restler_fuzzable_uuid4 { defaultValue = v ; isQuoted = isQuoted ; exampleValue = exv }
-            | PrimitiveType.Enum (_, enumeration, defaultValue) ->
-                // TODO: should this be generating unique fuzzable group tags?  Why is one needed?
+            | PrimitiveType.Enum (enumPropertyName, _, enumeration, defaultValue) ->
                 let defaultStr =
                     match defaultValue with
                     | Some v -> sprintf ", default_enum=\"%s\"" v
                     | None -> ""
                 let groupValue =
-                    (sprintf "\"fuzzable_group_tag\", [%s] %s "
+                    (sprintf "\"%s\", [%s] %s "
+                             enumPropertyName
                              (enumeration |> List.map (fun s -> sprintf "'%s'" s) |> String.concat ",")
                              defaultStr
                     )
@@ -296,7 +296,7 @@ let generatePythonParameter includeOptionalParameters parameterKind (requestPara
             | PrimitiveType.DateTime
             | PrimitiveType.Uuid ->
                 true
-            | PrimitiveType.Enum (enumType, _, _) ->
+            | PrimitiveType.Enum (_, enumType, _, _) ->
                 isPrimitiveTypeQuoted enumType isNullValue
             | PrimitiveType.Object
             | PrimitiveType.Int

@@ -239,8 +239,10 @@ def render_one(seq_collection, ith, checkers, generation, global_lock):
         # If in test mode, log the spec coverage.
         if Settings().fuzzing_mode == 'directed-smoke-test':
             logged_renderings = renderings if renderings.sequence else prev_renderings
-            logged_renderings.sequence.last_request.stats.set_all_stats(logged_renderings)
-            logger.print_request_coverage_incremental(rendered_sequence=logged_renderings, log_rendered_hash=True)
+            # For an API with no parameters at all, there will be no renderings.
+            if logged_renderings:
+                logged_renderings.sequence.last_request.stats.set_all_stats(logged_renderings)
+                logger.print_request_coverage_incremental(rendered_sequence=logged_renderings, log_rendered_hash=True)
 
     # bfs needs to be exhaustive to provide full grammar coverage
     elif Settings().fuzzing_mode in ['bfs', 'bfs-fast', 'test-all-combinations']:

@@ -62,7 +62,7 @@ class NameSpaceRuleChecker(CheckerBase):
         RAW_LOGGING("Re-rendering start of original sequence")
 
         for request in seq.requests[:-1]:
-            rendered_data, parser = request.render_current(
+            rendered_data, parser, tracked_parameters = request.render_current(
                 self._req_collection.candidate_values_pool
             )
             rendered_data = seq.resolve_dependencies(rendered_data)
@@ -141,7 +141,7 @@ class NameSpaceRuleChecker(CheckerBase):
 
         for i in range(stopping_length):
             request = self._sequence.requests[i]
-            rendered_data, parser = request.render_current(
+            rendered_data, parser, tracked_parameters = request.render_current(
                 self._req_collection.candidate_values_pool
             )
             rendered_data = self._sequence.resolve_dependencies(rendered_data)
@@ -167,7 +167,7 @@ class NameSpaceRuleChecker(CheckerBase):
         """
         self._checker_log.checker_print("Hijack request rendering")
         RAW_LOGGING("Hijack request rendering")
-        rendered_data, parser = req.render_current(
+        rendered_data, parser, tracked_parameters = req.render_current(
             self._req_collection.candidate_values_pool
         )
         rendered_data = self._sequence.resolve_dependencies(rendered_data)

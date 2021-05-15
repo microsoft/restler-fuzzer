@@ -893,7 +893,9 @@ def get_request_coverage_summary_stats(rendered_request, request_hash=None):
     req_spec['error_message'] = req.stats.error_msg
     req_spec['request_order'] = req.stats.request_order
     req_spec['sample_request'] = vars(req.stats.sample_request)
-
+    req_spec['tracked_parameters'] = {}
+    for k, v in req.stats.tracked_parameters.items():
+        req_spec['tracked_parameters'][k] = v
     return coverage_data
 
 def print_request_coverage_incremental(request=None, rendered_sequence=None, log_rendered_hash=True):

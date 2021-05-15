@@ -301,7 +301,7 @@ class Sequence(object):
             CUSTOM_LOGGING(self, candidate_values_pool)
 
         self._sent_request_data_list = []
-        for rendered_data, parser in\
+        for rendered_data, parser, tracked_parameters in\
                 request.render_iter(candidate_values_pool,
                                     skip=request._current_combination_id,
                                     preprocessing=preprocessing):
@@ -332,7 +332,7 @@ class Sequence(object):
             # for every request until the last
             for i in range(len(self.requests) - 1):
                 prev_request = self.requests[i]
-                prev_rendered_data, prev_parser =\
+                prev_rendered_data, prev_parser, tracked_parameters =\
                     prev_request.render_current(candidate_values_pool,
                     preprocessing=preprocessing)
 
@@ -420,6 +420,7 @@ class Sequence(object):
 
             # Render candidate value combinations seeking for valid error codes
             request._current_combination_id += 1
+            request._tracked_parameters = tracked_parameters
 
             req_async_wait = Settings().get_max_async_resource_creation_time(request.request_id)
 
