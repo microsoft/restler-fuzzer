@@ -597,6 +597,7 @@ class Request(object):
                 quoted = request_block[2]
                 examples = request_block[3]
             else:
+                field_name = None
                 default_val = request_block[1]
                 quoted = request_block[2]
                 examples = request_block[3]
@@ -614,7 +615,6 @@ class Request(object):
                     values = [f'"{val}"' for val in default_val]
                 else:
                     values = list(default_val)
-                tracked_parameters[field_name] = len(fuzzable)
             # Handle static whose value is the field name
             elif primitive_type == primitives.STATIC_STRING:
                 val = default_val
@@ -641,7 +641,6 @@ class Request(object):
                         values = current_fuzzable_values
                     else:
                         values = [current_fuzzable_values]
-                    tracked_parameters[field_name] = len(fuzzable)
                 except primitives.CandidateValueException:
                     _raise_dict_err(primitive_type, field_name)
                 except Exception as err:
@@ -656,7 +655,6 @@ class Request(object):
                         values = current_fuzzable_values
                     else:
                         values = [current_fuzzable_values]
-                    tracked_parameters[field_name] = len(fuzzable)
                 except primitives.CandidateValueException:
                     _raise_dict_err(primitive_type, field_name)
                 except Exception as err:
@@ -682,6 +680,16 @@ class Request(object):
 
             if len(values) == 0:
                 _raise_dict_err(primitive_type, current_fuzzable_tag)
+
+            # When testing all combinations, update tracked parameters.
+            if Settings().fuzzing_mode == 'test-all-combinations':
+                param_idx = len(fuzzable)
+                # Only track the parameter if there are multiple values being combined
+                if len(values) > 1:
+                    if not field_name:
+                        field_name = f"tracked_param_{param_idx}"
+                    tracked_parameters[field_name] = param_idx
+
             fuzzable.append(values)
 
         # lazy generation of pool for candidate values

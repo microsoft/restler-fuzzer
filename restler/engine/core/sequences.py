@@ -301,6 +301,7 @@ class Sequence(object):
             CUSTOM_LOGGING(self, candidate_values_pool)
 
         self._sent_request_data_list = []
+
         for rendered_data, parser, tracked_parameters in\
                 request.render_iter(candidate_values_pool,
                                     skip=request._current_combination_id,
@@ -327,6 +328,7 @@ class Sequence(object):
             dependencies.reset_tlb()
 
             sequence_failed = False
+            request._tracked_parameters = tracked_parameters
             # Step A: Static template rendering
             # Render last known valid combination of primitive type values
             # for every request until the last
@@ -335,6 +337,8 @@ class Sequence(object):
                 prev_rendered_data, prev_parser, tracked_parameters =\
                     prev_request.render_current(candidate_values_pool,
                     preprocessing=preprocessing)
+
+                request._tracked_parameters.update(tracked_parameters)
 
                 # substitute reference placeholders with resolved values
                 if not Settings().ignore_dependencies:
@@ -420,7 +424,6 @@ class Sequence(object):
 
             # Render candidate value combinations seeking for valid error codes
             request._current_combination_id += 1
-            request._tracked_parameters = tracked_parameters
 
             req_async_wait = Settings().get_max_async_resource_creation_time(request.request_id)
 

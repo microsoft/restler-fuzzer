@@ -849,7 +849,7 @@ def print_request_rendering_stats_never_rendered_requests(fuzzing_requests,
         print("-------------------------\n", file=log_file)
         log_file.flush()
 
-def get_request_coverage_summary_stats(rendered_request, request_hash=None):
+def get_request_coverage_summary_stats(rendered_request, request_hash=None, log_tracked_parameters=False):
     """ Constructs a json object with the coverage information for a request
     from the rendered request.  This info will be reported in a spec coverage file.
 
@@ -893,9 +893,10 @@ def get_request_coverage_summary_stats(rendered_request, request_hash=None):
     req_spec['error_message'] = req.stats.error_msg
     req_spec['request_order'] = req.stats.request_order
     req_spec['sample_request'] = vars(req.stats.sample_request)
-    req_spec['tracked_parameters'] = {}
-    for k, v in req.stats.tracked_parameters.items():
-        req_spec['tracked_parameters'][k] = v
+    if log_tracked_parameters:
+        req_spec['tracked_parameters'] = {}
+        for k, v in req.stats.tracked_parameters.items():
+            req_spec['tracked_parameters'][k] = v
     return coverage_data
 
 def print_request_coverage_incremental(request=None, rendered_sequence=None, log_rendered_hash=True):
@@ -929,7 +930,7 @@ def print_request_coverage_incremental(request=None, rendered_sequence=None, log
         req_hash = f"{req.method_endpoint_hex_definition}_{str(rendered_sequence.sequence.current_combination_id)}"
     else:
         req_hash = req.method_endpoint_hex_definition
-    req_coverage = get_request_coverage_summary_stats(req, request_hash=req_hash)
+    req_coverage = get_request_coverage_summary_stats(req, request_hash=req_hash, log_tracked_parameters=log_rendered_hash)
     coverage_as_json = json.dumps(req_coverage, indent=4)
     # remove the start and end brackets, since they will already be present
     # also remove the end newline
