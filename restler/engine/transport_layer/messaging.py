@@ -231,6 +231,10 @@ class HttpSock(object):
         chuncked_encoding = False
         if 'Transfer-Encoding: chunked\r\n' in data or\
             'transfer-encoding: chunked\r\n' in data:
+            # Handle corner case of single-chunk data transfer. Without this
+            # check, the next recv call on _sock will hang until timeout.
+            if data.endswith(DELIM):
+                return data
             chuncked_encoding = True
         if chuncked_encoding:
             while True:
