@@ -204,6 +204,7 @@ def des_param_payload(param_payload_json, tag='', query_param=False):
             fuzzable = False
             # {
             #   Enum : [
+            #       name,
             #       type,
             #       [ value1, value2, value3 ],
             #       default_value
@@ -211,8 +212,9 @@ def des_param_payload(param_payload_json, tag='', query_param=False):
             # }
             enum_definition = content_type['Enum']
 
-            if len(enum_definition) == 3:
-                enum_content_type = enum_definition[0]
+            if len(enum_definition) == 4:
+                enum_name = enum_definition[0]
+                enum_content_type = enum_definition[1]
                 contents = enum_definition[1]
                 value = ParamEnum(contents, enum_content_type)
             else:
