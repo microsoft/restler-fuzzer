@@ -41,6 +41,7 @@ class ResourceHierarchyChecker(CheckerBase):
         predecessors_types = consumes[:-1]
         # Last request is the victim -- our target!
         target_types = consumes[-1]
+
         # In the dictionary of "consumes" constraints, each request of the
         # sequence instance has its own dictionary of the dynamic variable
         # types produced by each request. We need to flatten this structure.
@@ -52,22 +53,21 @@ class ResourceHierarchyChecker(CheckerBase):
                 or not target_types - predecessors_types:
             return
 
-        # For the victim types (target dynamic objects), get the lattest
+        # For the target_types, get the latest
         # values which we know will exist due to the previous rendering.
-        # We will later on use these old values atop a new rendering.
+        # We will later on use these old values with a new parent rendering.
         old_values = {}
         for target_type in target_types - predecessors_types:
            old_values[target_type] = dependencies.get_variable(target_type)
 
-        # Reset tlb of all values and re-render all predecessor up to
+        # Reset tlb of all values and re-render all predecessors up to
         # the parent's parent. This will propagate new values for all
-        # dynamic objects except for those with target type. That's what we
-        # want and that's why we render up to the parent's parent (i.e.,
-        # up to length(seq) - 2.
+        # dynamic objects except for those with the target type. That's
+        # why we render up to the parent's parent (i.e., up to length(seq) - 2).
         dependencies.reset_tlb()
 
         # Render sequence up to before the first predecessor that produces
-        # the target type. that is, if any of the types produced by the
+        # the target type. That is, if any of the types produced by the
         # request is in the target types, then do not render this
         # predecessor and stop here.
         n_predecessors =  0
@@ -81,17 +81,17 @@ class ResourceHierarchyChecker(CheckerBase):
         self._checker_log.checker_print("\nTarget types: {}".\
                             format(target_types - predecessors_types))
         self._checker_log.checker_print(f"Predecesor types: {predecessors_types}")
-        self._checker_log.checker_print("Clean tlb: {}".\
+        self._checker_log.checker_print("Clean dependencies: {}".\
                             format(dependencies.tlb))
 
         # Before rendering the last request, substitute all target types
         # (target dynamic object) with a value that does NOT belong to
-        # the current rendering and should not (?) be accessible through
+        # the current rendering and should not be accessible through
         # the new predecessors' rendering.
         for target_type in old_values:
             dependencies.set_variable(target_type, old_values[target_type])
 
-        self._checker_log.checker_print("Poluted tlb: {}".\
+        self._checker_log.checker_print("Poluted dependencies: {}".\
                             format(dependencies.tlb))
         self._render_last_request(new_seq)
 

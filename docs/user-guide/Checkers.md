@@ -34,7 +34,23 @@ If so, RESTler reports a bug.
 Detects that an unauthorized user can access service resources.
 
 Triggers after a valid sequence where the last request contains a consumed resource.
-Will then attempt to use that resource as a different, unauthorized, user.
+Will then attempt to use that resource as a different, unauthorized (attacker) user.
+
+The two following options can (optionally) be specified in the settings file:
+```
+"checkers": {
+    "namespacerule": {
+        "trigger_on_dynamic_objects" : true,
+        "trigger_objects" : ["tenantID", "userID"]
+    }
+}
+```
+
+If *trigger_on_dynamic_objects* is true, then the namespacerule checker performs all its checks as usual. (Default: true)
+
+*trigger_objects* is a list of strings. If this list is non-empty, any request containing any of these strings will be replayed using the attacker credentials. This way, the user can direct this checker to try attacker credentials for any request containing specific trigger_object strings (and regardless of whether the request consumes a resource, etc.). In the example above, any request which includes either the string "tenantID" or "userID" anywhere in its rendering (e.g., in its path, or body, or header, etc.) will be replayed with the attacker credentials. 
+
+Both options are independent of each other and can be used simultaneously.
 
 ## ResourceHierarchyChecker
 Detects that a child resource can be accessed from a different parent resource.

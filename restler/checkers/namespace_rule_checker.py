@@ -22,6 +22,19 @@ class NameSpaceRuleChecker(CheckerBase):
     def __init__(self, req_collection, fuzzing_requests):
         CheckerBase.__init__(self, req_collection, fuzzing_requests)
 
+        def set_var(member_var, arg):
+            """ helper for setting member variables from settings """
+            val = Settings().get_checker_arg(self.friendly_name, arg)
+            if val is not None:
+                return val
+            return member_var
+
+        self._trigger_on_dynamic_objects = True
+        self._trigger_on_dynamic_objects = set_var(self._trigger_on_dynamic_objects, 'trigger_on_dynamic_objects')
+
+        self._trigger_objects = {}
+        self._trigger_objects = set_var(self._trigger_objects, 'trigger_objects')
+
     def apply(self, rendered_sequence, lock):
         """ Applies check for namespace rule violations.
 
@@ -59,7 +72,6 @@ class NameSpaceRuleChecker(CheckerBase):
 
         """
         self._checker_log.checker_print("\nRe-rendering start of original sequence")
-        RAW_LOGGING("Re-rendering start of original sequence")
 
         for request in seq.requests[:-1]:
             rendered_data, parser = request.render_current(
@@ -87,30 +99,53 @@ class NameSpaceRuleChecker(CheckerBase):
         consumed_types = self._sequence.consumes
         consumed_types = set(itertools.chain(*consumed_types))
 
-        # Exit the checker and do not re-render if nothing is consumed since
-        # the checker will have nothing to work on anyways.
-        if not consumed_types:
-            return
+        # Check if last request contains any trigger_object
 
-        # Render only last request if not in exhaustive (expensive) mode.
-        # If that last request does not consume anything, stop here.
-        if self._mode != 'exhaustive' and not self._sequence.last_request.consumes:
-            return
+        last_request = self._sequence.last_request
+        last_rendering, last_parser = last_request.render_current(self._req_collection.candidate_values_pool)
+        
+        last_request_contains_a_trigger_object = False
+        for obj in self._trigger_objects:
+            if last_rendering.find(obj) != -1:
+                last_request_contains_a_trigger_object = True
+                self._checker_log.checker_print(f"\nThe last request contains trigger_object: {obj}\nThe last request rendering is:\n{last_rendering}\n")
+                break
+
+        # Exit the checker if there is nothing to do.
+        if not last_request_contains_a_trigger_object:
+            if not self._trigger_on_dynamic_objects:
+                return
+            # Here, trigger_on_dynamic_objects is True.
+            # Exit the checker if there are no consumed_types 
+            # # in the entire sequence.
+            if not consumed_types:
+                return
+            # Exit the checker if non-exhaustive mode and
+            # the last request does not consume anything.
+            if self._mode != 'exhaustive' and not self._sequence.last_request.consumes:
+                return
+
+        # If we reach this point, we will re-render some request(s).
 
         self._render_original_sequence_start(self._sequence)
+
+        if last_request_contains_a_trigger_object:
+            # Simply re-render the last request with the attacker credentials.
+            self._checker_log.checker_print(f"Re-rendering the last request with the attacker credentials.")
+            self._render_hijack_request(last_request)
+            if not self._trigger_on_dynamic_objects:
+                return
 
         for type in consumed_types:
            hijacked_values[type] = dependencies.get_variable(type)
 
         self._checker_log.checker_print(f"Hijacked values: {hijacked_values}")
-        RAW_LOGGING(f"Hijacked values: {hijacked_values}")
-
 
         for i, req in enumerate(self._sequence):
             # Render only last request if not in exhaustive (expensive) mode.
             if self._mode != 'exhaustive' and i != self._sequence.length - 1:
                 continue
-            # Skip requests that are not consumers.
+            # In exhaustive mode, skip requests that are not consumers.
             if not req.consumes:
                 continue
             dependencies.reset_tlb()
@@ -132,7 +167,7 @@ class NameSpaceRuleChecker(CheckerBase):
         @rtype : None
 
         """
-        # Render subsequnce up to before any producer of @param consumed_types.
+        # Render subsquence up to before any producer of @param consumed_types.
         consumed_types = req.consumes
         for stopping_length, req in enumerate(self._sequence):
             # Stop before producing the target type.
@@ -151,7 +186,6 @@ class NameSpaceRuleChecker(CheckerBase):
 
         self._checker_log.checker_print("Subsequence rendering up to: {}".\
                             format(stopping_length))
-        RAW_LOGGING(f"Subsequence rendering  up to: {stopping_length}")
 
 
     def _render_hijack_request(self, req):
@@ -166,7 +200,6 @@ class NameSpaceRuleChecker(CheckerBase):
 
         """
         self._checker_log.checker_print("Hijack request rendering")
-        RAW_LOGGING("Hijack request rendering")
         rendered_data, parser = req.render_current(
             self._req_collection.candidate_values_pool
         )

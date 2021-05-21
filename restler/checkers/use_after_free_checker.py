@@ -55,7 +55,7 @@ class UseAfterFreeChecker(CheckerBase):
 
         # Log some helpful info
         self._checker_log.checker_print(f"\nTarget types: {destructed_types}")
-        self._checker_log.checker_print(f"Clean tlb: {dependencies.tlb}")
+        self._checker_log.checker_print(f"Clean dependencies: {dependencies.tlb}")
 
         # Try using the deleted objects.
         self._use_after_free(destructed_types)
@@ -153,13 +153,14 @@ class UseAfterFreeChecker(CheckerBase):
         @rtype : Bool
 
         """
-        try:
-            # Handle gitlab merged braches type that cause  false alarms
-            for p in list(seq)[-2].definition:
-                if p[1] == '/repository/merged_branches':
-                    return True
-        except Exception:
-            pass
+        # Here is an example of code filtering for false alarms.
+        # #try:
+        #    # Handle gitlab merged branches type that cause false alarms
+        #    for p in list(seq)[-2].definition:
+        #        if p[1] == '/repository/merged_branches':
+        #            return True
+        #except Exception:
+        #    pass
 
         # If we reach this point no violation has occured.
         return False
