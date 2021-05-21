@@ -397,6 +397,11 @@ module SwaggerVisitors =
                                                               (schema::parents) id))
             let arrayProperties =
                 if schema.IsArray then
+                    // OpenAPI parsing succeeds when the array does not have an element type declared
+                    // Check this here, and fail with an error.
+                    if isNull schema.Item then
+                        raise (ArgumentException("Invalid array schema: found array property without a declared element"))
+
                     // An example of this is an array type query parameter.
                     let arrayPayloadExampleValue, includeProperty = GenerateGrammarElements.extractPropertyFromArray exampleValue
                     if not includeProperty then
