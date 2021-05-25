@@ -34,7 +34,7 @@ RESTler was created at Microsoft Research and is still under active development.
 
 ## Setting up RESTler
 
-RESTler was designed to run on 64-bit machines with Windows or Linux.
+RESTler was designed to run on 64-bit machines with Windows or Linux.  Experimental support for macOS is also enabled.
 
 ### **Build instructions**
 

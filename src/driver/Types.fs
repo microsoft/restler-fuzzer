@@ -196,6 +196,7 @@ module Platform =
     type Platform =
         | Linux
         | Windows
+        | MacOS
 
     open System
     open System.Runtime.InteropServices
@@ -204,5 +205,7 @@ module Platform =
             Platform.Linux
         else if RuntimeInformation.IsOSPlatform(OSPlatform.Windows) then
             Platform.Windows
+        else if RuntimeInformation.IsOSPlatform(OSPlatform.OSX) then
+            Platform.MacOS
         else
             raise (Exception("Platform not supported."))
