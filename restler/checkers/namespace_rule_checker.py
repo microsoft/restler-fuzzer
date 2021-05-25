@@ -108,7 +108,9 @@ class NameSpaceRuleChecker(CheckerBase):
         for obj in self._trigger_objects:
             if last_rendering.find(obj) != -1:
                 last_request_contains_a_trigger_object = True
-                self._checker_log.checker_print(f"\nThe last request contains trigger_object: {obj}\nThe last request rendering is:\n{last_rendering}\n")
+                self._checker_log.checker_print(f"\n\
+                    The last request contains trigger_object: {obj}\n\
+                    The last request rendering is:\n{last_rendering}\n")
                 break
 
         # Exit the checker if there is nothing to do.
