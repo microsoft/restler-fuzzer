@@ -1,7 +1,8 @@
 {
   "parameters": {
     "computerDimensions": [ "1.11", "2.22" ],
-    "rating":  ["111"]
+    "rating": [ "111" ],
+    "description":  "\"quotedString\""
   },
   "responses": {
   }

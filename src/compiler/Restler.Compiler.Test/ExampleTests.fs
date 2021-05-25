@@ -154,6 +154,7 @@ module Examples =
             // computerName is missing from the example
             Assert.False(grammar.Contains("primitives.restler_static_string(\"computerName: \")"))
             Assert.True(grammar.Contains("primitives.restler_static_string(\"computerDimensions: \")"))
+            Assert.True(grammar.Contains("primitives.restler_static_string(\"\\\"quotedString\\\"\")"))
 
             // The grammar should contain the array items from the example
             Assert.True(grammar.Contains("1.11"))
