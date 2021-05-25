@@ -26,8 +26,8 @@ module Telemetry =
         let machineTelemetryIdFileName = "restler.telemetry.uuid"
         let restlerSettingsCacheDir =
             match Types.Platform.getOSPlatform() with
-            | Types.Platform.Platform.Linux ->
-                "~/.config/microsoft/restler"
+            | Types.Platform.Platform.Linux | Types.Platform.MacOS ->
+                Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + @"/.config/microsoft/restler"
             | Types.Platform.Platform.Windows ->
                 Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + @"\Microsoft\Restler";
         if not (Directory.Exists(restlerSettingsCacheDir)) then

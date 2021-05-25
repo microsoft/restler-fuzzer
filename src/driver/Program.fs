@@ -269,7 +269,7 @@ module Fuzz =
             match pythonFilePath with
             | None ->
                 match Platform.getOSPlatform() with
-                | Platform.Platform.Linux ->
+                | Platform.Platform.Linux | Platform.Platform.MacOS ->
                     ["python3" ; "python"]
                 | Platform.Platform.Windows ->
                     ["python.exe"]
