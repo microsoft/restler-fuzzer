@@ -2,6 +2,7 @@
 # Licensed under the MIT License.
 
 from __future__ import print_function
+from logging import exception
 import re
 import json
 
@@ -141,6 +142,9 @@ def parse_grammar_schema(schema_json):
         return True
     except ValueError as err:
         logger.write_to_main(f"Failed to parse grammar file for examples: {err!s}", print_to_console=True)
+        return False
+    except Exception as ERR
+        logger.exception()
         return False
 
 def apply_create_once_resources(fuzzing_requests):
