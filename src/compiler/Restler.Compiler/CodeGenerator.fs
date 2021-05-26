@@ -425,7 +425,11 @@ let generatePythonFromRequestElement includeOptionalParameters (e:RequestElement
                             yield! primitive
                     ]
                 )
-        x
+        // Handle the case of '/'
+        if x |> List.isEmpty then
+            [ Restler_static_string_constant "/" ] 
+        else
+            x
     | HeaderParameters hp ->
         match hp with
         | ParameterList hp ->
