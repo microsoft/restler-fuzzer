@@ -36,6 +36,13 @@
                 },
                 {
                   "in": "header",
+                  "name": "description",
+                  "description": "The description of the server computer (targetMachine).",
+                  "type": "string",
+                  "required": true
+                },
+                {
+                  "in": "header",
                   "name": "computerDimensions",
                   "required": true,
                   "type": "array",

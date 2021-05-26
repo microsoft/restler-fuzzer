@@ -804,7 +804,12 @@ let getRequests(requests:Request list) includeOptionalParameters =
                 if s.Length > 1 then
                     s.Replace("'", "\\'"), "'"
                 else s, "'"
-            else if s.Contains("\"") then s.Replace("\"", "\\\""), "\""
+            // Special case already escaped quoted strings (this will be the case for example values).
+            // Assume the entire string is quoted in this case.
+            else if s.StartsWith("\\\"") then
+                s, "\""
+            else if s.Contains("\"") then
+                s.Replace("\"", "\\\""), "\""
             else s, "\""
         s, delim
 
