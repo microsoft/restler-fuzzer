@@ -122,6 +122,7 @@ def get_checker_list(req_collection, fuzzing_requests, enable_list, disable_list
             spec.loader.exec_module(checker)
             logger.write_to_main(f"Loaded custom checker from {custom_checker_file_path}", print_to_console=True)
         except Exception as err:
+            logger.write_to_main(f"Failed to load custom checker {custom_checker_file_path}: {err!s}", print_to_console=True)
             logger.exception(f"Failed to load custom checker {custom_checker_file_path}: {err!s}")
             sys.exit(-1)
 
