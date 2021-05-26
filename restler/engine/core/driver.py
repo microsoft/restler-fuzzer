@@ -144,6 +144,7 @@ def apply_checkers(checkers, renderings, global_lock):
                 RAW_LOGGING(f"Checker: {checker.__class__.__name__} kicks out\n")
         except Exception as error:
             print(f"Exception {error!s} applying checker {checker}")
+            logger.exception(f"Exception {error!s} applying checker {checker}")
             raise
 
 
@@ -664,6 +665,9 @@ def generate_sequences(fuzzing_requests, checkers, fuzzing_jobs=1):
                 logger.write_to_main("Exhausted collection...")
                 seq_collection = []
                 seq_collection_exhausted = True
+            
+            except Exception as ERR:
+                logger.exeception(f"Failed rendering in generate_sequences")
 
             logger.write_to_main(
                 f"{formatting.timestamp()}: Generation: {generation} / "
