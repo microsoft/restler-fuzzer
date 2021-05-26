@@ -61,6 +61,7 @@ def import_grammar(path):
         target_path = os.path.join(logger.EXPERIMENT_DIR, grammar_file)
         shutil.copyfile(path, target_path)
     except shutil.Error:
+        logger.exception("Failed to aquire grammar path.")
         pass
 
     return req_collection
@@ -121,7 +122,7 @@ def get_checker_list(req_collection, fuzzing_requests, enable_list, disable_list
             spec.loader.exec_module(checker)
             logger.write_to_main(f"Loaded custom checker from {custom_checker_file_path}", print_to_console=True)
         except Exception as err:
-            logger.write_to_main(f"Failed to load custom checker {custom_checker_file_path}: {err!s}", print_to_console=True)
+            logger.exception(f"Failed to load custom checker {custom_checker_file_path}: {err!s}")
             sys.exit(-1)
 
     # Initialize the checker subclasses from CheckerBase
@@ -294,6 +295,7 @@ if __name__ == '__main__':
             settings_file = json.load(open(args.settings))
         except Exception as error:
             print(f"Error: Failed to load settings file: {error!s}")
+            logger.exception(f"Error: Failed to load settings file: {error!s}")
             sys.exit(-1)
 
     # convert the command-line arguments to a dict
@@ -312,15 +314,18 @@ if __name__ == '__main__':
         settings = restler_settings.RestlerSettings(user_args)
     except restler_settings.InvalidValueError as error:
         print(f"\nArgument Error::\n\t{error!s}")
+        logger.exception(f"Argument error with {user_args}")
         sys.exit(-1)
     except Exception as error:
         print(f"\nFailed to parse user settings file: {error!s}")
+        logger.exception(f"Argument error with {user_args} failed to parse settings file.")
         sys.exit(-1)
 
     try:
         settings.validate_options()
     except restler_settings.OptionValidationError as error:
         print(f"\nArgument Error::\n\t{error!s}")
+        logger.exception(f"\nArgument Error::\n\t{error!s}")
         sys.exit(-1)
 
     # Options Validation
@@ -338,6 +343,7 @@ if __name__ == '__main__':
                 custom_mutations = json.load(open(args.custom_mutations))
             except Exception as error:
                 print(f"Cannot import custom mutations: {error!s}")
+                logger.exception(f"Cannot import custom mutations: {error!s}")
                 sys.exit(-1)
 
     # Create the directory where all the results will be saved
@@ -345,6 +351,7 @@ if __name__ == '__main__':
         logger.create_experiment_dir()
     except Exception as err:
         print(f"Failed to create logs directory: {err!s}")
+        logger.exception(f"Failed to create logs directory: {err!s}")
         sys.exit(-1)
 
     if settings.no_tokens_in_logs:
@@ -364,9 +371,11 @@ if __name__ == '__main__':
                 "update the request in the replay log with a valid authorization token.",
                 print_to_console=True
             )
+            logger.exception("Failed to play sequence from log.\n No valdi authorization token.")
             sys.exit(-1)
         except Exception as error:
             print(f"Failed to play sequence from log:\n{error!s}")
+            logger.exception("Failed to play sequence from log.\n ")
             sys.exit(-1)
 
     # Import grammar from a restler_grammar file
@@ -376,6 +385,7 @@ if __name__ == '__main__':
             req_collection.set_grammar_name(args.restler_grammar)
         except Exception as error:
             print(f"Cannot import grammar: {error!s}")
+            logger.exception(f"Cannot import grammar: {error!s}")
             sys.exit(-1)
 
     # Create the request collection singleton
@@ -396,6 +406,7 @@ if __name__ == '__main__':
                     per_endpoint_custom_mutations[endpoint] = json.load(mutations)
             except Exception as error:
                 print(f"Cannot import custom mutations: {error!s}")
+                logger.exception(f"Cannot import custom mutations: {error!s}")
                 sys.exit(-1)
 
     try:
@@ -404,12 +415,14 @@ if __name__ == '__main__':
         logger.write_to_main("Error in mutations dictionary.\n"
                             f"Unsupported primitive type defined: {primitive!s}",
                             print_to_console=True)
+        logger.exception(f"Error in mutations dictionary.\nUnsupported primitive type defined: {primitive!s}")    
         sys.exit(-1)
     except InvalidDictPrimitiveException as err:
         logger.write_to_main("Error in mutations dictionary.\n"
                              "Dict type primitive was specified as another type.\n"
                             f"{err!s}",
                             print_to_console=True)
+        logger.exception("Error in mutations dictionary.\nDict type primitive was specified as another type.\n")
         sys.exit(-1)
 
     if settings.token_refresh_cmd:
@@ -436,6 +449,7 @@ if __name__ == '__main__':
         try:
             req_collection.update_hosts()
         except requests.InvalidGrammarException:
+            logger.exception("Failed to set host settings, invalid grammar.")
             sys.exit(-1)
     else:
         host = req_collection.get_host_from_grammar()
@@ -492,6 +506,7 @@ if __name__ == '__main__':
         sys.exit(-1)
     except Exception as error:
         print(f"Failed preprocessing:\n\t{error!s}")
+        logger.exception("Failed preprocessing")
         sys.exit(-1)
 
     grammar_path = settings.grammar_schema
@@ -501,9 +516,11 @@ if __name__ == '__main__':
                 schema_json = json.load(grammar)
         except Exception as err:
             logger.write_to_main(f"Failed to process grammar file: {grammar_path}; {err!s}", print_to_console=True)
+            logger.exception(f"Failed to process grammar file: {grammar_path}")
             sys.exit(-1)
 
         if not preprocessing.parse_grammar_schema(schema_json):
+            logger.write_to_main("Exited because failed grammar parsing.")
             sys.exit(-1)
     else:
         logger.write_to_main(f"Grammar schema file '{grammar_path}' does not exist.", print_to_console=True)
