@@ -2,7 +2,6 @@
 # Licensed under the MIT License.
 
 from __future__ import print_function
-from logging import exception
 import re
 import json
 
