@@ -143,7 +143,7 @@ def parse_grammar_schema(schema_json):
     except ValueError as err:
         logger.write_to_main(f"Failed to parse grammar file for examples: {err!s}", print_to_console=True)
         return False
-    except Exception as ERR
+    except Exception as ERR:
         logger.exception()
         return False
 
