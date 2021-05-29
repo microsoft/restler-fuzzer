@@ -64,7 +64,8 @@ class TestServerTest(unittest.TestCase):
         test_dict = {'city' :
             {'city-123': {'name': 'city-123', 'properties': {'population': 5000}},
             'city-456': {'name': 'city-456', 'properties': {}}},
-            'farm': {}, 'item': {}, 'group': {}
+            'farm': {}, 'item': {}, 'group': {},
+            'A': {},'B': {},'C': {}, 'D': {}, 'E': {}
             }
         self.assertDictEqual(test_dict, data)
 
@@ -86,7 +87,8 @@ class TestServerTest(unittest.TestCase):
 
         test_dict = {'city' :
             {'city-456': {'name': 'city-456', 'properties': {}}},
-            'farm': {}, 'item': {}, 'group': {}
+            'farm': {}, 'item': {}, 'group': {},
+             'A': {},'B': {},'C': {}, 'D': {}, 'E': {}
             }
         self.assertDictEqual(test_dict, data)
 

@@ -261,7 +261,7 @@ def call_response_parser(parser, response, request=None):
             if request:
                 for producer in request.produces:
                     if dependencies.get_variable(producer) == 'None':
-                        err_str = f'Failed to parse {producer}; is now set to None.'
+                        err_str = f'Failed to parse {producer}; it is now set to None.'
                         write_to_main(err_str)
                         _RAW_LOGGING(err_str)
     except (ResponseParsingException, AttributeError) as error:

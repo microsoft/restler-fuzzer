@@ -100,6 +100,13 @@ class ResourceFactory(object):
         if type == "group":
             return Group(name, body)
 
+        if type == "A":
+            return A(name, body)
+        if type == "B":
+            return B(name, body)
+        if type == "D":
+            return D(name, body)
+
         # Checker tests
         if type == "leakageruletest":
             resource = LeakageRuleTester(name, body)
@@ -124,7 +131,12 @@ class ResourcePool(UnitTestResource):
             "city": None,
             "farm": None,
             "item": None,
-            "group": None
+            "group": None,
+            "A": None,
+            "B": None,
+            "C": None,
+            "D": None,
+            "E": None
         }
 
         for test in Root_Test_Resource_Types:
@@ -183,6 +195,18 @@ class Group(UnitTestResource):
                 self._data['properties']['item'] = body['item']
             if 'city' in body:
                 self._data['properties']['city'] = body['city']
+
+class A(UnitTestResource):
+    def __init__(self, name: str, body: dict):
+        super().__init__(name)
+
+class B(UnitTestResource):
+    def __init__(self, name: str, body: dict):
+        super().__init__(name)
+
+class D(UnitTestResource):
+    def __init__(self, name: str, body: dict):
+        super().__init__(name)
 
 class LeakageRuleTester(UnitTestResource):
     pass

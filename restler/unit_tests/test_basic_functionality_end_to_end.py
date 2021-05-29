@@ -15,6 +15,7 @@ import glob
 import sys
 import shutil
 import subprocess
+import json
 import utils.logger as logger
 from collections import namedtuple
 
@@ -66,6 +67,54 @@ class FunctionalityTests(unittest.TestCase):
         except Exception as err:
             print(f"tearDown function failed: {err!s}.\n"
                   "Experiments directory was not deleted.")
+
+    def test_minimal_sequences_smoke_test(self):
+        """ This checks that the directed smoke test executes the expected
+        sequences in Test mode, without generating extra sequences, for a simple
+        example.  Let 5 requests A, B, C, D, E where:
+        - A and B have no pre-requisites
+        - C and D both depend on A and B (they are identical)
+        - E depends on D
+
+        In the current implementation, all sequences for A, B, C, D will be
+        rendered "from scratch", but the sequence for E will reuse the 'D' prefix.
+
+        """
+        args = Common_Settings + [
+        '--fuzzing_mode', 'directed-smoke-test',
+        '--restler_grammar', f'{os.path.join(Test_File_Directory, "abc_test_grammar.py")}'
+        ]
+
+        result = subprocess.run(args, capture_output=True)
+        if result.stderr:
+            self.fail(result.stderr)
+        try:
+            result.check_returncode()
+        except subprocess.CalledProcessError:
+            self.fail(f"Restler returned non-zero exit code: {result.returncode}")
+
+        experiments_dir = self.get_experiments_dir()
+
+        # Make sure all requests were successfully rendered.  This is because the comparisons below do not
+        # take status codes into account
+        rendering_file_path = os.path.join(experiments_dir, "logs", "request_rendering.txt")
+
+        # Make sure the right number of requests was sent.
+        testing_summary_file_path = os.path.join(experiments_dir, "logs", "testing_summary.json")
+
+        try:
+            with open(testing_summary_file_path, 'r') as file:
+                testing_summary = json.loads(file.read())
+                total_requests_sent = testing_summary["total_requests_sent"]["main_driver"]
+                num_fully_valid = testing_summary["num_fully_valid"]
+                self.assertEqual(num_fully_valid, 5)
+                self.assertLessEqual(total_requests_sent, 18)
+
+            default_parser = FuzzingLogParser(os.path.join(Test_File_Directory, "abc_smoke_test_testing_log.txt"))
+            test_parser = FuzzingLogParser(self.get_network_log_path(experiments_dir, logger.LOG_TYPE_TESTING))
+            self.assertTrue(default_parser.diff_log(test_parser))
+        except TestFailedException:
+            self.fail("Smoke test failed: Fuzzing")
 
     def test_smoke_test(self):
         """ This checks that the directed smoke test executes all
