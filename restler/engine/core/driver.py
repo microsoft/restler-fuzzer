@@ -9,6 +9,7 @@ import time
 import random
 import inspect
 import itertools
+import functools
 import multiprocessing
 from multiprocessing.dummy import Pool as ThreadPool
 from collections import deque
@@ -54,7 +55,7 @@ def validate_dependencies(consumer_req, producer_seq):
     return consumer_req.consumes <= set(producer_requests)
 
 
-def extend(seq_collection, fuzzing_requests, lock, seq_constraints):
+def extend(seq_collection, fuzzing_requests, lock):
     """ Extends each sequence currently present in collection by any request
     from request collection whose dependencies can be resolved if appended at
     the end of the target sequence.
@@ -96,34 +97,6 @@ def extend(seq_collection, fuzzing_requests, lock, seq_constraints):
             if not validate_dependencies(req, seq)\
                     and not Settings().ignore_dependencies:
                 continue
-
-            if seq_constraints:
-                # Make sure the new list of requests is in the allowed
-                # list for this generation
-                logger.write_to_main(f"Number of constrained sequences in this generation: \
-                                      {len(seq_constraints)}", True)
-                req_list = seq.requests + [req]
-                found_constraint_seq = False
-                for sc in seq_constraints:
-                    # Check if the new sequence is included in the constraint list.
-                    if len(req_list) != len(sc.requests):
-                        continue
-
-                    equal_count = 0
-                    for equal in (True if a.method_endpoint_hex_definition == b.method_endpoint_hex_definition\
-                                    else False for (a,b) in zip(req_list, sc.requests)):
-                        if equal:
-                            equal_count += 1
-                        else:
-                            break
-
-                    if equal_count == len(req_list):
-                        found_constraint_seq = True
-                        break
-                # If the sequence was not found, the sequence will not be extended with this request.
-                # Go to the next sequence.
-                if not found_constraint_seq:
-                    continue
 
             extended_requests.append(req)
             req_copy = copy.copy(req)
@@ -247,13 +220,13 @@ def render_one(seq_collection, ith, checkers, generation, global_lock):
         # If in exhaustive test mode, log the spec coverage.
         if Settings().fuzzing_mode == 'test-all-combinations':
             renderings.sequence.last_request.stats.set_all_stats(renderings)
-            logger.print_request_coverage_incremental(rendered_sequence=renderings, log_rendered_hash=True)
+            logger.print_request_coverage(rendered_sequence=renderings, log_rendered_hash=True)
 
         # Exit after a valid rendering was found
         if renderings.valid:
             break
 
-        # This line will only be reached only if we have an invalid rendering or testing all renderings exhaustively.
+        # This line will only be reached only if we have an invalid rendering.
         n_invalid_renderings += 1
 
         # Save the previous rendering in order to log statistics in cases when all renderings
@@ -271,7 +244,15 @@ def render_one(seq_collection, ith, checkers, generation, global_lock):
             logged_renderings = renderings if renderings.sequence else prev_renderings
             if logged_renderings:
                 logged_renderings.sequence.last_request.stats.set_all_stats(logged_renderings)
-                logger.print_request_coverage_incremental(rendered_sequence=logged_renderings, log_rendered_hash=True)
+                logger.print_request_coverage(rendered_sequence=logged_renderings, log_rendered_hash=True)
+            else:
+                # There was a failure rendering the sequence.  This needs to be logged to the spec coverage file.
+                current_seq.last_request.stats.valid = 0
+
+                if current_seq.length > 1:
+                    current_seq.last_request.stats.set_matching_prefix(current_seq.prefix)
+
+                logger.print_request_coverage(request=current_seq.last_request, log_rendered_hash=False)
             # Else, there was a failure rendering the sequence.
             # Never rendered requests will be printed at the end of the fuzzing loop, so there is no need to
             # output anything to the spec coverage file here.
@@ -291,7 +272,7 @@ def render_one(seq_collection, ith, checkers, generation, global_lock):
             if renderings.sequence:
                 if Settings().fuzzing_mode == 'test-all-combinations':
                     renderings.sequence.last_request.stats.set_all_stats(renderings)
-                    logger.print_request_coverage_incremental(rendered_sequence=renderings, log_rendered_hash=True)
+                    logger.print_request_coverage(rendered_sequence=renderings, log_rendered_hash=True)
 
                 # Save the previous rendering in order to log statistics in cases when all renderings
                 # were invalid
@@ -307,6 +288,11 @@ def render_parallel(seq_collection, fuzzing_pool, checkers, generation, global_l
     times using a pool of python workers. For brevity we skip arguments and
     return types, since they are similar with "render_one".
 
+    Additional arguments:
+
+    @param : A dictionary of sequences already tested, indexed by last request hex definition.  This
+             dictionary contains whether or not this sequence was valid when rendered.
+    @type  checkers: Dict[str, (int, Sequence)]
     """
     prev_len = len(seq_collection)
     result = fuzzing_pool.starmap(render_one,
@@ -323,16 +309,15 @@ def render_parallel(seq_collection, fuzzing_pool, checkers, generation, global_l
 
     return seq_collection
 
-
 def render_sequential(seq_collection, fuzzing_pool, checkers, generation, global_lock):
     """ Does rendering work sequential by invoking "render_one" multiple
     times. For brevity we skip arguments and return types, since they are
     similar with "render_one".
-
     """
     prev_len = len(seq_collection)
     for ith in range(prev_len):
         valid_renderings = render_one(seq_collection, ith, checkers, generation, global_lock)
+
         # Extend collection by adding all valid renderings
         seq_collection.extend(valid_renderings)
 
@@ -345,6 +330,144 @@ def render_sequential(seq_collection, fuzzing_pool, checkers, generation, global
     Monitor().current_fuzzing_generation += 1
 
     return seq_collection[prev_len:]
+
+def render_with_cache(seq_collection, fuzzing_pool, checkers, generation, global_lock, seq_rendering_cache):
+    """Render sequences one by one, caching valid prefixes and re-using previously valid renderings if found.
+       For brevity we skip arguments and return types, since they are
+       similar with "render_one".
+
+    Additional arguments:
+
+    @param : The cache of previously rendered sequences.
+    @type  seq_rendering_cache: RenderedSequenceCache
+
+    """
+    rendered_sequences = []
+
+    def print_rendering_to_main_txt(current_seq):
+        logger.write_to_main(
+            f"{formatting.timestamp()}: Request {current_seq.last_request.stats.request_order}\n"
+            f"{formatting.timestamp()}: Endpoint - {current_seq.last_request.endpoint_no_dynamic_objects}\n"
+            f"{formatting.timestamp()}: Hex Def - {current_seq.last_request.method_endpoint_hex_definition}\n"
+            f"{formatting.timestamp()}: Sequence length that satisfies dependencies: {current_seq.length}"
+        )
+
+    # Algorithm:
+    # 1. Find the longest already rendered prefix of this sequence
+    # 2. If this prefix is shorter than all but the last request, remove it
+    #    and repeat the search for prefixes until the prefix can no longer be found.
+    #    This handles the case of a request depending on several independent requests.
+    # 3. Concatenate all of the found prefixes to get a valid prefix.  When multiple
+    # renderings are returned, the product needs to be tested (matching what would happen
+    # if the sequence were rendered from scratch).
+
+    for current_seq in seq_collection:
+        all_rendered_prefixes_found = []
+        prefix_start = 0
+        valid = None
+        while prefix_start < current_seq.length - 1:
+            renderings_found = seq_rendering_cache.get_renderings(current_seq.requests[prefix_start:], Settings().fuzzing_mode == 'test-all-combinations')
+
+            if renderings_found:
+                if True in renderings_found:
+                    valid = True
+                else:
+                    valid = False
+
+                first_found = renderings_found[valid][0]
+                prefix_len = first_found.length
+
+                if valid:
+                    # Append the list of renderings for this prefix
+                    all_rendered_prefixes_found.append(renderings_found[valid])
+                    prefix_start = prefix_start + prefix_len
+
+                logger.write_to_main(f"Found a matching prefix of length {prefix_len} "
+                                        f"for request {current_seq.last_request.stats.request_order} "
+                                        f"with previous request {first_found.last_request.stats.request_order}")
+                if valid:
+                    logger.write_to_main(f"\tand re-using that VALID prefix ({len(renderings_found[True])} rendering combinations)\n")
+                elif (valid == False):
+                    logger.write_to_main(f"\tbut that prefix was INVALID (root = {first_found.last_request.stats.request_order})\n")
+                    # Don't log the rendered hash because this request is not going to be rendered.
+                    # Set the matching prefix to the last rendered prefix
+                    current_seq.last_request.stats.valid = 0
+                    current_seq.last_request.stats.invalid_due_to_sequence_failure = 1
+                    current_seq.last_request.stats.set_matching_prefix(first_found)
+                    logger.print_request_coverage(request=current_seq.last_request,
+                                                                log_rendered_hash=False)
+                    # Request should not be rendered, stop searching for prefixes
+                    break
+            else:
+                break
+
+        if valid == True:
+            # Construct sequences to render from previously rendered prefixes
+            renderings_pool = itertools.product(*all_rendered_prefixes_found)
+            sequences_to_render = []
+            for ind, values in enumerate(renderings_pool):
+                values = list(values)
+
+                prefix_seq = functools.reduce(lambda x, y: x+y, values)
+                suffix_seq = sequences.Sequence(current_seq.requests[prefix_seq.length:])
+                # This must be deep copied to preserve multiple renderings for the entire sequence.
+                suffix_seq = copy.deepcopy(suffix_seq)
+
+                sequence_to_render = prefix_seq + suffix_seq
+                sequences_to_render.append((sequence_to_render, prefix_seq.length))
+        elif valid == False:
+            # Do not render.
+            sequences_to_render = []
+        else:
+            logger.write_to_main(f"Rendering request {current_seq.last_request.stats.request_order} from scratch\n")
+            sequences_to_render = [(current_seq, 0)]
+
+        # Render the sequences
+
+        for ith in range(len(sequences_to_render)):
+            sequence_to_render, rendered_prefix_length = sequences_to_render[ith]
+            # Render all of the prefixes not yet rendered.  This is required to have a fully rendered sequence.
+            for prefix_len in range(rendered_prefix_length + 1, sequence_to_render.length + 1):
+                prefix_seq_to_render = sequences.Sequence(sequence_to_render.requests[:prefix_len])
+                valid_renderings = render_one([prefix_seq_to_render], 0, checkers, generation, global_lock)
+                if valid_renderings:
+                    # Remember that this sequence and all of its prefixes are valid.
+                    for valid_rendering in valid_renderings:
+                        seq_rendering_cache.add_valid_prefixes(valid_rendering)
+
+                        # When in smoke test mode, print information about the rendering (full sequence only) to main.txt
+                        # This is helpful for investigating, and contains different information from the spec coverage file,
+                        # which only contains the raw request.
+                        if Settings().in_smoke_test_mode() and prefix_len == sequence_to_render.length:
+                            print_rendering_to_main_txt(valid_rendering)
+                            logger.write_to_main(f"{formatting.timestamp()}: Rendering VALID")
+                            logger.format_rendering_stats_definition(
+                                valid_rendering.last_request, GrammarRequestCollection().candidate_values_pool
+                            )
+                    rendered_sequences.extend(valid_renderings)
+                else:
+                    seq_rendering_cache.add_invalid_sequence(prefix_seq_to_render)
+
+                    # When in smoke test mode, print information about the invalid rendering to main.txt
+                    # This is helpful for investigating, and contains different information from the spec coverage file,
+                    # which only contains the raw request.
+                    print_rendering_to_main_txt(prefix_seq_to_render)
+
+                    logger.write_to_main(f"{formatting.timestamp()}: Rendering INVALID")
+                    if prefix_seq_to_render.length != current_seq.length:
+                        logger.write_to_main(f"Prefix could not be rendered. Request with invalid rendering:")
+                    logger.format_rendering_stats_definition(
+                        prefix_seq_to_render.last_request, GrammarRequestCollection().candidate_values_pool
+                    )
+
+                    break
+
+    # Increase internal fuzzing generations' counter. Since the
+    # constructor of RequestCollection starts this counter from zero,
+    # the counter will be equal to length + 1 after the following line.
+    Monitor().current_fuzzing_generation += 1
+
+    return rendered_sequences
 
 def report_dependency_cycle(request, req_list):
     logger.write_to_main(
@@ -414,7 +537,7 @@ def compute_request_goal_seq(request, req_collection):
     req_list = add_producers(request, req_collection, [], [])
     if req_list == [] :
         logger.write_to_main(f"\nSkipping request {request.method} {request.endpoint}"\
-                             f"because a sequence satisfying all dependencies was not found.\n", True)
+                             f"\nbecause a sequence satisfying all dependencies was not found.\n", True)
     return req_list
 
 def generate_sequences(fuzzing_requests, checkers, fuzzing_jobs=1):
@@ -489,43 +612,28 @@ def generate_sequences(fuzzing_requests, checkers, fuzzing_jobs=1):
         # each generation, the only sequences that should be rendered for that generation.
         seq_constraints_by_generation={}
         extended_requests=[]
-        for i in range(1, fuzzing_requests.size):
+        max_seq_len = max(max_len, fuzzing_requests.size)
+
+        for i in range(1, max_seq_len + 1):
             seq_constraints_by_generation[i] = []
 
         if Settings().in_smoke_test_mode():
-            for i in range(1, fuzzing_requests.size):
+            max_len = 0
+            for i in range(1, max_seq_len):
                 seq_constraints_by_generation[i].append(sequences.Sequence([]))
-
-            # Implementation note: sorting the requests by sequence length is not needed for this
-            # algorithm, but is kept to pass regression tests without updating baselines
-            # as part of integrating smoke test into the main fuzzing loop.
-            # This should be removed in a subsequent change (TODO: GitHub #233),
-            # together with updating baselines, and the requests
-            # be sorted by hash at creation time (see corresponding TODO in preprocessing.py).
-            sorted_fuzzing_req_list = []
-            # sort the requests in fuzzing_requests by depth
             for request in fuzzing_requests:
                 req_list = compute_request_goal_seq(request, fuzzing_requests)
                 if req_list:
-                    sorted_fuzzing_req_list.append([len(req_list), request, req_list])
-                    extended_requests.append(request)
+                    generation_idx = len(req_list)
+                    seq_constraints_by_generation[generation_idx].append(sequences.Sequence(req_list))
+                    if max_len < generation_idx:
+                        max_len = generation_idx
                 # Else an error message was printed and we skip this request
-            # now sort by length (secondary sort by a hash of the request definition text)
-            sorted_fuzzing_req_list.sort(key = lambda x : (x[0], x[1].method_endpoint_hex_definition))
-
-            fuzzing_requests = FuzzingRequestCollection()
-
-            # Add the sub-sequences that should be returned from extend() in order to satisfy
-            # the goal sequences.
-            for idx, request_triple in enumerate(sorted_fuzzing_req_list):
-                req_list = request_triple[2]
-                req = request_triple[1]
-                fuzzing_requests.add_request(req)
-                for idx, _ in enumerate(req_list):
-                    seq_constraints_by_generation[idx + 1].append(sequences.Sequence(req_list[0:idx+1]))
+            max_len = max_len + 1
 
         generation = 0
         all_extended_requests = []
+        seq_rendering_cache = sequences.RenderedSequenceCache()
         for length in range(min_len, max_len):
             # we can set this without locking, since noone else writes (main
             # driver is single-threaded) and every potential worker will just
@@ -534,20 +642,37 @@ def generate_sequences(fuzzing_requests, checkers, fuzzing_jobs=1):
             fuzzing_mode = fuzzing_schedule[length]
 
             # extend sequences with new request templates
-            seq_collection, extended_requests = extend(seq_collection, fuzzing_requests, global_lock,
-                                                       seq_constraints_by_generation[generation])
-            print(f"{formatting.timestamp()}: Generation: {generation} ")
+            if seq_constraints_by_generation[generation]:
+                # Only execute the sequences specified for this generation
+                seq_collection = []
+                extended_requests=[]
+                for s in seq_constraints_by_generation[generation]:
+                   if s.length > 0:
+                       extended_requests.append(s.last_request)
+                       seq_collection.append(s)
+                if not seq_collection:
+                    # go to the next generation
+                    continue
+            else:
+                seq_collection, extended_requests = extend(seq_collection, fuzzing_requests, global_lock)
 
+            print(f"{formatting.timestamp()}: Generation: {generation} ")
             logger.write_to_main(
                 f"{formatting.timestamp()}: Generation: {generation} / "
                 f"Sequences Collection Size: {len(seq_collection)} "
-                f"(After {fuzzing_schedule[length]} Extend)"
+                f"\n(After {fuzzing_schedule[length]} Extend)\n"
             )
 
             # render templates
             try:
                 seq_collection_exhausted = False
-                seq_collection = render(seq_collection, fuzzing_pool, checkers, generation, global_lock)
+
+                if seq_constraints_by_generation[generation]:
+                    # This assignment of seq_collection is performed only for logging purposes.
+                    # It will get reset on the next loop iteration.
+                    seq_collection = render_with_cache(seq_collection, fuzzing_pool, checkers, generation, global_lock, seq_rendering_cache)
+                else:
+                    seq_collection = render(seq_collection, fuzzing_pool, checkers, generation, global_lock)
 
             except TimeOutException:
                 logger.write_to_main("Timed out...")
@@ -566,7 +691,7 @@ def generate_sequences(fuzzing_requests, checkers, fuzzing_jobs=1):
             logger.write_to_main(
                 f"{formatting.timestamp()}: Generation: {generation} / "
                 f"Sequences Collection Size: {len(seq_collection)} "
-                f"(After {fuzzing_schedule[length]} Render)"
+                f"\n(After {fuzzing_schedule[length]} Render)\n"
             )
 
             # saving latest state
@@ -599,7 +724,7 @@ def generate_sequences(fuzzing_requests, checkers, fuzzing_jobs=1):
         for request in fuzzing_requests:
             if request not in all_extended_requests:
                 request.stats.valid = 0
-                logger.print_request_coverage_incremental(request=request, log_rendered_hash=False)
+                logger.print_request_coverage(request=request, log_rendered_hash=False)
 
     if fuzzing_pool is not None:
         fuzzing_pool.close()

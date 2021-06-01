@@ -63,9 +63,10 @@ def create_fuzzing_req_collection(path_regex):
 
     # Sort the request list by hex definition so the requests are
     # always traversed in the same order.
-    # TODO: GitHub #233 Un-comment the below line
-    # included_requests.sort(key=lambda x : x.method_endpoint_hex_definition)
+    # TODO: GitHub #233 The requests should be sorted in all test modes
+    # this requires updating test baselines, which should be done after #233 is merged.
     if Settings().in_smoke_test_mode():
+        included_requests.sort(key=lambda x : x.method_endpoint_hex_definition)
         for idx, req in enumerate(included_requests):
             req.stats.request_order = idx
     fuzz_reqs.set_all_requests(included_requests)
@@ -209,7 +210,7 @@ def apply_create_once_resources(fuzzing_requests):
                         if renderings.sequence:
                             renderings.sequence.last_request.stats.request_order = 'Preprocessing'
                             renderings.sequence.last_request.stats.set_all_stats(renderings)
-                            logger.print_request_coverage_incremental(rendered_sequence=renderings, log_rendered_hash=True)
+                            logger.print_request_coverage(rendered_sequence=renderings, log_rendered_hash=True)
 
                     # Make sure we were able to successfully create the create_once resource
                     if not renderings.valid:

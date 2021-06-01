@@ -61,6 +61,21 @@ class FunctionalityTests(unittest.TestCase):
         """
         return glob.glob(os.path.join(dir, 'logs', f'network.{log_type}.*.1.txt'))[0]
 
+    def run_abc_smoke_test(self, test_file_dir, grammar_file_name):
+        grammar_file_path = os.path.join(test_file_dir, grammar_file_name)
+        args = Common_Settings + [
+        '--fuzzing_mode', 'directed-smoke-test',
+        '--restler_grammar', f'{grammar_file_path}'
+        ]
+
+        result = subprocess.run(args, capture_output=True)
+        if result.stderr:
+            self.fail(result.stderr)
+        try:
+            result.check_returncode()
+        except subprocess.CalledProcessError:
+            self.fail(f"Restler returned non-zero exit code: {result.returncode} {result.stdout}")
+
     def tearDown(self):
         try:
             shutil.rmtree(self.get_experiments_dir())
@@ -68,7 +83,30 @@ class FunctionalityTests(unittest.TestCase):
             print(f"tearDown function failed: {err!s}.\n"
                   "Experiments directory was not deleted.")
 
-    def test_minimal_sequences_smoke_test(self):
+    def test_abc_invalid_b_smoke_test(self):
+        self.run_abc_smoke_test(Test_File_Directory, "abc_test_grammar_invalid_b.py")
+        experiments_dir = self.get_experiments_dir()
+
+        # Make sure all requests were successfully rendered.  This is because the comparisons below do not
+        # take status codes into account
+        # Make sure the right number of requests was sent.
+        testing_summary_file_path = os.path.join(experiments_dir, "logs", "testing_summary.json")
+
+        try:
+            with open(testing_summary_file_path, 'r') as file:
+                testing_summary = json.loads(file.read())
+                total_requests_sent = testing_summary["total_requests_sent"]["main_driver"]
+                num_fully_valid = testing_summary["num_fully_valid"]
+                self.assertEqual(num_fully_valid, 1)
+                self.assertLessEqual(total_requests_sent, 2)
+
+            default_parser = FuzzingLogParser(os.path.join(Test_File_Directory, "abc_smoke_test_invalid_b_testing_log.txt"))
+            test_parser = FuzzingLogParser(self.get_network_log_path(experiments_dir, logger.LOG_TYPE_TESTING))
+            self.assertTrue(default_parser.diff_log(test_parser))
+        except TestFailedException:
+            self.fail("Smoke test failed: Fuzzing")
+
+    def test_abc_minimal_smoke_test(self):
         """ This checks that the directed smoke test executes the expected
         sequences in Test mode, without generating extra sequences, for a simple
         example.  Let 5 requests A, B, C, D, E where:
@@ -80,24 +118,11 @@ class FunctionalityTests(unittest.TestCase):
         rendered "from scratch", but the sequence for E will reuse the 'D' prefix.
 
         """
-        args = Common_Settings + [
-        '--fuzzing_mode', 'directed-smoke-test',
-        '--restler_grammar', f'{os.path.join(Test_File_Directory, "abc_test_grammar.py")}'
-        ]
-
-        result = subprocess.run(args, capture_output=True)
-        if result.stderr:
-            self.fail(result.stderr)
-        try:
-            result.check_returncode()
-        except subprocess.CalledProcessError:
-            self.fail(f"Restler returned non-zero exit code: {result.returncode}")
-
+        self.run_abc_smoke_test(Test_File_Directory, "abc_test_grammar.py")
         experiments_dir = self.get_experiments_dir()
 
         # Make sure all requests were successfully rendered.  This is because the comparisons below do not
         # take status codes into account
-        rendering_file_path = os.path.join(experiments_dir, "logs", "request_rendering.txt")
 
         # Make sure the right number of requests was sent.
         testing_summary_file_path = os.path.join(experiments_dir, "logs", "testing_summary.json")
@@ -108,7 +133,7 @@ class FunctionalityTests(unittest.TestCase):
                 total_requests_sent = testing_summary["total_requests_sent"]["main_driver"]
                 num_fully_valid = testing_summary["num_fully_valid"]
                 self.assertEqual(num_fully_valid, 5)
-                self.assertLessEqual(total_requests_sent, 18)
+                self.assertLessEqual(total_requests_sent, 14)
 
             default_parser = FuzzingLogParser(os.path.join(Test_File_Directory, "abc_smoke_test_testing_log.txt"))
             test_parser = FuzzingLogParser(self.get_network_log_path(experiments_dir, logger.LOG_TYPE_TESTING))
@@ -209,7 +234,7 @@ class FunctionalityTests(unittest.TestCase):
         try:
             result.check_returncode()
         except subprocess.CalledProcessError:
-            self.fail(f"Restler returned non-zero exit code: {result.returncode}")
+            self.fail(f"Restler returned non-zero exit code: {result.returncode} {result.stdout}")
 
         experiments_dir = self.get_experiments_dir()
 

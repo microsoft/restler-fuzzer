@@ -53,7 +53,7 @@ def delete_create_once_resources(destructors, fuzzing_requests):
                 if renderings.sequence:
                     renderings.sequence.last_request.stats.request_order = 'Postprocessing'
                     renderings.sequence.last_request.stats.set_all_stats(renderings)
-                    logger.print_request_coverage_incremental(rendered_sequence=renderings, log_rendered_hash=True)
+                    logger.print_request_coverage(rendered_sequence=renderings, log_rendered_hash=True)
 
         except Exception as error:
             msg = f"Failed to delete create_once resource: {error!s}"
@@ -63,7 +63,7 @@ def delete_create_once_resources(destructors, fuzzing_requests):
                 if renderings.sequence:
                     renderings.sequence.last_request.stats.request_order = 'Postprocessing'
                     renderings.sequence.last_request.stats.set_all_stats(renderings)
-                    logger.print_request_coverage_incremental(rendered_sequence=renderings, log_rendered_hash=True)
+                    logger.print_request_coverage(rendered_sequence=renderings, log_rendered_hash=True)
 
             pass
 

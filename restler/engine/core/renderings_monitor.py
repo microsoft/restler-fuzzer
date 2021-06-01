@@ -109,19 +109,16 @@ class RenderingsMonitor(object):
         if lock is not None:
             lock.acquire()
 
-        # If request has not completed a whole round of the previous generation,
-        # do not skip
-        if self._current_fuzzing_generation - 1 not in self._rendering_ids:
-            if lock is not None:
-                lock.release()
-            return False
-
+        result = False
+        # During the smoke test, it is possible that a request was rendered in an
+        # earlier generation, but not in the latest generation.
         for generation in range(0, self._current_fuzzing_generation):
-            renderings = self._rendering_ids[generation]
-            req_hex = request.hex_definition
-            result = req_hex in renderings
-            if result:
-                break
+            if generation in self._rendering_ids:
+                renderings = self._rendering_ids[generation]
+                req_hex = request.hex_definition
+                result = req_hex in renderings
+                if result:
+                    break
 
         if lock is not None:
             lock.release()

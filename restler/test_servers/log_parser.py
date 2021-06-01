@@ -159,11 +159,10 @@ class FuzzingLogParser(LogParser):
 
             # To help diagnose failures, compare the two sequences of tests as sets.
             #
-            found = get_diff(self._seq_list, other._seq_list, "right")
-            if found:
-                found = get_diff(other._seq_list, self._seq_list, "left")
+            found_right = get_diff(self._seq_list, other._seq_list, "right")
+            found_left = get_diff(other._seq_list, self._seq_list, "left")
 
-            if not found:
+            if not (found_right and found_left):
                 return False
 
             print("The sequences are identical, only the ordering is different.")
@@ -172,7 +171,6 @@ class FuzzingLogParser(LogParser):
             # pass unit tests, because changes to sequences are currently expected.
             # This should be changed back to return 'False' in a follow-up change when baselines are updated.
             # return False
-            # The unit test failures whose baselines must be updated are: test_fuzz, test_multi_dict, test_smoke_test
             return True
 
         return True

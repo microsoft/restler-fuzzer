@@ -103,6 +103,18 @@ class SmokeTestStats(object):
 
         self.sample_request = RenderedRequestStats()
 
+    def set_matching_prefix(self, sequence_prefix):
+        # Set the prefix of the request, if it exists.
+        if len(sequence_prefix.requests) > 0:
+            prefix_ids = []
+            for c in sequence_prefix.current_combination_id:
+                prefix_id = {}
+                prefix_id["id"] = c
+                if self.valid:
+                    prefix_id["valid"] = self.valid
+                prefix_ids.append(prefix_id)
+            self.matching_prefix = prefix_ids
+
     def set_all_stats(self, renderings):
         self.status_code = renderings.final_request_response.status_code
         self.status_text = renderings.final_request_response.status_text
@@ -112,13 +124,6 @@ class SmokeTestStats(object):
             renderings.sequence.sent_request_data_list[-1].rendered_data)
         self.sample_request.set_response_stats(renderings.final_request_response,
                                                renderings.final_response_datetime)
-
-        # Set the prefix of the request, if it exists.
-        if len(renderings.sequence.requests) > 1:
-            prev_req = renderings.sequence.requests[-2]
-            prefix_seq = renderings.sequence.prefix
-            prev_req_hash = f"{prev_req.method_endpoint_hex_definition}_{str(prefix_seq.current_combination_id)}"
-            self.matching_prefix["id"] = prev_req_hash
 
         response_body = renderings.final_request_response.body
         if renderings.sequence:
@@ -130,6 +135,7 @@ class SmokeTestStats(object):
             if not renderings.valid:
                 self.error_msg = response_body
 
+            self.set_matching_prefix(renderings.sequence.prefix)
 
 class Request(object):
     """ Request Class. """

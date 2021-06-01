@@ -461,6 +461,9 @@ if __name__ == '__main__':
     # Initialize bug buckets
     bug_bucketing.BugBuckets()
 
+    # Set the spec coverage singleton
+    logger.SpecCoverageLog()
+
     # If both lists were set, parse the command-line to find the order
     if args.enable_checkers and args.disable_checkers:
         set_enable_first = sys.argv.index('--enable_checkers') < sys.argv.index('--disable_checkers')
