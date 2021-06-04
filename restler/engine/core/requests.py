@@ -563,6 +563,10 @@ class Request(object):
                 val = default_val
                 if quoted:
                     val = f'"{val}"'
+                if val == None:
+                    # the examplesChecker may inject None/null, so replace these with the string 'null'
+                    logger.raw_network_logging(f"Warning: there is a None value in a STATIC_STRING.")
+                    val = 'null'
                 values = [val]
             # Handle multipart form data
             elif primitive_type == primitives.FUZZABLE_MULTIPART_FORMDATA:
@@ -639,7 +643,6 @@ class Request(object):
         for ind, values in enumerate(combinations_pool):
             values = list(values)
             values = request_utilities.resolve_dynamic_primitives(values, candidate_values_pool)
-
             rendered_data = "".join(values)
             yield rendered_data, parser
 
