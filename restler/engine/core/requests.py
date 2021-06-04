@@ -563,6 +563,10 @@ class Request(object):
                 val = default_val
                 if quoted:
                     val = f'"{val}"'
+                if val == None:
+                    # the examplesChecker may inject None/null, so replace these with the string 'null'
+                    logger.raw_network_logging(f"Warning: there is a None value in a STATIC_STRING.")
+                    val = 'null'
                 values = [val]
             # Handle multipart form data
             elif primitive_type == primitives.FUZZABLE_MULTIPART_FORMDATA:
@@ -638,23 +642,7 @@ class Request(object):
         # dependent variables
         for ind, values in enumerate(combinations_pool):
             values = list(values)
-            found_none = False
-            if None in values:
-                logger.write_to_main(
-                    f"Bug: there is a None value in one of the fuzzable lists for the combinations pool.",
-                    print_to_console=True
-                )
-                found_none = True
-
             values = request_utilities.resolve_dynamic_primitives(values, candidate_values_pool)
-
-            if None in values and not found_none:
-                logger.write_to_main(
-                    f"Bug: one fo the dynamic primitives contains a None value.",
-                    print_to_console=True
-                )
-
-            values = [x for x in values if x]
             rendered_data = "".join(values)
             yield rendered_data, parser
 
