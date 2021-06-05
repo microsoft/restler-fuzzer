@@ -156,10 +156,14 @@ class PayloadBodyChecker(CheckerBase):
             for example in last_request.examples.body_examples:
                 tag_content = example.get_schema_tag_mapping()
                 for tag in tag_content:
+                    # replace example value None by the string 'null'
+                    val = tag_content[tag]
+                    if val == None:
+                        val = 'null'
                     if tag in self._examples_values:
-                        self._examples_values[tag].append(tag_content[tag])
+                        self._examples_values[tag].append(val)
                     else:
-                        self._examples_values[tag] = [tag_content[tag]]
+                        self._examples_values[tag] = [val]
 
         # set the initial starting body schemas
         if last_request.examples and self._start_with_examples:
