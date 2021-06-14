@@ -717,7 +717,7 @@ def print_req_collection_stats(req_collection, candidate_values_pool):
     for r in req_collection:
         val += len(r.produces)
         val += len(r.consumes)
-    data += f"{timestamp}: Total dependencies: {val}"
+    data += f"{timestamp}: Total dependencies: {val}\n"
 
     write_to_main(data)
 
@@ -755,7 +755,7 @@ def print_memory_consumption(req_collection, fuzzing_monitor, fuzzing_mode, gene
         f"{timestamp}: Total Creations of Dyn Objects: {dependencies.object_creations}\n"
         f"{timestamp}: Total Accesses of Dyn Objects: {dependencies.object_accesses}\n"
         f"{timestamp}: Total Requests Sent: {fuzzing_monitor.num_requests_sent()}\n"
-        f"{timestamp}: Bug Buckets: {BugBuckets.Instance().num_bug_buckets()}"
+        f"{timestamp}: Bug Buckets: {BugBuckets.Instance().num_bug_buckets()}\n"
     )
 
 print_memory_consumption.invocations = 0

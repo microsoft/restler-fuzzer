@@ -154,11 +154,11 @@ def apply_checkers(checkers, renderings, global_lock):
             raise
 
 
-def render_one(seq_collection, ith, checkers, generation, global_lock):
-    """ Render ith sequence from sequence collection.
+def render_one(seq_to_render, ith, checkers, generation, global_lock):
+    """ Render the specified sequence.
 
-    @param seq_collection: List of sequences in sequence collection.
-    @type  seq_collection: List
+    @param seq_to_render: The sequence to render.
+    @type  seq_to_render: Sequence
     @param ith: The position of the target sequence (to be rendered) in the
                     sequence collection.
     @type  ith: Int
@@ -190,7 +190,7 @@ def render_one(seq_collection, ith, checkers, generation, global_lock):
         render_one.last_memory_consumption_check = int(time.time())
 
     candidate_values_pool = GrammarRequestCollection().candidate_values_pool
-    current_seq = seq_collection[ith]
+    current_seq = seq_to_render
     current_seq.seq_i = ith
     valid_renderings = []
     prev_renderings = None
@@ -296,7 +296,7 @@ def render_parallel(seq_collection, fuzzing_pool, checkers, generation, global_l
     """
     prev_len = len(seq_collection)
     result = fuzzing_pool.starmap(render_one,
-                                    [(seq_collection, ith,
+                                    [(seq_collection[ith], ith,
                                       checkers, generation, global_lock
                                      )\
                                     for ith in range(prev_len)])
@@ -316,7 +316,7 @@ def render_sequential(seq_collection, fuzzing_pool, checkers, generation, global
     """
     prev_len = len(seq_collection)
     for ith in range(prev_len):
-        valid_renderings = render_one(seq_collection, ith, checkers, generation, global_lock)
+        valid_renderings = render_one(seq_collection[ith], ith, checkers, generation, global_lock)
 
         # Extend collection by adding all valid renderings
         seq_collection.extend(valid_renderings)
@@ -342,8 +342,11 @@ def render_with_cache(seq_collection, fuzzing_pool, checkers, generation, global
     @type  seq_rendering_cache: RenderedSequenceCache
 
     """
+    # The number of valid renderings
     rendered_sequences = []
 
+    # The count of sequence rendering attempt
+    sequences_count = 0
     def print_rendering_to_main_txt(current_seq):
         logger.write_to_main(
             f"{formatting.timestamp()}: Request {current_seq.last_request.stats.request_order}\n"
@@ -437,7 +440,9 @@ def render_with_cache(seq_collection, fuzzing_pool, checkers, generation, global
             # Render all of the prefixes not yet rendered.  This is required to have a fully rendered sequence.
             for prefix_len in range(rendered_prefix_length + 1, sequence_to_render.length + 1):
                 prefix_seq_to_render = sequences.Sequence(sequence_to_render.requests[:prefix_len])
-                valid_renderings = render_one([prefix_seq_to_render], 0, checkers, generation, global_lock)
+
+                valid_renderings = render_one(prefix_seq_to_render, sequences_count, checkers, generation, global_lock)
+                sequences_count = sequences_count + 1
                 if valid_renderings:
                     # Remember that this sequence and all of its prefixes are valid.
                     for valid_rendering in valid_renderings:
