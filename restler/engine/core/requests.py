@@ -74,6 +74,7 @@ class RenderedRequestStats(object):
                             f"Error setting request stats for text: {request_text}",
                             print_to_console=True
                         )
+            logger.exception(f"Error setting request stats for text: {request_text}")
             pass
 
     def set_response_stats(self, final_request_response, final_response_datetime):
@@ -444,7 +445,7 @@ class Request(object):
             try:
                 if isinstance(line[1], str) and line[1].startswith(request_utilities.HOST_PREFIX):
                     return i
-            except:
+            except Exception:
                 # ignore line parsing exceptions - error will be returned if host not found
                 pass
         return -1

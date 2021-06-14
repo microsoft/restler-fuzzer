@@ -142,6 +142,9 @@ def parse_grammar_schema(schema_json):
     except ValueError as err:
         logger.write_to_main(f"Failed to parse grammar file for examples: {err!s}", print_to_console=True)
         return False
+    except Exception as ERR:
+        logger.exception()
+        return False
 
 def apply_create_once_resources(fuzzing_requests):
     """ Attempts to create all of the resources in the 'create_once' endpoints.
