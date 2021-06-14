@@ -396,6 +396,14 @@ def render_with_cache(seq_collection, fuzzing_pool, checkers, generation, global
                     current_seq.last_request.stats.set_matching_prefix(first_found)
                     logger.print_request_coverage(request=current_seq.last_request,
                                                                 log_rendered_hash=False)
+
+                    # Print information about the attempt to render this request to main.txt
+                    print_rendering_to_main_txt(current_seq)
+                    logger.write_to_main(f"{formatting.timestamp()}: Rendering INVALID")
+                    logger.format_rendering_stats_definition(
+                        current_seq.last_request, GrammarRequestCollection().candidate_values_pool
+                    )
+
                     # Request should not be rendered, stop searching for prefixes
                     break
             else:
@@ -448,16 +456,12 @@ def render_with_cache(seq_collection, fuzzing_pool, checkers, generation, global
                 else:
                     seq_rendering_cache.add_invalid_sequence(prefix_seq_to_render)
 
-                    # When in smoke test mode, print information about the invalid rendering to main.txt
-                    # This is helpful for investigating, and contains different information from the spec coverage file,
-                    # which only contains the raw request.
+                    # When in smoke test mode, print information about the attempt to render the request.
                     print_rendering_to_main_txt(prefix_seq_to_render)
 
                     logger.write_to_main(f"{formatting.timestamp()}: Rendering INVALID")
-                    if prefix_seq_to_render.length != current_seq.length:
-                        logger.write_to_main(f"Prefix could not be rendered. Request with invalid rendering:")
                     logger.format_rendering_stats_definition(
-                        prefix_seq_to_render.last_request, GrammarRequestCollection().candidate_values_pool
+                        current_seq.last_request, GrammarRequestCollection().candidate_values_pool
                     )
 
                     break
@@ -631,6 +635,14 @@ def generate_sequences(fuzzing_requests, checkers, fuzzing_jobs=1):
                 # Else an error message was printed and we skip this request
             max_len = max_len + 1
 
+            # Set the request order
+            req_order = 0
+            for generation_idx in range(1, max_len):
+                for seq in seq_constraints_by_generation[generation_idx]:
+                    if seq.length > 0:
+                        seq.requests[-1].stats.request_order = req_order
+                        req_order = req_order + 1
+
         generation = 0
         all_extended_requests = []
         seq_rendering_cache = sequences.RenderedSequenceCache()
@@ -650,6 +662,7 @@ def generate_sequences(fuzzing_requests, checkers, fuzzing_jobs=1):
                    if s.length > 0:
                        extended_requests.append(s.last_request)
                        seq_collection.append(s)
+
                 if not seq_collection:
                     # go to the next generation
                     continue
@@ -717,7 +730,7 @@ def generate_sequences(fuzzing_requests, checkers, fuzzing_jobs=1):
                 print("seq collection exhausted")
                 break
 
-        logger.write_to_main("--\n")
+        logger.write_to_main("\nTesting completed -- below are the final stats:\n")
 
     if Settings().in_smoke_test_mode():
         # Log spec coverage for the never rendered requests

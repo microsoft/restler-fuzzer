@@ -67,8 +67,6 @@ def create_fuzzing_req_collection(path_regex):
     # this requires updating test baselines, which should be done after #233 is merged.
     if Settings().in_smoke_test_mode():
         included_requests.sort(key=lambda x : x.method_endpoint_hex_definition)
-        for idx, req in enumerate(included_requests):
-            req.stats.request_order = idx
     fuzz_reqs.set_all_requests(included_requests)
 
     return fuzz_reqs
