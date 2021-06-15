@@ -109,7 +109,7 @@ class UseAfterFreeChecker(CheckerBase):
 
         """
         request = seq.last_request
-        for rendered_data, parser in\
+        for rendered_data, parser,_ in\
             request.render_iter(self._req_collection.candidate_values_pool,
                                 skip=request._current_combination_id):
             # Hold the lock (because other workers may be rendering the same

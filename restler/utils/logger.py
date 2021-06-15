@@ -134,7 +134,7 @@ class SpecCoverageLog(object):
 
         SpecCoverageLog.__instance = self
 
-    def _get_request_coverage_summary_stats(self, rendered_request, req_hash):
+    def _get_request_coverage_summary_stats(self, rendered_request, req_hash, log_tracked_parameters=False):
         """ Constructs a json object with the coverage information for a request
         from the rendered request.  This info will be reported in a spec coverage file.
 
@@ -180,6 +180,11 @@ class SpecCoverageLog(object):
         req_spec['request_order'] = req.stats.request_order
         req_spec['sample_request'] = vars(req.stats.sample_request)
 
+        if log_tracked_parameters:
+            req_spec['tracked_parameters'] = {}
+            for k, v in req.stats.tracked_parameters.items():
+                req_spec['tracked_parameters'][k] = v
+
         return coverage_data
 
     def log_request_coverage_incremental(self, request=None, rendered_sequence=None, log_rendered_hash=True):
@@ -221,7 +226,7 @@ class SpecCoverageLog(object):
             write_to_main("ERROR: spec coverage is being logged twice for the same rendering.", True)
             return
 
-        req_coverage = self._get_request_coverage_summary_stats(req, req_hash)
+        req_coverage = self._get_request_coverage_summary_stats(req, req_hash, log_tracked_parameters=log_rendered_hash)
         self._renderings_logged[req_hash] = req_coverage[req_hash]['valid']
 
         coverage_as_json = json.dumps(req_coverage, indent=4)

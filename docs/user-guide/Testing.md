@@ -85,6 +85,7 @@ During each Test run a `speccov.json` file will be created in the logs directory
         "status_code": "400",
         "status_text": "BAD REQUEST",
         "error_message": "{\n    \"errors\": {\n        \"id\": \"'5882' is not of type 'integer'\"\n    },\n    \"message\": \"Input payload validation failed\"\n}\n",
+        "request_order": 4,
         "sample_request": {
             "request_sent_timestamp": null,
             "response_received_timestamp": "2021-03-31 18:20:14",
@@ -103,7 +104,9 @@ During each Test run a `speccov.json` file will be created in the logs directory
             ],
             "response_body": "{\n    \"errors\": {\n        \"id\": \"'5882' is not of type 'integer'\"\n    },\n    \"message\": \"Input payload validation failed\"\n}\n"
         },
-        "request_order": 4
+        "tracked_parameters": {
+            "per_page_9": "2"
+        }
     },
 ```
 

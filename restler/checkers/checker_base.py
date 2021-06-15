@@ -110,7 +110,7 @@ class CheckerBase:
         @rtype : Tuple(HttpResponse, HttpResponse)
 
         """
-        rendered_data, parser = request.render_current(self._req_collection.candidate_values_pool)
+        rendered_data, parser, tracked_parameters = request.render_current(self._req_collection.candidate_values_pool)
         rendered_data = seq.resolve_dependencies(rendered_data)
         response = self._send_request(parser, rendered_data)
         response_to_parse = response
