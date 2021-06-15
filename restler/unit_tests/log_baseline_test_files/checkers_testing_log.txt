@@ -1666,9 +1666,11 @@ Generation-2: Rendering Sequence-1
 Target types: {'_resourcehierarchytest_put_name'}
 2020-12-16 15:03:48.214: UseAfterFreeChecker Clean tlb: {'_city_put_name': None, '_city_house_put_name': None, '_city_house_color_put_name': None, '_leakageruletest_put_name': None, '_useafterfreetest_put_name': None, '_resourcehierarchytest_put_name': 'resourcehierarchyTest<test!>-ed9965e50a', '_resourcehierarchychild_put_name': None, '_namespaceruletest_put_name': None}
 2020-12-16 15:03:48.228: UseAfterFreeChecker Found * 2 * consumers.
-2020-12-16 15:03:48.238: Sending: 'GET /resourcehierarchytest/resourcehierarchyTest<test!>-ed9965e50a HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nAuthorization: valid_unit_test_token\r\nContent-Length: 0\r\n\r\n'
+2021-06-09 22:42:34.776: Sending: 'PUT /resourcehierarchytest/resourcehierarchyTest<test!>-0767fb3d1d/resourcehierarchychild/resourcehierarchyChild<test!>-f77aa471d2 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nAuthorization: valid_unit_test_token\r\nContent-Length: 4\r\n\r\n{}\r\n'
 
-2020-12-16 15:03:48.248: Received: "HTTP/1.1 404 Not Found\r\nRestler Test\r\n\r\n{'Resource': ResourceDoesNotExist()}"
+2021-06-09 22:42:34.791: Received: "HTTP/1.1 404 Not Found\r\nRestler Test\r\n\r\n{'Resource': ResourceDoesNotExist()}"
+
+2021-06-09 22:42:34.804: 'Exception parsing response, data was not valid json: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)'
 
 2020-12-16 15:03:48.258: Checker: UseAfterFreeChecker kicks out
 

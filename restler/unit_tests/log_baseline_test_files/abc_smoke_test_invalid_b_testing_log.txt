@@ -1,0 +1,43 @@
+2021-06-11 14:09:11.972: Will refresh token: python D:\git\restler-fuzzer\restler\unit_tests\log_baseline_test_files\unit_test_server_auth.py
+2021-06-11 14:09:12.038: New value: {'user1':{}, 'user2':{}}
+Authorization: valid_unit_test_token
+Authorization: shadow_unit_test_token
+
+Generation-1: Rendering Sequence-1
+
+	Request: 1 (Remaining candidate combinations: 1)
+	Request hash: 23db74a21a5b43c1601d160252a5cd1b7ae89805
+
+		- restler_static_string: 'PUT '
+		- restler_static_string: '/BUG/BUG'
+		- restler_static_string: ' HTTP/1.1\r\n'
+		- restler_static_string: 'Accept: application/json\r\n'
+		- restler_static_string: 'Host: unittest\r\n'
+		- restler_static_string: 'Content-Type: application/json\r\n'
+		+ restler_refreshable_authentication_token: ['token_refresh_cmd', 'token_refresh_interval']
+		- restler_static_string: '\r\n'
+
+2021-06-11 14:09:12.194: Sending: 'PUT /BUG/BUG HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nAuthorization: valid_unit_test_token\r\nContent-Length: 0\r\n\r\n'
+
+2021-06-11 14:09:12.204: Received: "HTTP/1.1 400 Bad Request\r\nRestler Test\r\n\r\n{'error': UnsupportedResource()}"
+
+2021-06-11 14:09:12.214: 'Exception parsing response, data was not valid json: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)'
+
+Generation-1: Rendering Sequence-1
+
+	Request: 1 (Remaining candidate combinations: 1)
+	Request hash: 44414ad093616e18a9e2f845ae9d453eb6e4c8bc
+
+		- restler_static_string: 'PUT '
+		- restler_static_string: '/A/A'
+		- restler_static_string: ' HTTP/1.1\r\n'
+		- restler_static_string: 'Accept: application/json\r\n'
+		- restler_static_string: 'Host: unittest\r\n'
+		- restler_static_string: 'Content-Type: application/json\r\n'
+		+ restler_refreshable_authentication_token: ['token_refresh_cmd', 'token_refresh_interval']
+		- restler_static_string: '\r\n'
+
+2021-06-11 14:09:12.355: Sending: 'PUT /A/A HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nAuthorization: valid_unit_test_token\r\nContent-Length: 0\r\n\r\n'
+
+2021-06-11 14:09:12.365: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "A"}'
+

@@ -461,6 +461,9 @@ if __name__ == '__main__':
     # Initialize bug buckets
     bug_bucketing.BugBuckets()
 
+    # Set the spec coverage singleton
+    logger.SpecCoverageLog()
+
     # If both lists were set, parse the command-line to find the order
     if args.enable_checkers and args.disable_checkers:
         set_enable_first = sys.argv.index('--enable_checkers') < sys.argv.index('--disable_checkers')
@@ -483,8 +486,6 @@ if __name__ == '__main__':
             print_to_console=True
         )
         postprocessing.delete_create_once_resources(failobj.destructors, fuzzing_requests)
-        if settings.in_smoke_test_mode():
-            logger.print_spec_coverage(fuzzing_requests)
         sys.exit(-1)
     except InvalidDictionaryException:
         print(f"Failed preprocessing:\n\t"
@@ -548,9 +549,6 @@ if __name__ == '__main__':
     except Exception as error:
         print("Exception occurred in delete create_once_resources: {}".
             format(str(error)))
-
-    if settings.in_smoke_test_mode():
-        logger.print_spec_coverage(fuzzing_requests)
 
     # If garbage collection is on, deallocate everything possible.
     if gc_thread:

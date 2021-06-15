@@ -199,6 +199,52 @@ class Sequence(object):
         """
         return self._sent_request_data_list
 
+
+    @property
+    def methods_endpoints_hex_definition(self):
+        """ Returns the concatenation of the method_endpoint_hex_definitions
+            of requests in this Sequence
+
+        @return: A string describing the unique ID by method and endpoint for this sequence
+        @rtype : str
+        """
+        hex_definition_ids = [ f"{req.method_endpoint_hex_definition}" for req in self.requests ]
+        return "_".join(hex_definition_ids)
+
+    @property
+    def current_combination_id(self):
+        """ Returns the concatenation of the current combination IDs
+            of requests in this Sequence
+
+        @return: A string describing the unique combination ID for this sequence
+        @rtype : str
+        """
+        combination_ids = [ f"{req.method_endpoint_hex_definition}_{str(req._current_combination_id)}" \
+                            for req in self.requests ]
+        return combination_ids
+
+    @property
+    def prefix(self):
+        """ Returns the longest prefix of this sequence, which contains all
+            requests except the last request.
+
+        @return: The prefix sequence
+        @rtype : Sequence
+        """
+        if len(self.requests) < 1:
+            return Sequence([])
+        return Sequence(self.requests[:-1])
+
+    @property
+    def prefix_combination_id(self):
+        """ Returns the concatenation of combination IDs, excluding the last request.
+
+        @return: A string describing the unique combination ID for the prefix of this sequence
+        @rtype : str
+        """
+        prefix_ids = [ f"{str(req._current_combination_id)}" for req in self.requests[:-1] ]
+        return "_".join(prefix_ids)
+
     def has_destructor(self):
         """ Helper to decide whether the current sequence instance contains any
         request which is a destructor.
@@ -455,10 +501,12 @@ class Sequence(object):
                 lock.release()
 
             datetime_format = "%Y-%m-%d %H:%M:%S"
+            response_datetime=response_datetime.strftime(datetime_format)
+
             # return a rendered clone if response indicates a valid status code
             if rendering_is_valid or Settings().ignore_feedback:
                 return RenderedSequence(duplicate, valid=True, final_request_response=response,
-                                        response_datetime=response_datetime.strftime(datetime_format))
+                                        response_datetime=response_datetime)
             else:
                 information = None
                 if response.has_valid_code():
@@ -470,7 +518,7 @@ class Sequence(object):
                     information = FailureInformation.BUG
                 return RenderedSequence(duplicate, valid=False, failure_info=information,
                                         final_request_response=response,
-                                        response_datetime=response_datetime.strftime(datetime_format))
+                                        response_datetime=response_datetime)
 
         return RenderedSequence(None)
 
@@ -582,3 +630,145 @@ class Sequence(object):
         final_request_data = self._sent_request_data_list[-1]
         # Send final request and return its status code
         return send_and_parse(final_request_data)
+
+
+class RenderedSequenceCache(object):
+    """ Implements a cache of rendered sequences. """
+    def __init__(self):
+        """ Creates an empty cache
+        @return: None
+        @rtype : None
+        """
+        self._cache = {}
+
+    def __get_req_cache(self, sequence):
+        last_request = sequence.last_request
+        generation = sequence.length
+        if generation not in self._cache:
+            self._cache[generation] = {}
+        generation_cache = self._cache[generation]
+        if last_request.method_endpoint_hex_definition not in generation_cache:
+            generation_cache[last_request.method_endpoint_hex_definition] = {}
+
+        return generation_cache[last_request.method_endpoint_hex_definition]
+
+    def __get_seq_cache(self, sequence):
+        req_cache = self.__get_req_cache(sequence)
+
+        seq_id = sequence.methods_endpoints_hex_definition
+        if seq_id not in req_cache:
+            req_cache[seq_id] = {True: [], False: []}
+
+        return req_cache[seq_id]
+
+    def add(self, sequence, valid):
+        """ Adds sequence to the cache.
+
+        @param sequence:
+               The sequence to add.
+        @type  Sequence
+        @param valid:
+               Whether it is a valid rendering.
+        @type  bool
+
+        @return: None
+        @rtype : None
+        """
+        if not isinstance(sequence, Sequence):
+            raise Exception("Sequences must be used for this cache.")
+
+        seq_cache = self.__get_seq_cache(sequence)
+
+        # only add the sequence if it's not already present
+        combination_ids = [req._current_combination_id for req in sequence.requests]
+
+        if combination_ids not in seq_cache[valid]:
+            seq_cache[valid].append(combination_ids)
+
+    def add_valid_prefixes(self, sequence):
+        """ Adds all the prefixes of the rendered sequence, if
+        they are not already cached.
+
+        @param sequence:
+               The rendered sequence.
+        @type  Sequence
+
+        @return: None
+        @rtype : None
+        """
+        if not isinstance(sequence, Sequence):
+            raise Exception("Sequences must be used for this cache.")
+
+        self.add(sequence, True)
+
+        for idx in range(len(sequence.requests[0:-1])):
+            prefix_seq = Sequence(sequence.requests[0:idx+1])
+            self.add(prefix_seq, True)
+
+    def add_invalid_sequence(self, sequence):
+        """ Adds a single invalid rendered sequence to the cache.
+
+        @param sequence:
+               The rendered invalid sequence.
+        @type  Sequence
+
+        @return: None
+        @rtype : None
+        """
+        if not isinstance(sequence, Sequence):
+            raise Exception("Sequences must be used for this cache.")
+
+        self.add(sequence, False)
+
+    def get_prefix(self, req_list, get_all_renderings=False):
+        """ Check whether the cache contains a prefix of the requests in
+        the specified list.  Returns the rendering ids of the longest found prefix,
+        if they exist.
+
+        @param req_list:
+               The list of requests whose prefixes should be searched for.
+        @type  List
+        @param get_all_renderings:
+               Whether a single rendering or all renderings should be returned.
+        @type  bool
+
+        @return: The list of rendered sequences for the longest prefix found in the cache, and whether each is valid or invalid.
+        @rtype : List[Sequence], bool
+        """
+        found_prefix = False
+        for seq_len in range(len(req_list), 0, -1):
+            prefix_seq = Sequence(req_list[0:seq_len])
+            seq_cache = self.__get_seq_cache(prefix_seq)
+
+            for valid in [True, False]:
+                for rendered_sequence_id in seq_cache[valid]:
+                    found_prefix = True
+                    yield (rendered_sequence_id, valid)
+                    if found_prefix and not get_all_renderings:
+                        break
+                # Exit once the valid renderings of the longest prefix ending in this request are returned.
+                if found_prefix:
+                    break
+            if found_prefix:
+                break
+
+    def get_renderings(self, req_list, get_all_renderings=False):
+        """ This function takes a list of requests, and returns
+        the list of renderings for the longest found prefix already rendered.
+        """
+        renderings={}
+
+        for prev_combination, valid in self.get_prefix(req_list, get_all_renderings):
+            new_seq = Sequence(req_list[:len(prev_combination)])
+            new_seq = copy.deepcopy(new_seq)
+
+            for idx, req in enumerate(new_seq.requests):
+                req._current_combination_id = prev_combination[idx]
+
+            if valid not in renderings:
+                renderings[valid] = []
+            # Return the new sequence and the length of the prefix found
+            renderings[valid].append(new_seq)
+
+        return renderings
+

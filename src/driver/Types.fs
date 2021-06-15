@@ -67,6 +67,9 @@ type EngineParameters =
 
         /// File path to the client certificate.
         certFilePath : string option
+
+        /// Specifies whether to test all combinations in 'test' mode
+        testAllCombinations: bool
     }
 
 let DefaultEngineParameters =
@@ -86,6 +89,7 @@ let DefaultEngineParameters =
         replayLogFilePath = None
         runResultsAnalyzer = true
         certFilePath = None
+        testAllCombinations = false
     }
 
 /// Restler tasks that may be specified by the user

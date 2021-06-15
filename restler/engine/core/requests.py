@@ -94,6 +94,7 @@ class SmokeTestStats(object):
         self.request_order = -1
         self.matching_prefix = {} # {"id": <prefix_hex>, "valid": <0/1>}
         self.valid = 0
+        self.has_valid_rendering = 0
         self.failure = None
 
         self.error_msg = None
@@ -101,6 +102,40 @@ class SmokeTestStats(object):
         self.status_text = None
 
         self.sample_request = RenderedRequestStats()
+
+    def set_matching_prefix(self, sequence_prefix):
+        # Set the prefix of the request, if it exists.
+        if len(sequence_prefix.requests) > 0:
+            prefix_ids = []
+            for c in sequence_prefix.current_combination_id:
+                prefix_id = {}
+                prefix_id["id"] = c
+                if self.valid:
+                    prefix_id["valid"] = self.valid
+                prefix_ids.append(prefix_id)
+            self.matching_prefix = prefix_ids
+
+    def set_all_stats(self, renderings):
+        self.status_code = renderings.final_request_response.status_code
+        self.status_text = renderings.final_request_response.status_text
+        # Get the last rendered request.  The corresponding response should be
+        # the last received response.
+        self.sample_request.set_request_stats(
+            renderings.sequence.sent_request_data_list[-1].rendered_data)
+        self.sample_request.set_response_stats(renderings.final_request_response,
+                                               renderings.final_response_datetime)
+
+        response_body = renderings.final_request_response.body
+        if renderings.sequence:
+            self.valid = 1 if renderings.valid else 0
+            if self.valid:
+                self.has_valid_rendering = 1
+            self.failure = renderings.failure_info
+
+            if not renderings.valid:
+                self.error_msg = response_body
+
+            self.set_matching_prefix(renderings.sequence.prefix)
 
 class Request(object):
     """ Request Class. """
