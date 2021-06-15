@@ -46,6 +46,10 @@
 
 * *UseQueryExamples* has the same behavior as UseBodyExamples, but for query parameter examples.
 
+* *UseHeaderExamples* has the same behavior as UseBodyExamples, but for header parameter examples.
+
+* *UsePathExamples* has the same behavior as UseBodyExamples, but for path parameter examples.
+
 * *ResolveBodyDependencies* specifies that the body of a request should be analyzed for producer-consumer dependencies and for values specified in the fuzzing dictionary.  When set to 'false', the example payload or schema is used as-is, i.e. all properties are left untouched (either set to example values or fuzzable types).  When set to 'true', all properties of the body parameters (including nested properties) will be analyzed and the appropriate references (per dictionary, annotations, and inferred producer-consumer relationships) will be set in the grammar.  For example, if the fuzzing dictionary contains a custom 'api-version', this value will be used for this property instead of the value in the example payload.
 
 * *ResolveQueryDependencies* has the same behavior as ResolveBodyDependencies, but for query parameters.
