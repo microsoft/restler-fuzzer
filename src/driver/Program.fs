@@ -578,6 +578,12 @@ let rec parseArgs (args:DriverArgs) = function
                                 UseBodyExamples = if config.UseBodyExamples.IsSome then
                                                       config.UseBodyExamples
                                                   else Restler.Config.DefaultConfig.UseBodyExamples
+                                UseHeaderExamples = if config.UseHeaderExamples.IsSome then
+                                                      config.UseHeaderExamples
+                                                    else Restler.Config.DefaultConfig.UseHeaderExamples
+                                UsePathExamples = if config.UsePathExamples.IsSome then
+                                                      config.UsePathExamples
+                                                    else Restler.Config.DefaultConfig.UsePathExamples
                                 IncludeOptionalParameters = true }
             parseArgs { args with task = Compile ; taskParameters = CompilerParameters config } rest
         | Choice2Of2 error ->
