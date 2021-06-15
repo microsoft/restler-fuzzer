@@ -415,6 +415,8 @@ class RestlerSettings(object):
         self._no_ssl = SettingsArg('no_ssl', bool, False, user_args)
         ## Do not print auth token data in logs
         self._no_tokens_in_logs = SettingsArg('no_tokens_in_logs', bool, True, user_args)
+        ## Save the results in a dir with a fixed name (skip 'experiment<pid>' subdir)
+        self._save_results_in_fixed_dirname = SettingsArg('save_results_in_fixed_dirname', bool, False, user_args)
         ## Limit restler grammars only to endpoints whose paths contain a given substring
         self._path_regex = SettingsArg('path_regex', str, None, user_args)
         ## Minimum time, in milliseconds, to wait between sending requests
@@ -539,6 +541,10 @@ class RestlerSettings(object):
     @property
     def no_tokens_in_logs(self):
         return self._no_tokens_in_logs.val
+
+    @property
+    def save_results_in_fixed_dirname(self):
+        return self._save_results_in_fixed_dirname.val
 
     @property
     def path_regex(self):

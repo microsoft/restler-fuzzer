@@ -23,6 +23,7 @@ PREPROCESSING_GENERATION = -1
 POSTPROCESSING_GENERATION = -2
 
 SETTINGS_NO_TOKENS_IN_LOGS = False
+SETTINGS_SAVE_RESULTS_IN_FIXED_DIRNAME = False
 
 # Experiment dir containing all logs
 EXPERIMENT_DIR = None
@@ -110,18 +111,31 @@ def no_tokens_in_logs():
     SETTINGS_NO_TOKENS_IN_LOGS = True
     return
 
+def save_results_in_fixed_dirname():
+    """ Save results in a directory with a fixed name
+    @ return: None
+    @rtype: None
+    """
+    global SETTINGS_SAVE_RESULTS_IN_FIXED_DIRNAME
+    SETTINGS_SAVE_RESULTS_IN_FIXED_DIRNAME = True
+    return
+
 def create_experiment_dir():
     """ creates the unique EXPERIMENT_DIR directory where results are saved
     @return: None
     @rtype: None
     """
     global EXPERIMENT_DIR
-    adder = 0
-    while True:
-        EXPERIMENT_DIR = os.path.join(os.getcwd(), 'RestlerResults', f'experiment{(os.getpid() + adder)!s}')
-        if not os.path.isdir(EXPERIMENT_DIR):
-            break
-        adder += 1
+    global SETTINGS_SAVE_RESULTS_IN_FIXED_DIRNAME
+    if SETTINGS_SAVE_RESULTS_IN_FIXED_DIRNAME:
+        EXPERIMENT_DIR = os.path.join(os.getcwd(), 'RestlerResults')
+    else:
+        adder = 0
+        while True:
+            EXPERIMENT_DIR = os.path.join(os.getcwd(), 'RestlerResults', f'experiment{(os.getpid() + adder)!s}')
+            if not os.path.isdir(EXPERIMENT_DIR):
+                break
+            adder += 1
 
     global CKPT_DIR
     CKPT_DIR = os.path.join(EXPERIMENT_DIR, 'checkpoints')
