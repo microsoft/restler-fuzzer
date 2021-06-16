@@ -480,10 +480,10 @@ def custom_network_logging(sequence, candidate_values_pool, **kwargs):
                 quoted = request_block[2]
                 examples = request_block[3]
             else:
-                field_name = None
                 default_val = request_block[1]
                 quoted = request_block[2]
                 examples = request_block[3]
+                field_name = request_block[4]
 
             # Handling dynamic primitives that need fresh rendering every time
             if primitive == "restler_fuzzable_uuid4":

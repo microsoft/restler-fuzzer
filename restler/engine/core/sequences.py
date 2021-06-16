@@ -350,7 +350,8 @@ class Sequence(object):
             dependencies.reset_tlb()
 
             sequence_failed = False
-            request._tracked_parameters = tracked_parameters
+            request._tracked_parameters = {}
+            request.update_tracked_parameters(tracked_parameters)
             # Step A: Static template rendering
             # Render last known valid combination of primitive type values
             # for every request until the last
@@ -360,7 +361,7 @@ class Sequence(object):
                     prev_request.render_current(candidate_values_pool,
                     preprocessing=preprocessing)
 
-                request._tracked_parameters.update(tracked_parameters)
+                request.update_tracked_parameters(tracked_parameters)
 
                 # substitute reference placeholders with resolved values
                 if not Settings().ignore_dependencies:

@@ -734,7 +734,7 @@ let getParameterDependencies parameterKind globalAnnotations
             let resourceAccessPath = PropertyAccessPaths.getLeafAccessPath parentAccessPath p
             let primitiveType =
                 match p.payload with
-                | FuzzingPayload.Fuzzable (pt, _, _) -> Some pt
+                | FuzzingPayload.Fuzzable (pt, _, _,_) -> Some pt
                 | FuzzingPayload.Constant (pt, _) -> Some pt
                 | FuzzingPayload.Custom c -> Some c.primitiveType
                 | _ -> None
@@ -1218,7 +1218,7 @@ module DependencyLookup =
                 else
                     let defaultPayload =
                         match p.payload with
-                        | None -> Fuzzable (PrimitiveType.String, "", None)
+                        | None -> Fuzzable (PrimitiveType.String, "", None, None)
                         | Some p -> p
                     let propertyAccessPath =
                         { path = PropertyAccessPaths.getInnerAccessPath resourceAccessPath p
@@ -1235,7 +1235,7 @@ module DependencyLookup =
 
         // First, check if the parameter itself has a dependency
         let (parameterName, properties) = requestParameter.name, requestParameter.payload
-        let defaultPayload = (Fuzzable (PrimitiveType.String, "", None))
+        let defaultPayload = (Fuzzable (PrimitiveType.String, "", None, None))
         let dependencyPayload = getConsumerPayload dependencies pathPayload requestId parameterName EmptyAccessPath defaultPayload
 
         let payloadWithDependencies =

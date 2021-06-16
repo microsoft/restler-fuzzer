@@ -201,10 +201,10 @@ class BodySchema():
                 examples = request_block[3]
                 value = None
             else:
-                field_name = None
                 value = request_block[1]
                 quoted = request_block[2]
                 examples = request_block[3]
+                field_name = request_block[4]
 
             # accumulate
             if primitive_type == primitives.STATIC_STRING:

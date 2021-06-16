@@ -137,7 +137,9 @@
                               "payload": {
                                 "Fuzzable": [
                                   "Int",
-                                  "1000"
+                                  "1000",
+                                  null,
+                                  "population"
                                 ]
                               },
                               "isRequired": false,

@@ -602,11 +602,10 @@ class Request(object):
                 quoted = request_block[2]
                 examples = request_block[3]
             else:
-                field_name = None
                 default_val = request_block[1]
                 quoted = request_block[2]
                 examples = request_block[3]
-
+                field_name = request_block[4]
             values = []
             # Handling dynamic primitives that need fresh rendering every time
             if primitive_type == primitives.FUZZABLE_UUID4:
@@ -696,9 +695,10 @@ class Request(object):
                 # Only track the parameter if there are multiple values being combined
                 if len(values) > 1:
                     if not field_name:
-                        field_name = "tracked_param"
-                    field_name = f"{field_name}_{param_idx}"
-                    tracked_parameters[field_name] = param_idx
+                        field_name = f"tracked_param_{param_idx}"
+                    if field_name not in tracked_parameters:
+                        tracked_parameters[field_name] = []
+                    tracked_parameters[field_name].append(param_idx)
 
             fuzzable.append(values)
 
@@ -718,9 +718,10 @@ class Request(object):
             values = request_utilities.resolve_dynamic_primitives(values, candidate_values_pool)
 
             tracked_parameter_values = {}
-            for (k, idx) in tracked_parameters.items():
-                tracked_parameter_values[k] = values[idx]
-
+            for (k, idx_list) in tracked_parameters.items():
+                tracked_parameter_values[k] = []
+                for idx in idx_list:
+                    tracked_parameter_values[k].append(values[idx])
 
             rendered_data = "".join(values)
             yield rendered_data, parser, tracked_parameter_values
@@ -763,6 +764,25 @@ class Request(object):
         self._total_feasible_combinations = counter
 
         return self._total_feasible_combinations
+
+    def update_tracked_parameters(self, tracked_parameters):
+        """ Updates tracked parameters for the request by merging with the
+        existing parameters.
+
+        The tracked parameters are currently a set of names, with arrays of
+        values that were observed during sequence rendering.
+
+        @param tracked_parameters: The tracked parameters and their values.
+        @type tracked_parameters: Dict
+
+        @return: None
+        @rtype : None
+        """
+        for param_name, param_val_list in tracked_parameters.items():
+            for param_val in param_val_list:
+                if param_name not in self._tracked_parameters:
+                    self._tracked_parameters[param_name] = []
+                self._tracked_parameters[param_name].append(param_val)
 
 def GrammarRequestCollection():
     """ Accessor for the global request collection singleton """
