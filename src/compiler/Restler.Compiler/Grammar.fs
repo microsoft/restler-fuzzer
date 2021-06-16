@@ -102,7 +102,8 @@ type PrimitiveType =
     | DateTime
     /// The enum type specifies the list of possible enum values
     /// and the default value, if specified.
-    | Enum of PrimitiveType * string list * string option
+    /// (tag, data type, possible values, default value if present)
+    | Enum of string * PrimitiveType * string list * string option
 
 type NestedType =
     | Array

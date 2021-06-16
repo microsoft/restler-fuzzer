@@ -102,6 +102,7 @@ class SmokeTestStats(object):
         self.status_text = None
 
         self.sample_request = RenderedRequestStats()
+        self.tracked_parameters = {}
 
     def set_matching_prefix(self, sequence_prefix):
         # Set the prefix of the request, if it exists.
@@ -136,6 +137,12 @@ class SmokeTestStats(object):
                 self.error_msg = response_body
 
             self.set_matching_prefix(renderings.sequence.prefix)
+            # Set tracked parameters
+            last_req = renderings.sequence.last_request
+
+            # extract the custom payloads and enums
+            for property_name, property_value in last_req._tracked_parameters.items():
+                self.tracked_parameters[property_name] = property_value
 
 class Request(object):
     """ Request Class. """
@@ -166,6 +173,7 @@ class Request(object):
         self._produces = set()
         self._set_constraints()
         self._create_once_requests = []
+        self._tracked_parameters = {}
 
         # Check for empty request before assigning ids
         if self._definition:
@@ -535,7 +543,7 @@ class Request(object):
         @type  preprocessing: Bool
 
         @return: (rendered request's payload, response's parser function)
-        @rtype : (Str, Function Pointer)
+        @rtype : (Str, Function Pointer, List[Str])
 
         """
         def _raise_dict_err(type, tag):
@@ -574,11 +582,30 @@ class Request(object):
             parser = self.metadata['post_send']['parser']
 
         fuzzable = []
+        # The following list will contain name-value pairs of properties whose combinations
+        # are tracked for coverage reporting purposes.
+        # First, in the loop below, the index of the property in the values list will be added.
+        # Then, at the time of returning the specific combination of values, a new list with
+        # the values will be created
+        tracked_parameters = {}
         for request_block in definition:
             primitive_type = request_block[0]
-            default_val = request_block[1]
-            quoted = request_block[2]
-            examples = request_block[3]
+            if primitive_type == primitives.FUZZABLE_GROUP:
+                field_name = request_block[1]
+                default_val = request_block[2]
+                quoted = request_block[3]
+                examples = request_block[4]
+            elif primitive_type in [ primitives.CUSTOM_PAYLOAD,
+                                     primitives.CUSTOM_PAYLOAD_HEADER,
+                                     primitives.CUSTOM_PAYLOAD_UUID4_SUFFIX ]:
+                field_name = request_block[1]
+                quoted = request_block[2]
+                examples = request_block[3]
+            else:
+                field_name = None
+                default_val = request_block[1]
+                quoted = request_block[2]
+                examples = request_block[3]
 
             values = []
             # Handling dynamic primitives that need fresh rendering every time
@@ -617,40 +644,40 @@ class Request(object):
             elif primitive_type == primitives.CUSTOM_PAYLOAD:
                 try:
                     current_fuzzable_values = candidate_values_pool.\
-                        get_candidate_values(primitive_type, request_id=self._request_id, tag=default_val, quoted=quoted)
+                        get_candidate_values(primitive_type, request_id=self._request_id, tag=field_name, quoted=quoted)
                     # handle case where custom payload have more than one values
                     if isinstance(current_fuzzable_values, list):
                         values = current_fuzzable_values
                     else:
                         values = [current_fuzzable_values]
                 except primitives.CandidateValueException:
-                    _raise_dict_err(primitive_type, default_val)
+                    _raise_dict_err(primitive_type, field_name)
                 except Exception as err:
-                    _handle_exception(primitive_type, default_val, err)
+                    _handle_exception(primitive_type, field_name, err)
             # Handle custom (user defined) static payload on header (Adds \r\n)
             elif primitive_type == primitives.CUSTOM_PAYLOAD_HEADER:
                 try:
                     current_fuzzable_values = candidate_values_pool.\
-                        get_candidate_values(primitive_type, request_id=self._request_id, tag=default_val, quoted=quoted)
+                        get_candidate_values(primitive_type, request_id=self._request_id, tag=field_name, quoted=quoted)
                     # handle case where custom payload have more than one values
                     if isinstance(current_fuzzable_values, list):
                         values = current_fuzzable_values
                     else:
                         values = [current_fuzzable_values]
                 except primitives.CandidateValueException:
-                    _raise_dict_err(primitive_type, default_val)
+                    _raise_dict_err(primitive_type, field_name)
                 except Exception as err:
-                    _handle_exception(primitive_type, default_val, err)
+                    _handle_exception(primitive_type, field_name, err)
             # Handle custom (user defined) static payload with uuid4 suffix
             elif primitive_type == primitives.CUSTOM_PAYLOAD_UUID4_SUFFIX:
                 try:
                     current_fuzzable_value = candidate_values_pool.\
-                        get_candidate_values(primitive_type, request_id=self._request_id, tag=default_val, quoted=quoted)
+                        get_candidate_values(primitive_type, request_id=self._request_id, tag=field_name, quoted=quoted)
                     values = [primitives.restler_custom_payload_uuid4_suffix(current_fuzzable_value)]
                 except primitives.CandidateValueException:
-                    _raise_dict_err(primitive_type, default_val)
+                    _raise_dict_err(primitive_type, field_name)
                 except Exception as err:
-                    _handle_exception(primitive_type, default_val, err)
+                    _handle_exception(primitive_type, field_name, err)
             elif primitive_type == primitives.REFRESHABLE_AUTHENTICATION_TOKEN:
                 values = [primitives.restler_refreshable_authentication_token]
             # Handle all the rest
@@ -662,6 +689,17 @@ class Request(object):
 
             if len(values) == 0:
                 _raise_dict_err(primitive_type, current_fuzzable_tag)
+
+            # When testing all combinations, update tracked parameters.
+            if Settings().fuzzing_mode == 'test-all-combinations':
+                param_idx = len(fuzzable)
+                # Only track the parameter if there are multiple values being combined
+                if len(values) > 1:
+                    if not field_name:
+                        field_name = "tracked_param"
+                    field_name = f"{field_name}_{param_idx}"
+                    tracked_parameters[field_name] = param_idx
+
             fuzzable.append(values)
 
         # lazy generation of pool for candidate values
@@ -678,8 +716,14 @@ class Request(object):
         for ind, values in enumerate(combinations_pool):
             values = list(values)
             values = request_utilities.resolve_dynamic_primitives(values, candidate_values_pool)
+
+            tracked_parameter_values = {}
+            for (k, idx) in tracked_parameters.items():
+                tracked_parameter_values[k] = values[idx]
+
+
             rendered_data = "".join(values)
-            yield rendered_data, parser
+            yield rendered_data, parser, tracked_parameter_values
 
     def render_current(self, candidate_values_pool, preprocessing=False):
         """ Renders the next combination for the current request.
@@ -690,7 +734,7 @@ class Request(object):
         @type  preprocessing: Bool
 
         @return: (rendered request's payload, response's parser function)
-        @rtype : (Str, Function Pointer)
+        @rtype : (Str, Function Pointer, List[Str])
 
         """
         return next(self.render_iter(candidate_values_pool,

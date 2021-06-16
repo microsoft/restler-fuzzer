@@ -290,6 +290,19 @@ module private Parameters =
                                     let parameterPayload = generateGrammarElementForSchema
                                                                 p.ActualSchema
                                                                 (specExampleValue, true) [] id
+                                    // Add the name to the parameter payload
+                                    let parameterPayload =
+                                        match parameterPayload with
+                                        | LeafNode leafProperty ->
+                                            let leafNodePayload =
+                                                match leafProperty.payload with
+                                                | Fuzzable (Enum(propertyName, propertyType, values, defaultValue), x, y) ->
+                                                    Fuzzable (Enum(p.Name, propertyType, values, defaultValue), x, y)
+                                                | _ -> leafProperty.payload
+                                            LeafNode { leafProperty with payload = leafNodePayload }
+                                        | InternalNode (internalNode, children) ->
+                                            // TODO: need enum test to see if body enum is fine.
+                                            parameterPayload
                                     {
                                         name = p.Name
                                         payload = parameterPayload

@@ -135,7 +135,7 @@ class SpecCoverageLog(object):
 
         SpecCoverageLog.__instance = self
 
-    def _get_request_coverage_summary_stats(self, rendered_request, req_hash):
+    def _get_request_coverage_summary_stats(self, rendered_request, req_hash, log_tracked_parameters=False):
         """ Constructs a json object with the coverage information for a request
         from the rendered request.  This info will be reported in a spec coverage file.
 
@@ -181,6 +181,11 @@ class SpecCoverageLog(object):
         req_spec['request_order'] = req.stats.request_order
         req_spec['sample_request'] = vars(req.stats.sample_request)
 
+        if log_tracked_parameters:
+            req_spec['tracked_parameters'] = {}
+            for k, v in req.stats.tracked_parameters.items():
+                req_spec['tracked_parameters'][k] = v
+
         return coverage_data
 
     def log_request_coverage_incremental(self, request=None, rendered_sequence=None, log_rendered_hash=True):
@@ -222,7 +227,7 @@ class SpecCoverageLog(object):
             write_to_main("ERROR: spec coverage is being logged twice for the same rendering.", True)
             return
 
-        req_coverage = self._get_request_coverage_summary_stats(req, req_hash)
+        req_coverage = self._get_request_coverage_summary_stats(req, req_hash, log_tracked_parameters=log_rendered_hash)
         self._renderings_logged[req_hash] = req_coverage[req_hash]['valid']
 
         coverage_as_json = json.dumps(req_coverage, indent=4)
@@ -463,9 +468,23 @@ def custom_network_logging(sequence, candidate_values_pool, **kwargs):
                               f"{request._current_combination_id} / {request.num_combinations(candidate_values_pool)})")
         for request_block in definition:
             primitive = request_block[0]
-            default_val = request_block[1]
-            quoted = request_block[2]
-            examples = request_block[3]
+            if primitive == primitives.FUZZABLE_GROUP:
+                field_name = request_block[1]
+                default_val = request_block[2]
+                quoted = request_block[3]
+                examples = request_block[4]
+            elif primitive in [ primitives.CUSTOM_PAYLOAD,
+                                     primitives.CUSTOM_PAYLOAD_HEADER,
+                                     primitives.CUSTOM_PAYLOAD_UUID4_SUFFIX ]:
+                field_name = request_block[1]
+                quoted = request_block[2]
+                examples = request_block[3]
+            else:
+                field_name = None
+                default_val = request_block[1]
+                quoted = request_block[2]
+                examples = request_block[3]
+
             # Handling dynamic primitives that need fresh rendering every time
             if primitive == "restler_fuzzable_uuid4":
                 values = [primitives.restler_fuzzable_uuid4]
@@ -478,7 +497,7 @@ def custom_network_logging(sequence, candidate_values_pool, **kwargs):
                 default_val = '_OMITTED_BINARY_DATA_'
             # Handle custom payload
             elif primitive == "restler_custom_payload_header":
-                current_fuzzable_tag = default_val
+                current_fuzzable_tag = field_name
                 values = candidate_values_pool.get_candidate_values(primitive, request_id=request.request_id, tag=current_fuzzable_tag, quoted=quoted)
                 if not isinstance(values, list):
                     values = [values]
@@ -486,7 +505,7 @@ def custom_network_logging(sequence, candidate_values_pool, **kwargs):
                     default_val = values[0]
             # Handle custom payload
             elif primitive == "restler_custom_payload":
-                current_fuzzable_tag = default_val
+                current_fuzzable_tag = field_name
                 values = candidate_values_pool.get_candidate_values(primitive, request_id=request.request_id, tag=current_fuzzable_tag, quoted=quoted)
                 if not isinstance(values, list):
                     values = [values]
@@ -494,7 +513,7 @@ def custom_network_logging(sequence, candidate_values_pool, **kwargs):
                     default_val = values[0]
             # Handle custom payload with uuid4 suffix
             elif primitive == "restler_custom_payload_uuid4_suffix":
-                current_fuzzable_tag = default_val
+                current_fuzzable_tag = field_name
                 values = candidate_values_pool.get_candidate_values(primitive, request_id=request.request_id, tag=current_fuzzable_tag, quoted=quoted)
                 default_val = values[0]
             # Handle all the rest
