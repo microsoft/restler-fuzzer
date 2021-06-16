@@ -2,6 +2,7 @@
     "client_certificate_path": "\\path\\to\\file.pem",
     "max_combinations": 20,
     "max_request_execution_time": 90,
+    "save_results_in_fixed_dirname": false,
     "global_producer_timing_delay": 2,
     "dyn_objects_cache_size": 200,
     "fuzzing_jobs": 2,

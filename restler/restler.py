@@ -258,6 +258,9 @@ if __name__ == '__main__':
     parser.add_argument('--no_tokens_in_logs',
                         help='Do not print auth token data in logs (default: False)',
                         type=bool, default=False, required=False)
+    parser.add_argument('--save_results_in_fixed_dirname',
+                        help='Save results in a directory with a fixed name (default: False)',
+                        type=bool, default=False, required=False)
     parser.add_argument('--host',
                         help='Set to override Host in the grammar (default: do not override)',
                         type=str, default=None, required=False)
@@ -339,6 +342,9 @@ if __name__ == '__main__':
             except Exception as error:
                 print(f"Cannot import custom mutations: {error!s}")
                 sys.exit(-1)
+
+    if settings.save_results_in_fixed_dirname:
+        logger.save_results_in_fixed_dirname()
 
     # Create the directory where all the results will be saved
     try:
