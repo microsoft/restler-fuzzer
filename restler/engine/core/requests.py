@@ -589,7 +589,6 @@ class Request(object):
         # the values will be created
         tracked_parameters = {}
         for request_block in definition:
-            #return sys._getframe().f_code.co_name, field_name, enum_vals, quoted, examples
             primitive_type = request_block[0]
             if primitive_type == primitives.FUZZABLE_GROUP:
                 field_name = request_block[1]

@@ -186,11 +186,25 @@ class BodySchema():
         acc = ''
         sets = []
 
-        for block in blocks:
-            primitive_type = block[0]
-            value = block[1]
-            if len(block) > 2:
-                quoted = block[2]
+        for request_block in blocks:
+            primitive_type = request_block[0]
+            if primitive_type == primitives.FUZZABLE_GROUP:
+                field_name = request_block[1]
+                value = request_block[2]
+                quoted = request_block[3]
+                examples = request_block[4]
+            elif primitive_type in [ primitives.CUSTOM_PAYLOAD,
+                                     primitives.CUSTOM_PAYLOAD_HEADER,
+                                     primitives.CUSTOM_PAYLOAD_UUID4_SUFFIX ]:
+                field_name = request_block[1]
+                quoted = request_block[2]
+                examples = request_block[3]
+                value = None
+            else:
+                field_name = None
+                value = request_block[1]
+                quoted = request_block[2]
+                examples = request_block[3]
 
             # accumulate
             if primitive_type == primitives.STATIC_STRING:
