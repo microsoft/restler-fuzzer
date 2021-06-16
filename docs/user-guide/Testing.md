@@ -132,6 +132,10 @@ the coverage data is being reported.
 * The __"error_message"__ value will be set to the response body if the request was not "valid".
 * The __"request_order"__ value is the 0 indexed order that the request was sent.
   * Requests sent during "preprocessing" or "postprocessing" will explicitely say so.
+* The __"tracked_parameters"__ property is optional and generated only when using
+`Test` mode with ```test-all-combinations```.
+This property contains key-value pairs of all of the parameters
+for which more than one value is being tested.
 
 #### Postprocessing Scripts:
 The `utilities` directory contains a sub-directory called `speccovparsing` that contains scripts for postprocessing speccov files.
