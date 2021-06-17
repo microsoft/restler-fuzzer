@@ -63,10 +63,19 @@ let parseAnnotation (ann:JToken) =
                 (ResourceName producerId.resourceName),
                 producerId
 
+        let exceptConsumerId =
+            match annotation.except with
+            | None -> None
+            | Some exceptConsumer ->
+                Some {
+                        endpoint = exceptConsumer.consumer_endpoint
+                        method = getOperationMethodFromString exceptConsumer.consumer_method
+                     }
+
         Some {  ProducerConsumerAnnotation.producerId = producerId
                 consumerParameter = consumerParameter
                 producerParameter = producerParameter
-                exceptConsumerId = None
+                exceptConsumerId = exceptConsumerId
              }
 
 /// Gets annotation data from Json
