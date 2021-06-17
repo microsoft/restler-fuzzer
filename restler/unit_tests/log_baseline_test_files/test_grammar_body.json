@@ -263,6 +263,7 @@
                         "Fuzzable": [
                           {
                             "Enum": [
+                              "group",
                               "String",
                               [
                                 "A",
@@ -492,6 +493,7 @@
                                       "Fuzzable": [
                                         {
                                           "Enum": [
+                                            "group",
                                             "String",
                                             [
                                               "A",
