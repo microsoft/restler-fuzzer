@@ -373,6 +373,10 @@ let generateDynamicObjectVariableName (requestId:RequestId) (accessPath:AccessPa
         match accessPath with
         | None -> Array.empty
         | Some ap -> ap.getPathPartsForName()
+    let objIdParts =
+        objIdParts
+        |> Seq.map (fun part -> part.Split(replaceTargets, System.StringSplitOptions.None))
+        |> Seq.concat
     let parts = endpointParts
                 @ [(requestId.method.ToString().ToLower())]
                 @ (objIdParts |> Seq.toList)
