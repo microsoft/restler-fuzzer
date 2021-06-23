@@ -28,6 +28,7 @@ type MutationsDictionary =
         restler_custom_payload_unquoted : Map<string, string list> option
         restler_custom_payload_uuid4_suffix : Map<string, string> option
         restler_custom_payload_header :  Map<string, string list> option
+        restler_custom_payload_header_unquoted :  Map<string, string list> option
         shadow_values : Map<string, Map<string, string list>> option
         // TODO: restler_multipart_formdata :  Map<string, string list> option
 
@@ -56,25 +57,39 @@ type MutationsDictionary =
         member x.getParameterForCustomPayload consumerResourceName (accessPathParts: AccessPath) primitiveType =
             let payloadType = CustomPayloadType.String
 
-            // First, check for an exact access path, and if one is not found, check for the resource name.
-            let payloadName, payloadEntry =
-                match x.findPathPayloadEntry x.restler_custom_payload accessPathParts with
-                | Some (e,v) -> e, Some v
-                | None ->
-                    consumerResourceName, x.findPayloadEntry x.restler_custom_payload consumerResourceName
+            // Check both custom payloads and unquoted custom payloads.
+            [ x.restler_custom_payload; x.restler_custom_payload_unquoted ]
+            |> Seq.map (fun custom_payload_entries ->
+                // First, check for an exact access path, and if one is not found, check for the resource name.
+                let payloadName, payloadEntry =
+                    match x.findPathPayloadEntry custom_payload_entries accessPathParts with
+                    | Some (e,v) -> e, Some v
+                    | None ->
+                        consumerResourceName, x.findPayloadEntry custom_payload_entries consumerResourceName
 
-            match payloadEntry with
-            | Some entries when payloadType = CustomPayloadType.String ->
-                    match entries |> List.tryHead with
-                    | None -> raise (InvalidMutationsDictionaryFormat
-                                        (sprintf "You must specify at least one payload value for %s" consumerResourceName))
-                    | Some entry ->
-                        let payloadTrimmed = entry.Trim()
-                        let isObject = payloadTrimmed.StartsWith "{" || payloadTrimmed.StartsWith "["
-                        DictionaryPayload (payloadType, primitiveType, payloadName, isObject) |> stn
-            | Some _ ->
-                DictionaryPayload (payloadType, primitiveType, payloadName, false) |> stn
-            | None -> Seq.empty
+                match payloadEntry with
+                | Some entries when payloadType = CustomPayloadType.String ->
+                        match entries |> List.tryHead with
+                        | None -> raise (InvalidMutationsDictionaryFormat
+                                            (sprintf "You must specify at least one payload value for %s" consumerResourceName))
+                        | Some entry ->
+                            let payloadTrimmed = entry.Trim()
+                            let isObject = payloadTrimmed.StartsWith "{" || payloadTrimmed.StartsWith "["
+                            DictionaryPayload (payloadType, primitiveType, payloadName, isObject) |> stn
+                | Some _ ->
+                    DictionaryPayload (payloadType, primitiveType, payloadName, false) |> stn
+                | None -> Seq.empty)
+            |> Seq.concat
+
+        member x.getCustomPayloadHeaderParameterNames() =
+            [ x.restler_custom_payload_header; x.restler_custom_payload_header_unquoted ]
+            |> Seq.map (fun custom_payload_header_entries ->
+                            match custom_payload_header_entries with
+                            | None -> Seq.empty
+                            | Some d -> d |> Map.toSeq)
+            |> Seq.concat
+            |> Seq.map (fun (k,_) -> k)
+            |> Seq.distinct
 
         member x.getParameterForCustomPayloadUuidSuffix
                     consumerResourceName
@@ -135,6 +150,7 @@ let DefaultMutationsDictionary =
         restler_custom_payload_unquoted = Some (Map.empty<string, string list>)
         restler_custom_payload_uuid4_suffix = Some (Map.empty<string, string>)
         restler_custom_payload_header = None
+        restler_custom_payload_header_unquoted = None
         shadow_values = None
     }
 

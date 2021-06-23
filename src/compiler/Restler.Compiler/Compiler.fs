@@ -392,6 +392,8 @@ let generateRequestPrimitives (requestId:RequestId)
     let headerParameters, replacedCustomPayloadHeaders =
         requestParameters.header
         |> List.mapFold (fun newReplacedPayloadHeaders (payloadSource, requestHeaders) ->
+                            let headersSpecifiedAsCustomPayloads = dictionary.getCustomPayloadHeaderParameterNames()
+
                             let newParameterList =
                                 // The grammar should always have examples, if they exist here,
                                 // which implies that 'useExamples' was specified by the user.
@@ -401,30 +403,27 @@ let generateRequestPrimitives (requestId:RequestId)
                                     // They will be added separately.
                                     parameterList
                                     |> Seq.map (fun requestParameter ->
-                                                      match dictionary.restler_custom_payload_header with
-                                                      | None -> requestParameter, false
-                                                      | Some custom_payload_headers ->
-                                                            if (custom_payload_headers |> Map.containsKey requestParameter.name) then
-                                                                let newParameter =
-                                                                    { requestParameter with
-                                                                        payload =
-                                                                            Tree.LeafNode
-                                                                                {
-                                                                                    LeafProperty.name = ""
-                                                                                    LeafProperty.payload =
-                                                                                        FuzzingPayload.Custom
-                                                                                            {
-                                                                                                payloadType = CustomPayloadType.Header
-                                                                                                primitiveType = PrimitiveType.String
-                                                                                                payloadValue = requestParameter.name
-                                                                                                isObject = false
-                                                                                            }
-                                                                                    LeafProperty.isRequired = true
-                                                                                    LeafProperty.isReadOnly = false
-                                                                                }}
-                                                                newParameter, true
-                                                            else
-                                                                requestParameter, false)
+                                                    if headersSpecifiedAsCustomPayloads |> Seq.contains requestParameter.name then
+                                                        let newParameter =
+                                                            { requestParameter with
+                                                                payload =
+                                                                    Tree.LeafNode
+                                                                        {
+                                                                            LeafProperty.name = ""
+                                                                            LeafProperty.payload =
+                                                                                FuzzingPayload.Custom
+                                                                                    {
+                                                                                        payloadType = CustomPayloadType.Header
+                                                                                        primitiveType = PrimitiveType.String
+                                                                                        payloadValue = requestParameter.name
+                                                                                        isObject = false
+                                                                                    }
+                                                                            LeafProperty.isRequired = true
+                                                                            LeafProperty.isReadOnly = false
+                                                                        }}
+                                                        newParameter, true
+                                                    else
+                                                        requestParameter, false)
                                 | _ -> raise (UnsupportedType "Only a list of header parameters is supported.")
                             let parameterList =
                                 newParameterList |> Seq.map fst |> Seq.toList
@@ -506,13 +505,10 @@ let generateRequestPrimitives (requestId:RequestId)
 
     let customPayloadHeaderParameters =
         let parameterNames =
-            match dictionary.restler_custom_payload_header with
-            | None -> Seq.empty
-            | Some headersMap ->
-                headersMap
-                |> Map.toSeq
-                |> Seq.filter (fun (k,_) -> not (replacedCustomPayloadHeaders |> List.contains k))
-                |> Seq.map (fun (k,_) -> k)
+            let headersSpecifiedAsCustomPayloads = dictionary.getCustomPayloadHeaderParameterNames()
+            headersSpecifiedAsCustomPayloads
+            |> Seq.filter (fun name -> not (replacedCustomPayloadHeaders |> List.contains name))
+
         parameterNames
             |> Seq.map (fun headerName ->
                             let newParameter =
