@@ -169,7 +169,10 @@ let getExampleConfig (endpoint:string, method:string)
                      (examplesDirectoryPath:string)
                      (userSpecifiedPayloadExamples:ExampleConfigFile option) =
     // TODO: only do user specified if discoverExamples is false.
-    let exampleValues =
+
+    // The example payloads specified in the example config file take precedence over the
+    // examples in the specification.
+    let userSpecifiedPayloadExampleValues =
         match userSpecifiedPayloadExamples with
         | Some payloadExamples ->
             if discoverExamples then
@@ -194,7 +197,12 @@ let getExampleConfig (endpoint:string, method:string)
                                     tryDeserializeJObjectFromFile fp
                                 | ExamplePayloadKind.InlineExample ie ->
                                     tryDeserializeJObjectFromToken ie)
-        | None ->
+        | None -> List.empty
+
+    let exampleValues =
+        if userSpecifiedPayloadExampleValues.Length > 0 then
+            userSpecifiedPayloadExampleValues
+        else
             let extensionData =
                 if isNull swaggerMethodDefinition.ExtensionData then None
                 else swaggerMethodDefinition.ExtensionData
