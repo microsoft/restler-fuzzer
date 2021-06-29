@@ -174,7 +174,8 @@ module SwaggerVisitors =
         let extractPropertyFromObject propertyName (objectType:NJsonSchema.JsonObjectType)
                                                    (exampleObj: JToken option) =
             if (String.IsNullOrWhiteSpace propertyName && objectType <> NJsonSchema.JsonObjectType.Array) then
-                failwith "non-array should always have a property name"
+                failwith (sprintf "non-array should always have a property name.  Property type: %A" objectType)
+
             let pv, includeProperty =
                 match exampleObj with
                 | Some ex ->
