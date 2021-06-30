@@ -97,3 +97,6 @@ catch consistency bugs in the specification because producer-consumer dependenci
     HyphenSeparator
     UnderscoreSeparator
     ```
+* *TrackFuzzedParameterNames* False by default.  When true, every fuzzable primitive will
+include an additional parameter `param_name` which is the name of the property or
+parameter being fuzzed.  These will be used to capture fuzzed parameters in ```tracked_parameters``` in the spec coverage file.

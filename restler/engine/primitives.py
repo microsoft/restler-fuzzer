@@ -51,6 +51,11 @@ UNQUOTED_STR = '_unquoted'
 # Optional argument passed to fuzzable primitive definition function that can
 # provide an example value.  This value is used instead of the default value if present.
 EXAMPLES_ARG = 'examples'
+# Optional argument passed to fuzzable primitive definition function that can
+# provide the name of the parameter being fuzzed.
+# This value is used in test-all-combinations mode to allow the user to analyze spec coverage
+# for particular parameter values.
+PARAM_NAME_ARG = 'param_name'
 class CandidateValues(object):
     def __init__(self):
         self.unquoted_values = []
@@ -374,7 +379,8 @@ def restler_static_string(*args, **kwargs):
     if QUOTED_ARG in kwargs:
         quoted = kwargs[QUOTED_ARG]
     examples = None
-    return sys._getframe().f_code.co_name, field_name, quoted, examples
+    param_name = None
+    return sys._getframe().f_code.co_name, field_name, quoted, examples, param_name
 
 
 def restler_fuzzable_string(*args, **kwargs):
@@ -400,7 +406,10 @@ def restler_fuzzable_string(*args, **kwargs):
     examples=None
     if EXAMPLES_ARG in kwargs:
         examples = kwargs[EXAMPLES_ARG]
-    return sys._getframe().f_code.co_name, field_name, quoted, examples
+    param_name = None
+    if PARAM_NAME_ARG in kwargs:
+        param_name = kwargs[PARAM_NAME_ARG]
+    return sys._getframe().f_code.co_name, field_name, quoted, examples, param_name
 
 def restler_fuzzable_int(*args, **kwargs):
     """ Integer primitive.
@@ -425,7 +434,10 @@ def restler_fuzzable_int(*args, **kwargs):
     examples=None
     if EXAMPLES_ARG in kwargs:
         examples = kwargs[EXAMPLES_ARG]
-    return sys._getframe().f_code.co_name, field_name, quoted, examples
+    param_name = None
+    if PARAM_NAME_ARG in kwargs:
+        param_name = kwargs[PARAM_NAME_ARG]
+    return sys._getframe().f_code.co_name, field_name, quoted, examples, param_name
 
 
 def restler_fuzzable_bool(*args, **kwargs):
@@ -451,7 +463,10 @@ def restler_fuzzable_bool(*args, **kwargs):
     examples=None
     if EXAMPLES_ARG in kwargs:
         examples = kwargs[EXAMPLES_ARG]
-    return sys._getframe().f_code.co_name, field_name, quoted, examples
+    param_name = None
+    if PARAM_NAME_ARG in kwargs:
+        param_name = kwargs[PARAM_NAME_ARG]
+    return sys._getframe().f_code.co_name, field_name, quoted, examples, param_name
 
 
 def restler_fuzzable_number(*args, **kwargs):
@@ -477,7 +492,10 @@ def restler_fuzzable_number(*args, **kwargs):
     examples=None
     if EXAMPLES_ARG in kwargs:
         examples = kwargs[EXAMPLES_ARG]
-    return sys._getframe().f_code.co_name, field_name, quoted, examples
+    param_name = None
+    if PARAM_NAME_ARG in kwargs:
+        param_name = kwargs[PARAM_NAME_ARG]
+    return sys._getframe().f_code.co_name, field_name, quoted, examples, param_name
 
 
 def restler_fuzzable_delim(*args, **kwargs):
@@ -503,7 +521,10 @@ def restler_fuzzable_delim(*args, **kwargs):
     examples=None
     if EXAMPLES_ARG in kwargs:
         examples = kwargs[EXAMPLES_ARG]
-    return sys._getframe().f_code.co_name, field_name, quoted, examples
+    param_name = None
+    if PARAM_NAME_ARG in kwargs:
+        param_name = kwargs[PARAM_NAME_ARG]
+    return sys._getframe().f_code.co_name, field_name, quoted, examples, param_name
 
 
 def restler_fuzzable_group(*args, **kwargs):
@@ -536,7 +557,8 @@ def restler_fuzzable_group(*args, **kwargs):
     examples=None
     if EXAMPLES_ARG in kwargs:
         examples = kwargs[EXAMPLES_ARG]
-    return sys._getframe().f_code.co_name, field_name, enum_vals, quoted, examples
+    param_name = None
+    return sys._getframe().f_code.co_name, field_name, enum_vals, quoted, examples, param_name
 
 
 def restler_fuzzable_uuid4(*args, **kwargs):
@@ -562,7 +584,10 @@ def restler_fuzzable_uuid4(*args, **kwargs):
     examples=None
     if EXAMPLES_ARG in kwargs:
         examples = kwargs[EXAMPLES_ARG]
-    return sys._getframe().f_code.co_name, field_name, quoted, examples
+    param_name = None
+    if PARAM_NAME_ARG in kwargs:
+        param_name = kwargs[PARAM_NAME_ARG]
+    return sys._getframe().f_code.co_name, field_name, quoted, examples, param_name
 
 
 def restler_fuzzable_datetime(*args, **kwargs) :
@@ -589,7 +614,10 @@ def restler_fuzzable_datetime(*args, **kwargs) :
     examples=None
     if EXAMPLES_ARG in kwargs:
         examples = kwargs[EXAMPLES_ARG]
-    return sys._getframe().f_code.co_name, field_name, quoted, examples
+    param_name = None
+    if PARAM_NAME_ARG in kwargs:
+        param_name = kwargs[PARAM_NAME_ARG]
+    return sys._getframe().f_code.co_name, field_name, quoted, examples, param_name
 
 def restler_fuzzable_object(*args, **kwargs) :
     """ object primitive ({})
@@ -614,7 +642,9 @@ def restler_fuzzable_object(*args, **kwargs) :
     examples=None
     if EXAMPLES_ARG in kwargs:
         examples = kwargs[EXAMPLES_ARG]
-    return sys._getframe().f_code.co_name, field_name, quoted, examples
+    if PARAM_NAME_ARG in kwargs:
+        param_name = kwargs[PARAM_NAME_ARG]
+    return sys._getframe().f_code.co_name, field_name, quoted, examples, param_name
 
 def restler_multipart_formdata(*args, **kwargs):
     """ Multipart/formdata primitive
@@ -638,7 +668,8 @@ def restler_multipart_formdata(*args, **kwargs):
     if QUOTED_ARG in kwargs:
         quoted = kwargs[QUOTED_ARG]
     examples = None
-    return sys._getframe().f_code.co_name, field_name, quoted, examples
+    param_name = None
+    return sys._getframe().f_code.co_name, field_name, quoted, examples, param_name
 
 
 def restler_custom_payload(*args, **kwargs):
@@ -662,7 +693,8 @@ def restler_custom_payload(*args, **kwargs):
     if QUOTED_ARG in kwargs:
         quoted = kwargs[QUOTED_ARG]
     examples = None
-    return sys._getframe().f_code.co_name, field_name, quoted, examples
+    param_name = None
+    return sys._getframe().f_code.co_name, field_name, quoted, examples, param_name
 
 
 def restler_custom_payload_header(*args, **kwargs):
@@ -686,7 +718,8 @@ def restler_custom_payload_header(*args, **kwargs):
     if QUOTED_ARG in kwargs:
         quoted = kwargs[QUOTED_ARG]
     examples = None
-    return sys._getframe().f_code.co_name, field_name, quoted, examples
+    param_name = None
+    return sys._getframe().f_code.co_name, field_name, quoted, examples, param_name
 
 
 def restler_custom_payload_uuid4_suffix(*args, **kwargs):
@@ -710,7 +743,8 @@ def restler_custom_payload_uuid4_suffix(*args, **kwargs):
     if QUOTED_ARG in kwargs:
         quoted = kwargs[QUOTED_ARG]
     examples = None
-    return sys._getframe().f_code.co_name, field_name, quoted, examples
+    param_name = None
+    return sys._getframe().f_code.co_name, field_name, quoted, examples, param_name
 
 
 def restler_refreshable_authentication_token(*args, **kwargs):
@@ -734,4 +768,5 @@ def restler_refreshable_authentication_token(*args, **kwargs):
     if QUOTED_ARG in kwargs:
         quoted = kwargs[QUOTED_ARG]
     examples = None
-    return sys._getframe().f_code.co_name, field_name, quoted, examples
+    param_name = None
+    return sys._getframe().f_code.co_name, field_name, quoted, examples, param_name

@@ -135,9 +135,9 @@ type FuzzingPayload =
     /// Example: (Int "1")
     | Constant of PrimitiveType * string
 
-    /// (data type, default value, example value)
+    /// (data type, default value, example value, parameter name)
     /// Example: (Int "1", "2")
-    | Fuzzable of PrimitiveType * string * string option
+    | Fuzzable of PrimitiveType * string * string option * string option
 
     /// The custom payload, as specified in the fuzzing dictionary
     | Custom of CustomPayload

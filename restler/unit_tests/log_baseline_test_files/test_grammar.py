@@ -223,8 +223,12 @@ request = requests.Request([
     primitives.restler_static_string("\r\n"),
     primitives.restler_static_string("{"),
     primitives.restler_static_string('"population":'),
-    primitives.restler_fuzzable_int('10000', quoted=True),
+    primitives.restler_fuzzable_int('10000', quoted=True, param_name="population"),
     primitives.restler_static_string(', "area": "5000",'),
+    # Note: There is a discrepancy here due to
+    # manual creation of this grammar - the fuzzable string
+    # does not match the grammar.json, which contains
+    # a constant string for this value.
     primitives.restler_fuzzable_string('strtest', quoted=True),
     primitives.restler_static_string(':'),
     primitives.restler_fuzzable_bool('true', quoted=True),
@@ -626,7 +630,7 @@ request = requests.Request([
     primitives.restler_static_string("{"),
     primitives.restler_static_string('testbool', quoted=True),
     primitives.restler_static_string(':'),
-    primitives.restler_fuzzable_bool("testval", quoted=True),
+    primitives.restler_fuzzable_bool("testval", quoted=True, param_name="testbool"),
     primitives.restler_static_string(',"location":'),
     primitives.restler_custom_payload("location", quoted=True),
     primitives.restler_static_string("}"),
@@ -849,7 +853,7 @@ request = requests.Request([
     primitives.restler_static_string("\r\n"),
     primitives.restler_static_string("{"),
     primitives.restler_static_string('"datetest":'),
-    primitives.restler_fuzzable_datetime("2020-1-1", quoted=True),
+    primitives.restler_fuzzable_datetime("2020-1-1", quoted=True, example=["2020-2-2"], param_name="datetest"),
     primitives.restler_static_string(',"id":'),
     primitives.restler_static_string('"/testparts/'),
     primitives.restler_custom_payload("testcustomparts", quoted=False),

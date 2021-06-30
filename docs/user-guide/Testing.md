@@ -105,7 +105,8 @@ During each Test run a `speccov.json` file will be created in the logs directory
             "response_body": "{\n    \"errors\": {\n        \"id\": \"'5882' is not of type 'integer'\"\n    },\n    \"message\": \"Input payload validation failed\"\n}\n"
         },
         "tracked_parameters": {
-            "per_page_9": "2"
+            "per_page": ["2"],
+            "page": ["1"]
         }
     },
 ```
@@ -135,7 +136,9 @@ the coverage data is being reported.
 * The __"tracked_parameters"__ property is optional and generated only when using
 `Test` mode with ```test-all-combinations```.
 This property contains key-value pairs of all of the parameters
-for which more than one value is being tested.
+for which more than one value is being tested.  By default, enums and custom payloads
+are always tracked.  In addition, when the specification was compiled with
+`TrackFuzzedParameterNames` set to `true`, all fuzzable parameters will be tracked.
 
 #### Postprocessing Scripts:
 The `utilities` directory contains a sub-directory called `speccovparsing` that contains scripts for postprocessing speccov files.

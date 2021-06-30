@@ -156,7 +156,8 @@ module private Parameters =
         | _ -> raise (UnsupportedType "Complex path parameters are not supported")
 
     let private getParametersFromExample (examplePayload:ExampleRequestPayload)
-                                         (parameterList:seq<OpenApiParameter>) =
+                                         (parameterList:seq<OpenApiParameter>)
+                                         (trackParameters:bool) =
         parameterList
         |> Seq.choose (fun declaredParameter ->
                             // If the declared parameter isn't in the example, skip it.  Here, the example is used to
@@ -169,7 +170,7 @@ module private Parameters =
                                 | PayloadFormat.JToken payloadValue ->
                                     let parameterGrammarElement =
                                         generateGrammarElementForSchema declaredParameter.ActualSchema
-                                                                        (Some payloadValue, false) [] id
+                                                                        (Some payloadValue, false) trackParameters [] id
                                     Some { name = declaredParameter.Name
                                            payload = parameterGrammarElement
                                            serialization = getParameterSerialization declaredParameter }
@@ -205,7 +206,8 @@ module private Parameters =
                 None
 
     let pathParameters (swaggerMethodDefinition:OpenApiOperation) (endpoint:string)
-                       (exampleConfig: ExampleRequestPayload list option) =
+                       (exampleConfig: ExampleRequestPayload list option)
+                       (trackParameters:bool) =
         let declaredPathParameters = swaggerMethodDefinition.ActualParameters
                                      |> Seq.filter (fun p -> p.Kind = NSwag.OpenApiParameterKind.Path)
 
@@ -250,19 +252,22 @@ module private Parameters =
                                                                                      (tryGetEnumeration schema)
                                                                                      (tryGetDefault schema)
                                                                                      specExampleValue
+                                                                                     trackParameters
                                                 Some { name = parameterName
                                                        payload = LeafNode leafProperty
                                                        serialization = serialization }
                                             | Some (firstExample::remainingExamples) ->
                                                 // Use the first example specified to determine the parameter value.
-                                                getParametersFromExample firstExample (parameter |> stn)
+                                                getParametersFromExample firstExample (parameter |> stn) trackParameters
                                                 |> Seq.head
                                                 |> Some
                             )
         ParameterList parameterList
 
     let private getParameters (parameterList:seq<OpenApiParameter>)
-                              (exampleConfig:ExampleRequestPayload list option) (dataFuzzing:bool) =
+                              (exampleConfig:ExampleRequestPayload list option)
+                              (dataFuzzing:bool)
+                              (trackParameters:bool) =
 
         // When data fuzzing is specified, both the full schema and examples should be available for analysis.
         // Otherwise, use the first example if it exists, or the schema, and return a single schema.
@@ -272,9 +277,9 @@ module private Parameters =
             | Some [] -> None
             | Some (firstExample::remainingExamples) ->
                 // Use the first example specified to determine the parameter schema and values.
-                let firstPayload = getParametersFromExample firstExample parameterList
+                let firstPayload = getParametersFromExample firstExample parameterList trackParameters
                 let restOfPayloads =
-                    remainingExamples |> List.map (fun e -> getParametersFromExample e parameterList)
+                    remainingExamples |> List.map (fun e -> getParametersFromExample e parameterList trackParameters)
                 Some (firstPayload::restOfPayloads)
 
         let schemaPayload =
@@ -289,15 +294,19 @@ module private Parameters =
 
                                     let parameterPayload = generateGrammarElementForSchema
                                                                 p.ActualSchema
-                                                                (specExampleValue, true) [] id
+                                                                (specExampleValue, true)
+                                                                trackParameters
+                                                                [] id
                                     // Add the name to the parameter payload
                                     let parameterPayload =
                                         match parameterPayload with
                                         | LeafNode leafProperty ->
                                             let leafNodePayload =
                                                 match leafProperty.payload with
-                                                | Fuzzable (Enum(propertyName, propertyType, values, defaultValue), x, y) ->
-                                                    Fuzzable (Enum(p.Name, propertyType, values, defaultValue), x, y)
+                                                | Fuzzable (Enum(propertyName, propertyType, values, defaultValue), x, y, z) ->
+                                                    Fuzzable (Enum(p.Name, propertyType, values, defaultValue), x, y, z)
+                                                | Fuzzable (a, b, c, _) ->
+                                                    Fuzzable (a, b, c, if trackParameters then Some p.Name else None)
                                                 | _ -> leafProperty.payload
                                             LeafNode { leafProperty with payload = leafNodePayload }
                                         | InternalNode (internalNode, children) ->
@@ -333,7 +342,8 @@ module private Parameters =
 
     let getAllParameters (swaggerMethodDefinition:OpenApiOperation)
                          (parameterKind:NSwag.OpenApiParameterKind)
-                         exampleConfig dataFuzzing =
+                         exampleConfig dataFuzzing
+                         trackParameters =
         let localParameters = swaggerMethodDefinition.ActualParameters
                               |> Seq.filter (fun p -> p.Kind = parameterKind)
         // add shared parameters for the endpoint, if any
@@ -342,7 +352,7 @@ module private Parameters =
 
         let allParameters =
             [localParameters ; declaredSharedParameters ] |> Seq.concat
-        getParameters allParameters exampleConfig dataFuzzing
+        getParameters allParameters exampleConfig dataFuzzing trackParameters
 
 let generateRequestPrimitives (requestId:RequestId)
                                (responseParser:ResponseParser option)
@@ -615,6 +625,7 @@ let generateRequestGrammar (swaggerDocs:Types.ApiSpecFuzzingConfig list)
                                     Parameters.pathParameters
                                             m.Value ep
                                             (if usePathExamples then exampleConfig else None)
+                                            config.TrackFuzzedParameterNames
                                 RequestParameters.header =
                                     let useHeaderExamples =
                                         config.UseHeaderExamples |> Option.defaultValue false
@@ -623,7 +634,7 @@ let generateRequestGrammar (swaggerDocs:Types.ApiSpecFuzzingConfig list)
                                         OpenApiParameterKind.Header
                                         (if useHeaderExamples then exampleConfig else None)
                                         config.DataFuzzing
-
+                                        config.TrackFuzzedParameterNames
                                 RequestParameters.query =
                                     let useQueryExamples =
                                         config.UseQueryExamples |> Option.defaultValue false
@@ -632,6 +643,7 @@ let generateRequestGrammar (swaggerDocs:Types.ApiSpecFuzzingConfig list)
                                         OpenApiParameterKind.Query
                                         (if useQueryExamples then exampleConfig else None)
                                         config.DataFuzzing
+                                        config.TrackFuzzedParameterNames
                                 RequestParameters.body =
                                     let useBodyExamples =
                                         config.UseBodyExamples |> Option.defaultValue false
@@ -640,12 +652,13 @@ let generateRequestGrammar (swaggerDocs:Types.ApiSpecFuzzingConfig list)
                                         OpenApiParameterKind.Body
                                         (if useBodyExamples then exampleConfig else None)
                                         config.DataFuzzing
+                                        config.TrackFuzzedParameterNames
                             }
 
                         let allResponseProperties = seq {
                             for r in m.Value.Responses do
                                 if validResponseCodes |> List.contains r.Key && not (isNull r.Value.ActualResponse.Schema) then
-                                    yield generateGrammarElementForSchema r.Value.ActualResponse.Schema (None, false) [] id
+                                    yield generateGrammarElementForSchema r.Value.ActualResponse.Schema (None, false) false [] id
                         }
 
                         // 'allResponseProperties' contains the schemas of all possible responses

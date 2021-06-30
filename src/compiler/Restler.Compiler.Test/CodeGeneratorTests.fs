@@ -5,6 +5,7 @@ namespace Restler.Test
 
 open System.IO
 open Xunit
+open System
 open Restler.Grammar
 open Restler.CodeGenerator.Python.Types
 open Tree
@@ -23,7 +24,7 @@ module CodeGenerator =
         /// This is useful because the grammar json is validated
         /// when deserialized by the RESTler compiler, avoiding typos made directly in python.
         /// This also sanity checks that the grammar generation is deterministic.
-        member __.``generate code from modified grammar`` () =
+        let ``generate code from modified grammar`` () =
 
             let grammarOutputDirectory1 = ctx.testRootDirPath
             Restler.Workflow.generateRestlerGrammar None
@@ -42,7 +43,7 @@ module CodeGenerator =
 
 
         [<Fact>]
-        member __.``python grammar request sanity test`` () =
+        let ``python grammar request sanity test`` () =
             let q1 = LeafNode { LeafProperty.name = "page"; payload = Constant (Int, "1") ;isRequired = true ; isReadOnly = false }
             let q2 = LeafNode { LeafProperty.name = "page"; payload = Constant (Int, "1") ;isRequired = true ; isReadOnly = false }
             let b1 = LeafNode { LeafProperty.name = "payload"; payload = Constant (PrimitiveType.String, "hello") ;
@@ -88,7 +89,7 @@ module CodeGenerator =
             Assert.True(elements |> Seq.length > 0)
 
         [<Fact>]
-        member __.``python grammar parameter sanity test`` () =
+        let ``python grammar parameter sanity test`` () =
             let p1 = { LeafProperty.name = "region"; payload = Constant (PrimitiveType.String, "WestUS");
                         isRequired = true ; isReadOnly = false}
             let p2 = { LeafProperty.name = "maxResources"; payload = Constant (Int, "10") ;
@@ -111,6 +112,35 @@ module CodeGenerator =
 
             let hasResources = result |> Seq.tryFind (fun s -> s = (Restler_static_string_constant "\"maxResources\":"))
             Assert.True(hasResources.IsSome, "resources not found")
+
+        // Test that the generated python and json grammars for tracked parameters are correct
+        [<Fact>]
+        let ``tracked parameters tests`` () =
+            let grammarDirectoryPath = ctx.testRootDirPath
+            let config = { Restler.Config.SampleConfig with
+                             IncludeOptionalParameters = true
+                             GrammarOutputDirectoryPath = Some grammarDirectoryPath
+                             ResolveBodyDependencies = true
+                             UseBodyExamples = Some false
+                             SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, @"swagger\example_demo1.json"))]
+                             CustomDictionaryFilePath = Some (Path.Combine(Environment.CurrentDirectory, @"swagger\example_demo_dictionary.json"))
+                         }
+            Restler.Workflow.generateRestlerGrammar None config
+            let grammarFilePath = Path.Combine(grammarDirectoryPath, "grammar.py")
+            let grammar = File.ReadAllText(grammarFilePath)
+
+            // The grammar should not contain gracked parameters by default
+            Assert.False(grammar.Contains("param_name="))
+
+            // Now turn on parameter tracking
+            let config = { config with TrackFuzzedParameterNames = true }
+            Restler.Workflow.generateRestlerGrammar None config
+            let grammarFilePath = Path.Combine(grammarDirectoryPath, "grammar.py")
+            let grammar = File.ReadAllText(grammarFilePath)
+
+            Assert.True(grammar.Contains("param_name=\"storeId\""))
+            Assert.True(grammar.Contains("param_name=\"bannedBrands\""))
+            Assert.True(grammar.Contains("param_name=\"groceryItemTags\""))
 
         interface IClassFixture<Fixtures.TestSetupAndCleanup>
 

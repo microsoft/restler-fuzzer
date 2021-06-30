@@ -102,6 +102,11 @@ type Config =
         // When specified, use only this naming convention to infer
         // producer-consumer dependencies.
         ApiNamingConvention : NamingConvention option
+
+        // When this switch is on, the generated grammar will contain
+        // parameter names for all fuzzable values.  For example:
+        // restler_fuzzable_string("1", param_name="num_items")
+        TrackFuzzedParameterNames : bool
     }
 
 let convertToAbsPath (currentDirPath:string) (filePath:string) =
@@ -209,6 +214,7 @@ let SampleConfig =
         EngineSettingsFilePath = None
         DataFuzzing = true
         ApiNamingConvention = None
+        TrackFuzzedParameterNames = false
     }
 
 /// The default config used for unit tests.  Most of these should also be the defaults for
@@ -238,4 +244,5 @@ let DefaultConfig =
         EngineSettingsFilePath = None
         DataFuzzing = false
         ApiNamingConvention = None
+        TrackFuzzedParameterNames = false
     }
