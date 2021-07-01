@@ -35,6 +35,7 @@ class FailureInformation(Enum):
     RESOURCE_CREATION = 2
     PARSER = 3
     BUG = 4
+    MISSING_STATUS_CODE = 5
 
 class RenderedRequestStats(object):
     """ Class used for encapsulating data about a specific rendered request and its response.
@@ -101,7 +102,8 @@ class SmokeTestStats(object):
         self.status_code = None
         self.status_text = None
 
-        self.sample_request = RenderedRequestStats()
+        self.sample_request = None
+        self.sequence_failure_sample_request = None
         self.tracked_parameters = {}
 
     def set_matching_prefix(self, sequence_prefix):
@@ -119,24 +121,34 @@ class SmokeTestStats(object):
     def set_all_stats(self, renderings):
         self.status_code = renderings.final_request_response.status_code
         self.status_text = renderings.final_request_response.status_text
+
+        self.valid = 1 if renderings.valid else 0
+        if self.valid:
+            self.has_valid_rendering = 1
+        self.failure = renderings.failure_info
+
         # Get the last rendered request.  The corresponding response should be
         # the last received response.
-        self.sample_request.set_request_stats(
-            renderings.sequence.sent_request_data_list[-1].rendered_data)
-        self.sample_request.set_response_stats(renderings.final_request_response,
-                                               renderings.final_response_datetime)
-
-        response_body = renderings.final_request_response.body
         if renderings.sequence:
-            self.valid = 1 if renderings.valid else 0
-            if self.valid:
-                self.has_valid_rendering = 1
-            self.failure = renderings.failure_info
+            if self.failure == FailureInformation.SEQUENCE:
+                self.sequence.failure_sample_request = RenderedRequestStats()
+                self.sequence_failure_sample_request.set_request_stats(
+                    renderings.sequence.sent_request_data_list[-1].rendered_data)
+                self.sequence_failure_sample_request.set_response_stats(renderings.final_request_response,
+                                                                        renderings.final_response_datetime)
+            else:
+                self.sample_request = RenderedRequestStats()
+                self.sample_request.set_request_stats(
+                    renderings.sequence.sent_request_data_list[-1].rendered_data)
+                self.sample_request.set_response_stats(renderings.final_request_response,
+                                                       renderings.final_response_datetime)
+                response_body = renderings.final_request_response.body
 
-            if not renderings.valid:
-                self.error_msg = response_body
+                if not renderings.valid:
+                    self.error_msg = response_body
 
-            self.set_matching_prefix(renderings.sequence.prefix)
+                self.set_matching_prefix(renderings.sequence.prefix)
+
             # Set tracked parameters
             last_req = renderings.sequence.last_request
 

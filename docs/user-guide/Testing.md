@@ -129,7 +129,8 @@ the appropriate __"invalid_due_to_..."__ value will be set to 1.
   * "500" will be set if a 5xx bug was detected.
 * The __"status_code"__ and __"status_text"__ values are the response values received from the server.
 * The __"sample_request"__ contains the concrete values of the sent request and received response for which
-the coverage data is being reported.
+the coverage data is being reported. This property is optional.
+* The __"sequence_failure_sample_request"__ contains the concrete values of the sent request that failed when a valid sequence was being re-rendered.  This property is optional.
 * The __"error_message"__ value will be set to the response body if the request was not "valid".
 * The __"request_order"__ value is the 0 indexed order that the request was sent.
   * Requests sent during "preprocessing" or "postprocessing" will explicitely say so.

@@ -324,6 +324,8 @@ class Sequence(object):
 
         self._sent_request_data_list = []
 
+        response_datetime = None
+        timestamp_micro = None
         for rendered_data, parser, tracked_parameters in\
                 request.render_iter(candidate_values_pool,
                                     skip=request._current_combination_id,
@@ -352,10 +354,15 @@ class Sequence(object):
             sequence_failed = False
             request._tracked_parameters = {}
             request.update_tracked_parameters(tracked_parameters)
+
             # Step A: Static template rendering
             # Render last known valid combination of primitive type values
             # for every request until the last
+            current_request = None
+            prev_request = None
+            prev_response = None
             for i in range(len(self.requests) - 1):
+                last_tested_request_idx = i
                 prev_request = self.requests[i]
                 prev_rendered_data, prev_parser, tracked_parameters =\
                     prev_request.render_current(candidate_values_pool,
@@ -419,7 +426,9 @@ class Sequence(object):
                     time.sleep(prev_producer_timing_delay)
 
                 # register latest client/server interaction
-                timestamp_micro = int(time.time()*10**6)
+                response_datetime = datetime.datetime.now(datetime.timezone.utc)
+                timestamp_micro = int(response_datetime.timestamp()*10**6)
+
                 self.status_codes.append(status_codes_monitor.RequestExecutionStatus(timestamp_micro,
                                                                 prev_request.hex_definition,
                                                                 prev_status_code,
@@ -429,7 +438,7 @@ class Sequence(object):
             if sequence_failed:
                 self.status_codes.append(
                     status_codes_monitor.RequestExecutionStatus(
-                        int(time.time()*10**6),
+                        timestamp_micro,
                         request.hex_definition,
                         RESTLER_INVALID_CODE,
                         False,
@@ -437,7 +446,21 @@ class Sequence(object):
                     )
                 )
                 Monitor().update_status_codes_monitor(self, self.status_codes, lock)
-                return RenderedSequence(failure_info=FailureInformation.SEQUENCE)
+
+                if lock is not None:
+                    lock.acquire()
+                # Deep  copying here will try copying anything the class has access
+                # to including the shared client monitor, which we update in the
+                # above code block holding the lock, but then we release the
+                # lock and one thread can be updating while another is copying.
+                # This is a typlical nasty read after write syncronization bug.
+                duplicate = copy.deepcopy(self)
+                if lock is not None:
+                    lock.release()
+
+                return RenderedSequence(duplicate, valid=False, failure_info=FailureInformation.SEQUENCE,
+                                        final_request_response=prev_response,
+                                        response_datetime=response_datetime)
 
             # Step B: Dynamic template rendering
             # substitute reference placeholders with ressoved values
@@ -459,7 +482,7 @@ class Sequence(object):
                 parser_exception_occurred = not request_utilities.call_response_parser(parser, response_to_parse, request)
             status_code = response.status_code
             if not status_code:
-                return RenderedSequence(None)
+                return RenderedSequence(failure_info=FailureInformation.MISSING_STATUS_CODE)
 
             self.append_data_to_sent_list(rendered_data, parser, response, max_async_wait_time=req_async_wait)
 

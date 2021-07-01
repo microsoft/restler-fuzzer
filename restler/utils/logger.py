@@ -175,11 +175,16 @@ class SpecCoverageLog(object):
             req_spec['invalid_due_to_parser_failure'] = 1
         elif req.stats.failure == FailureInformation.BUG:
             req_spec['invalid_due_to_500'] = 1
+        elif req.stats.failure == FailureInformation.MISSING_STATUS_CODE:
+            req_spec['invalid_due_to_missing_response_code'] = 1
         req_spec['status_code'] = req.stats.status_code
         req_spec['status_text'] = req.stats.status_text
         req_spec['error_message'] = req.stats.error_msg
         req_spec['request_order'] = req.stats.request_order
-        req_spec['sample_request'] = vars(req.stats.sample_request)
+        if req.stats.sequence_failure_sample_request:
+            req_spec['sample_request'] = vars(req.stats.sample_request)
+        if req.stats.sequence_failure_sample_request:
+            req_spec['sequence_failure_sample_request'] = vars(req.stats.sequence_failure_sample_request)
 
         if log_tracked_parameters:
             req_spec['tracked_parameters'] = {}
