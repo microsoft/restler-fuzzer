@@ -1,0 +1,140 @@
+2021-07-01 17:55:24.466: Will refresh token: python D:\git\restler-fuzzer\restler\unit_tests\log_baseline_test_files\unit_test_server_auth.py
+2021-07-01 17:55:24.554: New value: {'user1':{}, 'user2':{}}
+Authorization: valid_unit_test_token
+Authorization: shadow_unit_test_token
+
+Generation-1: Rendering Sequence-1
+
+	Request: 1 (Remaining candidate combinations: 2)
+	Request hash: 44414ad093616e18a9e2f845ae9d453eb6e4c8bc
+
+		- restler_static_string: 'PUT '
+		- restler_static_string: '/A/A'
+		- restler_static_string: ' HTTP/1.1\r\n'
+		- restler_static_string: 'Accept: application/json\r\n'
+		- restler_static_string: 'Host: unittest\r\n'
+		- restler_static_string: 'Content-Type: application/json\r\n'
+		+ restler_refreshable_authentication_token: ['token_refresh_cmd', 'token_refresh_interval']
+		- restler_static_string: '\r\n'
+		- restler_static_string: '{'
+		- restler_static_string: '"flaky": '
+		+ restler_fuzzable_group: ['1', '2']
+		- restler_static_string: '}'
+		- restler_static_string: '\r\n'
+
+2021-07-01 17:55:24.741: Sending: 'PUT /A/A HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nAuthorization: valid_unit_test_token\r\nContent-Length: 14\r\n\r\n{"flaky": 1}\r\n'
+
+2021-07-01 17:55:24.748: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "A"}'
+
+
+Generation-1: Rendering Sequence-1
+
+	Request: 1 (Remaining candidate combinations: 1)
+	Request hash: 44414ad093616e18a9e2f845ae9d453eb6e4c8bc
+
+		- restler_static_string: 'PUT '
+		- restler_static_string: '/A/A'
+		- restler_static_string: ' HTTP/1.1\r\n'
+		- restler_static_string: 'Accept: application/json\r\n'
+		- restler_static_string: 'Host: unittest\r\n'
+		- restler_static_string: 'Content-Type: application/json\r\n'
+		+ restler_refreshable_authentication_token: ['token_refresh_cmd', 'token_refresh_interval']
+		- restler_static_string: '\r\n'
+		- restler_static_string: '{'
+		- restler_static_string: '"flaky": '
+		+ restler_fuzzable_group: ['1', '2']
+		- restler_static_string: '}'
+		- restler_static_string: '\r\n'
+
+2021-07-01 17:55:24.910: Sending: 'PUT /A/A HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nAuthorization: valid_unit_test_token\r\nContent-Length: 14\r\n\r\n{"flaky": 2}\r\n'
+
+2021-07-01 17:55:24.919: Received: 'HTTP/1.1 400 Bad Request\r\nRestler Test\r\n\r\n{"error": "{\\"flaky\\": 2}"}'
+
+2021-07-01 17:55:24.936: Failed to parse _post_a; it is now set to None.
+
+Generation-2: Rendering Sequence-1
+
+	Request: 1 (Current combination: 1 / 2)
+		- restler_static_string: 'PUT '
+		- restler_static_string: '/A/A'
+		- restler_static_string: ' HTTP/1.1\r\n'
+		- restler_static_string: 'Accept: application/json\r\n'
+		- restler_static_string: 'Host: unittest\r\n'
+		- restler_static_string: 'Content-Type: application/json\r\n'
+		+ restler_refreshable_authentication_token: ['token_refresh_cmd', 'token_refresh_interval']
+		- restler_static_string: '\r\n'
+		- restler_static_string: '{'
+		- restler_static_string: '"flaky": '
+		+ restler_fuzzable_group: ['1', '2']
+		- restler_static_string: '}'
+		- restler_static_string: '\r\n'
+
+	Request: 2 (Remaining candidate combinations: 2)
+	Request hash: c4d9948bd2e270ee123e19bbb92f88b9b59f36c9
+
+		- restler_static_string: 'GET '
+		- restler_static_string: '/A/'
+		- restler_static_string: '_READER_DELIM_post_a_READER_DELIM'
+		- restler_static_string: ' HTTP/1.1\r\n'
+		- restler_static_string: 'Accept: application/json\r\n'
+		- restler_static_string: 'Host: unittest\r\n'
+		- restler_static_string: 'Content-Type: application/json\r\n'
+		+ restler_refreshable_authentication_token: ['token_refresh_cmd', 'token_refresh_interval']
+		- restler_static_string: '\r\n'
+		- restler_static_string: '{'
+		- restler_static_string: '"A": "'
+		- restler_static_string: '_READER_DELIM_post_a_READER_DELIM'
+		- restler_static_string: '","X": '
+		+ restler_fuzzable_group: ['0.1', '0.2']
+		- restler_static_string: '}'
+
+2021-07-01 17:55:25.383: Sending: 'PUT /A/A HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nAuthorization: valid_unit_test_token\r\nContent-Length: 14\r\n\r\n{"flaky": 1}\r\n'
+
+2021-07-01 17:55:25.392: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "A"}'
+
+2021-07-01 17:55:25.407: Sending: 'GET /A/A HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nAuthorization: valid_unit_test_token\r\nContent-Length: 19\r\n\r\n{"A": "A","X": 0.1}'
+
+2021-07-01 17:55:25.416: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"name": "A"}'
+
+
+Generation-2: Rendering Sequence-1
+
+	Request: 1 (Current combination: 1 / 2)
+		- restler_static_string: 'PUT '
+		- restler_static_string: '/A/A'
+		- restler_static_string: ' HTTP/1.1\r\n'
+		- restler_static_string: 'Accept: application/json\r\n'
+		- restler_static_string: 'Host: unittest\r\n'
+		- restler_static_string: 'Content-Type: application/json\r\n'
+		+ restler_refreshable_authentication_token: ['token_refresh_cmd', 'token_refresh_interval']
+		- restler_static_string: '\r\n'
+		- restler_static_string: '{'
+		- restler_static_string: '"flaky": '
+		+ restler_fuzzable_group: ['1', '2']
+		- restler_static_string: '}'
+		- restler_static_string: '\r\n'
+
+	Request: 2 (Remaining candidate combinations: 1)
+	Request hash: c4d9948bd2e270ee123e19bbb92f88b9b59f36c9
+
+		- restler_static_string: 'GET '
+		- restler_static_string: '/A/'
+		- restler_static_string: '_READER_DELIM_post_a_READER_DELIM'
+		- restler_static_string: ' HTTP/1.1\r\n'
+		- restler_static_string: 'Accept: application/json\r\n'
+		- restler_static_string: 'Host: unittest\r\n'
+		- restler_static_string: 'Content-Type: application/json\r\n'
+		+ restler_refreshable_authentication_token: ['token_refresh_cmd', 'token_refresh_interval']
+		- restler_static_string: '\r\n'
+		- restler_static_string: '{'
+		- restler_static_string: '"A": "'
+		- restler_static_string: '_READER_DELIM_post_a_READER_DELIM'
+		- restler_static_string: '","X": '
+		+ restler_fuzzable_group: ['0.1', '0.2']
+		- restler_static_string: '}'
+
+2021-07-01 17:55:25.734: Sending: 'PUT /A/A HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nAuthorization: valid_unit_test_token\r\nContent-Length: 14\r\n\r\n{"flaky": 1}\r\n'
+
+2021-07-01 17:55:25.743: Received: 'HTTP/1.1 400 Bad Request\r\nRestler Test\r\n\r\n{"error": "{\\"flaky\\": 1}"}'
+
+2021-07-01 17:55:25.760: Failed to parse _post_a; it is now set to None.

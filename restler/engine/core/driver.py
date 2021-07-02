@@ -213,7 +213,8 @@ def render_one(seq_to_render, ith, checkers, generation, global_lock):
                 or renderings.valid or n_invalid_renderings < 1:
             apply_checkers(checkers, renderings, global_lock)
 
-        # If renderings.sequence is None it means there is nothing left to render.
+        # If renderings.sequence is None, it means there is nothing left to render or
+        # there was an error that prevents further testing, such as an error sending the request.
         if renderings.sequence is None:
             break
 
@@ -241,17 +242,21 @@ def render_one(seq_to_render, ith, checkers, generation, global_lock):
 
         # If in test mode, log the spec coverage.
         if Settings().fuzzing_mode == 'directed-smoke-test':
-            logged_renderings = renderings if renderings.sequence else prev_renderings
+            logged_renderings = renderings if renderings.sequence or renderings.failure_info else prev_renderings
             if logged_renderings:
-                logged_renderings.sequence.last_request.stats.set_all_stats(logged_renderings)
-                logger.print_request_coverage(rendered_sequence=logged_renderings, log_rendered_hash=True)
+                if logged_renderings.sequence:
+                    logged_renderings.sequence.last_request.stats.set_all_stats(logged_renderings)
+                    logger.print_request_coverage(rendered_sequence=logged_renderings, log_rendered_hash=True)
+                else:
+                    # The entire sequence was not rendered.  However, failure information may be available.
+                    current_seq.last_request.stats.set_all_stats(logged_renderings)
+                    logger.print_request_coverage(request=current_seq.last_request, log_rendered_hash=False)
             else:
-                # There was a failure rendering the sequence.  This needs to be logged to the spec coverage file.
+                # There was a failure rendering the sequence because no valid combinations were found.
+                # This needs to be logged to the spec coverage file.
                 current_seq.last_request.stats.valid = 0
-
                 if current_seq.length > 1:
                     current_seq.last_request.stats.set_matching_prefix(current_seq.prefix)
-
                 logger.print_request_coverage(request=current_seq.last_request, log_rendered_hash=False)
             # Else, there was a failure rendering the sequence.
             # Never rendered requests will be printed at the end of the fuzzing loop, so there is no need to
@@ -269,14 +274,10 @@ def render_one(seq_to_render, ith, checkers, generation, global_lock):
             apply_checkers(checkers, renderings, global_lock)
 
             # If in exhaustive test mode, log the spec coverage.
-            if renderings.sequence:
-                if Settings().fuzzing_mode == 'test-all-combinations':
+            if Settings().fuzzing_mode == 'test-all-combinations':
+                if renderings and renderings.sequence:
                     renderings.sequence.last_request.stats.set_all_stats(renderings)
                     logger.print_request_coverage(rendered_sequence=renderings, log_rendered_hash=True)
-
-                # Save the previous rendering in order to log statistics in cases when all renderings
-                # were invalid
-                prev_renderings = renderings
     else:
         print("Unsupported fuzzing_mode:", Settings().fuzzing_mode)
         assert False
@@ -403,6 +404,7 @@ def render_with_cache(seq_collection, fuzzing_pool, checkers, generation, global
                     # Print information about the attempt to render this request to main.txt
                     print_rendering_to_main_txt(current_seq)
                     logger.write_to_main(f"{formatting.timestamp()}: Rendering INVALID")
+
                     logger.format_rendering_stats_definition(
                         current_seq.last_request, GrammarRequestCollection().candidate_values_pool
                     )

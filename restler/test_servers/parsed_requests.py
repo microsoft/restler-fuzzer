@@ -11,6 +11,8 @@ UNIT_TEST_RESOURCE_IDENTIFIER = '<test!>'
 class ParsedRequest:
     """ Created by parsing a request string """
     def __init__(self, request_str: str, ignore_dynamic_objects=False):
+        if not request_str or request_str.isspace():
+            raise Exception("Invalid request: empty payload")
         # Extract method from request string
         method_split = request_str.split(' ', 1)
         self.method = method_split[0]

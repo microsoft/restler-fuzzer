@@ -324,6 +324,9 @@ class Sequence(object):
 
         self._sent_request_data_list = []
 
+        datetime_format = "%Y-%m-%d %H:%M:%S"
+        response_datetime_str = None
+        timestamp_micro = None
         for rendered_data, parser, tracked_parameters in\
                 request.render_iter(candidate_values_pool,
                                     skip=request._current_combination_id,
@@ -352,10 +355,15 @@ class Sequence(object):
             sequence_failed = False
             request._tracked_parameters = {}
             request.update_tracked_parameters(tracked_parameters)
+
             # Step A: Static template rendering
             # Render last known valid combination of primitive type values
             # for every request until the last
+            current_request = None
+            prev_request = None
+            prev_response = None
             for i in range(len(self.requests) - 1):
+                last_tested_request_idx = i
                 prev_request = self.requests[i]
                 prev_rendered_data, prev_parser, tracked_parameters =\
                     prev_request.render_current(candidate_values_pool,
@@ -390,6 +398,11 @@ class Sequence(object):
 
                 self.append_data_to_sent_list(prev_rendered_data, prev_parser, prev_response, prev_producer_timing_delay, prev_req_async_wait)
 
+                # Record the time at which the response was received
+                datetime_now = datetime.datetime.now(datetime.timezone.utc)
+                response_datetime_str = datetime_now.strftime(datetime_format)
+                timestamp_micro = int(datetime_now.timestamp()*10**6)
+
                 if not prev_status_code:
                     logger.write_to_main(f"Error: Failed to get status code during valid sequence re-rendering.\n")
                     sequence_failed = True
@@ -411,6 +424,15 @@ class Sequence(object):
                    sequence_failed = True
                    break
 
+                rendering_is_valid = not prev_parser_threw_exception\
+                    and not resource_error\
+                    and prev_response.has_valid_code()
+
+                if not rendering_is_valid:
+                   logger.write_to_main("Error: Invalid rendering occurred during valid sequence re-rendering.\n")
+                   sequence_failed = True
+                   break
+
                 # If the previous request is a resource generator and we did not perform an async resource
                 # creation wait, then wait for the specified duration in order for the backend to have a
                 # chance to create the resource.
@@ -418,18 +440,22 @@ class Sequence(object):
                     print(f"Pausing for {prev_producer_timing_delay} seconds, request is a generator...")
                     time.sleep(prev_producer_timing_delay)
 
+                logger.write_to_main("sequence did not fail")
                 # register latest client/server interaction
-                timestamp_micro = int(time.time()*10**6)
                 self.status_codes.append(status_codes_monitor.RequestExecutionStatus(timestamp_micro,
                                                                 prev_request.hex_definition,
                                                                 prev_status_code,
                                                                 prev_response.has_valid_code(),
                                                                 False))
 
+
+            # Render candidate value combinations seeking for valid error codes
+            request._current_combination_id += 1
+
             if sequence_failed:
                 self.status_codes.append(
                     status_codes_monitor.RequestExecutionStatus(
-                        int(time.time()*10**6),
+                        timestamp_micro,
                         request.hex_definition,
                         RESTLER_INVALID_CODE,
                         False,
@@ -437,16 +463,27 @@ class Sequence(object):
                     )
                 )
                 Monitor().update_status_codes_monitor(self, self.status_codes, lock)
-                return RenderedSequence(failure_info=FailureInformation.SEQUENCE)
+
+                if lock is not None:
+                    lock.acquire()
+                # Deep  copying here will try copying anything the class has access
+                # to including the shared client monitor, which we update in the
+                # above code block holding the lock, but then we release the
+                # lock and one thread can be updating while another is copying.
+                # This is a typlical nasty read after write syncronization bug.
+                duplicate = copy.deepcopy(self)
+                if lock is not None:
+                    lock.release()
+
+                return RenderedSequence(duplicate, valid=False, failure_info=FailureInformation.SEQUENCE,
+                                        final_request_response=prev_response,
+                                        response_datetime=response_datetime_str)
 
             # Step B: Dynamic template rendering
             # substitute reference placeholders with ressoved values
             # for the last request
             if not Settings().ignore_dependencies:
                 rendered_data = self.resolve_dependencies(rendered_data)
-
-            # Render candidate value combinations seeking for valid error codes
-            request._current_combination_id += 1
 
             req_async_wait = Settings().get_max_async_resource_creation_time(request.request_id)
 
@@ -459,16 +496,18 @@ class Sequence(object):
                 parser_exception_occurred = not request_utilities.call_response_parser(parser, response_to_parse, request)
             status_code = response.status_code
             if not status_code:
-                return RenderedSequence(None)
+                return RenderedSequence(failure_info=FailureInformation.MISSING_STATUS_CODE)
 
             self.append_data_to_sent_list(rendered_data, parser, response, max_async_wait_time=req_async_wait)
 
             rendering_is_valid = not parser_exception_occurred\
                 and not resource_error\
                 and response.has_valid_code()
-            # register latest client/server interaction and add to the status codes list
-            response_datetime = datetime.datetime.now(datetime.timezone.utc)
-            timestamp_micro = int(response_datetime.timestamp()*10**6)
+
+            # Record the time at which the response was received
+            datetime_now = datetime.datetime.now(datetime.timezone.utc)
+            response_datetime_str=datetime_now.strftime(datetime_format)
+            timestamp_micro = int(datetime_now.timestamp()*10**6)
 
             self.status_codes.append(status_codes_monitor.RequestExecutionStatus(timestamp_micro,
                                                                      request.hex_definition,
@@ -505,13 +544,10 @@ class Sequence(object):
             if lock is not None:
                 lock.release()
 
-            datetime_format = "%Y-%m-%d %H:%M:%S"
-            response_datetime=response_datetime.strftime(datetime_format)
-
             # return a rendered clone if response indicates a valid status code
             if rendering_is_valid or Settings().ignore_feedback:
                 return RenderedSequence(duplicate, valid=True, final_request_response=response,
-                                        response_datetime=response_datetime)
+                                        response_datetime=response_datetime_str)
             else:
                 information = None
                 if response.has_valid_code():
@@ -523,7 +559,7 @@ class Sequence(object):
                     information = FailureInformation.BUG
                 return RenderedSequence(duplicate, valid=False, failure_info=information,
                                         final_request_response=response,
-                                        response_datetime=response_datetime)
+                                        response_datetime=response_datetime_str)
 
         return RenderedSequence(None)
 

@@ -184,6 +184,13 @@ class FuzzingLogParser(LogParser):
         @rtype : None
 
         """
+        def is_seq_or_checker_start(line):
+            if GENERATION in line and RENDERING_SEQUENCE in line:
+                return True
+            if CHECKER_START in line:
+                return True
+            return False
+
         with open(self._path, 'r') as file:
             try:
                 line = file.readline()
@@ -205,14 +212,26 @@ class FuzzingLogParser(LogParser):
                                 if REPLAY_START in line:
                                     self._skip_replay(file)
 
-                            seq += self._get_request(line, True)
-                            line = file.readline()
+                                # Handle cases where fewer requests
+                                # are sent due to a sequence failure
+                                if is_seq_or_checker_start(line):
+                                    break
+                            if SENDING in line:
+                                seq += self._get_request(line, True)
+                                line = file.readline()
+                            else:
+                                break
 
                         # Extend the list of sequences in this log
                         self._seq_list += [seq]
                     elif CHECKER_START in line:
                         self._handle_checker(seq, line, file)
-                    line = file.readline()
+                        line = file.readline()
+
+                    # Only read the next line if it is not already at the start of the
+                    # next operation to process
+                    if not is_seq_or_checker_start(line):
+                        line = file.readline()
 
             except Exception as err:
                 print("Failed to read fuzzing log. Log was not a complete test log.\n"
