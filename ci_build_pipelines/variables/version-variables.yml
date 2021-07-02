@@ -1,8 +1,8 @@
 variables:
   - name: version.major
-    value: 7
+    value: 8
   - name: version.minor
-    value: 5
+    value: 0
   - name: devRevision
     value: 0
   - name: buildPlatform
