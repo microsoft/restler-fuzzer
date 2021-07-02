@@ -82,6 +82,9 @@ class UnitTestResource(ResourceBase):
             raise ResourceDoesNotExist()
 
 class ResourceFactory(object):
+    def __init__(self):
+        self._flaky_count = 0
+
     def get_resource_object(self, type: str, name: str, body: dict) -> UnitTestResource:
         if type == "city":
             return City(name, body)
@@ -101,6 +104,12 @@ class ResourceFactory(object):
             return Group(name, body)
 
         if type == "A":
+            # If the body contains a 'flaky' property, fail if it is
+            # set to an even number.
+            if 'flaky' in body:
+                self._flaky_count = self._flaky_count + 1
+                if (self._flaky_count - 1) % 2 == 1:
+                    raise FlakyBehavior()
             return A(name, body)
         if type == "B":
             return B(name, body)

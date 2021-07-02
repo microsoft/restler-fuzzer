@@ -46,10 +46,13 @@ class RenderedRequestStats(object):
         self.request_sent_timestamp = None
         self.response_received_timestamp = None
 
+        self.request_verb = None
         self.request_uri = None
         self.request_headers = None
         self.request_body = None
 
+        self.response_status_code = None
+        self.response_status_text = None
         self.response_headers = None
         self.response_body = None
 
@@ -65,7 +68,9 @@ class RenderedRequestStats(object):
         try:
             split_body = request_text.split(messaging.DELIM)
             split_headers = split_body[0].split("\r\n")
-            self.request_uri = split_headers[0].split(" ")[1]
+            verb_and_uri = split_headers[0].split(" ")
+            self.request_verb = verb_and_uri[0]
+            self.request_uri = verb_and_uri[1]
             self.request_headers = split_headers[1:]
 
             if len(split_body) > 0 and split_body[1]:
@@ -84,6 +89,8 @@ class RenderedRequestStats(object):
         @rtype : None
 
         """
+        self.response_status_code = final_request_response.status_code
+        self.response_status_text = final_request_response.status_text
         self.response_headers = final_request_response.headers
         self.response_body = final_request_response.body
         self.response_received_timestamp = final_response_datetime
@@ -119,8 +126,10 @@ class SmokeTestStats(object):
             self.matching_prefix = prefix_ids
 
     def set_all_stats(self, renderings):
-        self.status_code = renderings.final_request_response.status_code
-        self.status_text = renderings.final_request_response.status_text
+
+        if self.failure is not None and self.failure != FailureInformation.SEQUENCE:
+            self.status_code = renderings.final_request_response.status_code
+            self.status_text = renderings.final_request_response.status_text
 
         self.valid = 1 if renderings.valid else 0
         if self.valid:
@@ -130,8 +139,9 @@ class SmokeTestStats(object):
         # Get the last rendered request.  The corresponding response should be
         # the last received response.
         if renderings.sequence:
+            self.set_matching_prefix(renderings.sequence.prefix)
             if self.failure == FailureInformation.SEQUENCE:
-                self.sequence.failure_sample_request = RenderedRequestStats()
+                self.sequence_failure_sample_request = RenderedRequestStats()
                 self.sequence_failure_sample_request.set_request_stats(
                     renderings.sequence.sent_request_data_list[-1].rendered_data)
                 self.sequence_failure_sample_request.set_response_stats(renderings.final_request_response,
@@ -147,7 +157,6 @@ class SmokeTestStats(object):
                 if not renderings.valid:
                     self.error_msg = response_body
 
-                self.set_matching_prefix(renderings.sequence.prefix)
 
             # Set tracked parameters
             last_req = renderings.sequence.last_request

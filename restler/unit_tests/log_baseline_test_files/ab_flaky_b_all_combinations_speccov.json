@@ -1,0 +1,172 @@
+{
+    "44414ad093616e18a9e2f845ae9d453eb6e4c8bc_1": {
+        "verb": "PUT",
+        "endpoint": "/A/{A}",
+        "verb_endpoint": "PUT /A/{A}",
+        "valid": 1,
+        "matching_prefix": "None",
+        "invalid_due_to_sequence_failure": 0,
+        "invalid_due_to_resource_failure": 0,
+        "invalid_due_to_parser_failure": 0,
+        "invalid_due_to_500": 0,
+        "status_code": null,
+        "status_text": null,
+        "error_message": null,
+        "request_order": 0,
+        "sample_request": {
+            "request_sent_timestamp": null,
+            "response_received_timestamp": "2021-07-02 00:55:24",
+            "request_verb": "PUT",
+            "request_uri": "/A/A",
+            "request_headers": [
+                "Accept: application/json",
+                "Host: unittest",
+                "Content-Type: application/json",
+                "AUTHORIZATION TOKEN"
+            ],
+            "request_body": "{\"flaky\": 1}\r\n",
+            "response_status_code": "201",
+            "response_status_text": "Created",
+            "response_headers": [
+                "Restler Test"
+            ],
+            "response_body": "{\"name\": \"A\"}"
+        },
+        "tracked_parameters": {
+            "flaky": [
+                "1"
+            ]
+        }
+    },
+    "44414ad093616e18a9e2f845ae9d453eb6e4c8bc_2": {
+        "verb": "PUT",
+        "endpoint": "/A/{A}",
+        "verb_endpoint": "PUT /A/{A}",
+        "valid": 0,
+        "matching_prefix": "None",
+        "invalid_due_to_sequence_failure": 0,
+        "invalid_due_to_resource_failure": 0,
+        "invalid_due_to_parser_failure": 0,
+        "invalid_due_to_500": 0,
+        "status_code": null,
+        "status_text": null,
+        "error_message": "{\"error\": \"{\\\"flaky\\\": 2}\"}",
+        "request_order": 0,
+        "sample_request": {
+            "request_sent_timestamp": null,
+            "response_received_timestamp": "2021-07-02 00:55:24",
+            "request_verb": "PUT",
+            "request_uri": "/A/A",
+            "request_headers": [
+                "Accept: application/json",
+                "Host: unittest",
+                "Content-Type: application/json",
+                "AUTHORIZATION TOKEN"
+            ],
+            "request_body": "{\"flaky\": 2}\r\n",
+            "response_status_code": "400",
+            "response_status_text": "Bad Request",
+            "response_headers": [
+                "Restler Test"
+            ],
+            "response_body": "{\"error\": \"{\\\"flaky\\\": 2}\"}"
+        },
+        "tracked_parameters": {
+            "flaky": [
+                "2"
+            ]
+        }
+    },
+    "c4d9948bd2e270ee123e19bbb92f88b9b59f36c9_1__1": {
+        "verb": "GET",
+        "endpoint": "/A/{A}",
+        "verb_endpoint": "GET /A/{A}",
+        "valid": 1,
+        "matching_prefix": [
+            {
+                "id": "44414ad093616e18a9e2f845ae9d453eb6e4c8bc_1",
+                "valid": 1
+            }
+        ],
+        "invalid_due_to_sequence_failure": 0,
+        "invalid_due_to_resource_failure": 0,
+        "invalid_due_to_parser_failure": 0,
+        "invalid_due_to_500": 0,
+        "status_code": null,
+        "status_text": null,
+        "error_message": null,
+        "request_order": 1,
+        "sample_request": {
+            "request_sent_timestamp": null,
+            "response_received_timestamp": "2021-07-02 00:55:25",
+            "request_verb": "GET",
+            "request_uri": "/A/A",
+            "request_headers": [
+                "Accept: application/json",
+                "Host: unittest",
+                "Content-Type: application/json",
+                "AUTHORIZATION TOKEN"
+            ],
+            "request_body": "{\"A\": \"A\",\"X\": 0.1}",
+            "response_status_code": "200",
+            "response_status_text": "OK",
+            "response_headers": [
+                "Restler Test"
+            ],
+            "response_body": "{\"name\": \"A\"}"
+        },
+        "tracked_parameters": {
+            "X": [
+                "0.1"
+            ],
+            "flaky": [
+                "1"
+            ]
+        }
+    },
+    "c4d9948bd2e270ee123e19bbb92f88b9b59f36c9_2__1": {
+        "verb": "GET",
+        "endpoint": "/A/{A}",
+        "verb_endpoint": "GET /A/{A}",
+        "valid": 0,
+        "matching_prefix": [
+            {
+                "id": "44414ad093616e18a9e2f845ae9d453eb6e4c8bc_1"
+            }
+        ],
+        "invalid_due_to_sequence_failure": 1,
+        "invalid_due_to_resource_failure": 0,
+        "invalid_due_to_parser_failure": 0,
+        "invalid_due_to_500": 0,
+        "status_code": null,
+        "status_text": null,
+        "error_message": null,
+        "request_order": 1,
+        "sequence_failure_sample_request": {
+            "request_sent_timestamp": null,
+            "response_received_timestamp": "2021-07-02 00:55:25",
+            "request_verb": "PUT",
+            "request_uri": "/A/A",
+            "request_headers": [
+                "Accept: application/json",
+                "Host: unittest",
+                "Content-Type: application/json",
+                "AUTHORIZATION TOKEN"
+            ],
+            "request_body": "{\"flaky\": 1}\r\n",
+            "response_status_code": "400",
+            "response_status_text": "Bad Request",
+            "response_headers": [
+                "Restler Test"
+            ],
+            "response_body": "{\"error\": \"{\\\"flaky\\\": 1}\"}"
+        },
+        "tracked_parameters": {
+            "X": [
+                "0.2"
+            ],
+            "flaky": [
+                "1"
+            ]
+        }
+    }}

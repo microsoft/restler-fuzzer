@@ -181,7 +181,7 @@ class SpecCoverageLog(object):
         req_spec['status_text'] = req.stats.status_text
         req_spec['error_message'] = req.stats.error_msg
         req_spec['request_order'] = req.stats.request_order
-        if req.stats.sequence_failure_sample_request:
+        if req.stats.sample_request:
             req_spec['sample_request'] = vars(req.stats.sample_request)
         if req.stats.sequence_failure_sample_request:
             req_spec['sequence_failure_sample_request'] = vars(req.stats.sequence_failure_sample_request)
@@ -472,59 +472,7 @@ def custom_network_logging(sequence, candidate_values_pool, **kwargs):
                               " (Current combination: "
                               f"{request._current_combination_id} / {request.num_combinations(candidate_values_pool)})")
         for request_block in definition:
-            primitive = request_block[0]
-            if primitive == primitives.FUZZABLE_GROUP:
-                field_name = request_block[1]
-                default_val = request_block[2]
-                quoted = request_block[3]
-                examples = request_block[4]
-            elif primitive in [ primitives.CUSTOM_PAYLOAD,
-                                     primitives.CUSTOM_PAYLOAD_HEADER,
-                                     primitives.CUSTOM_PAYLOAD_UUID4_SUFFIX ]:
-                field_name = request_block[1]
-                quoted = request_block[2]
-                examples = request_block[3]
-            else:
-                default_val = request_block[1]
-                quoted = request_block[2]
-                examples = request_block[3]
-                field_name = request_block[4]
-
-            # Handling dynamic primitives that need fresh rendering every time
-            if primitive == "restler_fuzzable_uuid4":
-                values = [primitives.restler_fuzzable_uuid4]
-            # Handle enums that have a list of values instead of one default val
-            elif primitive == "restler_fuzzable_group":
-                values = list(default_val)
-            # Handle multipart/formdata
-            elif primitive == "restler_multipart_formdata":
-                values = ['_OMITTED_BINARY_DATA_']
-                default_val = '_OMITTED_BINARY_DATA_'
-            # Handle custom payload
-            elif primitive == "restler_custom_payload_header":
-                current_fuzzable_tag = field_name
-                values = candidate_values_pool.get_candidate_values(primitive, request_id=request.request_id, tag=current_fuzzable_tag, quoted=quoted)
-                if not isinstance(values, list):
-                    values = [values]
-                if len(values) == 1:
-                    default_val = values[0]
-            # Handle custom payload
-            elif primitive == "restler_custom_payload":
-                current_fuzzable_tag = field_name
-                values = candidate_values_pool.get_candidate_values(primitive, request_id=request.request_id, tag=current_fuzzable_tag, quoted=quoted)
-                if not isinstance(values, list):
-                    values = [values]
-                if len(values) == 1:
-                    default_val = values[0]
-            # Handle custom payload with uuid4 suffix
-            elif primitive == "restler_custom_payload_uuid4_suffix":
-                current_fuzzable_tag = field_name
-                values = candidate_values_pool.get_candidate_values(primitive, request_id=request.request_id, tag=current_fuzzable_tag, quoted=quoted)
-                default_val = values[0]
-            # Handle all the rest
-            else:
-                values = candidate_values_pool.get_fuzzable_values(primitive, default_val, request.request_id, quoted=quoted, examples=examples)
-
+            primitive, values, default_val = format_request_block(request.request_id, request_block, candidate_values_pool)
             if len(values) > 1:
                 network_log.write(f"\t\t+ {primitive}: {values}")
             else:
@@ -869,44 +817,65 @@ def print_generation_stats(req_collection, fuzzing_monitor, global_lock, final=F
         with open(os.path.join(LOGS_DIR, "testing_summary.json"), "w+") as summary_json:
             json.dump(testing_summary, summary_json, indent=4)
 
+def format_request_block(request_id, request_block, candidate_values_pool):
+    primitive = request_block[0]
+    if primitive == primitives.FUZZABLE_GROUP:
+        field_name = request_block[1]
+        default_val = request_block[2]
+        quoted = request_block[3]
+        examples = request_block[4]
+    elif primitive in [ primitives.CUSTOM_PAYLOAD,
+                        primitives.CUSTOM_PAYLOAD_HEADER,
+                        primitives.CUSTOM_PAYLOAD_UUID4_SUFFIX ]:
+        default_val = None
+        field_name = request_block[1]
+        quoted = request_block[2]
+        examples = request_block[3]
+    else:
+        default_val = request_block[1]
+        quoted = request_block[2]
+        examples = request_block[3]
+        field_name = request_block[4]
+
+    # Handling dynamic primitives that need fresh rendering every time
+    if primitive == "restler_fuzzable_uuid4":
+        values = [primitives.restler_fuzzable_uuid4]
+    # Handle enums that have a list of values instead of one default val
+    elif primitive == "restler_fuzzable_group":
+        values = list(default_val)
+    # Handle multipart/formdata
+    elif primitive == "restler_multipart_formdata":
+        values = ['_OMITTED_BINARY_DATA_']
+        default_val = '_OMITTED_BINARY_DATA_'
+    # Handle custom payload
+    elif primitive == "restler_custom_payload_header":
+        current_fuzzable_tag = field_name
+        values = candidate_values_pool.get_candidate_values(primitive, request_id=request.request_id, tag=current_fuzzable_tag, quoted=quoted)
+        if not isinstance(values, list):
+            values = [values]
+        if len(values) == 1:
+            default_val = values[0]
+    # Handle custom payload
+    elif primitive == "restler_custom_payload":
+        current_fuzzable_tag = field_name
+        values = candidate_values_pool.get_candidate_values(primitive, request_id=request_id, tag=current_fuzzable_tag, quoted=quoted)
+        if not isinstance(values, list):
+            values = [values]
+        if len(values) == 1:
+            default_val = values[0]
+    # Handle custom payload with uuid4 suffix
+    elif primitive == "restler_custom_payload_uuid4_suffix":
+        current_fuzzable_tag = field_name
+        values = candidate_values_pool.get_candidate_values(primitive, request_id=request_id, tag=current_fuzzable_tag, quoted=quoted)
+        default_val = values[0]
+    # Handle all the rest
+    else:
+        values = candidate_values_pool.get_fuzzable_values(primitive, default_val, request_id, quoted=quoted, examples=examples)
+    return primitive, values, default_val
+
 def format_rendering_stats_definition(request, candidate_values_pool, log_file=None):
     for request_block in request.definition:
-        primitive = request_block[0]
-        default_val = request_block[1]
-        # Handling dynamic primitives that need fresh rendering every time
-        if primitive == "restler_fuzzable_uuid4":
-            values = [primitives.restler_fuzzable_uuid4]
-        # Handle enums that have a list of values instead of one default val
-        elif primitive == "restler_fuzzable_group":
-            values = list(default_val)
-        # Handle multipart/formdata
-        elif primitive == "restler_multipart_formdata":
-            values = ['_OMITTED_BINARY_DATA_']
-            default_val = '_OMITTED_BINARY_DATA_'
-        # Handle custom payload
-        elif primitive == "restler_custom_payload":
-            current_fuzzable_tag = default_val
-            values = candidate_values_pool.get_candidate_values(primitive, request_id=request.request_id, tag=current_fuzzable_tag)
-            if not isinstance(values, list):
-                values = [values]
-            if len(values) == 1:
-                default_val = values[0]
-        # Handle custom payload header
-        elif primitive == "restler_custom_payload_header":
-            current_fuzzable_tag = default_val
-            values = candidate_values_pool.get_candidate_values(primitive, request_id=request.request_id, tag=current_fuzzable_tag)
-            if not isinstance(values, list):
-                values = [values]
-            if len(values) == 1:
-                default_val = values[0]
-
-        elif primitive == "restler_custom_payload_uuid4_suffix":
-            current_fuzzable_tag = default_val
-            values = candidate_values_pool.get_candidate_values(primitive, request_id=request.request_id, tag=current_fuzzable_tag)
-            default_val = values[0]
-        # Handle all the rest
-        else:
-            values = candidate_values_pool.get_candidate_values(primitive, request_id=request.request_id)
+        primitive, values, default_val = format_request_block(request.request_id, request_block, candidate_values_pool)
 
         if len(values) > 1:
             data = f"\t\t+ {primitive}: {values}"

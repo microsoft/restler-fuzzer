@@ -39,6 +39,14 @@ class InvalidBody(Exception):
     """
     pass
 
+class FlakyBehavior(Exception):
+    """ To be raised when flakiness is intentionally injected
+    via a 'flaky' property of the body.
+    Correct: 'flaky' property set to an odd number
+    FlakyBehavior: 'flaky' property set to an even number`
+    """
+    pass
+
 class ResourceBase:
     __metaclass__ = ABCMeta
 

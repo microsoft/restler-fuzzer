@@ -405,7 +405,6 @@ def render_with_cache(seq_collection, fuzzing_pool, checkers, generation, global
                     print_rendering_to_main_txt(current_seq)
                     logger.write_to_main(f"{formatting.timestamp()}: Rendering INVALID")
 
-
                     logger.format_rendering_stats_definition(
                         current_seq.last_request, GrammarRequestCollection().candidate_values_pool
                     )

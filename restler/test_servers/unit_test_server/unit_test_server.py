@@ -143,6 +143,8 @@ class UnitTestServer(TestServerBase):
             self._response = self._400(resource)
         except InvalidBody:
             self._response = self._400(request.body)
+        except FlakyBehavior:
+            self._response = self._400(request.body)
         except Exception as error:
             self._response = self._500(str(error))
 

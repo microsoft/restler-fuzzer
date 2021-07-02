@@ -69,44 +69,52 @@ During each Test run a `speccov.json` file will be created in the logs directory
 
 #### Example of a single request from the json file:
 ```
-    "5915766984a7c5deaaae43cae4cfb810c138d0f2": {
+    "5915766984a7c5deaaae43cae4cfb810c138d0f2_1__1": {
         "verb": "PUT",
         "endpoint": "/blog/posts/{postId}",
         "verb_endpoint": "PUT /blog/posts/{postId}",
         "valid": 0,
-        "matching_prefix": {
-            "id": "1d7752f6d5ca3e03e423967a57335038a3d1bb70",
-            "valid": 1
-        },
+        "matching_prefix": [
+            {
+                "id": "1d7752f6d5ca3e03e423967a57335038a3d1bb70_1"
+            }
+        ],
         "invalid_due_to_sequence_failure": 0,
         "invalid_due_to_resource_failure": 0,
         "invalid_due_to_parser_failure": 0,
         "invalid_due_to_500": 0,
-        "status_code": "400",
-        "status_text": "BAD REQUEST",
-        "error_message": "{\n    \"errors\": {\n        \"id\": \"'5882' is not of type 'integer'\"\n    },\n    \"message\": \"Input payload validation failed\"\n}\n",
+        "status_code": null,
+        "status_text": null,
+        "error_message": "{\n    \"errors\": {\n        \"id\": \"'5872' is not of type 'integer'\"\n    },\n    \"message\": \"Input payload validation failed\"\n}\n",
         "request_order": 4,
         "sample_request": {
             "request_sent_timestamp": null,
-            "response_received_timestamp": "2021-03-31 18:20:14",
-            "request_uri": "/api/blog/posts/5882",
+            "response_received_timestamp": "2021-07-02 05:10:12",
+            "request_verb": "PUT",
+            "request_uri": "/api/blog/posts/5872",
             "request_headers": [
                 "Accept: application/json",
                 "Host: localhost:8888",
                 "Content-Type: application/json"
             ],
-            "request_body": "{\n    \"id\":\"5882\",\n    \"checksum\":\"fuzzstring\",\n    \"body\":\"fuzzstring\"}\r\n",
+            "request_body": "{\n    \"id\":\"5872\",\n    \"checksum\":\"fuzzstring\",\n    \"body\":\"first blog\"}\r\n",
+            "response_status_code": "400",
+            "response_status_text": "BAD REQUEST",
             "response_headers": [
                 "Content-Type: application/json",
                 "Content-Length: 124",
                 "Server: Werkzeug/0.16.0 Python/3.7.8",
-                "Date: Wed, 31 Mar 2021 18:20:14 GMT"
+                "Date: Fri, 02 Jul 2021 05:10:12 GMT"
             ],
-            "response_body": "{\n    \"errors\": {\n        \"id\": \"'5882' is not of type 'integer'\"\n    },\n    \"message\": \"Input payload validation failed\"\n}\n"
+            "response_body": "{\n    \"errors\": {\n        \"id\": \"'5872' is not of type 'integer'\"\n    },\n    \"message\": \"Input payload validation failed\"\n}\n"
         },
         "tracked_parameters": {
-            "per_page": ["2"],
-            "page": ["1"]
+            "id": [
+                "123"
+            ],
+            "body": [
+                "\"first blog\""
+            ]
         }
     },
 ```

@@ -61,10 +61,10 @@ class FunctionalityTests(unittest.TestCase):
         """
         return glob.glob(os.path.join(dir, 'logs', f'network.{log_type}.*.1.txt'))[0]
 
-    def run_abc_smoke_test(self, test_file_dir, grammar_file_name):
+    def run_abc_smoke_test(self, test_file_dir, grammar_file_name, fuzzing_mode):
         grammar_file_path = os.path.join(test_file_dir, grammar_file_name)
         args = Common_Settings + [
-        '--fuzzing_mode', 'directed-smoke-test',
+        '--fuzzing_mode', f"{fuzzing_mode}",
         '--restler_grammar', f'{grammar_file_path}'
         ]
 
@@ -84,7 +84,7 @@ class FunctionalityTests(unittest.TestCase):
                   "Experiments directory was not deleted.")
 
     def test_abc_invalid_b_smoke_test(self):
-        self.run_abc_smoke_test(Test_File_Directory, "abc_test_grammar_invalid_b.py")
+        self.run_abc_smoke_test(Test_File_Directory, "abc_test_grammar_invalid_b.py", "directed-smoke-test")
         experiments_dir = self.get_experiments_dir()
 
         # Make sure all requests were successfully rendered.  This is because the comparisons below do not
@@ -118,7 +118,7 @@ class FunctionalityTests(unittest.TestCase):
         rendered "from scratch", but the sequence for E will reuse the 'D' prefix.
 
         """
-        self.run_abc_smoke_test(Test_File_Directory, "abc_test_grammar.py")
+        self.run_abc_smoke_test(Test_File_Directory, "abc_test_grammar.py", "directed-smoke-test")
         experiments_dir = self.get_experiments_dir()
 
         # Make sure all requests were successfully rendered.  This is because the comparisons below do not
@@ -138,6 +138,62 @@ class FunctionalityTests(unittest.TestCase):
             default_parser = FuzzingLogParser(os.path.join(Test_File_Directory, "abc_smoke_test_testing_log.txt"))
             test_parser = FuzzingLogParser(self.get_network_log_path(experiments_dir, logger.LOG_TYPE_TESTING))
             self.assertTrue(default_parser.diff_log(test_parser))
+        except TestFailedException:
+            self.fail("Smoke test failed: Fuzzing")
+
+    def test_ab_all_combinations_with_sequence_failure(self):
+        """ This checks that sequence failures are correctly reported in the
+        spec coverage file for a minimal grammar.
+        Let 2 requests A, B where:
+        - B depends on A
+        - There are 2 renderings of B, and 2 renderings of A, so four sequences AB
+        will be tested.
+        - A is flaky - it returns '200' on odd invocations, and '400' on even invocations.
+
+        The spec coverage file should contain:
+            - 2 entries for A, one valid and one invalid
+            - 2 entries for B, one valid and one 'sequence_failure' entry, with a
+               sample request for the failed execution of A
+
+        The test checks that the sequence failure sample requests are correct.
+        """
+        self.run_abc_smoke_test(Test_File_Directory, "ab_flaky_b_grammar.py", "test-all-combinations")
+        experiments_dir = self.get_experiments_dir()
+
+        # Make sure all requests were successfully rendered.  This is because the comparisons below do not
+        # take status codes into account
+
+        # Make sure the right number of requests was sent.
+        testing_summary_file_path = os.path.join(experiments_dir, "logs", "testing_summary.json")
+
+        try:
+            with open(testing_summary_file_path, 'r') as file:
+                testing_summary = json.loads(file.read())
+                total_requests_sent = testing_summary["total_requests_sent"]["main_driver"]
+                num_fully_valid = testing_summary["num_fully_valid"]
+                self.assertEqual(num_fully_valid, 2)
+                self.assertLessEqual(total_requests_sent, 6)
+
+            default_parser = FuzzingLogParser(os.path.join(Test_File_Directory, "ab_flaky_b_all_combinations_testing_log.txt"))
+            test_parser = FuzzingLogParser(self.get_network_log_path(experiments_dir, logger.LOG_TYPE_TESTING))
+            self.assertTrue(default_parser.diff_log(test_parser))
+
+            baseline_speccov_json_file_path = os.path.join(Test_File_Directory, "ab_flaky_b_all_combinations_speccov.json")
+            test_speccov_json_file_path = os.path.join(experiments_dir, "logs", "speccov.json")
+            # The speccov files should be identical
+            with open(baseline_speccov_json_file_path, 'r') as file1:
+                with open(test_speccov_json_file_path, 'r') as file2:
+                    baseline_json = json.loads(file1.read())
+                    test_json = json.loads(file2.read())
+                    # Remove the timestamps
+                    for spec in [baseline_json, test_json]:
+                        for key, val in spec.items():
+                            if 'sequence_failure_sample_request' in val:
+                                val['sequence_failure_sample_request']['response_received_timestamp'] = None
+                            if 'sample_request' in val:
+                                val['sample_request']['response_received_timestamp'] = None
+                    self.assertTrue(baseline_json == test_json)
+
         except TestFailedException:
             self.fail("Smoke test failed: Fuzzing")
 
@@ -192,7 +248,7 @@ class FunctionalityTests(unittest.TestCase):
         try:
             result.check_returncode()
         except subprocess.CalledProcessError:
-            self.fail(f"Restler returned non-zero exit code: {result.returncode}")
+            self.fail(f"Restler returned non-zero exit code: {result.returncode} {result.stdout}")
 
         experiments_dir = self.get_experiments_dir()
 
