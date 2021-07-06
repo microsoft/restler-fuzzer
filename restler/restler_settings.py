@@ -407,6 +407,8 @@ class RestlerSettings(object):
         self._max_async_resource_creation_time = SettingsArg('max_async_resource_creation_time', (int, float), MAX_ASYNC_RESOURCE_CREATION_TIME_DEFAULT, user_args, minval=0)
         ## Maximum number of parameter value combinations for parameters within a given request payload
         self._max_combinations = SettingsArg('max_combinations', int, MAX_COMBINATIONS_DEFAULT, user_args, minval=0)
+        ## Settings for advanced combinations testing, such as testing multiple schema combinations
+        self._combinations_args = SettingsArg('test_combinations_settings', dict, {}, user_args)
         ## Maximum time to wait for a response after sending a request (seconds)
         self._max_request_execution_time = SettingsArg('max_request_execution_time', (int, float), MAX_REQUEST_EXECUTION_TIME_DEFAULT, user_args, minval=0, min_exactok=False, maxval=MAX_REQUEST_EXECUTION_TIME_MAX)
         ## Maximum length of any sequence
@@ -529,6 +531,12 @@ class RestlerSettings(object):
     @property
     def max_combinations(self):
         return self._max_combinations.val
+
+    @property
+    def header_param_combinations(self):
+        if 'header_param_combinations' in self._combinations_args.val:
+            return self._combinations_args.val['header_param_combinations']
+        return None
 
     @property
     def max_request_execution_time(self):

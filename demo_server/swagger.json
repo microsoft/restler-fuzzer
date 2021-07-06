@@ -34,6 +34,14 @@
                         "type": "integer",
                         "description": "Page number",
                         "default": 1
+                    },
+                    {
+                        "name": "correlation_id",
+                        "in": "header",
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "The correlation ID for debugging",
+                        "default": "00000000-0000-0000-0000-000000000000"
                     }
                 ],
                 "tags": [
@@ -59,6 +67,20 @@
                         "schema": {
                             "$ref": "#/definitions/Blog post public"
                         }
+                    },
+                    {
+                        "name": "correlation_id",
+                        "in": "header",
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "The correlation ID for debugging",
+                        "default": "00000000-0000-0000-0000-000000000000"
+                    },
+                    {
+                        "name": "client_id",
+                        "in": "header",
+                        "type": "string",
+                        "required": false
                     }
                 ],
                 "tags": [

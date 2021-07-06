@@ -83,7 +83,7 @@ class ExamplesChecker(CheckerBase):
         # Send new request for each body example
         for example in request.examples.body_examples:
             blocks = example.get_blocks()
-            new_request = substitute_body(request, blocks)
+            new_request = request.substitute_body(blocks)
             if new_request:
                 _send_request(new_request)
             else:
@@ -93,12 +93,12 @@ class ExamplesChecker(CheckerBase):
         # There will soon be IDs associated with the examples, so they can be matched.
         for example in request.examples.query_examples:
             q_blocks = []
-            for idx, query in enumerate(example.queries):
+            for idx, query in enumerate(example.param_list):
                 q_blocks += query.get_blocks()
                 if idx < len(example) - 1:
                     # Add the query separator
                     q_blocks.append(primitives.restler_static_string('&'))
-            new_request = substitute_query(request, q_blocks)
+            new_request = request.substitute_query(q_blocks)
             if new_request:
                 _send_request(new_request)
             else:

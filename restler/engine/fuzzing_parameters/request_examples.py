@@ -4,6 +4,7 @@
 from engine.fuzzing_parameters.request_params import *
 from engine.fuzzing_parameters.request_schema_parser import *
 from engine.fuzzing_parameters.body_schema import BodySchema
+from engine.fuzzing_parameters.parameter_schema import QueryList
 import utils.logger as logger
 
 class NoExamplesFound(Exception):

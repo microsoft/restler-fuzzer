@@ -153,7 +153,7 @@ class BodySchemaStructuralFuzzer():
 
         # compose
         for new_value in fuzzed_value:
-            new_member = ParamMember(param_member.name, new_value)
+            new_member = ParamMember(param_member.name, new_value, param_member.is_required)
             new_member.meta_copy(param_member)
             fuzzed_members.append(new_member)
 

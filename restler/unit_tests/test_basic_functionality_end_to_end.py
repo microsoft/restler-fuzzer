@@ -478,7 +478,7 @@ class FunctionalityTests(unittest.TestCase):
         try:
             result.check_returncode()
         except subprocess.CalledProcessError:
-            self.fail(f"Restler returned non-zero exit code: {result.returncode}")
+            self.fail(f"Restler returned non-zero exit code: {result.returncode} {result.stdout}")
 
         experiments_dir = self.get_experiments_dir()
 

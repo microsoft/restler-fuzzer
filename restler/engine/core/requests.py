@@ -16,6 +16,10 @@ import engine.core.request_utilities as request_utilities
 from engine.core.request_utilities import str_to_hex_def
 from engine.fuzzing_parameters.request_examples import RequestExamples
 from engine.fuzzing_parameters.body_schema import BodySchema
+from engine.fuzzing_parameters.parameter_schema import QueryList
+from engine.fuzzing_parameters.parameter_schema import HeaderList
+import engine.fuzzing_parameters.param_combinations as param_combinations
+
 from engine.errors import InvalidDictionaryException
 import utils.logger as logger
 import engine.primitives as primitives
@@ -165,6 +169,7 @@ class SmokeTestStats(object):
             for property_name, property_value in last_req._tracked_parameters.items():
                 self.tracked_parameters[property_name] = property_value
 
+
 class Request(object):
     """ Request Class. """
     def __init__(self, definition=[], requestId=None):
@@ -190,6 +195,8 @@ class Request(object):
         self._definition = definition
         self._examples = None
         self._body_schema = None
+        self._query_schema = None
+        self._headers_schema = None
         self._consumes = set()
         self._produces = set()
         self._set_constraints()
@@ -386,6 +393,23 @@ class Request(object):
         return self._body_schema
 
     @property
+    def query_schema(self) -> QueryList:
+        """ Returns the Request's query schema
+
+        @return: The Request's query schema
+
+        """
+        return self._query_schema
+
+    @property
+    def headers_schema(self) -> HeaderList:
+        """ Returns the Request headers schema
+
+        @return: The Request headers schema
+        """
+        return self._headers_schema
+
+    @property
     def consumes(self) -> set:
         """ Returns the set of dynamic objects that this request consumes
 
@@ -441,6 +465,26 @@ class Request(object):
 
         """
         self._body_schema = body_schema
+
+    def set_query_schema(self, query_schema: QueryList):
+        """ Sets the Request's query schema
+
+        @param query_schema: The query schema to set
+
+        @return: None
+
+        """
+        self._query_schema = query_schema
+
+    def set_headers_schema(self, headers_schema: HeaderList):
+        """ Sets the Request headers schema
+
+        @param headers_schema: The headers schema to set
+
+        @return: None
+
+        """
+        self._headers_schema = headers_schema
 
     def is_destructor(self):
         """ Checks whether the current request object instance is a destructor.
@@ -543,64 +587,35 @@ class Request(object):
                 return i + 1
         return -1
 
-    def render_iter(self, candidate_values_pool, skip=0, preprocessing=False):
-        """ This is the core method that renders values combinations in a
-        request template. It basically is a generator which lazily iterates over
-        a pool of possible combination of values that fit the template of the
-        requst. Static primitive types (such as, string or delimiters) are
-        picked from @param candidate_values_pool; dynamic primitive types
-        (such as, uuid4) are generated "fresh" every time the generator yields
-        with the help of @method resolve_dynamic_primitives.
+    def get_schema_combinations(self):
+        """ A generator that lazily iterates over a pool of schema combinations
+        for this request, determined the specified settings.
 
-        @param candidate_values_pool: The pool of values for primitive types.
-        @type candidate_values_pool: Dict
-        @param skip: Number of combinations to skip (i.e., not render). This is
-                        useful when we use a request as an "ingredient" of a
-                        sequence and we are only interested in using a specific
-                        rendering that, we know, leads to a valid rendering with
-                        a desired status code response.
-        @type skip: Int
-        @param preprocessing: Set to True if this rendering is happening during preprocessing
-        @type  preprocessing: Bool
+        By default, only one schema combination is tested, which is the default
+        specified in the grammar.
 
-        @return: (rendered request's payload, response's parser function)
-        @rtype : (Str, Function Pointer, List[Str])
+        Optionally, various parameter combinations and example payload schemas
+        may be tested.
+
+        Currently, combinations for each parameter type are tested independently.
+        For example, if there are 4 query parameter combinations and 4 header
+        parameter combinations, there will be a total of 8 combinations.
+
+        @return: (One or more copies of the request, each with a unique schema)
+        @rtype : (Request)
 
         """
-        def _raise_dict_err(type, tag):
-            logger.write_to_main(
-                f"Error for request {self.method} {self.endpoint_no_dynamic_objects}.\n"
-                f"{type} exception: {tag} not found.\n"
-                "Make sure you are using the dictionary created during compilation.",
-                print_to_console=True
-            )
-            raise InvalidDictionaryException
+        tested_param_combinations = False
+        header_param_combinations = Settings().header_param_combinations
+        if header_param_combinations is not None:
+            tested_param_combinations = True
+            for hpc in self.get_header_param_combinations(header_param_combinations):
+                yield hpc
 
-        def _handle_exception(type, tag, err):
-            logger.write_to_main(
-                f"Exception when rendering request {self.method} {self.endpoint_no_dynamic_objects}.\n"
-                f"Type: {type}. Tag: {tag}.\n"
-                f"  Exception: {err!s}",
-                print_to_console=True
-            )
-            raise InvalidDictionaryException
+        if not tested_param_combinations:
+            yield self
 
-        if not candidate_values_pool:
-            print("Candidate values pool empty")
-            print(self._definition)
-            yield []
-            return
-
-        definition = self.definition
-        if not definition:
-            yield []
-            return
-
-        parser = None
-        # If request had post_send metadata, register parsers etc.
-        if bool(self.metadata) and 'post_send' in self.metadata\
-        and 'parser' in self.metadata['post_send']:
-            parser = self.metadata['post_send']['parser']
+    def init_fuzzable_values(self, req_definition, candidate_values_pool, preprocessing=False):
 
         fuzzable = []
         # The following list will contain name-value pairs of properties whose combinations
@@ -609,7 +624,7 @@ class Request(object):
         # Then, at the time of returning the specific combination of values, a new list with
         # the values will be created
         tracked_parameters = {}
-        for request_block in definition:
+        for request_block in req_definition:
             primitive_type = request_block[0]
             if primitive_type == primitives.FUZZABLE_GROUP:
                 field_name = request_block[1]
@@ -627,6 +642,7 @@ class Request(object):
                 quoted = request_block[2]
                 examples = request_block[3]
                 field_name = request_block[4]
+
             values = []
             # Handling dynamic primitives that need fresh rendering every time
             if primitive_type == primitives.FUZZABLE_UUID4:
@@ -723,29 +739,104 @@ class Request(object):
 
             fuzzable.append(values)
 
-        # lazy generation of pool for candidate values
-        combinations_pool = itertools.product(*fuzzable)
-        combinations_pool = itertools.islice(combinations_pool,
-                                             Settings().max_combinations)
+        return fuzzable, tracked_parameters
 
-        # skip combinations, if asked to
-        for _ in range(skip):
-            next(combinations_pool)
+    def render_iter(self, candidate_values_pool, skip=0, preprocessing=False):
+        """ This is the core method that renders values combinations in a
+        request template. It basically is a generator which lazily iterates over
+        a pool of possible combination of values that fit the template of the
+        requst. Static primitive types (such as, string or delimiters) are
+        picked from @param candidate_values_pool; dynamic primitive types
+        (such as, uuid4) are generated "fresh" every time the generator yields
+        with the help of @method resolve_dynamic_primitives.
 
-        # for each combination's values render dynamic primitives and resolve
-        # dependent variables
-        for ind, values in enumerate(combinations_pool):
-            values = list(values)
-            values = request_utilities.resolve_dynamic_primitives(values, candidate_values_pool)
+        @param candidate_values_pool: The pool of values for primitive types.
+        @type candidate_values_pool: Dict
+        @param skip: Number of combinations to skip (i.e., not render). This is
+                        useful when we use a request as an "ingredient" of a
+                        sequence and we are only interested in using a specific
+                        rendering that, we know, leads to a valid rendering with
+                        a desired status code response.
+        @type skip: Int
+        @param preprocessing: Set to True if this rendering is happening during preprocessing
+        @type  preprocessing: Bool
 
-            tracked_parameter_values = {}
-            for (k, idx_list) in tracked_parameters.items():
-                tracked_parameter_values[k] = []
-                for idx in idx_list:
-                    tracked_parameter_values[k].append(values[idx])
+        @return: (rendered request's payload, response's parser function)
+        @rtype : (Str, Function Pointer, List[Str])
 
-            rendered_data = "".join(values)
-            yield rendered_data, parser, tracked_parameter_values
+        """
+        def _raise_dict_err(type, tag):
+            logger.write_to_main(
+                f"Error for request {self.method} {self.endpoint_no_dynamic_objects}.\n"
+                f"{type} exception: {tag} not found.\n"
+                "Make sure you are using the dictionary created during compilation.",
+                print_to_console=True
+            )
+            raise InvalidDictionaryException
+
+        def _handle_exception(type, tag, err):
+            logger.write_to_main(
+                f"Exception when rendering request {self.method} {self.endpoint_no_dynamic_objects}.\n"
+                f"Type: {type}. Tag: {tag}.\n"
+                f"  Exception: {err!s}",
+                print_to_console=True
+            )
+            raise InvalidDictionaryException
+
+        if not candidate_values_pool:
+            print("Candidate values pool empty")
+            print(self._definition)
+            yield []
+            return
+
+        definition = self.definition
+        if not definition:
+            yield []
+            return
+
+        # If multiple schemas are being tested, generate the schemas.  Note: these should be lazily
+        # constructed, since not all of them may be needed, e.g. during smoke test mode.
+        next_combination = 0
+        for req in self.get_schema_combinations():
+            parser = None
+            # If request had post_send metadata, register parsers etc.
+            if bool(self.metadata) and 'post_send' in self.metadata\
+            and 'parser' in self.metadata['post_send']:
+                parser = self.metadata['post_send']['parser']
+
+            fuzzable, tracked_parameters = self.init_fuzzable_values(req.definition, candidate_values_pool, preprocessing)
+
+            # lazy generation of pool for candidate values
+            combinations_pool = itertools.product(*fuzzable)
+            combinations_pool = itertools.islice(combinations_pool,
+                                                 Settings().max_combinations)
+
+            # skip combinations, if asked to
+            while next_combination < skip:
+                try:
+                    next(combinations_pool)
+                    next_combination = next_combination + 1
+                except StopIteration:
+                    break
+                if next_combination == skip:
+                    break
+            if next_combination < skip:
+                continue  # go to the next schema to find combination
+
+            # for each combination's values render dynamic primitives and resolve
+            # dependent variables
+            for ind, values in enumerate(combinations_pool):
+                values = list(values)
+                values = request_utilities.resolve_dynamic_primitives(values, candidate_values_pool)
+
+                tracked_parameter_values = {}
+                for (k, idx_list) in tracked_parameters.items():
+                    tracked_parameter_values[k] = []
+                    for idx in idx_list:
+                        tracked_parameter_values[k].append(values[idx])
+
+                rendered_data = "".join(values)
+                yield rendered_data, parser, tracked_parameter_values
 
     def render_current(self, candidate_values_pool, preprocessing=False):
         """ Renders the next combination for the current request.
@@ -804,6 +895,224 @@ class Request(object):
                 if param_name not in self._tracked_parameters:
                     self._tracked_parameters[param_name] = []
                 self._tracked_parameters[param_name].append(param_val)
+
+    def get_header_start_end(self):
+        """ Get the start and end index of a request's headers
+
+        @param request: The target request
+        @type  request: Request
+
+        @return: A tuple containing the start and end index of the header
+                [start, end)
+        @rtype : Tuple(int, int) or (-1, -1) on failure
+
+        """
+        request = self
+
+        header_start_index = self.header_start_index()
+        if header_start_index == -1:
+            return -1, -1
+
+        # After the headers, there is either a body or they are at the end of the request
+        header_end_index = self.get_body_start()
+        if header_end_index == -1:
+            header_end_index = len(request.definition) #- 1  # The last \r\n should be saved
+
+        return header_start_index, header_end_index
+
+    def substitute_headers(self, new_header_blocks):
+        """
+        Substitutes the header portion in the old request with the new queries
+
+        @param old_request: The original request
+        @type  old_request: Request
+        @param new_query_blocks: Request blocks of the new query
+        @type  new_query_blocks: List[str]
+
+        @return: The new request
+        @rtype : Request or None on failure
+
+        """
+        old_request = self
+        header_start_index, header_end_index = old_request.get_header_start_end()
+
+        if header_end_index < 0:
+            logger.write_to_main("could not get start and end of header")
+            return None
+
+        logger.write_to_main(f"substituting headers in [{header_start_index},{header_end_index})")
+
+        # Get the required header blocks that should always be present
+        # These special headers are not fuzzed, and should not be replaced
+        skipped_headers_str = ["Accept", "Host", "Content-Type"]
+        required_header_blocks = []
+        for line in old_request.definition[header_start_index : header_end_index]:
+            if line[0] == "restler_refreshable_authentication_token":
+                required_header_blocks.append(line)
+                continue
+            for str in skipped_headers_str:
+                if line[1].startswith(str):
+                    required_header_blocks.append(line)
+
+        # Make sure there is still a delimiter between headers and the remainder of the payload
+        new_header_blocks.append(primitives.restler_static_string("\r\n"))
+        new_definition = old_request.definition[:header_start_index] + required_header_blocks + new_header_blocks + old_request.definition[header_end_index:]
+        new_definition += [old_request.metadata.copy()]
+        new_request = Request(new_definition)
+        # Update the new Request object with the create once requests data of the old Request,
+        # so bug replay logs will include the necessary create once request data.
+        new_request._create_once_requests = old_request._create_once_requests
+        return new_request
+
+    def get_header_param_combinations(self, header_param_combinations_setting):
+        """
+
+        """
+        for param_list in param_combinations.get_param_combinations(self, header_param_combinations_setting,
+                                                                    self.headers_schema.param_list, "header"):
+            headers_schema = HeaderList(param=param_list)
+            header_blocks = []
+            for idx, header in enumerate(headers_schema):
+                header_blocks += header.get_blocks()
+                if idx < len(headers_schema):
+                    # Must add header separator \r\n after every header
+                    header_blocks.append(primitives.restler_static_string('\r\n'))
+
+            new_request = self.substitute_headers(header_blocks)
+            if new_request:
+                yield new_request
+            else:
+                # For malformed requests, it is possible that the place to insert parameters is not found,
+                # In such cases, skip the combination.
+                logger.write_to_main(f"Warning: could not substitute header parameters.")
+
+    def get_body_start(self):
+        """ Get the starting index of the request body
+
+        @param request: The target request
+        @type  request: Request
+
+        @return: The starting index; -1 if not found
+        @rtype:  Int or -1 on failure
+
+        """
+        request = self
+        # search for the first of these patterns in the request definition
+        body_start_pattern_dict = primitives.restler_static_string('{')
+        body_start_pattern_array = primitives.restler_static_string('[')
+
+        dict_index = -1
+        array_index = -1
+
+        try:
+            dict_index = request.definition.index(body_start_pattern_dict)
+        except Exception:
+            pass
+
+        try:
+            array_index = request.definition.index(body_start_pattern_array)
+        except Exception:
+            pass
+
+        if dict_index == -1 or array_index == -1:
+            # If one of the indices is -1 then it wasn't found, return the other
+            return max(dict_index, array_index)
+        # Return the lowest index / first character found in body.
+        return min(dict_index, array_index)
+
+
+    def get_query_start_end(self):
+        """ Get the start and end index of a request's query
+
+        @param request: The target request
+        @type  request: Request
+
+        @return: A tuple containing the start and end index of the query
+        @rtype : Tuple(int, int) or (-1, -1) on failure
+
+        """
+        request = self
+        query_start_pattern = primitives.restler_static_string('?')
+        query_end_str = ' HTTP'
+        try:
+            query_start_index = request.definition.index(query_start_pattern)
+        except:
+            # Handle the case where the request does not contain a query
+            query_start_index = -1
+
+        query_param_start_index = query_start_index + 1
+
+        for idx, line in enumerate(request.definition[query_param_start_index+1:]):
+            if line[1].startswith(query_end_str):
+                query_end_index = query_param_start_index + idx + 1
+                if query_start_index == -1:
+                    return query_end_index, query_end_index
+                else:
+                    return query_param_start_index, query_end_index
+        else:
+            return -1, -1
+
+    def substitute_body(self, new_body_blocks):
+        """ Substitute the body part in the old request with the new body
+
+        @param old_request: The original request
+        @type  old_request: Request
+        @param new_body: Request blocks of the new body
+        @type  new_body: List
+
+        @return: The new request
+        @rtype:  Request or None on failure
+
+        """
+        old_request = self
+        # substitute the body definition with the new one
+        idx = old_request.get_body_start()
+        if idx == -1:
+            return None
+
+        new_definition = old_request.definition[:idx] + new_body_blocks
+        new_definition += [old_request.metadata.copy()]
+        new_request = Request(new_definition)
+        # Update the new Request object with the create once requests data of the old Request,
+        # so bug replay logs will include the necessary create once request data.
+        new_request._create_once_requests = old_request._create_once_requests
+        return new_request
+
+    def substitute_query(self, new_query_blocks):
+        """ Substitutes the query portion in the old request with the new queries
+
+        @param old_request: The original request
+        @type  old_request: Request
+        @param new_query_blocks: Request blocks of the new query
+        @type  new_query_blocks: List[str]
+
+        @return: The new request
+        @rtype : Request or None on failure
+
+        """
+        old_request = self
+        start_idx, end_idx = old_request.get_query_start_end()
+
+        if end_idx < 0:
+            return None
+
+        # Handle case where there are no query parameters in the default schema.
+        # Query parameters can always be added after the path.
+        if start_idx == end_idx:
+            if new_query_blocks:
+                new_query_blocks.insert(0, primitives.restler_static_string('?'))
+
+        # If the new query is empty, remove the '?'
+        if not new_query_blocks:
+            start_idx = start_idx - 1
+        new_definition = old_request.definition[:start_idx] + new_query_blocks + old_request.definition[end_idx:]
+        new_definition += [old_request.metadata.copy()]
+        new_request = Request(new_definition)
+        # Update the new Request object with the create once requests data of the old Request,
+        # so bug replay logs will include the necessary create once request data.
+        new_request._create_once_requests = old_request._create_once_requests
+        return new_request
+
 
 def GrammarRequestCollection():
     """ Accessor for the global request collection singleton """
