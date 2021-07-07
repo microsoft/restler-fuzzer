@@ -642,6 +642,7 @@ def restler_fuzzable_object(*args, **kwargs) :
     examples=None
     if EXAMPLES_ARG in kwargs:
         examples = kwargs[EXAMPLES_ARG]
+    param_name = None
     if PARAM_NAME_ARG in kwargs:
         param_name = kwargs[PARAM_NAME_ARG]
     return sys._getframe().f_code.co_name, field_name, quoted, examples, param_name
