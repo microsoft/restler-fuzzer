@@ -659,7 +659,7 @@ class ParamString(ParamValue):
         @rtype:  None
 
         """
-        ParamBase.__init__(self, is_required)
+        ParamValue.__init__(self, is_required)
 
         self._is_custom = custom
         self._unknown = False

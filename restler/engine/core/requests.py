@@ -1076,6 +1076,11 @@ class Request(object):
         # Update the new Request object with the create once requests data of the old Request,
         # so bug replay logs will include the necessary create once request data.
         new_request._create_once_requests = old_request._create_once_requests
+
+        # Update the new request with the query and header schemas of the old request, since
+        # these must still be present for correctly rendering the request combinations.
+        new_request.set_headers_schema(old_request.headers_schema)
+        new_request.set_query_schema(old_request.query_schema)
         return new_request
 
     def substitute_query(self, new_query_blocks):
