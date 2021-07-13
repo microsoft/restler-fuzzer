@@ -129,6 +129,13 @@ module SchemaUtilities =
                 | (false, _) ->
                     printfn "WARNING: property %s has invalid value for field %A, expected boolean" extensionDataKeyName v
                     None
+    /// Determine whether a property is declared as 'readOnly'
+    /// 'isReadOnly' is not exposed in NJsonSchema.  Instead, it appears
+    /// in ExtensionData
+    let propertyIsReadOnly (property:JsonSchemaProperty) =
+        match getExtensionDataBooleanPropertyValue property.ExtensionData "readOnly" with
+        | None -> property.IsReadOnly
+        | Some v -> v
 
 open SchemaUtilities
 
@@ -284,13 +291,6 @@ module SwaggerVisitors =
                             (parents:NJsonSchema.JsonSchema list)
                             (cont: Tree<LeafProperty, InnerProperty> -> Tree<LeafProperty, InnerProperty>) =
 
-        // 'isReadOnly' is not correctly initialized in NJsonSchema.  Instead, it appears
-        // in ExtensionData
-        let propertyIsReadOnly (property:NJsonSchema.JsonSchemaProperty) =
-            match getExtensionDataBooleanPropertyValue property.ExtensionData "readOnly" with
-            | None -> property.IsReadOnly
-            | Some v -> v
-
         // If an example value was not specified, also check for a locally defined example
         // in the Swagger specification.
         match property.Type with
@@ -337,7 +337,9 @@ module SwaggerVisitors =
                 // is passed through below.
 
                 generateGrammarElementForSchema property.ActualSchema (propertyPayloadExampleValue, generateFuzzablePayload)
-                                                trackParameters parents (fun tree ->
+                                                trackParameters
+                                                (property.IsRequired, (propertyIsReadOnly property))
+                                                parents (fun tree ->
                     let innerProperty = { InnerProperty.name = propertyName
                                           payload = None
                                           propertyType = Property
@@ -355,7 +357,9 @@ module SwaggerVisitors =
 
                 let arrayWithElements =
                     generateGrammarElementForSchema property (propertyPayloadExampleValue, generateFuzzablePayload)
-                                                        trackParameters parents (fun tree -> tree)
+                                                        trackParameters
+                                                        (property.IsRequired, (propertyIsReadOnly property))
+                                                        parents (fun tree -> tree)
                                                         |> cont
                 // For tracked parameters, it is required to add the name to the fuzzable primitives
                 // This name will not be added if the array elements are leaf nodes that do not have inner properties.
@@ -371,7 +375,9 @@ module SwaggerVisitors =
                 let objTree =
                     // This object may or may not have nested properties.
                     // Similar to type 'None', just pass through the object and it will be taken care of downstream.
-                    generateGrammarElementForSchema property.ActualSchema (None, false) trackParameters parents (fun tree ->
+                    generateGrammarElementForSchema property.ActualSchema (None, false) trackParameters
+                                                    (property.IsRequired, (propertyIsReadOnly property))
+                                                    parents (fun tree ->
                         // If the object has no properties, it should be set to its primitive type.
                         match tree with
                         | LeafNode l ->
@@ -396,6 +402,7 @@ module SwaggerVisitors =
     and generateGrammarElementForSchema (schema:NJsonSchema.JsonSchema)
                                         (exampleValue:JToken option, generateFuzzablePayloadsForExamples:bool)
                                         (trackParameters:bool)
+                                        (isRequired:bool, isReadOnly:bool)
                                         (parents:NJsonSchema.JsonSchema list)
                                         (cont: Tree<LeafProperty, InnerProperty> -> Tree<LeafProperty, InnerProperty>) =
 
@@ -451,13 +458,14 @@ module SwaggerVisitors =
                             let schemaArrayExamples = ExampleHelpers.tryGetArraySchemaExample schema
                             match schemaArrayExamples with
                             | None ->
-                                generateGrammarElementForSchema schema.Item.ActualSchema (None, false) trackParameters (schema::parents) id
+                                generateGrammarElementForSchema schema.Item.ActualSchema (None, false) trackParameters (isRequired, isReadOnly) (schema::parents) id
                                 |> stn
                             | Some sae ->
                                 sae |> Seq.map (fun (schemaExampleValue, generateFuzzablePayload) ->
                                                     generateGrammarElementForSchema schema.Item.ActualSchema
                                                                                     (schemaExampleValue, generateFuzzablePayload)
                                                                                     trackParameters
+                                                                                    (isRequired, isReadOnly)
                                                                                     (schema::parents)
                                                                                     id
                                                 )
@@ -471,6 +479,7 @@ module SwaggerVisitors =
                                                     schema.Item.ActualSchema
                                                     (Some example, false)
                                                     trackParameters
+                                                    (isRequired, isReadOnly)
                                                     (schema::parents)
                                                     id |> stn)
                                 |> Seq.concat
@@ -479,7 +488,7 @@ module SwaggerVisitors =
 
             let allOfParameterSchemas =
                 schema.AllOf
-                |> Seq.map (fun ao -> ao, generateGrammarElementForSchema ao.ActualSchema (exampleValue, false) trackParameters (schema::parents) id)
+                |> Seq.map (fun ao -> ao, generateGrammarElementForSchema ao.ActualSchema (exampleValue, false) trackParameters (isRequired, isReadOnly) (schema::parents) id)
 
             let allOfProperties =
                 allOfParameterSchemas
@@ -530,8 +539,8 @@ module SwaggerVisitors =
                             getFuzzableValueForProperty
                                 ""
                                 schema
-                                true (*IsRequired*)
-                                false (*IsReadOnly*)
+                                isRequired
+                                isReadOnly
                                 (tryGetEnumeration schema) (*enumeration*)
                                 (tryGetDefault schema) (*defaultValue*)
                                 specExampleValue
