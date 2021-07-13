@@ -976,7 +976,7 @@ class ParamObjectLeaf(ParamValue):
 class ParamEnum(ParamBase):
     """ Class for Enum type parameters """
 
-    def __init__(self, contents, content_type, is_required=True):
+    def __init__(self, contents, content_type, is_required=True, body_param=True):
         """ Initialize a Enum type parameter
 
         @param contents: A list of enum contents
@@ -992,6 +992,7 @@ class ParamEnum(ParamBase):
 
         self._contents = contents
         self._type = content_type
+        self._is_quoted = body_param
 
     @property
     def contents(self):
@@ -1036,7 +1037,11 @@ class ParamEnum(ParamBase):
         contents_str = []
 
         for content in self._contents:
-            content_str = f'"{content}"' if self.content_type == 'String' else content
+            if self._is_quoted and (self.content_type == 'String' or \
+                                    self.content_type == 'Uuid' or self.content_type == 'DateTime'):
+                content_str = f'"{content}"'
+            else:
+                content_str = content
             contents_str.append(content_str)
 
         return [primitives.restler_fuzzable_group(FUZZABLE_GROUP_TAG, contents_str)]
@@ -1060,19 +1065,9 @@ class ParamEnum(ParamBase):
         @rtype : List[str]
 
         """
-        contents_str = []
 
-        for content in self._contents:
-            # string
-            if self._type == 'String':
-                content_str = f'"{content}"'
-            # others
-            else:
-                content_str = content
-
-            contents_str.append(content_str)
-
-        return [primitives.restler_fuzzable_group(FUZZABLE_GROUP_TAG, contents_str)]
+        # Since Enums are not fuzzed right now, just re-use get_blocks
+        return self.get_blocks(config)
 
     def check_type_mismatch(self, check_value):
         # Not relevant for this param type

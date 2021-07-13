@@ -202,15 +202,13 @@ def des_param_payload(param_payload_json, tag='', body_param=True):
 
         # create value w.r.t. the type
         value = None
-        if content_type == 'String':
+        if content_type == 'String' or content_type == 'Uuid' or content_type == 'DateTime':
             # If query parameter, assign as a value and not a string
             # because we don't want to wrap with quotes in the request
             if body_param:
                 value = ParamString(custom, is_required=is_required)
             else:
                 value = ParamValue(custom=custom, is_required=is_required)
-        elif content_type == 'DateTime':
-            value = ParamString(custom, is_required=is_required)
         elif content_type == 'Int':
             value = ParamNumber(is_required=is_required)
         elif content_type == 'Number':
@@ -243,7 +241,7 @@ def des_param_payload(param_payload_json, tag='', body_param=True):
                 enum_name = enum_definition[0]
                 enum_content_type = enum_definition[1]
                 contents = enum_definition[2]
-                value = ParamEnum(contents, enum_content_type, is_required=is_required)
+                value = ParamEnum(contents, enum_content_type, is_required=is_required, body_param=body_param)
             else:
                 logger.write_to_main(f'Unexpected enum schema {name}')
         else:
