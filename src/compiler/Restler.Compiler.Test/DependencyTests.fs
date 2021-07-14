@@ -113,9 +113,10 @@ module Dependencies =
         /// Test that a full path annotation only to a specified body parameter works.
         [<Fact>]
         let ``path annotation to body parameter`` () =
+            let grammarOutputDirectoryPath = ctx.testRootDirPath
             let config = { Restler.Config.SampleConfig with
                              IncludeOptionalParameters = true
-                             GrammarOutputDirectoryPath = Some ctx.testRootDirPath
+                             GrammarOutputDirectoryPath = Some grammarOutputDirectoryPath
                              ResolveBodyDependencies = true
                              UseBodyExamples = Some true
                              SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, @"swagger\annotationTests\pathAnnotation.json"))]
@@ -128,7 +129,7 @@ module Dependencies =
             //
             let expectedGrammarFilePath = Path.Combine(Environment.CurrentDirectory,
                                                        @"baselines\dependencyTests\path_annotation_grammar.py")
-            let actualGrammarFilePath = Path.Combine(ctx.testRootDirPath,
+            let actualGrammarFilePath = Path.Combine(grammarOutputDirectoryPath,
                                                      Restler.Workflow.Constants.DefaultRestlerGrammarFileName)
             let grammarDiff = getLineDifferences expectedGrammarFilePath actualGrammarFilePath
             let message = sprintf "Grammar Does not match baseline.  First difference: %A" grammarDiff

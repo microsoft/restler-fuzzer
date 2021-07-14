@@ -142,7 +142,7 @@ type FuzzingPayload =
     /// The custom payload, as specified in the fuzzing dictionary
     | Custom of CustomPayload
 
-    | DynamicObject of string
+    | DynamicObject of PrimitiveType * string
 
     /// In some cases, a payload may need to be split into multiple payload parts
     | PayloadParts of FuzzingPayload list

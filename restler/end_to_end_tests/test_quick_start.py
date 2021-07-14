@@ -51,7 +51,7 @@ if __name__ == '__main__':
             raise QuickStartFailedException(f"Failing because restler-quick-start exited with a non-zero return code: {output.returncode!s}")
 
         stdout = str(output.stdout)
-        if 'Request coverage (successful / total): 5 / 6' not in stdout or\
+        if 'Request coverage (successful / total): 6 / 6' not in stdout or\
         'No bugs were found.' not in stdout or\
         'Task Test succeeded.' not in stdout:
             stdout = stdout.replace('\\r\\n', '\r\n')
