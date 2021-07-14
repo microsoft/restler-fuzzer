@@ -80,7 +80,6 @@ class DynamicVariable:
         """
         return self._var_type
 
-
 def get_variable(type):
     """ Getter for dynamic variable (a.k.a. dependency).
 
@@ -96,10 +95,19 @@ def get_variable(type):
 
     if type not in tlb:
         return ''
-    # thread_id = threading.current_thread().ident
-    # print("Getting: {} / Value: {} ({})".format(type, tlb[type], thread_id))
-    return str(tlb[type])
 
+    # If the variable is a boolean, it needs to be converted back to its
+    # string representation
+    value = tlb[type]
+    if value == True:
+        value = "true"
+    elif value == False:
+        value = "false"
+
+    # thread_id = threading.current_thread().ident
+    # print("Getting: {} / Value: {} ({})".format(type, value, thread_id))
+
+    return str(value)
 
 def set_variable(type, value):
     """ Setter for dynamic variable (a.k.a. dependency).
