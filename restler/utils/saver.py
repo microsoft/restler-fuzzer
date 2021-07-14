@@ -34,7 +34,7 @@ def save(req_collection, seq_collection, fuzzing_collection, fuzzing_monitor, le
     current_ckpt = os.path.join(logger.CKPT_DIR, "checkpoint-{}".format(length))
     print("{}: Saving checkpoint: {}".format(formatting.timestamp(), current_ckpt))
 
-    with open(current_ckpt, "wb") as f:
+    with open(current_ckpt, "wb", encoding='utf-8') as f:
         state = {
             'req_collection': req_collection,
             'fuzzing_collection': fuzzing_collection,
@@ -75,7 +75,7 @@ def load(req_collection, seq_collection, fuzzing_collection, fuzzing_monitor):
     lattest_ckpt = sorted(ckpt_files)[-1]
     print("{}: Loading state from: {}".format(formatting.timestamp(),
                                               lattest_ckpt))
-    with open(lattest_ckpt, "rb") as f:
+    with open(lattest_ckpt, "rb", encoding='utf-8') as f:
         state = pickle.load(f)
     req_collection = state['req_collection']
     seq_collection = state['seq_collection']

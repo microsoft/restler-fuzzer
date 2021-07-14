@@ -440,7 +440,6 @@ class Sequence(object):
                     print(f"Pausing for {prev_producer_timing_delay} seconds, request is a generator...")
                     time.sleep(prev_producer_timing_delay)
 
-                logger.write_to_main("sequence did not fail")
                 # register latest client/server interaction
                 self.status_codes.append(status_codes_monitor.RequestExecutionStatus(timestamp_micro,
                                                                 prev_request.hex_definition,

@@ -940,8 +940,6 @@ class Request(object):
             logger.write_to_main("could not get start and end of header")
             return None
 
-        logger.write_to_main(f"substituting headers in [{header_start_index},{header_end_index})")
-
         # Get the required header blocks that should always be present
         # These special headers are not fuzzed, and should not be replaced
         skipped_headers_str = ["Accept", "Host", "Content-Type"]

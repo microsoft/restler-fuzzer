@@ -338,7 +338,7 @@ if __name__ == '__main__':
 
         if args.custom_mutations:
             try:
-                custom_mutations = json.load(open(args.custom_mutations))
+                custom_mutations = json.load(open(args.custom_mutations, encoding='utf-8'))
             except Exception as error:
                 print(f"Cannot import custom mutations: {error!s}")
                 sys.exit(-1)
@@ -398,7 +398,7 @@ if __name__ == '__main__':
                 else:
                     # If custom dictionary path is not an absolute path, make it relative to the grammar
                     path = os.path.join(os.path.dirname(args.restler_grammar), custom_mutations_paths[endpoint])
-                with open(path, 'r') as mutations:
+                with open(path, 'r', encoding='utf-8') as mutations:
                     per_endpoint_custom_mutations[endpoint] = json.load(mutations)
             except Exception as error:
                 print(f"Cannot import custom mutations: {error!s}")

@@ -130,7 +130,7 @@ class SpecCoverageLog(object):
         # create the spec coverage file
         file_path = os.path.join(LOGS_DIR, 'speccov.json')
         if not os.path.exists(file_path):
-            with open(file_path, 'w') as file:
+            with open(file_path, 'w', encoding='utf-8') as file:
                file.write("{}")
 
         SpecCoverageLog.__instance = self
@@ -215,7 +215,7 @@ class SpecCoverageLog(object):
             req = request
         file_path = os.path.join(LOGS_DIR, 'speccov.json')
         if not os.path.exists(file_path):
-            with open(file_path, 'w') as file:
+            with open(file_path, 'w', encoding='utf-8') as file:
                file.write("{}")
 
         # For uniqueness, the rendered request hash should include
@@ -239,7 +239,7 @@ class SpecCoverageLog(object):
         # remove the start and end brackets, since they will already be present
         # also remove the end newline
         coverage_as_json = coverage_as_json[1:len(coverage_as_json)-2]
-        with open(file_path, 'r+') as file:
+        with open(file_path, 'r+', encoding='utf-8') as file:
             pos = file.seek(0, os.SEEK_END)
             file_size = file.tell()
             pos = file.seek(file_size - 1, 0)
@@ -358,7 +358,7 @@ def garbage_collector_logging(msg):
             os.makedirs(os.path.dirname(filename))
         except OSError:
             pass
-    with open(filename, "a+") as log_file:
+    with open(filename, "a+", encoding='utf-8') as log_file:
         print(msg, file=log_file)
 
 main_lock = threading.Semaphore(1)
@@ -373,7 +373,7 @@ def write_to_main(data: str, print_to_console: bool=False):
     """
     try:
         main_lock.acquire()
-        with open(MAIN_LOGS, "a+") as f:
+        with open(MAIN_LOGS, "a+", encoding='utf-8') as f:
             print(data, file=f)
             f.flush()
     except Exception as err:
@@ -508,7 +508,7 @@ def update_bug_buckets(bug_buckets, bug_request_data, bug_hash, additional_log_s
         filename = f"{bucket_class}_{len(bug_buckets[bucket_class].keys())}.txt"
         filepath = os.path.join(BUG_BUCKETS_DIR, filename)
 
-        with open(filepath, "w+") as bug_file:
+        with open(filepath, "w+", encoding='utf-8') as bug_file:
             # Print the header
             print(f"{'#' * Header_Len}", file=bug_file)
             print(f" {name_header}\n", file=bug_file)
@@ -542,7 +542,7 @@ def update_bug_buckets(bug_buckets, bug_request_data, bug_hash, additional_log_s
         """ Helper that adds bug hash to the bug buckets json file """
         global Bug_Hashes
         Bug_Hashes[bug_hash] = {"file_path": replay_filename}
-        with open(os.path.join(BUG_BUCKETS_DIR, "bug_buckets.json"), "w+") as hash_json:
+        with open(os.path.join(BUG_BUCKETS_DIR, "bug_buckets.json"), "w+", encoding='utf-8') as hash_json:
             json.dump(Bug_Hashes, hash_json, indent=4)
 
     thread_id = threading.current_thread().ident
@@ -558,7 +558,7 @@ def update_bug_buckets(bug_buckets, bug_request_data, bug_hash, additional_log_s
             pass
 
     global Bugs_Logged
-    with open(filename, "w+") as log_file:
+    with open(filename, "w+", encoding='utf-8') as log_file:
         tot_count = 0
         for bucket_class in bug_buckets:
             print(f"{bucket_class}: {len(bug_buckets[bucket_class].keys())}", file=log_file)
@@ -660,7 +660,7 @@ def print_async_results(req_data, message):
 
     req_data = remove_tokens_from_logs(req_data)
 
-    with open(ASYNC_LOG, "a+") as f:
+    with open(ASYNC_LOG, "a+", encoding='utf-8') as f:
         print(repr(req_data), file=f)
         print(f"{message}\n", file=f)
 
@@ -814,7 +814,7 @@ def print_generation_stats(req_collection, fuzzing_monitor, global_lock, final=F
         testing_summary['total_requests_sent'] = total_requests_sent
         testing_summary['bug_buckets'] = bug_buckets
 
-        with open(os.path.join(LOGS_DIR, "testing_summary.json"), "w+") as summary_json:
+        with open(os.path.join(LOGS_DIR, "testing_summary.json"), "w+", encoding='utf-8') as summary_json:
             json.dump(testing_summary, summary_json, indent=4)
 
 def format_request_block(request_id, request_block, candidate_values_pool):
@@ -932,7 +932,7 @@ def print_request_rendering_stats(candidate_values_pool, fuzzing_requests, fuzzi
     else:
         generation_name = f"Generation-{generation}"
 
-    with open(REQUEST_RENDERING_LOGS, "a+") as log_file:
+    with open(REQUEST_RENDERING_LOGS, "a+", encoding='utf-8') as log_file:
         print(f"\n{timestamp}: {generation_name}"\
               f"\n{timestamp}: \tRendered requests: {num_rendered_requests} / {fuzzing_requests.size_all_requests}"\
               f"\n{timestamp}: \tRendered requests with \"valid\" status codes: {sum(successful_requests)} / {num_rendered_requests}"\
@@ -977,7 +977,7 @@ def print_request_rendering_stats_never_rendered_requests(fuzzing_requests,
     @rtype : None
 
     """
-    with open(REQUEST_RENDERING_LOGS, "a+") as log_file:
+    with open(REQUEST_RENDERING_LOGS, "a+", encoding='utf-8') as log_file:
         print(f"\n{formatting.timestamp()}: \tNever Rendered requests:", file=log_file)
 
         for ind, request in enumerate(fuzzing_requests):
