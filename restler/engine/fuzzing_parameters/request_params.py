@@ -3,6 +3,7 @@
 
 import sys
 import json
+from abc import ABCMeta, abstractmethod
 
 import engine.primitives as primitives
 from engine.fuzzing_parameters.fuzzing_config import *
@@ -10,11 +11,14 @@ from engine.fuzzing_parameters.fuzzing_config import *
 TAG_SEPARATOR = '/'
 FUZZABLE_GROUP_TAG = "fuzzable_group_tag"
 
-class QueryParam():
-    """ Query Parameter Class
+class KeyValueParamBase():
+    __metaclass__ = ABCMeta
+
+    """ Abstract base class for parameters that are key-value pairs, such as query
+        and header parameters.
     """
     def __init__(self, key, content):
-        """ Initializes a Query Parameter
+        """ Abstract base constructor for a Key-Value pair Parameter
         """
         self._key = key
         self._content = content
@@ -26,6 +30,12 @@ class QueryParam():
     @property
     def content(self):
         return self._content
+
+    @property
+    def is_required(self):
+        """ Is this a required parameter
+        """
+        return self.content.is_required
 
     def type(self):
         return self._type
@@ -43,68 +53,51 @@ class QueryParam():
         """
         return hash(self._content)
 
+
+class QueryParam(KeyValueParamBase):
+    """ Query Parameter Class
+    """
+    def __init__(self, key, content):
+        """ Initializes a Query Parameter
+        """
+        KeyValueParamBase.__init__(self, key, content)
+
     def get_blocks(self):
         """ Gets the request blocks for the Query Parameter.
 
-        @return: Request blocks representing the format: key=ParamObject
+        @return: Request blocks representing the format:
+                    key=ParamObject
         @rtype : List[str]
 
         """
         key = primitives.restler_static_string(f'{self._key}=')
         return [key] + self._content.get_blocks(FuzzingConfig())
 
-class QueryList():
-    """ List of QueryParam objects
+class HeaderParam(KeyValueParamBase):
+    """ Header Parameter Class
     """
-    def __init__(self):
-        """ Initializes the QueryList
+    def __init__(self, key, content):
+        """ Initializes a Header Parameter
         """
-        self._queries = []
+        KeyValueParamBase.__init__(self, key, content)
 
-    @property
-    def queries(self):
-        return self._queries
+    def get_blocks(self):
+        """ Gets the request blocks for the Header Parameter.
 
-    def __iter__(self):
-        yield self._queries
-
-    def __len__(self):
-        return len(self._queries)
-
-    def __eq__(self, other):
-        """ Operator equals
-        """
-        if not isinstance(other, QueryList):
-            # don't attempt to compare against unrelated types
-            return False
-
-        return self._queries == other.queries
-
-    def __hash__(self):
-        """ Custom hash function
-        """
-        _hash = 0
-        for query in self._queries:
-            _hash += hash(query)
-        return _hash
-
-    def append(self, query):
-        """ Appends a new query to the end of the Query List
-
-        @param query: The new query to append
-        @type  query: QueryParam
-
-        @return: None
-        @rtype : None
+        @return: Request blocks representing the format:
+                    key: ParamObject
+        @rtype : List[str]
 
         """
-        self.queries.append(query)
+        key = primitives.restler_static_string(f'{self._key}: ')
+        return [key] + self._content.get_blocks(FuzzingConfig())
 
 class ParamBase():
     """ Base class for all body parameters """
-    def __init__(self):
+    def __init__(self, is_required=True):
         self._fuzzable = False
         self._tag = ''
+        self._is_required = is_required
 
     @property
     def tag(self):
@@ -126,6 +119,16 @@ class ParamBase():
         """
         self._tag = tag
 
+    @property
+    def is_required(self):
+        """ Returns whether the param is required
+
+        @return: True if the parameter is required
+        @rtype:  Bool
+
+        """
+        return self._is_required
+
     def meta_copy(self, src):
         """ Copy meta data of a ParamValue
 
@@ -138,6 +141,7 @@ class ParamBase():
         """
         self.set_fuzzable(src.is_fuzzable())
         self._tag = src._tag
+        self._is_required = src._is_required
 
     def set_fuzzable(self, is_fuzzable):
         """ Sets param as fuzzable
@@ -164,14 +168,14 @@ class ParamValue(ParamBase):
     """ Base class for value type parameters. Value can be Object, Array,
     String, Number, Boolean, ObjectLeaf, and Enum.
     """
-    def __init__(self, custom=False):
+    def __init__(self, custom=False, is_required=True):
         """ Initialize a ParamValue.
 
         @return: None
         @rtype:  None
 
         """
-        ParamBase.__init__(self)
+        ParamBase.__init__(self, is_required)
         self._content = None
         self._custom = custom
 
@@ -268,7 +272,7 @@ class ParamValue(ParamBase):
 class ParamObject(ParamBase):
     """ Class for object type parameters """
 
-    def __init__(self, members):
+    def __init__(self, members, is_required=True):
         """ Initialize an object type parameter
 
         @param members: A list of members
@@ -278,7 +282,7 @@ class ParamObject(ParamBase):
         @rtype:  None
 
         """
-        ParamBase.__init__(self)
+        ParamBase.__init__(self, is_required)
         self._members = members
 
     def __eq__(self, other):
@@ -463,7 +467,7 @@ class ParamObject(ParamBase):
 class ParamArray(ParamBase):
     """ Class for array type parameters """
 
-    def __init__(self, values):
+    def __init__(self, values, is_required=True):
         """ Initialize an array type parameter
 
         @param values: A list of array values
@@ -473,7 +477,7 @@ class ParamArray(ParamBase):
         @rtype:  None
 
         """
-        ParamBase.__init__(self)
+        ParamBase.__init__(self, is_required)
         self._values = values
 
     @property
@@ -645,7 +649,7 @@ class ParamArray(ParamBase):
 class ParamString(ParamValue):
     """ Class for string type parameters """
 
-    def __init__(self, custom=False):
+    def __init__(self, custom=False, is_required=True):
         """ Initialize a string type parameter
 
         @param custom: Whether or not this is a custom payload
@@ -655,7 +659,8 @@ class ParamString(ParamValue):
         @rtype:  None
 
         """
-        ParamValue.__init__(self)
+        ParamValue.__init__(self, is_required)
+
         self._is_custom = custom
         self._unknown = False
 
@@ -971,7 +976,7 @@ class ParamObjectLeaf(ParamValue):
 class ParamEnum(ParamBase):
     """ Class for Enum type parameters """
 
-    def __init__(self, contents, content_type):
+    def __init__(self, contents, content_type, is_required=True, body_param=True):
         """ Initialize a Enum type parameter
 
         @param contents: A list of enum contents
@@ -983,9 +988,11 @@ class ParamEnum(ParamBase):
         @rtype:  None
 
         """
-        ParamBase.__init__(self)
+        ParamBase.__init__(self, is_required)
+
         self._contents = contents
         self._type = content_type
+        self._is_quoted = body_param
 
     @property
     def contents(self):
@@ -1030,7 +1037,11 @@ class ParamEnum(ParamBase):
         contents_str = []
 
         for content in self._contents:
-            content_str = f'"{content}"' if self.content_type == 'String' else content
+            if self._is_quoted and (self.content_type == 'String' or \
+                                    self.content_type == 'Uuid' or self.content_type == 'DateTime'):
+                content_str = f'"{content}"'
+            else:
+                content_str = content
             contents_str.append(content_str)
 
         return [primitives.restler_fuzzable_group(FUZZABLE_GROUP_TAG, contents_str)]
@@ -1054,19 +1065,9 @@ class ParamEnum(ParamBase):
         @rtype : List[str]
 
         """
-        contents_str = []
 
-        for content in self._contents:
-            # string
-            if self._type == 'String':
-                content_str = f'"{content}"'
-            # others
-            else:
-                content_str = content
-
-            contents_str.append(content_str)
-
-        return [primitives.restler_fuzzable_group(FUZZABLE_GROUP_TAG, contents_str)]
+        # Since Enums are not fuzzed right now, just re-use get_blocks
+        return self.get_blocks(config)
 
     def check_type_mismatch(self, check_value):
         # Not relevant for this param type
@@ -1079,7 +1080,7 @@ class ParamEnum(ParamBase):
 class ParamMember(ParamBase):
     """ Class for member type parameters """
 
-    def __init__(self, name, value):
+    def __init__(self, name, value, is_required=True):
         """ Initialize a member type parameter
 
         @param name: Member name
@@ -1091,7 +1092,7 @@ class ParamMember(ParamBase):
         @rtype:  None
 
         """
-        ParamBase.__init__(self)
+        ParamBase.__init__(self, is_required)
         self._name = name
         self._value = value
 

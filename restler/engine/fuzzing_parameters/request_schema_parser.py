@@ -5,6 +5,24 @@ import utils.logger as logger
 import collections
 from engine.fuzzing_parameters.request_params import *
 
+def des_header_param(header_param_payload):
+    """ Deserialize a header parameter payload
+
+    @param header_param_payload: The header parameter payload to deserialize
+    @type  header_param_payload: JSON
+
+    @return: Yields HeaderParam objects that represents the header pameters from json
+    @rtype : HeaderParam(s)
+
+    """
+    headers = des_request_param_payload(header_param_payload)
+    for (key, payload) in headers:
+        param = des_param_payload(payload, body_param=False)
+        if param:
+            yield HeaderParam(key, param)
+        else:
+            return None
+
 def des_query_param(query_param_payload):
     """ Deserialize a query parameter payload
 
@@ -17,7 +35,7 @@ def des_query_param(query_param_payload):
     """
     queries = des_request_param_payload(query_param_payload)
     for (key, payload) in queries:
-        param = des_param_payload(payload, query_param=True)
+        param = des_param_payload(payload, body_param=False)
         if param:
             yield QueryParam(key, param)
         else:
@@ -69,15 +87,15 @@ def des_request_param_payload(request_param_payload_json):
 
     return [KeyPayload(None, None)]
 
-def des_param_payload(param_payload_json, tag='', query_param=False):
+def des_param_payload(param_payload_json, tag='', body_param=True):
     """ Deserialize ParameterPayload type object.
 
-    @param param_payload_json: Body parameter from the compiler
+    @param param_payload_json: Schema for the body, or query or header parameters from the compiler
     @type  param_payload_json: JSON
     @param tag: Node tag
     @type  tag: Str
-    @param query_param: Set to True if this is a query parameter
-    @type  query_param: Bool
+    @param body_param: Set to True if this is a body parameter
+    @type  body_param: Bool
 
     @return: Body parameter schema
     @rtype:  ParamObject
@@ -92,6 +110,10 @@ def des_param_payload(param_payload_json, tag='', query_param=False):
 
         name = internal_info['name']
         property_type = internal_info['propertyType']
+        if 'isRequired' in internal_info: # check for backwards compatibility of unit test schemas
+            is_required = internal_info['isRequired']
+        else:
+            is_required = True
 
         if tag:
             next_tag = tag + '_' + name
@@ -106,10 +128,11 @@ def des_param_payload(param_payload_json, tag='', query_param=False):
                 values.append(value)
 
             array = ParamArray(values)
-            if query_param or not name:
-                param = array
+
+            if body_param and name:
+                param = ParamMember(name, array, is_required)
             else:
-                param = ParamMember(name, array)
+                param = array
 
             array.tag = f'{next_tag}_array'
 
@@ -131,7 +154,7 @@ def des_param_payload(param_payload_json, tag='', query_param=False):
 
             value = des_param_payload(internal_data[0], next_tag)
 
-            param = ParamMember(name, value)
+            param = ParamMember(name, value, is_required)
 
         # others
         else:
@@ -142,6 +165,10 @@ def des_param_payload(param_payload_json, tag='', query_param=False):
 
         name = leaf_node['name']
         payload = leaf_node['payload']
+        if 'isRequired' in leaf_node: # check for backwards compatibility of old schemas
+            is_required = leaf_node['isRequired']
+        else:
+            is_required = True
 
         # payload is a dictionary (or member) with size 1
         if len(payload) != 1:
@@ -175,25 +202,23 @@ def des_param_payload(param_payload_json, tag='', query_param=False):
 
         # create value w.r.t. the type
         value = None
-        if content_type == 'String':
+        if content_type == 'String' or content_type == 'Uuid' or content_type == 'DateTime':
             # If query parameter, assign as a value and not a string
             # because we don't want to wrap with quotes in the request
-            if query_param:
-                value = ParamValue(custom=custom)
+            if body_param:
+                value = ParamString(custom, is_required=is_required)
             else:
-                value = ParamString(custom)
-        elif content_type == 'DateTime':
-            value = ParamString(custom)
+                value = ParamValue(custom=custom, is_required=is_required)
         elif content_type == 'Int':
-            value = ParamNumber()
+            value = ParamNumber(is_required=is_required)
         elif content_type == 'Number':
-            value = ParamNumber()
+            value = ParamNumber(is_required=is_required)
         elif content_type == 'Bool':
-            value = ParamBoolean()
+            value = ParamBoolean(is_required=is_required)
         elif content_type == 'Object':
-            value = ParamObjectLeaf()
+            value = ParamObjectLeaf(is_required=is_required)
         elif content_type == 'UuidSuffix':
-            value = ParamUuidSuffix()
+            value = ParamUuidSuffix(is_required=is_required)
             # Set as unknown for payload body fuzzing purposes.
             # This will be fuzzed as a string.
             value.set_unknown()
@@ -216,11 +241,11 @@ def des_param_payload(param_payload_json, tag='', query_param=False):
                 enum_name = enum_definition[0]
                 enum_content_type = enum_definition[1]
                 contents = enum_definition[2]
-                value = ParamEnum(contents, enum_content_type)
+                value = ParamEnum(contents, enum_content_type, is_required=is_required, body_param=body_param)
             else:
                 logger.write_to_main(f'Unexpected enum schema {name}')
         else:
-            value = ParamString(False)
+            value = ParamString(False, is_required=is_required)
             value.set_unknown()
 
         value.set_fuzzable(fuzzable)
@@ -235,7 +260,7 @@ def des_param_payload(param_payload_json, tag='', query_param=False):
 
         # create the param node
         if name:
-            param = ParamMember(name, value)
+            param = ParamMember(name, value, is_required=is_required)
         else:
             # when a LeafNode represent a standard type, e.g.,
             # string, the name will be empty

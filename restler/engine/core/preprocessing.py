@@ -14,6 +14,7 @@ import engine.dependencies as dependencies
 import engine.core.sequences as sequences
 from engine.fuzzing_parameters.request_examples import *
 from engine.fuzzing_parameters.body_schema import *
+from engine.fuzzing_parameters.parameter_schema import *
 from engine.core.requests import GrammarRequestCollection
 from engine.core.request_utilities import str_to_hex_def
 from restler_settings import Settings
@@ -71,7 +72,7 @@ def create_fuzzing_req_collection(path_regex):
 
     return fuzz_reqs
 
-def _set_schemas(examples: RequestExamples, body_schema: BodySchema, method: str, endpoint: str):
+def _set_schemas(examples: RequestExamples, body_schema: BodySchema, query_schema: QueryList, headers_schema: HeaderList, method: str, endpoint: str):
     """ Assigns a specified RequestExamples object to the matching
     request in the RequestCollection
 
@@ -105,6 +106,12 @@ def _set_schemas(examples: RequestExamples, body_schema: BodySchema, method: str
                 if body_schema:
                     # Set the request's matching body schema
                     req.set_body_schema(body_schema)
+                if query_schema is not None:  # TODO: need to wrap querylist so 'if query-schema' works as expected
+                    # Set the request's matching query schema
+                    req.set_query_schema(query_schema)
+                if headers_schema is not None:  # TODO: need to wrap headerlist, see above.
+                    # Set the request's matching header schema
+                    req.set_headers_schema(headers_schema)
                 break
         else:
             # The endpoint was found in the request collection, but not with this method
@@ -143,8 +150,23 @@ def parse_grammar_schema(schema_json):
                 # No body schema exists for this request
                 body_schema = None
 
-            if request_examples or body_schema:
-                _set_schemas(request_examples, body_schema, method, endpoint)
+            try:
+                query_schema = QueryList(request_schema_json)
+            except NoQuerySchemaFound:
+                # No query schema exists for this request
+                # This should never happen for valid payloads.
+                query_schema = None
+
+            try:
+                headers_schema = HeaderList(request_schema_json)
+            except NoHeaderSchemaFound:
+                # No header schema exists for this request
+                # This should never happen for valid payloads.
+                headers_schema = None
+
+            if request_examples or body_schema or \
+                (headers_schema is not None) or (query_schema is not None):
+                _set_schemas(request_examples, body_schema, query_schema, headers_schema, method, endpoint)
 
         return True
     except ValueError as err:

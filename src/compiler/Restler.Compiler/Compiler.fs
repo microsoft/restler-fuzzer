@@ -149,6 +149,14 @@ module private Parameters =
          | _ ->
             raise (UnsupportedParameterSerialization(sprintf "%A" p.Style))
 
+    /// Determine whether a parameter is declared as 'readOnly'
+    /// 'isReadOnly' is not exposed in NJsonSchema.  Instead, it appears
+    /// in ExtensionData
+    let parameterIsReadOnly (parameter:OpenApiParameter) =
+        match SchemaUtilities.getExtensionDataBooleanPropertyValue parameter.ExtensionData "readOnly" with
+        | None -> false
+        | Some v -> v
+
     let getPathParameterPayload (payload:ParameterPayload) =
         match payload with
         | LeafNode ln ->
@@ -170,7 +178,9 @@ module private Parameters =
                                 | PayloadFormat.JToken payloadValue ->
                                     let parameterGrammarElement =
                                         generateGrammarElementForSchema declaredParameter.ActualSchema
-                                                                        (Some payloadValue, false) trackParameters [] id
+                                                                        (Some payloadValue, false) trackParameters
+                                                                        (declaredParameter.IsRequired, (parameterIsReadOnly declaredParameter))
+                                                                        [] id
                                     Some { name = declaredParameter.Name
                                            payload = parameterGrammarElement
                                            serialization = getParameterSerialization declaredParameter }
@@ -296,6 +306,7 @@ module private Parameters =
                                                                 p.ActualSchema
                                                                 (specExampleValue, true)
                                                                 trackParameters
+                                                                (p.IsRequired, (parameterIsReadOnly p))
                                                                 [] id
                                     // Add the name to the parameter payload
                                     let parameterPayload =
@@ -414,6 +425,10 @@ let generateRequestPrimitives (requestId:RequestId)
                                     parameterList
                                     |> Seq.map (fun requestParameter ->
                                                     if headersSpecifiedAsCustomPayloads |> Seq.contains requestParameter.name then
+                                                        let isRequired, isReadOnly =
+                                                            match requestParameter.payload with
+                                                            | Tree.LeafNode lp -> lp.isRequired, lp.isReadOnly
+                                                            | Tree.InternalNode (ip,c) -> ip.isRequired, ip.isReadOnly
                                                         let newParameter =
                                                             { requestParameter with
                                                                 payload =
@@ -428,8 +443,8 @@ let generateRequestPrimitives (requestId:RequestId)
                                                                                         payloadValue = requestParameter.name
                                                                                         isObject = false
                                                                                     }
-                                                                            LeafProperty.isRequired = true
-                                                                            LeafProperty.isReadOnly = false
+                                                                            LeafProperty.isRequired = isRequired
+                                                                            LeafProperty.isReadOnly = isReadOnly
                                                                         }}
                                                         newParameter, true
                                                     else
@@ -658,7 +673,8 @@ let generateRequestGrammar (swaggerDocs:Types.ApiSpecFuzzingConfig list)
                         let allResponseProperties = seq {
                             for r in m.Value.Responses do
                                 if validResponseCodes |> List.contains r.Key && not (isNull r.Value.ActualResponse.Schema) then
-                                    yield generateGrammarElementForSchema r.Value.ActualResponse.Schema (None, false) false [] id
+                                    yield generateGrammarElementForSchema r.Value.ActualResponse.Schema (None, false) false
+                                                                          (true (*isRequired*), false (*isReadOnly*)) [] id
                         }
 
                         // 'allResponseProperties' contains the schemas of all possible responses

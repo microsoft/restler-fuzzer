@@ -102,6 +102,20 @@ The maximum amount of time, in seconds, to wait for a resource to be created bef
 ### max_combinations: int (default 20)
 The maximum number of parameter value combinations for parameters within a given request payload.
 
+### test_combinations_settings: dict (default empty)
+The settings for advanced testing of parameter combinations.  Currently, testing
+different combinations of headers is supported via the following property:
+```"test_combinations_settings": {
+      "header_param_combinations" : "optional"
+}
+```
+The supported values are 'optional', 'required', and 'all'.
+
+- optional: test all combinations of optional parameters, always sending the required parameters.
+- required: test combinations of required parameters, and omit all optional parameters.
+- all: test all combinations of headers, regardless of whether they are required or optional.
+
+
 ### max_request_execution_time: float (default 120, max 600)
 The maximum amount of time, in seconds, to wait for a response after sending a request.
 
@@ -140,7 +154,7 @@ in seconds.
 When set, polls for async resource creation before continuing
 
 ### ignore_decoding_failures: bool (default False)
-Set to True to ignore socked data decoding failures 
+Set to True to ignore socked data decoding failures
 See: https://github.com/microsoft/restler-fuzzer/issues/164
 
 ## Per resource settings:
