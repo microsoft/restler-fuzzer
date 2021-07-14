@@ -1136,7 +1136,14 @@ module DependencyLookup =
         | None -> defaultPayload
         | Some (ResponseObject responseProducer) ->
             let variableName = generateDynamicObjectVariableName responseProducer.id.RequestId (Some responseProducer.id.AccessPathParts) "_"
-            DynamicObject variableName
+            // Mark the type of the dynamic object to be the type of the input parameter if available
+            let primitiveType =
+                match defaultPayload with
+                | FuzzingPayload.Fuzzable (primitiveType, _, _, _) -> primitiveType
+                | _ ->
+                    printfn "Warning: primitive type not available for %A [resource: %s]" requestId consumerResourceName
+                    responseProducer.id.PrimitiveType
+            DynamicObject (primitiveType, variableName)
         | Some (DictionaryPayload (customPayload, primitiveType, resourceName, isObject)) ->
             Custom { payloadType = customPayload
                      primitiveType = primitiveType

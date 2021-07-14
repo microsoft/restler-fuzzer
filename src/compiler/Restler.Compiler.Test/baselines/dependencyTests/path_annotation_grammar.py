@@ -73,7 +73,7 @@ request = requests.Request([
     primitives.restler_static_string("Host: localhost:8888\r\n"),
     primitives.restler_refreshable_authentication_token("authentication_token_tag"),
     primitives.restler_static_string("\r\n"),
-
+    
     {
         'post_send':
         {
@@ -100,7 +100,7 @@ request = requests.Request([
     primitives.restler_static_string("/"),
     primitives.restler_static_string("stores"),
     primitives.restler_static_string("/"),
-    primitives.restler_static_string(_stores_post_id.reader()),
+    primitives.restler_static_string(_stores_post_id.reader(), quoted=False),
     primitives.restler_static_string("/"),
     primitives.restler_static_string("order"),
     primitives.restler_static_string(" HTTP/1.1\r\n"),
@@ -120,9 +120,8 @@ request = requests.Request([
     "storeProperties":
         {
             "tags":"""),
-    primitives.restler_static_string('"'),
-    primitives.restler_static_string(_stores_post_metadata.reader()),
-    primitives.restler_static_string(""""
+    primitives.restler_static_string(_stores_post_metadata.reader(), quoted=False),
+    primitives.restler_static_string("""
         }
     ,
     "deliveryProperties":
@@ -145,9 +144,8 @@ request = requests.Request([
     primitives.restler_fuzzable_string("fuzzstring", quoted=True),
     primitives.restler_static_string(""",
             "deliveryTags":"""),
-    primitives.restler_static_string('"'),
-    primitives.restler_static_string(_stores_post_delivery_metadata.reader()),
-    primitives.restler_static_string("""",
+    primitives.restler_static_string(_stores_post_delivery_metadata.reader(), quoted=False),
+    primitives.restler_static_string(""",
             "code":"""),
     primitives.restler_fuzzable_int("1"),
     primitives.restler_static_string(""",

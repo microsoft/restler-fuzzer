@@ -51,7 +51,7 @@ module CodeGenerator =
             let pathPayload =
                 [ (Constant (PrimitiveType.String, "api"))
                   (Constant (PrimitiveType.String, "accounts"))
-                  (DynamicObject "accountId") ]
+                  (DynamicObject (PrimitiveType.Int, "accountId")) ]
             let requestElements =
                 [
                     Method OperationMethod.Get

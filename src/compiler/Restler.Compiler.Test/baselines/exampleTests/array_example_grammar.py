@@ -110,7 +110,7 @@ request = requests.Request([
         "awesome"
     ]}"""),
     primitives.restler_static_string("\r\n"),
-    
+
     {
         'post_send':
         {
@@ -139,7 +139,7 @@ request = requests.Request([
     primitives.restler_static_string("/"),
     primitives.restler_static_string("order"),
     primitives.restler_static_string("/"),
-    primitives.restler_static_string(_stores__storeId__order_post_id.reader()),
+    primitives.restler_static_string(_stores__storeId__order_post_id.reader(), quoted=False),
     primitives.restler_static_string(" HTTP/1.1\r\n"),
     primitives.restler_static_string("Accept: application/json\r\n"),
     primitives.restler_static_string("Host: localhost:8888\r\n"),

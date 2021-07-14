@@ -28,7 +28,7 @@ module Types =
     /// IMPORTANT ! All primitives must be supported in restler/engine/primitives.py
     type RequestPrimitiveType =
         | Restler_static_string_constant of string
-        | Restler_static_string_variable of string
+        | Restler_static_string_variable of string * bool
         | Restler_static_string_jtoken_delim of string
         | Restler_fuzzable_string of RequestPrimitiveTypeData
         | Restler_fuzzable_datetime of RequestPrimitiveTypeData
@@ -96,8 +96,8 @@ let rec getRestlerPythonPayload (payload:FuzzingPayload) (isQuoted:bool) : Reque
                 Restler_custom_payload_uuid4_suffix c.payloadValue
             | CustomPayloadType.Header ->
                 Restler_custom_payload_header c.payloadValue  // TODO: need test
-        | DynamicObject s ->
-            Restler_static_string_variable (sprintf "%s.reader()" s)
+        | DynamicObject (primitiveType, s) ->
+            Restler_static_string_variable (sprintf "%s.reader()" s, isQuoted)
         | PayloadParts p ->
             raise (invalidArg "p" "expected primitive payload")
 
@@ -317,7 +317,7 @@ let generatePythonParameter includeOptionalParameters parameterKind (requestPara
                 else
                     [ formatPropertyName p.name ]
 
-            let needQuotes, isFuzzable =
+            let needQuotes, isFuzzable, isDynamicObject =
                 match p.payload with
                 | FuzzingPayload.Custom c ->
                     let isFuzzable = (c.payloadType = CustomPayloadType.String)
@@ -325,27 +325,27 @@ let generatePythonParameter includeOptionalParameters parameterKind (requestPara
                     let needQuotes =
                         (not c.isObject) &&
                         (isPrimitiveTypeQuoted c.primitiveType false)
-                    needQuotes, isFuzzable
+                    needQuotes, isFuzzable, false
                 | FuzzingPayload.Constant (PrimitiveType.String, s) ->
                     // TODO: improve the metadata of FuzzingPayload.Constant to capture whether
                     // the constant represents an object,
                     // rather than relying on the formatting behavior of JToken.ToString.
                     not (isNull s) &&
                     not (s.Contains("\n")),
-                    false
+                    false, false
                 | FuzzingPayload.Constant (primitiveType, v) ->
                     isPrimitiveTypeQuoted primitiveType (isNull v),
-                    false
+                    false, false
                 | FuzzingPayload.Fuzzable (primitiveType, _, _,_) ->
                     // Note: this is a current RESTler limitation -
                     // fuzzable values may not be set to null without changing the grammar.
                     isPrimitiveTypeQuoted primitiveType false,
-                    true
-                | FuzzingPayload.DynamicObject (_)
-                | FuzzingPayload.PayloadParts (_) ->
-                    // Note: dynamic objects as the query parameter (e.g. api-version) do not need quotes.
-                    // That case is handled elsewhere.
                     true, false
+                | FuzzingPayload.DynamicObject (primitiveType, _) ->
+                    isPrimitiveTypeQuoted primitiveType false,
+                    false, true
+                | FuzzingPayload.PayloadParts (_) ->
+                    false, false, false
 
             let tabSeq =
                 if parameterKind = ParameterKind.Body then
@@ -362,11 +362,12 @@ let generatePythonParameter includeOptionalParameters parameterKind (requestPara
                     // the user may choose to fuzz with quoted or unquoted values.
                     let needStaticStringQuotes =
                         parameterKind = ParameterKind.Body &&
-                        needQuotes && not isFuzzable
+                        needQuotes && not isFuzzable && not isDynamicObject
                     if needStaticStringQuotes then
                         yield Restler_static_string_constant "\""
 
-                    let isQuoted = parameterKind = ParameterKind.Body && needQuotes && isFuzzable
+                    let isQuoted = parameterKind = ParameterKind.Body && needQuotes &&
+                                    (isFuzzable || isDynamicObject)
                     for k in getRestlerPythonPayload p.payload isQuoted do
                         yield k
 
@@ -854,8 +855,10 @@ let getRequests(requests:Request list) includeOptionalParameters =
                             else s
                         quoteStringForPythonGrammar rawValue
                     sprintf "primitives.restler_static_string(%s%s%s)" delim s delim
-            | Restler_static_string_variable s ->
-                sprintf "primitives.restler_static_string(%s)" s
+            | Restler_static_string_variable (s, isQuoted) ->
+                sprintf "primitives.restler_static_string(%s, quoted=%s)"
+                        s
+                        (if isQuoted then "True" else "False")
             | Restler_fuzzable_string s ->
                 if String.IsNullOrEmpty s.defaultValue then
                     printfn "ERROR: fuzzable strings should not be empty.  Skipping."
