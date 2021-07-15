@@ -29,7 +29,7 @@ class PayloadBodyBuckets():
         """
         # Extract the body from the new request data
         new_body = utils.get_response_body(new_request_data)
-        with open(os.path.join(logger.LOGS_DIR, 'payload_buckets.txt'), 'a') as file:
+        with open(os.path.join(logger.LOGS_DIR, 'payload_buckets.txt'), 'a', encoding='utf-8') as file:
             # Check to see if we have logged any bugs for this request yet
             if request.method_endpoint_hex_definition not in self._buckets:
                 self._buckets[request.method_endpoint_hex_definition] = set()
