@@ -7,10 +7,12 @@ from __future__ import print_function
 import time
 import threading
 import sys
+import json
 import multiprocessing
 from multiprocessing.dummy import Pool as ThreadPool
 import utils.formatting as formatting
 from restler_settings import Settings
+
 
 threadLocal = threading.local()
 # Keep TLS tlb to enforce mutual exclusion when using >1 fuzzing jobs.
@@ -96,18 +98,19 @@ def get_variable(type):
     if type not in tlb:
         return ''
 
-    # If the variable is a boolean, it needs to be converted back to its
-    # string representation
+    # Make sure the value is properly escaped for being sent
+    # This also handles cases when the variable is a boolean -
+    # and needs to be converted back to its json representation
     value = tlb[type]
-    if value == True:
-        value = "true"
-    elif value == False:
-        value = "false"
+    encoded_value = json.dumps(value)
+    if isinstance(value, (str)):
+        encoded_value = encoded_value[1:-1]
 
     # thread_id = threading.current_thread().ident
-    # print("Getting: {} / Value: {} ({})".format(type, value, thread_id))
+    # print("Getting: {} / Value: {} ({})".format(type, encoded_value, thread_id))
 
-    return str(value)
+    return encoded_value
+
 
 def set_variable(type, value):
     """ Setter for dynamic variable (a.k.a. dependency).
