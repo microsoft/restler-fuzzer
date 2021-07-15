@@ -228,7 +228,7 @@
             ]
           },
           {
-            "DynamicObject": "_city_put_name"
+            "DynamicObject": [    "String", "_city_put_name" ]
           }
         ],
         "queryParameters": [
@@ -320,7 +320,7 @@
             ]
           },
           {
-            "DynamicObject": "_city_put_name"
+            "DynamicObject": [    "String", "_city_put_name" ]
           }
         ],
         "queryParameters": [
@@ -368,7 +368,7 @@
             ]
           },
           {
-            "DynamicObject": "_city_put_name"
+            "DynamicObject": [    "String", "_city_put_name" ]
           },
           {
               "Constant": [
@@ -422,7 +422,7 @@
             ]
           },
           {
-            "DynamicObject": "_city_put_name"
+            "DynamicObject": [    "String", "_city_put_name" ]
           },
           {
               "Constant": [
@@ -575,7 +575,7 @@
             ]
           },
           {
-            "DynamicObject": "_city_put_name"
+            "DynamicObject": [    "String", "_city_put_name" ]
           },
           {
               "Constant": [
@@ -584,7 +584,7 @@
               ]
           },
           {
-              "DynamicObject": "_city_house_put_name"
+              "DynamicObject": [    "String", "_city_house_put_name" ]
           }
         ],
         "queryParameters": [
@@ -632,7 +632,7 @@
             ]
           },
           {
-            "DynamicObject": "_city_put_name"
+            "DynamicObject": [    "String", "_city_put_name" ]
           },
           {
               "Constant": [
@@ -641,7 +641,7 @@
               ]
           },
           {
-              "DynamicObject": "_city_house_put_name"
+              "DynamicObject": [    "String", "_city_house_put_name" ]
           }
         ],
         "queryParameters": [
