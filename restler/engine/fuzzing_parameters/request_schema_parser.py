@@ -187,8 +187,8 @@ def des_param_payload(param_payload_json, tag='', body_param=True):
             content_type = payload['Constant'][0]
             content_value = payload['Constant'][1]
         elif 'DynamicObject' in payload:
-            content_type = 'Unknown'
-            content_value = payload['DynamicObject']
+            content_type = payload['DynamicObject'][0]
+            content_value = payload['DynamicObject'][1]
         elif 'Custom' in payload:
             custom = True
             content_type = payload['Custom']['payloadType']
