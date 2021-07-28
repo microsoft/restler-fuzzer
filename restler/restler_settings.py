@@ -539,6 +539,12 @@ class RestlerSettings(object):
         return None
 
     @property
+    def example_payloads(self):
+        if 'example_payloads' in self._combinations_args.val:
+            return self._combinations_args.val['example_payloads']
+        return None
+
+    @property
     def max_request_execution_time(self):
         return self._max_request_execution_time.val
 

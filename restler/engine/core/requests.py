@@ -605,6 +605,13 @@ class Request(object):
         @rtype : (Request)
 
         """
+        tested_example_payloads = False
+        example_payloads = Settings().example_payloads
+        if example_payloads is not None and self.examples is not None:
+            tested_example_payloads = True
+            for ex in self.get_example_payloads(example_payloads):
+                yield ex
+
         tested_param_combinations = False
         header_param_combinations = Settings().header_param_combinations
         if header_param_combinations is not None:
@@ -612,7 +619,7 @@ class Request(object):
             for hpc in self.get_header_param_combinations(header_param_combinations):
                 yield hpc
 
-        if not tested_param_combinations:
+        if not (tested_param_combinations or tested_example_payloads):
             yield self
 
     def init_fuzzable_values(self, req_definition, candidate_values_pool, preprocessing=False):
@@ -984,6 +991,42 @@ class Request(object):
                 # In such cases, skip the combination.
                 logger.write_to_main(f"Warning: could not substitute header parameters.")
 
+    def get_example_payloads(self, example_payloads_setting):
+        """
+        Replaces the body and query of this request by the available examples.
+        Does not currently modify the headers, because header examples are not yet supported.
+        """
+        # The length of all the example lists is currently expected to be the same.
+        num_payloads = len(self.examples.query_examples)
+        for payload_idx in range(num_payloads):
+            logger.write_to_main(f"Found example {payload_idx}.")
+            body_example = self.examples.body_examples[payload_idx]
+            query_example = self.examples.query_examples[payload_idx]
+            # TODO: header examples are not supported yet.
+            #  header_example = examples.header_examples[payload_idx]
+
+            # Copy the request definition and reset it here.
+            body_blocks = body_example.get_blocks()
+            query_blocks = []
+            for idx, query in enumerate(query_example.param_list):
+                query_blocks += query.get_blocks()
+                if idx < len(query_example.queries) - 1:
+                    # Add the query separator
+                    query_blocks.append(primitives.restler_static_string('&'))
+
+            new_request = self.substitute_query(query_blocks)
+
+            # Only substitute the body if there is a body.
+            if body_blocks:
+                new_request = new_request.substitute_body(body_blocks)
+
+            if new_request:
+                yield new_request
+            else:
+                # For malformed requests, it is possible that the place to insert query parameters is not found,
+                # so the query parameters cannot be inserted. In such cases, skip the example.
+                logger.write_to_main(f"Warning: could not substitute example parameters for example {payload_idx}.")
+
     def get_body_start(self):
         """ Get the starting index of the request body
 
@@ -1105,8 +1148,8 @@ class Request(object):
             if new_query_blocks:
                 new_query_blocks.insert(0, primitives.restler_static_string('?'))
 
-        # If the new query is empty, remove the '?'
-        if not new_query_blocks:
+        # If the new query is empty, remove the '?' if it exists
+        if not new_query_blocks and (start_idx != end_idx):
             start_idx = start_idx - 1
         new_definition = old_request.definition[:start_idx] + new_query_blocks + old_request.definition[end_idx:]
         new_definition += [old_request.metadata.copy()]
