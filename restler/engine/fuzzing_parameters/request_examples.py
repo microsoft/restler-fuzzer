@@ -25,8 +25,8 @@ class RequestExamples():
 
         """
         # initialization
-        self._query_examples: set = set()   # {QueryList}
-        self._body_examples: set = set()    # {BodySchema}
+        self._query_examples: list = []   # {QueryList}
+        self._body_examples: list = []    # {BodySchema}
 
         # process the request schema
         try:
@@ -83,7 +83,7 @@ class RequestExamples():
                 # Set each query parameter of the query
                 for query in des_query_param(query_parameter[1]):
                     query_list.append(query)
-                self._query_examples.add(query_list)
+                self._query_examples.append(query_list)
 
     def _set_body_params(self, body_parameters):
         """ Deserializes and populates the body parameters
@@ -102,4 +102,4 @@ class RequestExamples():
                 if payload:
                     body_example = des_param_payload(payload)
                     if body_example:
-                        self._body_examples.add(BodySchema(param=body_example))
+                        self._body_examples.append(BodySchema(param=body_example))

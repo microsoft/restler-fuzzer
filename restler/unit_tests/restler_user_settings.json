@@ -2,8 +2,9 @@
     "client_certificate_path": "\\path\\to\\file.pem",
     "max_combinations": 20,
     "test_combinations_settings": {
-        "header_param_combinations" : "optional",
-        "query_param_combinations": "required"
+      "header_param_combinations" : "optional",
+      "query_param_combinations": "required",
+      "example_payloads":  "all"
     },
     "max_request_execution_time": 90,
     "save_results_in_fixed_dirname": false,

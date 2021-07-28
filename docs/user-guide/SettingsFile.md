@@ -103,9 +103,13 @@ The maximum amount of time, in seconds, to wait for a resource to be created bef
 The maximum number of parameter value combinations for parameters within a given request payload.
 
 ### test_combinations_settings: dict (default empty)
-The settings for advanced testing of parameter combinations.  Currently, testing
+The settings for advanced testing of parameter combinations.
+
+__header_param_combinations__
+Currently, testing
 different combinations of headers is supported via the following property:
-```"test_combinations_settings": {
+```json
+"test_combinations_settings": {
       "header_param_combinations" : "optional"
 }
 ```
@@ -114,6 +118,18 @@ The supported values are 'optional', 'required', and 'all'.
 - optional: test all combinations of optional parameters, always sending the required parameters.
 - required: test combinations of required parameters, and omit all optional parameters.
 - all: test all combinations of headers, regardless of whether they are required or optional.
+
+__example_payloads__
+
+For request types where one or more examples are provided, this option enables testing all of
+the examples instead of just the first one.
+
+```json
+"test_combinations_settings": {
+      "example_payloadds" : "all"
+}
+```
+The supported value is 'all'.
 
 
 ### max_request_execution_time: float (default 120, max 600)
