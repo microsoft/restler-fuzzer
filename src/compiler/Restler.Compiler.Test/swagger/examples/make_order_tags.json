@@ -1,10 +1,10 @@
 {
   "parameters": {
     "storeId": "23456",
-    "orderDetails": {
+    "__body__": {
       "tags": {
         "tag1": "value1",
-       
+
         "tag2": "value2"
       }
     }

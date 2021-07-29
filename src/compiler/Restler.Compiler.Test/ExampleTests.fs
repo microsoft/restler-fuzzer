@@ -75,16 +75,21 @@ module Examples =
 
         [<Fact>]
         let ``object example in grammar without dependencies`` () =
-
+            let grammarDirectoryPath = ctx.testRootDirPath
             let config = { Restler.Config.SampleConfig with
                              IncludeOptionalParameters = true
-                             GrammarOutputDirectoryPath = Some ctx.testRootDirPath
+                             GrammarOutputDirectoryPath = Some grammarDirectoryPath
                              ResolveBodyDependencies = false
                              UseBodyExamples = Some true
                              SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, @"swagger\object_example.json"))]
                              CustomDictionaryFilePath = Some (Path.Combine(Environment.CurrentDirectory, @"swagger\example_demo_dictionary.json"))
                          }
             Restler.Workflow.generateRestlerGrammar None config
+            let grammarFilePath = Path.Combine(grammarDirectoryPath,
+                                               Restler.Workflow.Constants.DefaultRestlerGrammarFileName)
+            let grammar = File.ReadAllText(grammarFilePath)
+            // Check that the grammar contains the object example
+            Assert.True(grammar.Contains("\"tag1\":\"value1\"") && grammar.Contains("\"tag2\":\"value2\""))
 
         [<Fact>]
         let ``allof property omitted in example`` () =
