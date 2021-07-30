@@ -163,15 +163,31 @@ module private Parameters =
             ln.payload
         | _ -> raise (UnsupportedType "Complex path parameters are not supported")
 
+    /// Given an example payload, go through the list of declared parameters and only retain the
+    /// ones that are declared in the example.
+    /// At the end, print some diagnostic information about which parameters in the example were
+    /// not found in the specification.
     let private getParametersFromExample (examplePayload:ExampleRequestPayload)
                                          (parameterList:seq<OpenApiParameter>)
                                          (trackParameters:bool) =
-        parameterList
-        |> Seq.choose (fun declaredParameter ->
+        // If the declared parameter is the body, then also look for the special keyword denoting
+        // a body parameter in examples
+        let bodyName = "__body__"
+        let exampleParameters =
+            parameterList
+            |> Seq.choose
+                (fun declaredParameter ->
                             // If the declared parameter isn't in the example, skip it.  Here, the example is used to
                             // select which parameters must be passed to the API.
-                            match examplePayload.parameterExamples
-                                  |> List.tryFind (fun r -> r.parameterName = declaredParameter.Name) with
+                            let foundParameter =
+                                match examplePayload.parameterExamples
+                                      |> List.tryFind (fun r -> r.parameterName = declaredParameter.Name) with
+                                | Some p -> Some p
+                                | None when declaredParameter.Kind = OpenApiParameterKind.Body ->
+                                    examplePayload.parameterExamples
+                                    |> List.tryFind (fun r -> r.parameterName = bodyName)
+                                | None -> None
+                            match foundParameter with
                             | None -> None
                             | Some found ->
                                 match found.payload with
@@ -184,7 +200,14 @@ module private Parameters =
                                     Some { name = declaredParameter.Name
                                            payload = parameterGrammarElement
                                            serialization = getParameterSerialization declaredParameter }
-                        )
+                )
+
+        examplePayload.parameterExamples
+        |> List.filter (fun exampleParameter ->
+                            exampleParameter.parameterName <> bodyName &&
+                            parameterList |> Seq.tryFind (fun dp -> dp.Name = exampleParameter.parameterName) = None)
+        |> List.iter (fun p -> printfn "Warning: example parameter not found in spec: %s" p.parameterName)
+        exampleParameters
 
     // Gets the first example found from the open API parameter:
     // The priority is:

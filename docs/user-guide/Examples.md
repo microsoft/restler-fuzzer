@@ -48,6 +48,12 @@ When specifying example payloads through an example file, set *DiscoverExamples*
 
 The format of the example file is as follows.  Note that either an external file or inline example can be specified.  Inline examples are useful for initial setup/debugging, but we recommend using external files to maintain examples separately for different requests.
 
+For specifying example body payloads, it is recommended to use the special keyword ```__body__```.
+This special property name will cause RESTler to assign this property value to the body,
+ignoring the name of the body parameter in the schema.  Because the body parameter name
+is not part of the actual body payload, this property name makes it more clear and less error prone
+to see where the body is specified in examples.
+
 ```json
 
 {
@@ -62,7 +68,12 @@ The format of the example file is as follows.  Note that either an external file
                         }
                     }
                 },
-                "2": "c:\\secondExample.json"
+                "2": "c:\\secondExample.json",
+                "3": {
+                    "parameters": {
+                        "__body__": {}
+                    }
+                }
             }
         }
     }

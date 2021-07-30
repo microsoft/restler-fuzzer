@@ -375,7 +375,7 @@ module SwaggerVisitors =
                 let objTree =
                     // This object may or may not have nested properties.
                     // Similar to type 'None', just pass through the object and it will be taken care of downstream.
-                    generateGrammarElementForSchema property.ActualSchema (None, false) trackParameters
+                    generateGrammarElementForSchema property.ActualSchema (propertyPayloadExampleValue, generateFuzzablePayload) trackParameters
                                                     (property.IsRequired, (propertyIsReadOnly property))
                                                     parents (fun tree ->
                         // If the object has no properties, it should be set to its primitive type.
