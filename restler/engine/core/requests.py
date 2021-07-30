@@ -77,6 +77,12 @@ class RenderedRequestStats(object):
             self.request_uri = verb_and_uri[1]
             self.request_headers = split_headers[1:]
 
+            # Remove the value of the Authorization header,
+            # so it is not persisted in logs
+            for idx, h in enumerate(self.request_headers):
+                if h.startswith("Authorization:"):
+                    self.request_headers[idx] = "Authorization: _OMITTED_AUTH_TOKEN_"
+
             if len(split_body) > 0 and split_body[1]:
                 self.request_body = split_body[1]
         except:
