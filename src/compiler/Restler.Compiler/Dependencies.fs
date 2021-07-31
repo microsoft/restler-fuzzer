@@ -397,9 +397,9 @@ let findProducerWithResourceName
             | None -> Seq.empty
             | Some d ->
                 // TODO: error handling.  only one should match.
-                d.getParameterForCustomPayload consumer.id.ResourceName consumer.id.AccessPathParts consumer.id.PrimitiveType
+                d.getParameterForCustomPayload consumer.id.ResourceName consumer.id.AccessPathParts consumer.id.PrimitiveType consumer.parameterKind
         let globalDictionaryMatches =
-            dictionary.getParameterForCustomPayload consumer.id.ResourceName consumer.id.AccessPathParts consumer.id.PrimitiveType
+            dictionary.getParameterForCustomPayload consumer.id.ResourceName consumer.id.AccessPathParts consumer.id.PrimitiveType consumer.parameterKind
         [
             perRequestDictionaryMatches
             globalDictionaryMatches
@@ -470,6 +470,7 @@ let findProducerWithResourceName
                 consumerResourceName
                 consumer.id.AccessPathParts
                 consumer.id.PrimitiveType
+                consumer.parameterKind
                 )
             |> Seq.isEmpty &&
            inferredExactMatches |> Seq.isEmpty then
@@ -495,7 +496,8 @@ let findProducerWithResourceName
              (dictionary.getParameterForCustomPayload
                 consumerResourceName
                 consumer.id.AccessPathParts
-                consumer.id.PrimitiveType)
+                consumer.id.PrimitiveType
+                consumer.parameterKind)
              |> Seq.isEmpty &&
              (not (inferredExactMatches
                    |> Seq.exists (fun x -> x.id.RequestId.method = OperationMethod.Put ||
@@ -1346,6 +1348,7 @@ let writeDependencies dependenciesFilePath dependencies (unresolvedOnly:bool) =
                                     | CustomPayloadType.String -> ""
                                     | CustomPayloadType.UuidSuffix -> "_uuid_suffix"
                                     | CustomPayloadType.Header -> "_header"
+                                    | CustomPayloadType.Query -> "_query"
                                 "",
                                 "",
                                 sprintf "restler_custom_payload%s__%s" customPayloadDesc payloadName

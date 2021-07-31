@@ -45,6 +45,18 @@ The following describes how each property in the dictionary is used in a RESTler
   }
   ```
 
+- *restler_custom_payload_query* - specifies a list of specific values required for query parameters.  This property works the same as *restler_custom_payload_header*
+
+  ``` json
+  {
+     "restler_custom_payload_query": {
+         "query_param": ["qp1", "qp2"]
+     }
+  }
+  ```
+
+
+
 - *restler_custom_payload_uuid4_suffix* specifies constant values to which random GUID values will be appended.
 
 

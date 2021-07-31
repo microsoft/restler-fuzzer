@@ -58,5 +58,67 @@ module Dictionary =
             Assert.True(grammar.Contains("""primitives.restler_custom_payload_uuid4_suffix("resourceId"),"""))
             Assert.True(grammar.Contains("""primitives.restler_custom_payload_uuid4_suffix("/resource/id"),"""))
 
+        [<Fact>]
+        /// Test that when a custom payload query (resp. header) is specified in the dictionary, it is injected.
+        let ``custom payload query and header is correctly injected`` () =
+            let grammarOutputDirPath = ctx.testRootDirPath
+            let config = { Restler.Config.SampleConfig with
+                             IncludeOptionalParameters = true
+                             GrammarOutputDirectoryPath = Some grammarOutputDirPath
+                             ResolveBodyDependencies = true
+                             ResolveQueryDependencies = true
+                             UseBodyExamples = Some false
+                             UseQueryExamples = Some false
+                             SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, @"swagger\dictionaryTests\no_params.json"))]
+                             CustomDictionaryFilePath = Some (Path.Combine(Environment.CurrentDirectory, @"swagger\dictionaryTests\inject_custom_payloads_dict.json"))
+
+                         }
+
+            let configWithoutDictionary = { config with CustomDictionaryFilePath = None }
+            Restler.Workflow.generateRestlerGrammar None configWithoutDictionary
+
+            let grammarFilePath = Path.Combine(grammarOutputDirPath,
+                                               Restler.Workflow.Constants.DefaultRestlerGrammarFileName)
+            let grammarLines = File.ReadAllLines(grammarFilePath)
+            // Without the dictionary, there should be 4 fuzzable strings corresponding to the 4 spec parameters
+            let numFuzzableStrings = grammarLines |> Seq.filter (fun s -> s.Contains("restler_fuzzable_string(")) |> Seq.length
+            Assert.True((numFuzzableStrings = 4))
+
+            // Now generate a grammar with the dictionary
+            Restler.Workflow.generateRestlerGrammar None config
+
+            let grammarFilePath = Path.Combine(grammarOutputDirPath,
+                                               Restler.Workflow.Constants.DefaultRestlerGrammarFileName)
+            let grammar = File.ReadAllText(grammarFilePath)
+
+            // The header 'spec_header1' is declared in the spec and in the 'custom_payload_header' section.
+            // There should be a custom_payload_header("spec_header1"),  in the grammar.
+            Assert.True(grammar.Contains("""restler_custom_payload_header("spec_header1")"""))
+
+            // The query parameter 'spec_query1' is declared in the spec and in the 'custom_payload_query' section.
+            // There should be a custom_payload_query("spec_header1"),  in the grammar.
+            Assert.True(grammar.Contains("""restler_custom_payload_query("spec_query1")"""))
+
+            // The query and header parameters 'spec_query2' and 'spec_header2' are
+            // declared in the spec and in the 'custom_payload_query' section.
+            // The query should be substituted with the dictionary values (legacy behavior; this may
+            // be updated in the future to require restler_custom_payload_query)
+            // The header should not be substituted with the dictionary values (restler_custom_payload_header
+            // should be used instead).
+            Assert.False(grammar.Contains("""restler_custom_payload("spec_header2")"""))
+            Assert.True(grammar.Contains("""restler_custom_payload("spec_query2","""))
+
+            // The injected query and headers should be present
+            Assert.True(grammar.Contains("""restler_custom_payload_header("extra_header1")"""))
+            Assert.True(grammar.Contains("""restler_custom_payload_header("extra_header2")"""))
+            Assert.True(grammar.Contains("""restler_custom_payload_query("extra_query1")"""))
+            Assert.True(grammar.Contains("""restler_custom_payload_query("extra_query2")"""))
+
+            // There should be just one fuzzable string
+            let grammarLines2 = grammar.Split("\n")
+            // Without the dictionary, there should be 4 fuzzable strings corresponding to the 4 spec parameters
+            let numFuzzableStrings2 = grammarLines2 |> Seq.filter (fun s -> s.Contains("restler_fuzzable_string(")) |> Seq.length
+            Assert.True((numFuzzableStrings2 = 1))
+
 
         interface IClassFixture<Fixtures.TestSetupAndCleanup>

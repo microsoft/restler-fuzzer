@@ -648,6 +648,7 @@ class Request(object):
                 examples = request_block[4]
             elif primitive_type in [ primitives.CUSTOM_PAYLOAD,
                                      primitives.CUSTOM_PAYLOAD_HEADER,
+                                     primitives.CUSTOM_PAYLOAD_QUERY,
                                      primitives.CUSTOM_PAYLOAD_UUID4_SUFFIX ]:
                 field_name = request_block[1]
                 quoted = request_block[2]
@@ -705,8 +706,9 @@ class Request(object):
                     _raise_dict_err(primitive_type, field_name)
                 except Exception as err:
                     _handle_exception(primitive_type, field_name, err)
-            # Handle custom (user defined) static payload on header (Adds \r\n)
-            elif primitive_type == primitives.CUSTOM_PAYLOAD_HEADER:
+            # Handle custom (user defined) static payload on header or query
+            elif (primitive_type == primitives.CUSTOM_PAYLOAD_HEADER or\
+                  primitive_type == primitives.CUSTOM_PAYLOAD_QUERY):
                 try:
                     current_fuzzable_values = candidate_values_pool.\
                         get_candidate_values(primitive_type, request_id=self._request_id, tag=field_name, quoted=quoted)
