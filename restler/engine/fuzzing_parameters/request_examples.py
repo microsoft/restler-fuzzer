@@ -99,7 +99,12 @@ class RequestExamples():
         for body_parameter in body_parameters:
             if body_parameter[0] == 'Examples':
                 payload = des_body_param(body_parameter[1])
+                added_body = False
                 if payload:
                     body_example = des_param_payload(payload)
                     if body_example:
                         self._body_examples.append(BodySchema(param=body_example))
+                        added_body = True
+                if not added_body:
+                    # Add a None value in the array to track that this example has no body
+                    self._body_examples.append(None)

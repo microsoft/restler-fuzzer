@@ -1006,17 +1006,23 @@ class Request(object):
         num_payloads = len(self.examples.query_examples)
         for payload_idx in range(num_payloads):
             logger.write_to_main(f"Found example {payload_idx}.")
+            if len(self.examples.body_examples) <= payload_idx:
+                error_message=f"ERROR: ill-formed example {self.endpoint} {self.method}."
+                logger.write_to_main(error_message)
+                raise Exception(error_message)
             body_example = self.examples.body_examples[payload_idx]
             query_example = self.examples.query_examples[payload_idx]
             # TODO: header examples are not supported yet.
             #  header_example = examples.header_examples[payload_idx]
 
             # Copy the request definition and reset it here.
-            body_blocks = body_example.get_blocks()
+            body_blocks = None
+            if body_example:
+                body_blocks = body_example.get_blocks()
             query_blocks = []
             for idx, query in enumerate(query_example.param_list):
                 query_blocks += query.get_blocks()
-                if idx < len(query_example.queries) - 1:
+                if idx < len(query_example.param_list) - 1:
                     # Add the query separator
                     query_blocks.append(primitives.restler_static_string('&'))
 
