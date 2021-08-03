@@ -51,7 +51,7 @@ module CodeGenerator =
             let pathPayload =
                 [ (Constant (PrimitiveType.String, "api"))
                   (Constant (PrimitiveType.String, "accounts"))
-                  (DynamicObject (PrimitiveType.Int, "accountId")) ]
+                  (DynamicObject { primitiveType = PrimitiveType.Int ; variableName = "accountId"; isWriter = false }) ]
             let requestElements =
                 [
                     Method OperationMethod.Get
@@ -82,6 +82,7 @@ module CodeGenerator =
                                ("Content-Type", "application/json")]
                     token = (TokenKind.Static "SpringfieldToken: 12345")
                     responseParser = None
+                    inputDynamicObjectVariables = []
                     requestMetadata = { isLongRunningOperation = false }
                 }
             let elements = Restler.CodeGenerator.Python.getRequests [request] true

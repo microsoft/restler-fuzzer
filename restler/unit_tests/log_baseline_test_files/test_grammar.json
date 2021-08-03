@@ -99,11 +99,12 @@
             ]
           },
           {
-            "Custom": [
-                "UuidSuffix",
-                "cityName",
-                false
-            ]
+            "Custom": {
+              "payloadType": "UuidSuffix",
+              "primitiveType": "String",
+              "payloadValue": "cityName",
+              "isObject": false
+            }
           }
         ],
         "queryParameters": [
@@ -209,10 +210,11 @@
             ]
           },
           {
-            "DynamicObject": [
-              "String",
-              "_city_put_name"
-            ]
+            "DynamicObject": {
+              "primitiveType": "String",
+              "variableName": "_city_put_name",
+              "isWriter": false
+            }
           }
         ],
         "queryParameters": [
@@ -305,10 +307,11 @@
             ]
           },
           {
-            "DynamicObject": [
-              "String",
-              "_city_put_name"
-            ]
+            "DynamicObject": {
+              "primitiveType": "String",
+              "variableName": "_city_put_name",
+              "isWriter": false
+            }
           }
         ],
         "queryParameters": [
@@ -356,10 +359,11 @@
             ]
           },
           {
-            "DynamicObject": [
-              "String",
-              "_city_put_name"
-            ]
+            "DynamicObject": {
+              "primitiveType": "String",
+              "variableName": "_city_put_name",
+              "isWriter": false
+            }
           },
           {
               "Constant": [
@@ -413,10 +417,11 @@
             ]
           },
           {
-            "DynamicObject": [
-              "String",
-              "_city_put_name"
-            ]
+            "DynamicObject": {
+              "primitiveType": "String",
+              "variableName": "_city_put_name",
+              "isWriter": false
+            }
           },
           {
               "Constant": [
@@ -425,11 +430,12 @@
               ]
           },
           {
-            "Custom": [
-                "UuidSuffix",
-                "houseName",
-                false
-            ]
+            "Custom": {
+              "payloadType": "UuidSuffix",
+              "primitiveType":  "String",
+              "payloadValue": "houseName",
+              "isObject":  false
+            }
           }
         ],
         "queryParameters": [
@@ -531,10 +537,11 @@
             ]
           },
           {
-            "DynamicObject": [
-              "String",
-              "_city_put_name"
-            ]
+            "DynamicObject": {
+              "primitiveType": "String",
+              "variableName": "_city_put_name",
+              "isWriter": false
+            }
           },
           {
               "Constant": [
@@ -543,7 +550,11 @@
               ]
           },
           {
-              "DynamicObject": [    "String", "_city_house_put_name" ]
+            "DynamicObject": {
+              "primitiveType": "String",
+              "variableName": "_city_house_put_name",
+              "isWriter": false
+            }
           }
         ],
         "queryParameters": [
@@ -591,7 +602,11 @@
             ]
           },
           {
-                      "DynamicObject": [    "String", "_city_put_name" ]
+            "DynamicObject": {
+              "primitiveType": "String",
+              "variableName": "_city_put_name",
+              "isWriter": false
+            }
           },
           {
               "Constant": [
@@ -600,7 +615,11 @@
               ]
           },
           {
-              "DynamicObject": [    "String", "_city_house_put_name" ]
+            "DynamicObject": {
+              "primitiveType": "String",
+              "variableName": "_city_house_put_name",
+              "isWriter": false
+            }
           }
         ],
         "queryParameters": [
@@ -648,7 +667,11 @@
             ]
           },
           {
-                      "DynamicObject": [    "String", "_city_put_name" ]
+            "DynamicObject": {
+              "primitiveType": "String",
+              "variableName": "_city_put_name",
+              "isWriter": false
+            }
           },
           {
               "Constant": [
@@ -657,7 +680,11 @@
               ]
           },
           {
-              "DynamicObject": [    "String", "_city_house_put_name" ]
+            "DynamicObject": {
+              "primitiveType": "String",
+              "variableName": "_city_house_put_name",
+              "isWriter": false
+            }
           },
           {
             "Constant": [
@@ -711,7 +738,11 @@
             ]
           },
           {
-                      "DynamicObject": [    "String", "_city_put_name" ]
+            "DynamicObject": {
+              "primitiveType": "String",
+              "variableName": "_city_put_name",
+              "isWriter": false
+            }
           },
           {
               "Constant": [
@@ -720,7 +751,11 @@
               ]
           },
           {
-              "DynamicObject": [    "String", "_city_house_put_name" ]
+            "DynamicObject": {
+              "primitiveType": "String",
+              "variableName": "_city_house_put_name",
+              "isWriter": false
+            }
           },
           {
             "Constant": [
@@ -729,11 +764,12 @@
             ]
           },
           {
-            "Custom": [
-                "UuidSuffix",
-                "colorName",
-                false
-            ]
+            "Custom": {
+              "payloadType": "UuidSuffix",
+              "primitiveType": "String",
+              "payloadValue": "colorName",
+              "isObject": false
+            }
           }
         ],
         "queryParameters": [
@@ -781,7 +817,11 @@
             ]
           },
           {
-                      "DynamicObject": [    "String", "_city_put_name" ]
+            "DynamicObject": {
+              "primitiveType": "String",
+              "variableName": "_city_put_name",
+              "isWriter": false
+            }
           },
           {
               "Constant": [
@@ -790,7 +830,11 @@
               ]
           },
           {
-              "DynamicObject": [    "String", "_city_house_put_name" ]
+            "DynamicObject": {
+              "primitiveType": "String",
+              "variableName": "_city_house_put_name",
+              "isWriter": false
+            }
           },
           {
             "Constant": [
@@ -799,7 +843,11 @@
             ]
           },
           {
-            "DynamicObject": [    "String", "_city_house_color_put_name" ]
+            "DynamicObject": {
+              "primitiveType": "String",
+              "variableName": "_city_house_color_put_name",
+              "isWriter": false
+            }
           }
         ],
         "queryParameters": [
@@ -847,7 +895,11 @@
             ]
           },
           {
-                      "DynamicObject": [    "String", "_city_put_name" ]
+            "DynamicObject": {
+              "primitiveType": "String",
+              "variableName": "_city_put_name",
+              "isWriter": false
+            }
           },
           {
               "Constant": [
@@ -856,7 +908,11 @@
               ]
           },
           {
-              "DynamicObject": [    "String", "_city_house_put_name" ]
+            "DynamicObject": {
+              "primitiveType": "String",
+              "variableName": "_city_house_put_name",
+              "isWriter": false
+            }
           },
           {
             "Constant": [
@@ -865,7 +921,11 @@
             ]
           },
           {
-            "DynamicObject": [    "String", "_city_house_color_put_name" ]
+            "DynamicObject": {
+              "primitiveType": "String",
+              "variableName": "_city_house_color_put_name",
+              "isWriter": false
+            }
           }
         ],
         "queryParameters": [
@@ -913,7 +973,11 @@
             ]
           },
           {
-                      "DynamicObject": [    "String", "_city_put_name" ]
+            "DynamicObject": {
+              "primitiveType": "String",
+              "variableName": "_city_put_name",
+              "isWriter": false
+            }
           },
           {
               "Constant": [
@@ -967,7 +1031,11 @@
             ]
           },
           {
-                      "DynamicObject": [    "String", "_city_put_name" ]
+            "DynamicObject": {
+              "primitiveType": "String",
+              "variableName": "_city_put_name",
+              "isWriter": false
+            }
           },
           {
               "Constant": [
@@ -976,11 +1044,12 @@
               ]
           },
           {
-            "Custom": [
-                "UuidSuffix",
-                "roadName",
-                false
-            ]
+            "Custom": {
+              "payloadType": "UuidSuffix",
+              "primitiveType": "String",
+              "payloadValue": "roadName",
+              "isObject": false
+            }
           }
         ],
         "queryParameters": [
@@ -1094,7 +1163,11 @@
             ]
           },
           {
-                      "DynamicObject": [    "String", "_city_put_name" ]
+            "DynamicObject": {
+              "primitiveType": "String",
+              "variableName": "_city_put_name",
+              "isWriter": false
+            }
           },
           {
               "Constant": [
@@ -1103,7 +1176,11 @@
               ]
           },
           {
-              "DynamicObject": [    "String", "_city_road_put_name" ]
+            "DynamicObject": {
+              "primitiveType": "String",
+              "variableName": "_city_road_put_name",
+              "isWriter": false
+            }
           }
         ],
         "queryParameters": [
@@ -1151,7 +1228,11 @@
             ]
           },
           {
-                      "DynamicObject": [    "String", "_city_put_name" ]
+            "DynamicObject": {
+              "primitiveType": "String",
+              "variableName": "_city_put_name",
+              "isWriter": false
+            }
           },
           {
               "Constant": [
@@ -1160,7 +1241,11 @@
               ]
           },
           {
-              "DynamicObject": [    "String", "_city_road_put_name" ]
+            "DynamicObject": {
+              "primitiveType": "String",
+              "variableName": "_city_road_put_name",
+              "isWriter": false
+            }
           }
         ],
         "queryParameters": [
@@ -1254,11 +1339,12 @@
             ]
           },
           {
-            "Custom": [
-                "UuidSuffix",
-                "farmName",
-                false
-            ]
+            "Custom": {
+              "payloadType": "UuidSuffix",
+              "primitiveType": "String",
+              "payloadValue": "farmName",
+              "isObject": false
+            }
           }
         ],
         "queryParameters": [
@@ -1500,7 +1586,11 @@
             ]
           },
           {
-            "DynamicObject": [    "String", "_farm_put_name" ]
+            "DynamicObject": {
+              "primitiveType": "String",
+              "variableName": "_farm_put_name",
+              "isWriter": false
+            }
           }
         ],
         "queryParameters": [
@@ -1548,7 +1638,11 @@
             ]
           },
           {
-            "DynamicObject": [    "String", "_farm_put_name" ]
+            "DynamicObject": {
+              "primitiveType": "String",
+              "variableName": "_farm_put_name",
+              "isWriter": false
+            }
           }
         ],
         "queryParameters": [
@@ -1596,7 +1690,11 @@
             ]
           },
           {
-            "DynamicObject": [    "String", "_farm_put_name" ]
+            "DynamicObject": {
+              "primitiveType": "String",
+              "variableName": "_farm_put_name",
+              "isWriter": false
+            }
           },
           {
               "Constant": [
@@ -1650,7 +1748,11 @@
             ]
           },
           {
-            "DynamicObject": [    "String", "_farm_put_name" ]
+            "DynamicObject": {
+              "primitiveType": "String",
+              "variableName": "_farm_put_name",
+              "isWriter": false
+            }
           },
           {
               "Constant": [
@@ -1659,11 +1761,12 @@
               ]
           },
           {
-            "Custom": [
-                "UuidSuffix",
-                "animalName",
-                false
-            ]
+            "Custom": {
+              "payloadType": "UuidSuffix",
+              "primitiveType": "String",
+              "payloadValue": "animalName",
+              "isObject": false
+            }
           }
         ],
         "queryParameters": [
@@ -1728,7 +1831,11 @@
             ]
           },
           {
-            "DynamicObject": [    "String", "_farm_put_name" ]
+            "DynamicObject": {
+              "primitiveType": "String",
+              "variableName": "_farm_put_name",
+              "isWriter": false
+            }
           },
           {
               "Constant": [
@@ -1737,7 +1844,11 @@
               ]
           },
           {
-              "DynamicObject": [    "String", "_farm_animal_put_name" ]
+            "DynamicObject": {
+              "primitiveType": "String",
+              "variableName": "_farm_animal_put_name",
+              "isWriter": false
+            }
           }
         ],
         "queryParameters": [
@@ -1785,7 +1896,11 @@
             ]
           },
           {
-            "DynamicObject": [    "String", "_farm_put_name" ]
+            "DynamicObject": {
+              "primitiveType": "String",
+              "variableName": "_farm_put_name",
+              "isWriter": false
+            }
           },
           {
               "Constant": [
@@ -1794,7 +1909,11 @@
               ]
           },
           {
-              "DynamicObject": [    "String", "_farm_animal_put_name" ]
+            "DynamicObject": {
+              "primitiveType": "String",
+              "variableName": "_farm_animal_put_name",
+              "isWriter": false
+            }
           }
         ],
         "queryParameters": [
@@ -1888,7 +2007,11 @@
             ]
           },
           {
-            "DynamicObject": [    "String", "_item_put_name" ]
+            "DynamicObject": {
+              "primitiveType": "String",
+              "variableName": "_item_put_name",
+              "isWriter": false
+            }
           }
         ],
         "queryParameters": [
@@ -1936,7 +2059,11 @@
             ]
           },
           {
-            "DynamicObject": [    "String", "_item_put_name" ]
+            "DynamicObject": {
+              "primitiveType": "String",
+              "variableName": "_item_put_name",
+              "isWriter": false
+            }
           }
         ],
         "queryParameters": [
@@ -1985,11 +2112,12 @@
             ]
           },
           {
-            "Custom": [
-              "UuidSuffix",
-              "itemName",
-              false
-            ]
+            "Custom": {
+              "payloadType": "UuidSuffix",
+              "primitiveType": "String",
+              "payloadValue": "itemName",
+              "isObject": false
+            }
           }
         ],
         "queryParameters": [
@@ -2186,7 +2314,11 @@
             ]
           },
           {
-            "DynamicObject": [    "String", "_group_put_name" ]
+            "DynamicObject": {
+              "primitiveType": "String",
+              "variableName": "_group_put_name",
+              "isWriter": false
+            }
           }
         ],
         "queryParameters": [
@@ -2235,7 +2367,12 @@
             ]
           },
           {
-            "DynamicObject": [    "String", "_group_put_name" ]
+            "DynamicObject": {
+              "primitiveType": "String",
+              "variableName": "_group_put_name",
+              "isWriter": false
+            }
+
           }
         ],
         "queryParameters": [
@@ -2284,11 +2421,12 @@
             ]
           },
           {
-            "Custom": [
-                "UuidSuffix",
-                "groupName",
-                false
-            ]
+            "Custom": {
+              "payloadType": "UuidSuffix",
+              "primitiveType": "String",
+              "payloadValue": "groupName",
+              "isObject": false
+            }
           }
         ],
         "queryParameters": [
@@ -2320,7 +2458,12 @@
                           "LeafNode": {
                             "name": "city",
                             "payload": {
-                                        "DynamicObject": [    "String", "_city_put_name" ]
+                              "DynamicObject": {
+                                "primitiveType": "String",
+                                "variableName": "_city_put_name",
+                                "isWriter": false
+                              }
+
                             },
                             "isRequired": false,
                             "isReadOnly": false
@@ -2330,7 +2473,11 @@
                           "LeafNode": {
                             "name": "item",
                             "payload": {
-                              "DynamicObject": [    "String", "_item_put_name" ]
+                              "DynamicObject": {
+                                "primitiveType": "String",
+                                "variableName": "_item_put_name",
+                                "isWriter": false
+                              }
                             },
                             "isRequired": false,
                             "isReadOnly": false

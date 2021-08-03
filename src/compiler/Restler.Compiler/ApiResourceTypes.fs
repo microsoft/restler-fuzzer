@@ -297,7 +297,38 @@ type ResponseProducer =
         id : ApiResource
     }
 
-type BodyPayloadInputProducer = ResponseProducer
+
+/// A producer in the body of the request, the value of which gets set with the input payload.
+/// This is a producer for a consumer in the body of the same request.
+type BodyPayloadInputProducer =
+    {
+        id : ApiResource
+    }
+
+/// A producer in the request that is not returned in the response
+/// Example: unique ID specified by a user.
+type InputOnlyProducer =
+    {
+        id : ApiResource
+        parameterKind : ParameterKind
+    }
+    member x.getInputParameterAccessPath() =
+        if x.id.AccessPath.IsSome then
+            x.id.AccessPathParts
+        else
+            { path =
+                [|
+                    x.id.ResourceName
+                    x.parameterKind.ToString().ToLower()  // handle ambiguity with body
+                |] }
+
+type DictionaryPayload =
+    {
+        payloadType : CustomPayloadType
+        primitiveType : PrimitiveType
+        name : string
+        isObject : bool
+    }
 
 /// A producer resource.  For example, the 'accountId' property returned in the response of
 /// the below request.
@@ -306,13 +337,19 @@ type Producer =
     /// A resource value specified as a payload in the custom dictionary.
     /// (payloadType, consumerResourceName, isObject)
     /// To be converted to 'consumerResourcePath' in VSTS#7191
-    | DictionaryPayload of CustomPayloadType * PrimitiveType * string * bool
+    | DictionaryPayload of DictionaryPayload
 
     /// A resource value produced in a response of the specified request.
     | ResponseObject of ResponseProducer
 
     /// A resource value that comes from the same body payload.
-    | SameBodyPayload of ResponseProducer
+    | SameBodyPayload of BodyPayloadInputProducer
+
+    /// A resource value that is produced when assigned
+    /// Currently, only assigning such values from the dictionary is supported.
+    /// The dictionary payload is an option type because it is only present when
+    /// the initial payload is being generated.
+    | InputParameter of InputOnlyProducer * DictionaryPayload option
 
 type ProducerConsumerDependency =
     {

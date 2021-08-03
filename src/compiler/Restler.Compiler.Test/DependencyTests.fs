@@ -314,5 +314,28 @@ module Dependencies =
             let numberOfDynamicObjects = grammar |> Seq.filter (fun x -> x.Contains(grammarDynamicObject)) |> Seq.length
             Assert.Equal( 1, numberOfDynamicObjects)
 
+        [<Fact>]
+        let ``input producers work with annotations`` () =
+            let grammarOutputDirPath = ctx.testRootDirPath
+            let config = { Restler.Config.SampleConfig with
+                             IncludeOptionalParameters = true
+                             GrammarOutputDirectoryPath = Some grammarOutputDirPath
+                             ResolveBodyDependencies = true
+                             UseBodyExamples = Some true
+                             SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, @"swagger\dependencyTests\input_producer_spec.json"))]
+                             CustomDictionaryFilePath = None
+                             AnnotationFilePath = Some (Path.Combine(Environment.CurrentDirectory, @"swagger\dependencyTests\input_producer_annotations.json"))
+                             AllowGetProducers = true
+                         }
+            Restler.Workflow.generateRestlerGrammar None config
+
+            let grammarFilePath = Path.Combine(grammarOutputDirPath,
+                                               Restler.Workflow.Constants.DefaultRestlerGrammarFileName)
+            let grammar = File.ReadAllText(grammarFilePath)
+
+            Assert.True(grammar.Contains("""restler_custom_payload_uuid4_suffix("fileId", writer=_file__fileId__post_fileId_path.writer())"""))
+            Assert.True(grammar.Contains("""restler_static_string(_file__fileId__post_fileId_path.reader(), quoted=False)"""))
+
+
         interface IClassFixture<Fixtures.TestSetupAndCleanup>
 

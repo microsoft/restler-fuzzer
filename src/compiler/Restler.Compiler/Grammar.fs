@@ -112,10 +112,28 @@ type NestedType =
 
 type CustomPayloadType =
     | String
+
     | UuidSuffix
+
     | Header
+
     /// Used to inject query parameters that are not part of the specification.
     | Query
+
+
+type DynamicObject =
+    {
+        /// The primitive type of the parameter, as declared in the specification
+        /// The primitive type is assigned to be the type of the initially written value
+        //  whenever possible.
+        primitiveType : PrimitiveType
+
+        /// The variable name of the dynamic object
+        variableName : string
+
+        /// 'True' if this is an assignment, otherwise a read of the dynamic object
+        isWriter : bool
+    }
 
 type CustomPayload =
     {
@@ -130,6 +148,10 @@ type CustomPayload =
 
         /// 'True' if the value is an object
         isObject : bool
+
+        /// This identifier may have an associated dynamic object, whose value should be
+        /// assigned to the value generated from this payload
+        dynamicObject: DynamicObject option
     }
 
 /// The payload for a property specified in as a request parameter
@@ -144,7 +166,7 @@ type FuzzingPayload =
     /// The custom payload, as specified in the fuzzing dictionary
     | Custom of CustomPayload
 
-    | DynamicObject of PrimitiveType * string
+    | DynamicObject of DynamicObject
 
     /// In some cases, a payload may need to be split into multiple payload parts
     | PayloadParts of FuzzingPayload list
@@ -179,7 +201,7 @@ type ProducerConsumerAnnotation =
         producerId : ResourceId
         producerParameter : AnnotationResourceReference
         consumerParameter : AnnotationResourceReference
-        exceptConsumerId: RequestId option
+        exceptConsumerId: RequestId list option
     }
     //with
     //    /// Given the 'consumerParameter', returns the access path or None if the consumer parameter
@@ -287,16 +309,24 @@ type TokenKind =
     | Refreshable
 
 
-type ResponseProducerWriterVariable =
+type DynamicObjectWriterVariable =
     {
+        /// The ID of the request
         requestId : RequestId
+
+        /// The access path to the parameter associated with this dynamic object
         accessPathParts: AccessPath
     }
 
 /// Information needed to generate a response parser
 type ResponseParser =
     {
-        writerVariables : ResponseProducerWriterVariable list
+        /// The writer variables returned in the response
+        writerVariables : DynamicObjectWriterVariable list
+
+        /// The writer variables that are written when the request is sent, and which
+        /// are not returned in the response
+        inputWriterVariables : DynamicObjectWriterVariable list
     }
 
 /// The parts of a request
@@ -351,6 +381,9 @@ type Request =
         /// The generated response parser.  This is only present if there is at least
         /// one consumer for a property of the response.
         responseParser : ResponseParser option
+
+        /// The additional dynamic object variables that are not present in the response
+        inputDynamicObjectVariables : DynamicObjectWriterVariable list
 
         /// The additional properties of a request
         requestMetadata : RequestMetadata

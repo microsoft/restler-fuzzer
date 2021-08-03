@@ -22,37 +22,38 @@ type RequestData =
 
 // When choosing among several producers, the order in which they should be
 // chosen according to the method.
-let sortByMethod (p:ResponseProducer) =
-        match p.id.RequestId.method with
-        | OperationMethod.Get -> 4
-        | OperationMethod.Patch -> 3
-        | OperationMethod.Put -> 2
-        | OperationMethod.Post -> 1
-        | _ -> 5
+let sortByMethod (resource:ApiResource) =
+    match resource.RequestId.method with
+    | OperationMethod.Get -> 4
+    | OperationMethod.Patch -> 3
+    | OperationMethod.Put -> 2
+    | OperationMethod.Post -> 1
+    | _ -> 5
 
 // When choosing among several producers, the order in which
 // they should be chosen.
 let inferredMatchSortUniqueSortIndex = ref 0
-let inferredMatchSort (x:ResponseProducer) =
+let inferredMatchSort (resource:ApiResource) =
 
     let getProducersSortId =
-        if x.id.RequestId.method = OperationMethod.Get then
+        if resource.RequestId.method = OperationMethod.Get then
             // When choosing a GET producer, pick the one with a path parameter
             // at the end.  This attempts to avoid GET requests that always succeed,
             // but may return an empty list of results.
-            if x.id.RequestId.endpoint.EndsWith("}") then 2
+            if resource.RequestId.endpoint.EndsWith("}") then 2
             else 3
         else 1
-    sortByMethod x,
+    sortByMethod resource,
     getProducersSortId,
-    (match x.id.AccessPath with
+    (match resource.AccessPath with
      | None -> 0
      | Some ap -> ap.Length),
     (System.Threading.Interlocked.Increment(inferredMatchSortUniqueSortIndex)) // For tuple uniqueness
 
 type private ProducersSortedByMatch = SortedList<int * int * int * int, ResponseProducer>
 
-type private ProducersIndexedByEndpoint = Dictionary<RequestId, List<ResponseProducer>>
+type private ResponseProducersIndexedByEndpoint = Dictionary<RequestId, List<ResponseProducer>>
+type private BodyPayloadInputProducersIndexedByEndpoint = Dictionary<RequestId, List<BodyPayloadInputProducer>>
 
 type private ProducersIndexedByTypeName = Dictionary<string, List<ResponseProducer>>
 
@@ -60,9 +61,10 @@ type private ProducerIndexes =
     {
         sortedByMatch : ProducersSortedByMatch
         sortedByMatchNonNested : ProducersSortedByMatch
-        indexedByEndpoint : ProducersIndexedByEndpoint
-        samePayloadProducers : ProducersIndexedByEndpoint
+        indexedByEndpoint : ResponseProducersIndexedByEndpoint
+        samePayloadProducers : BodyPayloadInputProducersIndexedByEndpoint
         indexedByTypeName : ProducersIndexedByTypeName
+        inputOnlyProducers : List<InputOnlyProducer>
     }
 
 type Producers() =
@@ -72,9 +74,10 @@ type Producers() =
     let tryAdd resourceName =
         producers.TryAdd(resourceName, { sortedByMatch = ProducersSortedByMatch()
                                          sortedByMatchNonNested = ProducersSortedByMatch()
-                                         indexedByEndpoint = ProducersIndexedByEndpoint()
-                                         samePayloadProducers = ProducersIndexedByEndpoint()
+                                         indexedByEndpoint = ResponseProducersIndexedByEndpoint()
+                                         samePayloadProducers = BodyPayloadInputProducersIndexedByEndpoint()
                                          indexedByTypeName = ProducersIndexedByTypeName()
+                                         inputOnlyProducers = List<InputOnlyProducer>()
                                        }) |> ignore
         producers.[resourceName]
 
@@ -86,7 +89,7 @@ type Producers() =
     member x.AddResponseProducer(resourceName:string, producer:ResponseProducer) =
         lock producers (fun () ->
                             let resourceProducers = tryAdd resourceName
-                            let sortKey = inferredMatchSort producer
+                            let sortKey = inferredMatchSort producer.id
                             resourceProducers.sortedByMatch.Add(sortKey , producer)
                             if not producer.id.IsNestedBodyResource then
                                 resourceProducers.sortedByMatchNonNested.Add(sortKey, producer)
@@ -102,12 +105,12 @@ type Producers() =
                                           )
                         )
 
-    member x.AddSamePayloadProducer(resourceName:string, producer:ResponseProducer) =
+    member x.AddSamePayloadProducer(resourceName:string, producer:BodyPayloadInputProducer) =
         lock producers (fun () ->
                             let key = { endpoint = producer.id.RequestId.endpoint.ToLower()
                                         method = producer.id.RequestId.method }
                             let resourceProducers = tryAdd resourceName
-                            resourceProducers.samePayloadProducers.TryAdd(key, new List<ResponseProducer>()) |> ignore
+                            resourceProducers.samePayloadProducers.TryAdd(key, new List<BodyPayloadInputProducer>()) |> ignore
                             resourceProducers.samePayloadProducers.[key].Add(producer))
 
     member x.getSamePayloadProducers(producerResourceName:string, requestId:RequestId) =
@@ -120,6 +123,20 @@ type Producers() =
             | false, _ -> Seq.empty
             | true, lst ->
                 lst |> seq
+
+    member x.addInputOnlyProducer(resourceName:string, producer:InputOnlyProducer) =
+        lock producers (fun () ->
+                            let resourceProducers = tryAdd resourceName
+                            let key = { endpoint = producer.id.RequestId.endpoint.ToLower()
+                                        method = producer.id.RequestId.method }
+
+                            resourceProducers.inputOnlyProducers.Add(producer))
+
+    member x.getInputOnlyProducers(producerResourceName:string) =
+        match tryGet producerResourceName with
+        | None -> Seq.empty
+        | Some p ->
+            p.inputOnlyProducers |> seq
 
     member x.getIndexedByEndpointProducers(producerResourceName:string, endpoint:string, operations:OperationMethod list) =
         match tryGet producerResourceName with

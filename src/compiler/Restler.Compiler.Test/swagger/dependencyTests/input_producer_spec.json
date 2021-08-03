@@ -1,0 +1,72 @@
+{
+  "basePath": "/api",
+  "consumes": [
+    "application/json"
+  ],
+  "host": "localhost:8888",
+  "info": {
+    "description": "Small example for POST with input producer",
+    "title": "Input producer test case",
+    "version": "1.0.0"
+  },
+  "definitions": {
+    "fileId":{
+        "type": "String",
+        "description":  "the file id"
+
+    }
+  },
+  "paths": {
+    "/file/{fileId}": {
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "fileId",
+            "required": true,
+            "type": "String"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Success"
+          }
+        }
+      },
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "fileId",
+            "required": true,
+            "type": "String"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/fileId"
+            }
+          }
+        }
+      },
+      "delete": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "fileId",
+            "required": true,
+            "type": "String"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Success"
+          }
+        }
+      }
+    }
+  },
+  "swagger": "2.0"
+}

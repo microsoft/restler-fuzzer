@@ -70,6 +70,20 @@ let isValidProducer (p:ResponseProducer) (consumer:Consumer) (allowGetProducers:
 //        "consumer_method": "PUT"
 //    }
 //}
+
+let addUuidSuffixEntryForConsumer (consumerResourceName:string) (dictionary:MutationsDictionary) (consumerId:ApiResource) =
+    let dictionary =
+        if dictionary.restler_custom_payload_uuid4_suffix.Value.ContainsKey(consumerResourceName) then
+            dictionary
+        else
+            let prefixValue = generatePrefixForCustomUuidSuffixPayload consumerResourceName
+            { dictionary with
+                            restler_custom_payload_uuid4_suffix =
+                                Some (dictionary.restler_custom_payload_uuid4_suffix.Value.Add(consumerResourceName, prefixValue))
+            }
+    dictionary,
+    (dictionary.getParameterForCustomPayloadUuidSuffix consumerResourceName consumerId.AccessPathParts consumerId.PrimitiveType) |> Seq.tryHead
+
 let getCreateOrUpdateProducer (consumer:Consumer)
                               dictionary
                               (producers:Producers)
@@ -93,19 +107,12 @@ let getCreateOrUpdateProducer (consumer:Consumer)
         // If this turns out not to be the case, a fix is to check that the producer parameter name
         // exists (similar to the check in the 'else' branch below), and only use a uuid suffix if found, otherwise
         // use a static value.
-        let dictionary =
-            if dictionary.restler_custom_payload_uuid4_suffix.Value.ContainsKey(consumerResourceName) then
-                dictionary
-            else
-                let prefixValue = generatePrefixForCustomUuidSuffixPayload consumerResourceName
-                { dictionary with
-                                restler_custom_payload_uuid4_suffix =
-                                    Some (dictionary.restler_custom_payload_uuid4_suffix.Value.Add(consumerResourceName, prefixValue))
-                }
+        let dictionary, suffixProducer = addUuidSuffixEntryForConsumer consumerResourceName dictionary consumer.id
+
         // The producer is a dictionary payload.  The code below makes sure the new dictionary is correctly
         // updated above for this resource.
         dictionary,
-        (dictionary.getParameterForCustomPayloadUuidSuffix consumerResourceName consumer.id.AccessPathParts consumer.id.PrimitiveType) |> Seq.tryHead
+        suffixProducer
     else
         // Find the corresponding PUT request, which is the producer, if it exists.
         if pathParameterIndex < 1 then
@@ -347,22 +354,24 @@ let findProducerWithResourceName
                                                          OperationMethod.Get])
             else Seq.empty
 
-    let annotationMatches =
+    let dictionary, annotationProducer =
         let ann = consumer.annotation
         match ann with
-        | None -> Seq.empty
+        | None -> dictionary, None
         | Some a ->
-            let producersWithMatchingResourceIds =
-                producers.getIndexedByEndpointProducers(a.producerId.resourceName, a.producerId.requestId.endpoint,
-                                                        [ OperationMethod.Put ; OperationMethod.Post ; OperationMethod.Get ])
+            let responseProducers =
+                let responseProducersWithMatchingResourceIds =
+                    // When the annotation has a path, the producer can be matched exactly
+                    // TODO: an unnamed resource, such as an array element, cannot be currently assigned as a producer, because
+                    // its name will be the array name.
+                    producers.getIndexedByEndpointProducers(a.producerId.resourceName,
+                                                            a.producerId.requestId.endpoint,
+                                                            [ OperationMethod.Put
+                                                              OperationMethod.Post
+                                                              OperationMethod.Get ])
 
-            // When the annotation has a path, the producer can be matched exactly
-            // TODO: an unnamed resource, such as an array element, cannot be currently assigned as a producer, because
-            // its name will be the array name.
-            if producersWithMatchingResourceIds |> Seq.isEmpty then
-                printfn "Annotated resource not found: %A" a
-
-            match producersWithMatchingResourceIds
+                let annotationResponseProducer =
+                    responseProducersWithMatchingResourceIds
                     |> Seq.filter (fun p ->
                                             // Match on the path, if it exists,
                                             // otherwise match on the ID only
@@ -374,22 +383,97 @@ let findProducerWithResourceName
                                                 p.id.RequestId = a.producerId.requestId &&
                                                 p.id.AccessPathParts = annotationProducerResourcePath
                                         )
-                        // HACK: sort the producers by increasing access path length.
-                        // This may fix particular customer cases when annotations are missing.
-                        // The proper way to fix this
-                        // is to provide an exact path-based annotation.
+                    // TODO: sorting can be removed now that an exact path is expected (see below), which
+                    // means only one annotation should match.
                     |> Seq.sortBy (fun p -> match p.id.AccessPath with
                                             | None ->
                                                 raise (Exception("Invalid case"))
                                             | Some p -> p.Length)
-                    |> Seq.tryHead with
-            | None -> Seq.empty
-            | Some matchingProducer ->
-                match a.exceptConsumerId with
-                | None -> stn matchingProducer
-                | Some exceptConsumer ->
-                    if consumer.id.RequestId = exceptConsumer then Seq.empty
-                    else stn matchingProducer
+                    |> Seq.tryHead
+                match annotationResponseProducer with
+                | None -> Seq.empty
+                | Some matchingProducer ->
+                    match a.exceptConsumerId with
+                    | None -> ResponseObject matchingProducer |> stn
+                    | Some exceptConsumer ->
+                        if exceptConsumer |> List.contains consumer.id.RequestId then Seq.empty
+                        else ResponseObject matchingProducer |> stn
+
+            let annotationProducerRequestId = a.producerId.requestId
+
+            // Check for input only producers if there are no response producers
+            let inputOnlyProducers =
+                if responseProducers |> Seq.isEmpty then
+                    let matchingInputOnlyProducers =
+                        // Check for input only producers
+                        // Only PUT or POST requests can have input-only producers
+
+                        // Note: a possible API design is that multiple APIs will have the
+                        // same name in the path matching different resources.  For example,
+                        //   PUT /{product}/A
+                        //   PUT /{product}/B
+                        // where A and B return different resources, and it is desirable to test
+                        // both paths with GET /{product}.  Today, RESTler supports only testing one of
+                        // these paths.
+                        producers.getInputOnlyProducers(a.producerId.resourceName)
+
+                    let annotationProducer =
+                        matchingInputOnlyProducers
+                        |> Seq.filter (fun p ->
+                                                // Match on the path, if it exists,
+                                                // otherwise match on the ID only
+                                                match a.producerParameter with
+                                                | ResourceName _ ->
+                                                    p.id.RequestId = annotationProducerRequestId &&
+                                                    p.id.ResourceName = a.producerId.resourceName
+                                                | ResourcePath annotationProducerResourcePath ->
+                                                    p.id.RequestId = annotationProducerRequestId &&
+                                                    p.id.AccessPathParts = annotationProducerResourcePath
+                                            )
+                        |> Seq.tryHead
+
+                    match annotationProducer with
+                    | None -> Seq.empty
+                    | Some matchingProducer ->
+                        match a.exceptConsumerId with
+                        | None -> matchingProducer |> stn
+                        | Some exceptConsumer ->
+                            if exceptConsumer |> List.contains consumer.id.RequestId then
+                                Seq.empty
+                            else
+                                matchingProducer |> stn
+                else
+                    Seq.empty
+
+            // If the consumer is exactly the same as the producer, then check if
+            // a custom payload is defined in the dictionary.  If so, return the empty seq
+            // (the custom payload will be picked up later), and if not create a custom UUID suffix
+            let dictionary, inputOnlyProducer =
+                match inputOnlyProducers |> Seq.tryHead with
+                | None -> dictionary, None
+                | Some iop ->
+                    if annotationProducerRequestId = consumer.id.RequestId then
+                        // This is when the value is written
+                        if dictionary.restler_custom_payload.Value.ContainsKey(consumerResourceName) then
+                            dictionary, None // TODO: support custom payloads
+                        else
+                            let dictionary, suffixProducer = addUuidSuffixEntryForConsumer consumerResourceName dictionary consumer.id
+                            match suffixProducer with
+                            | Some (DictionaryPayload dp) ->
+                                dictionary, Some (InputParameter(iop, Some dp))
+                            | _ ->
+                                raise (invalidOp("a suffix entry must be a dictionary payload"))
+                    else
+                        // Read the value - no associated dictionary payload
+                        dictionary, Some (InputParameter(iop, None))
+
+            let annotationProducer =
+                [ responseProducers
+                  if inputOnlyProducer.IsSome then inputOnlyProducer.Value |> stn else Seq.empty
+                ]
+                |> Seq.concat
+                |> Seq.tryHead
+            dictionary, annotationProducer
 
     let dictionaryMatches =
         let perRequestDictionaryMatches =
@@ -464,7 +548,7 @@ let findProducerWithResourceName
     // This case is not handled here, as it is not obvious which body parameter to use in such cases.
     let dictionary, producer =
         if consumer.parameterKind = ParameterKind.Path &&
-           annotationMatches |> Seq.isEmpty &&
+           annotationProducer.IsNone &&
            // If there is a dictionary entry for a static value, it should override the inferred dependency
            (dictionary.getParameterForCustomPayload
                 consumerResourceName
@@ -491,7 +575,7 @@ let findProducerWithResourceName
         if producer.IsSome then
             dictionary, producer
         else if consumer.id.AccessPath.IsSome &&
-             annotationMatches |> Seq.isEmpty &&
+             annotationProducer.IsNone &&
              // If there is a dictionary entry for a static value, it should override the inferred dependency
              (dictionary.getParameterForCustomPayload
                 consumerResourceName
@@ -515,7 +599,7 @@ let findProducerWithResourceName
             dictionary, producer
         else
             dictionary,
-            [   annotationMatches |> Seq.sortBy sortByMethod |> Seq.map ResponseObject
+            [   if annotationProducer.IsSome then stn annotationProducer.Value else Seq.empty
                 dictionaryMatches
                 uuidSuffixDictionaryMatches
                 inferredExactMatches
@@ -629,7 +713,7 @@ let findAnnotation globalAnnotations
         | g when g |> Seq.isEmpty -> None
         | g ->
             if g |> Seq.length > 1 then
-                printfn "ERROR: found more than one matching annotation"
+                raise (Exception("ERROR: found more than one matching annotation"))
             g |> Seq.tryHead
     let localAnnotations =
         match parameterMap.TryFind requestId with
@@ -644,7 +728,7 @@ let findAnnotation globalAnnotations
         | g when g |> Seq.isEmpty -> None
         | g ->
             if g |> Seq.length > 1 then
-                printfn "ERROR: found more than one matching annotation"
+                raise (Exception("ERROR: found more than one matching annotation"))
             g |> Seq.tryHead
 
     // Local annotation takes precedence
@@ -772,12 +856,12 @@ let getParameterDependencies parameterKind globalAnnotations
 /// For example, an API 'POST /products  { "tables": [{ "name": "ergoDesk" } ], "chairs": [{"name": "ergoChair"}]  }'
 /// that returns the same body.
 /// Here, the producer resource name is 'name', and the producer container is 'tables'.
-let createBodyProducer (consumerResourceId:ApiResource) =
+let createBodyPayloadInputProducer (consumerResourceId:ApiResource) =
     {
-        ResponseProducer.id = ApiResource(consumerResourceId.RequestId,
-                                           consumerResourceId.ResourceReference,
-                                           consumerResourceId.NamingConvention,
-                                           consumerResourceId.PrimitiveType)
+        BodyPayloadInputProducer.id = ApiResource(consumerResourceId.RequestId,
+                                                  consumerResourceId.ResourceReference,
+                                                  consumerResourceId.NamingConvention,
+                                                  consumerResourceId.PrimitiveType)
     }
 
 /// Create a path producer that is the result of invoking an API endpoint, which
@@ -794,6 +878,87 @@ let createPathProducer (requestId:RequestId) (accessPath:PropertyAccessPath)
                                                           },
                                            namingConvention, PrimitiveType.String)
     }
+
+
+/// Given an annotation, create an input-only producer for the specified producer.
+let createInputOnlyProducerFromAnnotation (a:ProducerConsumerAnnotation)
+                                          (pathConsumers:(RequestId * seq<Consumer>) [])
+                                          (queryConsumers:(RequestId * seq<Consumer>) [])
+                                          (bodyConsumers:(RequestId * seq<Consumer>) []) =
+    // Find the producer in the list of consumers
+    match a.producerParameter with
+    | ResourceName rn ->
+        if a.producerId.requestId.endpoint.Contains(sprintf "{%s}" rn) then
+            // Look for the corresponding path producer.
+            // This is needed to determine its type.
+            let annotationProducerRequestId =
+                {
+                    endpoint = a.producerId.requestId.endpoint
+                    method = a.producerId.requestId.method
+                }
+            let pc = pathConsumers
+                     |> Array.tryFind (fun (reqId, s) -> reqId = annotationProducerRequestId)
+
+            let pathConsumer =
+                match pc with
+                | None ->
+                    // The consumer for the path parameter was not found.
+                    None
+                | Some (req, consumers) ->
+                    consumers
+                    |> Seq.tryFind (fun c -> c.id.ResourceName = rn)
+
+            match pathConsumer with
+            | None ->
+                // The consumer for the path parameter was not found.
+                None
+            | Some c ->
+                let resource = ApiResource(c.id.RequestId,
+                                           c.id.ResourceReference,
+                                           c.id.NamingConvention,
+                                           c.id.PrimitiveType)
+                let inputOnlyProducer =
+                    {
+                        InputOnlyProducer.id = resource
+                        parameterKind = ParameterKind.Path
+                    }
+                Some (rn, inputOnlyProducer)
+        else
+            // TODO: add query and header support
+            // Note: here, it is ambiguous whether this resource refers to a
+            // query or body resource without specifying the path.  For a producer
+            // id, it should be required to specify a path to a body parameter.
+            printfn "Warning: Query parameter input producers are not currently supported (parameter %s not found in path)." rn
+            None
+    | ResourcePath accessPath ->
+        let bc = bodyConsumers
+                 |> Array.tryFind (fun (reqId, s) -> reqId = a.producerId.requestId)
+
+        let bodyConsumer =
+            match bc with
+            | None ->
+                // The consumer for the body parameter was not found.
+                None
+            | Some (req, consumers) ->
+                consumers
+                |> Seq.tryFind (fun c -> c.id.AccessPathParts = accessPath)
+
+        match bodyConsumer with
+        | None ->
+            // The consumer for the body parameter was not found.
+            None
+        | Some c ->
+            let resource = ApiResource(a.producerId.requestId,
+                                       c.id.ResourceReference,
+                                       c.id.NamingConvention,
+                                       c.id.PrimitiveType)
+            let inputOnlyProducer =
+                {
+                    InputOnlyProducer.id = resource
+                    parameterKind = ParameterKind.Body
+                }
+            Some (c.id.ResourceName, inputOnlyProducer)
+
 
 /// Input: the requests in the RESTler grammar, without dependencies, the dictionary, and any available annotations or examples.
 /// Returns: the producer-consumer dependencies, and a new dictionary, augmented if required after inferring dependencies.
@@ -894,7 +1059,7 @@ let extractDependencies (requestData:(RequestId*RequestData)[])
                                 if producerPropertyNames |> List.contains resourceName &&
                                     // A 'same body' producer must have an identifying container in the body
                                     consumer.id.ContainerName.IsSome then
-                                        let producer = createBodyProducer consumer.id
+                                        let producer = createBodyPayloadInputProducer consumer.id
                                         producers.AddSamePayloadProducer(resourceName, producer)
                                 )
                 r, distinctConsumers)
@@ -915,8 +1080,30 @@ let extractDependencies (requestData:(RequestId*RequestData)[])
                     for ap in responseProducerAccessPaths do
                         let producer = createPathProducer r ap namingConvention
                         let resourceName = ap.Name
-                        producers.AddResponseProducer(resourceName, producer))
+                        producers.AddResponseProducer(resourceName, producer)
 
+                // Also check for input-only producers that should be added for this request.
+                // At this time, only producers specified in annotations are supported.
+                // Find the corresponding parameter and add it as a producer.
+                rd.localAnnotations
+                |> Seq.iter (fun a ->
+                                let ip = createInputOnlyProducerFromAnnotation a pathConsumers queryConsumers bodyConsumers
+                                if ip.IsSome then
+                                    let resourceName, producer = ip.Value
+                                    producers.addInputOnlyProducer(resourceName, producer)
+                            )
+                )
+
+    // Also check for input-only producers that should be added for this request.
+    // At this time, only producers specified in annotations are supported.
+    // Find the corresponding parameter and add it as a producer.
+    globalAnnotations
+    |> Seq.iter (fun a ->
+                    let ip = createInputOnlyProducerFromAnnotation a pathConsumers queryConsumers bodyConsumers
+                    if ip.IsSome then
+                        let resourceName, producer = ip.Value
+                        producers.addInputOnlyProducer(resourceName, producer)
+                )
 
     logTimingInfo "Done processing producers"
 
@@ -1033,7 +1220,13 @@ let extractDependencies (requestData:(RequestId*RequestData)[])
                                                 let prefixName = generateIdForCustomUuidSuffixPayload rp.id.ContainerName.Value consumerResourceName
 
                                                 let suffixProducer =
-                                                    DictionaryPayload (CustomPayloadType.UuidSuffix, PrimitiveType.String, prefixName, false)
+                                                    DictionaryPayload
+                                                        {
+                                                            payloadType = CustomPayloadType.UuidSuffix
+                                                            primitiveType = PrimitiveType.String
+                                                            name = prefixName
+                                                            isObject = false
+                                                        }
 
                                                 let suffixConsumer =
                                                     {
@@ -1145,12 +1338,36 @@ module DependencyLookup =
                 | _ ->
                     printfn "Warning: primitive type not available for %A [resource: %s]" requestId consumerResourceName
                     responseProducer.id.PrimitiveType
-            DynamicObject (primitiveType, variableName)
-        | Some (DictionaryPayload (customPayload, primitiveType, resourceName, isObject)) ->
-            Custom { payloadType = customPayload
-                     primitiveType = primitiveType
-                     payloadValue = resourceName
-                     isObject = isObject }
+            DynamicObject { primitiveType = primitiveType; variableName = variableName; isWriter = false }
+        | Some (InputParameter (inputParameterProducer, dictionaryPayload)) ->
+
+            let accessPath = inputParameterProducer.getInputParameterAccessPath()
+            let variableName = generateDynamicObjectVariableName
+                                    inputParameterProducer.id.RequestId
+                                    (Some accessPath) "_"
+            // Mark the type of the dynamic object to be the type of the input parameter if available
+            let primitiveType =
+                match defaultPayload with
+                | FuzzingPayload.Fuzzable (primitiveType, _, _, _) -> primitiveType
+                | _ ->
+                    printfn "Warning: primitive type not available for %A [resource: %s]" requestId consumerResourceName
+                    inputParameterProducer.id.PrimitiveType
+            let dynamicObject =
+                { primitiveType = primitiveType; variableName = variableName; isWriter = false }
+            match dictionaryPayload with
+            | None -> DynamicObject dynamicObject
+            | Some dp ->
+                Custom { payloadType = dp.payloadType
+                         primitiveType = dp.primitiveType
+                         payloadValue = dp.name
+                         isObject = dp.isObject
+                         dynamicObject = Some dynamicObject }
+        | Some (DictionaryPayload dp) ->
+            Custom { payloadType = dp.payloadType
+                     primitiveType = dp.primitiveType
+                     payloadValue = dp.name
+                     isObject = dp.isObject
+                     dynamicObject = None }
         | Some (SameBodyPayload payloadPropertyProducer) ->
             // The producer is a property in the same input payload body.
             // The consumer should consist of a set of payload parts, creating the full URI (with resolved dependencies)
@@ -1178,6 +1395,7 @@ module DependencyLookup =
                                         primitiveType = PrimitiveType.String
                                         payloadValue = namePrefix
                                         isObject = false
+                                        dynamicObject = None
                                     }
             // Add the endpoint (path) payload, with resolved dependencies
             let pp = pathPayload.Value
@@ -1342,16 +1560,20 @@ let writeDependencies dependenciesFilePath dependencies (unresolvedOnly:bool) =
                                 rp.id.RequestId.endpoint,
                                 getMethod rp.id,
                                 getParameter rp.id
-                            | Some (DictionaryPayload (payloadType, primitivePayloadType, payloadName, _)) ->
+                            | Some (InputParameter (ip, dp)) ->  // TODO: what to serialize?
+                                ip.id.RequestId.endpoint,
+                                getMethod ip.id,
+                                getParameter ip.id
+                            | Some (DictionaryPayload dp) ->
                                 let customPayloadDesc =
-                                    match payloadType with
+                                    match dp.payloadType with
                                     | CustomPayloadType.String -> ""
                                     | CustomPayloadType.UuidSuffix -> "_uuid_suffix"
                                     | CustomPayloadType.Header -> "_header"
                                     | CustomPayloadType.Query -> "_query"
                                 "",
                                 "",
-                                sprintf "restler_custom_payload%s__%s" customPayloadDesc payloadName
+                                sprintf "restler_custom_payload%s__%s" customPayloadDesc dp.name
                             | Some (SameBodyPayload rp) ->
                                 // TODO: document the fact that annotations
                                 // to the same body payload are not currently implemented.

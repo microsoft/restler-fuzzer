@@ -2,6 +2,23 @@
 
 RESTler allows the user to provide annotations with information about producer-consumer dependencies between requests.  This is helpful when RESTler cannot automatically infer such dependencies, which can happen for a variety of reasons (most often, because of very generic or inconsistent naming in the specification, or if the naming convention is not implemented in RESTler).
 
+## Supported types of dependencies
+RESTler currently supports the following types of producer-consumer dependencies:
+1. Between a response property and a request parameter.
+For example: request ```POST /A``` returns property "id", and request ```GET /A/{aId}``` specifies this ID in the path.
+
+2. Between two request parameters in different requests, where one of these is a ```custom_payload_uuid_suffix```.
+For example: ```POST /A/{aId}``` creates a resource with ID ```aId```, and ```GET /A/{AId}``` must use this ID, but the ID is not returned in the response.
+
+The annotation format for this annotation is the same as for annotations for producers that are response properties (as in (1)). RESTler will first look for the property name in the response, and if it does not find it will create this new kind of "input producer". The annotation does not explicitly allow to specify whether the ID should be extracted out of the response or not.
+
+3. Between two properties in the body.
+For example: "request ```PUT /A/{aId}``` has properties in the body that also need to refer to ```aId```, whose value is unique for each request invocation (via ```restler_custom_payload_uuid4_suffix```)
+
+Annotations are only supported for dependencies of type (1) and (2) above.
+
+## Annotation format
+
 Annotations are supported either globally (apply to all requests) or locally (apply only to a single request).  They may be specified inline in the Swagger specification (preferred if generated from the code, to evolve with the API) or outside in a separate file (preferred when modifications to the Swagger/OpenAPI spec are not acceptable, or maintaining a separate file is easier in your specific workflow).
 
 ## Global annotations
@@ -62,7 +79,7 @@ To provide local annotations inline in the Swagger/OpenAPI spec, specify the abo
 
 ## Annotation format
 
-Below is an example annotation that includes all supported properties:
+Below is an example annotation that includes all supported properties.  The ```except``` property may be either an object or an array with a list of except consumers.
 
 ```json
 {
@@ -90,4 +107,5 @@ In some cases, the resource names in the above may be ambiguous, e.g. because se
     "consumer_param": "/accounts/[0]/zones/[0]/name"
 }
 ```
+
 
