@@ -681,12 +681,14 @@ class Request(object):
             # Handle static whose value is the field name
             elif primitive_type == primitives.STATIC_STRING:
                 val = default_val
-                if quoted:
-                    val = f'"{val}"'
                 if val == None:
                     # the examplesChecker may inject None/null, so replace these with the string 'null'
                     logger.raw_network_logging(f"Warning: there is a None value in a STATIC_STRING.")
                     val = 'null'
+                    # Do not quote null values.
+                    quoted = False
+                if quoted:
+                    val = f'"{val}"'
                 values = [val]
             # Handle multipart form data
             elif primitive_type == primitives.FUZZABLE_MULTIPART_FORMDATA:
