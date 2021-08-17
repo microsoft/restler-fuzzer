@@ -37,6 +37,9 @@ type EngineParameters =
         /// The maximum fuzzing time in hours
         maxDurationHours : float
 
+        /// The search strategy in fuzz mode (bfs,bfs-cheap,random-walk)
+        searchStrategy : string option
+
         /// The authentication options, when tokens are required
         refreshableTokenOptions : RefreshableTokenOptions option
 
@@ -80,6 +83,7 @@ let DefaultEngineParameters =
         targetPort = None
         refreshableTokenOptions = None
         maxDurationHours = float 0
+        searchStrategy = None
         producerTimingDelay = 0
         useSsl = true
         host = None
