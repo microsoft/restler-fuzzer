@@ -95,6 +95,7 @@ let usage() =
     fuzz options:
         <The same options as 'test'>
         --time_budget <maximum duration in hours>
+        --search_strategy [bfs-fast(default),bfs,bfs-cheap,random-walk]
 
     replay options:
         <Required options from 'test' mode as above:
@@ -375,11 +376,16 @@ module Fuzz =
             if parameters.maxDurationHours = float 0 then DefaultFuzzingDurationHours
             else parameters.maxDurationHours
 
+        let fuzzingMode = 
+            if parameters.searchStrategy.IsNone then
+                "bfs-fast"
+            else parameters.searchStrategy.Value
+
         let fuzzingParameters =
             (getCommonParameters parameters (Some maxDurationHours))
             @
             [
-                "--fuzzing_mode bfs-cheap"
+                sprintf "--fuzzing_mode %s" fuzzingMode
             ]
 
         return! runRestlerEngine workingDirectory fuzzingParameters pythonFilePath
@@ -491,6 +497,11 @@ let rec parseEngineArgs task (args:EngineParameters) = function
         | false, _ ->
             Logging.logError <| sprintf "Invalid argument for time_budget: %s" timeBudget
             usage()
+    | "--search_strategy"::searchStrategy::rest ->
+        if task <> Fuzz then
+            Logging.logError <| "--search_strategy is only valid in Fuzz mode."
+            usage()
+        parseEngineArgs task { args with searchStrategy = Some searchStrategy } rest
     | "--producer_timing_delay"::delaySeconds::rest ->
         match Int32.TryParse delaySeconds with
         | true, s ->
