@@ -63,9 +63,11 @@ class FunctionalityTests(unittest.TestCase):
 
     def run_abc_smoke_test(self, test_file_dir, grammar_file_name, fuzzing_mode):
         grammar_file_path = os.path.join(test_file_dir, grammar_file_name)
+        dict_file_path = os.path.join(test_file_dir, "abc_dict.json")
         args = Common_Settings + [
         '--fuzzing_mode', f"{fuzzing_mode}",
-        '--restler_grammar', f'{grammar_file_path}'
+        '--restler_grammar', f'{grammar_file_path}',
+        '--custom_mutations', f'{dict_file_path}'
         ]
 
         result = subprocess.run(args, capture_output=True)
@@ -78,7 +80,8 @@ class FunctionalityTests(unittest.TestCase):
 
     def tearDown(self):
         try:
-            shutil.rmtree(self.get_experiments_dir())
+            #shutil.rmtree(self.get_experiments_dir())
+            print("")
         except Exception as err:
             print(f"tearDown function failed: {err!s}.\n"
                   "Experiments directory was not deleted.")
@@ -196,6 +199,37 @@ class FunctionalityTests(unittest.TestCase):
 
         except TestFailedException:
             self.fail("Smoke test failed: Fuzzing")
+
+    def test_abc_input_dependencies_smoke_test(self):
+        """ This checks that the directed smoke test executes the expected
+        sequences in Test mode, when one of the dependencies is not returned in the
+        response but instead is specified in a uuid4_suffix in the request primitive.
+
+        """
+        self.run_abc_smoke_test(Test_File_Directory, "abc_test_grammar_without_responses.py", "directed-smoke-test")
+        experiments_dir = self.get_experiments_dir()
+
+        # Make sure the right number of requests was sent and rendered successfully.
+        testing_summary_file_path = os.path.join(experiments_dir, "logs", "testing_summary.json")
+
+        try:
+            with open(testing_summary_file_path, 'r') as file:
+                testing_summary = json.loads(file.read())
+                total_requests_sent = testing_summary["total_requests_sent"]["main_driver"]
+                num_fully_valid = testing_summary["num_fully_valid"]
+                self.assertEqual(num_fully_valid, 3)
+                self.assertLessEqual(total_requests_sent, 5)
+
+            # Check that the body of the GET request contains the return value from the PUT request, and that
+            # it is a uuid suffix.
+            test_parser = FuzzingLogParser(self.get_network_log_path(experiments_dir, logger.LOG_TYPE_TESTING))
+            get_request = test_parser._seq_list[-1].requests[-1]
+            self.assertTrue(get_request.method == 'GET')
+            # The below length of the body indicates that a uuid_suffix value was inserted
+            self.assertTrue(len(get_request.body) == 30)
+        except TestFailedException:
+            self.fail("Smoke test failed: Test mode.")
+
 
     def test_smoke_test(self):
         """ This checks that the directed smoke test executes all
