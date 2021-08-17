@@ -107,6 +107,27 @@ let rec private inlineFileRefs2
                     (jsonSpecs:Dictionary<string, JObject>)
                     refStack =
 
+    let getChildPropertiesForObject (obj:JObject) (propertyName:string option) =
+        // Special case: if the child properties are a ref and a description,
+        // skip the description of the ref.
+        let ref = obj.Properties().Where(fun x -> x.Name="$ref")
+        if ref.Count() > 0 then
+            ref
+        else if propertyName.IsSome then
+            // TODO: Temporary workaround for issue #61 - NSWag failure to parse
+            // required boolean in Headers.  Remove this when the NSWag bug is fixed.
+            // The workaround is to remove the required property.
+            // This is fine for now, since RESTler does not currently fuzz or
+            // learn from header values.
+
+            let headerInPath = sprintf "%s.%s" "headers" propertyName.Value
+            if obj.Path.EndsWith(headerInPath) then
+                obj.Properties() |> Seq.filter (fun o -> o.Name <> "required")
+            else
+                obj.Properties()
+        else
+            obj.Properties()
+
     let resolveRefs normalizedFullRefFilePath definitionPath jsonSpecs refStack propertyName =
         // Get the referenced object from the file
         let (foundObj:JObject) =
@@ -168,23 +189,7 @@ let rec private inlineFileRefs2
                                     match x.Value.Type with
                                     | JTokenType.Object ->
                                         let obj = x.Value.Value<JObject>()
-                                        let childProperties =
-                                            // Special case: if the child properties are a ref and a description,
-                                            // skip the description of the ref.
-                                            let ref = obj.Properties().Where(fun x -> x.Name="$ref")
-                                            if ref.Count() > 0 then
-                                                ref
-                                            else
-                                                // TODO: Temporary workaround for issue #61 - NSWag failure to parse
-                                                // required boolean in Headers.  Remove this when the NSWag bug is fixed.
-                                                // The workaround is to remove the required property.
-                                                // This is fine for now, since RESTler does not currently fuzz or
-                                                // learn from header values.
-                                                let headerInPath = sprintf "%s.%s" "headers" x.Name
-                                                if obj.Path.EndsWith(headerInPath) then
-                                                    obj.Properties() |> Seq.filter (fun o -> o.Name <> "required")
-                                                else
-                                                    obj.Properties()
+                                        let childProperties = getChildPropertiesForObject obj (Some (x.Name))
                                         let newChildProperties =
                                             inlineFileRefs2 childProperties
                                                             normalizedDocumentFilePath
@@ -209,8 +214,9 @@ let rec private inlineFileRefs2
                                             let objectArrayElements = objectArrayElements |> Seq.cast<JObject>
                                             objectArrayElements
                                             |> Seq.map (fun (o:JObject) ->
+                                                            let propertiesToInline = getChildPropertiesForObject o None
                                                             let newProperties =
-                                                                inlineFileRefs2 (o.Properties())
+                                                                inlineFileRefs2 propertiesToInline
                                                                                 normalizedDocumentFilePath
                                                                                 (sprintf "%s/%s" parentPropertyPath "[]")
                                                                                 refResolution
