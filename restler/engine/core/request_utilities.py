@@ -143,7 +143,7 @@ def resolve_dynamic_primitives(values, candidate_values_pool):
 
     """
     global last_refresh, latest_token_value, latest_shadow_token_value
-
+    from utils import logger
     # There should only be one uuid4_suffix in the request for a given name
     current_uuid_suffixes = {}
     for i in range(len(values)):
@@ -159,6 +159,7 @@ def resolve_dynamic_primitives(values, candidate_values_pool):
         elif isinstance(values[i], tuple)\
         and values[i][0] == primitives.CUSTOM_PAYLOAD_UUID4_SUFFIX:
             current_uuid_type_name = values[i][1]
+            writer_variable = values[i][5]
             quoted = False
             if len(current_uuid_type_name) >= 2 and current_uuid_type_name[0] == '"' and current_uuid_type_name[-1] == '"':
                 quoted = True
@@ -170,6 +171,11 @@ def resolve_dynamic_primitives(values, candidate_values_pool):
                 values[i] = f'"{current_uuid_suffixes[current_uuid_type_name]}"'
             else:
                 values[i] = current_uuid_suffixes[current_uuid_type_name]
+            # Check if a writer is present.  If so, assign the value generated above
+            # to the dynamic object variable.
+            if writer_variable is not None:
+                dependencies.set_variable(writer_variable, values[i])
+
         elif isinstance(values[i], types.FunctionType)\
         and values[i] == primitives.restler_refreshable_authentication_token:
             token_dict = candidate_values_pool.get_candidate_values(

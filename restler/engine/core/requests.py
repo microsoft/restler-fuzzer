@@ -10,6 +10,7 @@ random.seed(12345)
 import itertools
 import collections
 import datetime
+import copy
 
 from restler_settings import Settings
 import engine.core.request_utilities as request_utilities
@@ -637,6 +638,7 @@ class Request(object):
         # Then, at the time of returning the specific combination of values, a new list with
         # the values will be created
         tracked_parameters = {}
+
         for request_block in req_definition:
             primitive_type = request_block[0]
             if primitive_type == primitives.FUZZABLE_GROUP:
@@ -722,7 +724,18 @@ class Request(object):
                 try:
                     current_fuzzable_value = candidate_values_pool.\
                         get_candidate_values(primitive_type, request_id=self._request_id, tag=field_name, quoted=quoted)
-                    values = [primitives.restler_custom_payload_uuid4_suffix(current_fuzzable_value)]
+
+                    # Replace the custom payload type with the specified value, but keep all others the same
+                    # Assert if the request block does not match the expected definition
+                    if len(request_block) != 6:
+                        raise Exception("Request block definition is expected to have 6 elements.")
+                    current_uuid4_suffix = primitives.restler_custom_payload_uuid4_suffix(
+                                                current_fuzzable_value,
+                                                quoted=request_block[2],
+                                                examples=request_block[3],
+                                                param_name=request_block[4],
+                                                writer=request_block[5])
+                    values = [current_uuid4_suffix]
                 except primitives.CandidateValueException:
                     _raise_dict_err(primitive_type, field_name)
                 except Exception as err:

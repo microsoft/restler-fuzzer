@@ -56,6 +56,11 @@ EXAMPLES_ARG = 'examples'
 # This value is used in test-all-combinations mode to allow the user to analyze spec coverage
 # for particular parameter values.
 PARAM_NAME_ARG = 'param_name'
+# Optional argument passed to fuzzable primitive definition function,
+# which indicates that the value assigned to the primitive should also be assigned to the
+# writer variable (dynamic object) specified.
+WRITER_VARIABLE_ARG = 'writer'
+
 class CandidateValues(object):
     def __init__(self):
         self.unquoted_values = []
@@ -745,8 +750,10 @@ def restler_custom_payload_uuid4_suffix(*args, **kwargs):
         quoted = kwargs[QUOTED_ARG]
     examples = None
     param_name = None
-    return sys._getframe().f_code.co_name, field_name, quoted, examples, param_name
-
+    writer_variable = None
+    if WRITER_VARIABLE_ARG in kwargs:
+        writer_variable = kwargs[WRITER_VARIABLE_ARG]
+    return sys._getframe().f_code.co_name, field_name, quoted, examples, param_name, writer_variable
 
 def restler_refreshable_authentication_token(*args, **kwargs):
     """ Custom refreshable authentication token.
