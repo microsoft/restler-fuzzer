@@ -1,0 +1,55 @@
+{
+    "basePath": "/api",
+    "consumes": [
+        "application/json"
+    ],
+    "host": "localhost:8888",
+    "info": {
+        "description": "A simple swagger spec with one header and one query parameter.",
+        "title": "Simple spec",
+        "version": "1.0"
+    },
+    "paths": {
+        "/file": {
+            "post": {
+
+              "parameters": [
+                {
+                  "in": "header",
+                  "name": "spec_header1",
+                  "type": "string",
+                  "fullTypeName": "System.String",
+                  "required": true
+                },
+                {
+                  "in": "header",
+                  "name": "spec_header2",
+                  "type": "string",
+                  "fullTypeName": "System.String",
+                  "required": true
+                },
+                {
+                  "in": "query",
+                  "name": "spec_query1",
+                  "type": "string",
+                  "fullTypeName": "System.String",
+                  "required": true
+                },
+                {
+                  "in": "query",
+                  "name": "spec_query2",
+                  "type": "string",
+                  "fullTypeName": "System.String",
+                  "required": true
+                }
+              ],
+              "responses": {
+                  "200": {
+                      "description": "Success"
+                  }
+              }
+            }
+        }
+    },
+    "swagger": "2.0"
+}

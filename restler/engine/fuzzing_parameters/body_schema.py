@@ -195,6 +195,7 @@ class BodySchema():
                 examples = request_block[4]
             elif primitive_type in [ primitives.CUSTOM_PAYLOAD,
                                      primitives.CUSTOM_PAYLOAD_HEADER,
+                                     primitives.CUSTOM_PAYLOAD_QUERY,
                                      primitives.CUSTOM_PAYLOAD_UUID4_SUFFIX ]:
                 field_name = request_block[1]
                 quoted = request_block[2]

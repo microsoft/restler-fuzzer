@@ -431,13 +431,39 @@ let generateRequestPrimitives (requestId:RequestId)
                       )
         |> Array.toList
 
+    let replaceCustomPayloads customPayloadType customPayloadParameterNames (requestParameter:RequestParameter) =
+        if customPayloadParameterNames |> Seq.contains requestParameter.name then
+            let isRequired, isReadOnly =
+                match requestParameter.payload with
+                | Tree.LeafNode lp -> lp.isRequired, lp.isReadOnly
+                | Tree.InternalNode (ip,c) -> ip.isRequired, ip.isReadOnly
+            let newParameter =
+                { requestParameter with
+                    payload =
+                        Tree.LeafNode
+                            {
+                                LeafProperty.name = ""
+                                LeafProperty.payload =
+                                    FuzzingPayload.Custom
+                                        {
+                                            payloadType = customPayloadType
+                                            primitiveType = PrimitiveType.String
+                                            payloadValue = requestParameter.name
+                                            isObject = false
+                                        }
+                                LeafProperty.isRequired = isRequired
+                                LeafProperty.isReadOnly = isReadOnly
+                            }}
+            newParameter, true
+        else
+            requestParameter, false
+
     // Generate header parameters.
     // Do not compute dependencies for header parameters.
     let headerParameters, replacedCustomPayloadHeaders =
+        let headersSpecifiedAsCustomPayloads = dictionary.getCustomPayloadHeaderParameterNames()
         requestParameters.header
         |> List.mapFold (fun newReplacedPayloadHeaders (payloadSource, requestHeaders) ->
-                            let headersSpecifiedAsCustomPayloads = dictionary.getCustomPayloadHeaderParameterNames()
-
                             let newParameterList =
                                 // The grammar should always have examples, if they exist here,
                                 // which implies that 'useExamples' was specified by the user.
@@ -446,32 +472,11 @@ let generateRequestPrimitives (requestId:RequestId)
                                     // Filter out the headers specified as custom payloads.
                                     // They will be added separately.
                                     parameterList
+                                    // Filter out the 'Content-Length' parameter if it is specified in the spec.
+                                    // This parameter must be computed by the engine, and should not be fuzzed.
+                                    |> Seq.filter (fun rp -> rp.name <> "Content-Length")
                                     |> Seq.map (fun requestParameter ->
-                                                    if headersSpecifiedAsCustomPayloads |> Seq.contains requestParameter.name then
-                                                        let isRequired, isReadOnly =
-                                                            match requestParameter.payload with
-                                                            | Tree.LeafNode lp -> lp.isRequired, lp.isReadOnly
-                                                            | Tree.InternalNode (ip,c) -> ip.isRequired, ip.isReadOnly
-                                                        let newParameter =
-                                                            { requestParameter with
-                                                                payload =
-                                                                    Tree.LeafNode
-                                                                        {
-                                                                            LeafProperty.name = ""
-                                                                            LeafProperty.payload =
-                                                                                FuzzingPayload.Custom
-                                                                                    {
-                                                                                        payloadType = CustomPayloadType.Header
-                                                                                        primitiveType = PrimitiveType.String
-                                                                                        payloadValue = requestParameter.name
-                                                                                        isObject = false
-                                                                                    }
-                                                                            LeafProperty.isRequired = isRequired
-                                                                            LeafProperty.isReadOnly = isReadOnly
-                                                                        }}
-                                                        newParameter, true
-                                                    else
-                                                        requestParameter, false)
+                                                    replaceCustomPayloads CustomPayloadType.Header headersSpecifiedAsCustomPayloads requestParameter)
                                 | _ -> raise (UnsupportedType "Only a list of header parameters is supported.")
                             let parameterList =
                                 newParameterList |> Seq.map fst |> Seq.toList
@@ -488,29 +493,39 @@ let generateRequestPrimitives (requestId:RequestId)
     // Assign dynamic objects to query parameters if they have dependencies.
     // When there is more than one parameter set, the dictionary must be the one for the schema.
     //
-    let queryParameters =
+    let queryParameters, replacedCustomPayloadQueries =
+        let queriesSpecifiedAsCustomPayloads = dictionary.getCustomPayloadQueryParameterNames()
         requestParameters.query
-        |> List.map (fun (payloadSource, requestQuery) ->
-                        let parameterList =
-                            // The grammar should always have examples, if they exist here,
-                            // which implies that 'useExamples' was specified by the user.
-                            match requestQuery with
-                            | ParameterList parameterList ->
-                                if resolveQueryDependencies then
-                                    parameterList
-                                    |> Seq.map (fun p ->
-                                                    let newPayload, _ =
-                                                        Restler.Dependencies.DependencyLookup.getDependencyPayload
-                                                                            dependencies
-                                                                            None
-                                                                            requestId
-                                                                            p
-                                                                            dictionary
-                                                    newPayload)
-                                else parameterList
-                            | _ -> raise (UnsupportedType "Only a list of query parameters is supported.")
-                        (payloadSource, ParameterList parameterList)
-                     )
+        |> List.mapFold (fun newReplacedPayloadQueries (payloadSource, requestQuery) ->
+                            let parameterList =
+                                // The grammar should always have examples, if they exist here,
+                                // which implies that 'useExamples' was specified by the user.
+                                match requestQuery with
+                                | ParameterList parameterList ->
+                                    if resolveQueryDependencies then
+                                        parameterList
+                                        |> Seq.map (fun p ->
+                                                        let newPayload, _ =
+                                                            Restler.Dependencies.DependencyLookup.getDependencyPayload
+                                                                                dependencies
+                                                                                None
+                                                                                requestId
+                                                                                p
+                                                                                dictionary
+                                                        newPayload)
+                                    else parameterList
+                                | _ -> raise (UnsupportedType "Only a list of query parameters is supported.")
+
+                            let replacedPayloadQueries =
+                                parameterList
+                                |> Seq.filter (fun p -> queriesSpecifiedAsCustomPayloads |> Seq.contains p.name)
+                                |> Seq.map (fun p -> p.name)
+                                |> Seq.toList
+
+                            (payloadSource, ParameterList parameterList),
+                            [ replacedPayloadQueries ; newReplacedPayloadQueries ]
+                            |> List.concat
+                         ) []
 
     let bodyParameters, newDictionary =
         requestParameters.body
@@ -551,11 +566,19 @@ let generateRequestPrimitives (requestId:RequestId)
             [("Content-Type","application/json")]
         else []
 
-    let customPayloadHeaderParameters =
+
+    let getCustomPayloadParameters customPayloadType parametersFoundInSpec =
         let parameterNames =
-            let headersSpecifiedAsCustomPayloads = dictionary.getCustomPayloadHeaderParameterNames()
-            headersSpecifiedAsCustomPayloads
-            |> Seq.filter (fun name -> not (replacedCustomPayloadHeaders |> List.contains name))
+            let parameterNamesSpecifiedAsCustomPayloads =
+                match customPayloadType with
+                | CustomPayloadType.Header ->
+                    dictionary.getCustomPayloadHeaderParameterNames()
+                | CustomPayloadType.Query ->
+                    dictionary.getCustomPayloadQueryParameterNames()
+                | _ ->
+                    raise (invalidArg "customPayloadType" (sprintf "%A is not supported in this context." customPayloadType))
+            parameterNamesSpecifiedAsCustomPayloads
+            |> Seq.filter (fun name -> not (parametersFoundInSpec |> List.contains name))
 
         parameterNames
             |> Seq.map (fun headerName ->
@@ -570,7 +593,7 @@ let generateRequestPrimitives (requestId:RequestId)
                                                 LeafProperty.payload =
                                                     FuzzingPayload.Custom
                                                         {
-                                                            payloadType = CustomPayloadType.Header
+                                                            payloadType = customPayloadType
                                                             primitiveType = PrimitiveType.String
                                                             payloadValue = headerName
                                                             isObject = false
@@ -581,6 +604,12 @@ let generateRequestPrimitives (requestId:RequestId)
                             newParameter)
                 |> Seq.toList
 
+    let customPayloadHeaderParameters = getCustomPayloadParameters CustomPayloadType.Header replacedCustomPayloadHeaders
+
+    // Note: only injecting custom payload query parameters is supported at this time.
+    // For replacement, restler_custom_payload should be used.
+    let customPayloadQueryParameters = getCustomPayloadParameters CustomPayloadType.Query replacedCustomPayloadQueries
+
     let headers =
         ([ ("Accept", "application/json")
            ("Host", host)] @
@@ -590,7 +619,9 @@ let generateRequestPrimitives (requestId:RequestId)
         id = requestId
         Request.method = method
         Request.path = path
-        queryParameters = queryParameters
+        queryParameters = queryParameters @
+                                [(ParameterPayloadSource.DictionaryCustomPayload,
+                                  RequestParametersPayload.ParameterList customPayloadQueryParameters)]
         headerParameters = headerParameters @
                                 [(ParameterPayloadSource.DictionaryCustomPayload,
                                   RequestParametersPayload.ParameterList customPayloadHeaderParameters)]

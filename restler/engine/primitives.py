@@ -40,6 +40,7 @@ FUZZABLE_OBJECT = "restler_fuzzable_object"
 FUZZABLE_MULTIPART_FORMDATA = "restler_multipart_formdata"
 CUSTOM_PAYLOAD = "restler_custom_payload"
 CUSTOM_PAYLOAD_HEADER = "restler_custom_payload_header"
+CUSTOM_PAYLOAD_QUERY = "restler_custom_payload_query"
 CUSTOM_PAYLOAD_UUID4_SUFFIX = "restler_custom_payload_uuid4_suffix"
 REFRESHABLE_AUTHENTICATION_TOKEN = "restler_refreshable_authentication_token"
 SHADOW_VALUES = "shadow_values"
@@ -120,6 +121,7 @@ class CandidateValuesPool(object):
             FUZZABLE_MULTIPART_FORMDATA,
             CUSTOM_PAYLOAD,
             CUSTOM_PAYLOAD_HEADER,
+            CUSTOM_PAYLOAD_QUERY,
             CUSTOM_PAYLOAD_UUID4_SUFFIX,
             REFRESHABLE_AUTHENTICATION_TOKEN,
             SHADOW_VALUES
@@ -127,6 +129,7 @@ class CandidateValuesPool(object):
         self.supported_primitive_dict_types = [
             CUSTOM_PAYLOAD,
             CUSTOM_PAYLOAD_HEADER,
+            CUSTOM_PAYLOAD_QUERY,
             CUSTOM_PAYLOAD_UUID4_SUFFIX,
             REFRESHABLE_AUTHENTICATION_TOKEN,
             SHADOW_VALUES
@@ -727,6 +730,30 @@ def restler_custom_payload_header(*args, **kwargs):
     param_name = None
     return sys._getframe().f_code.co_name, field_name, quoted, examples, param_name
 
+
+def restler_custom_payload_query(*args, **kwargs):
+    """ Custom payload primitive for query.
+
+    @param args: The argument with which the primitive is defined in the block
+                    of the request to which it belongs to. This is a custom
+                    payload which means that the user should have provided its
+                    exact value (to be rendered with).
+    @type  args: Tuple
+    @param kwargs: Optional keyword arguments.
+    @type  kwargs: Dict
+
+    @return: A tuple of the primitive's name and its default value or its tag
+                both passed as arguments via the restler grammar.
+    @rtype : Tuple
+
+    """
+    field_name = args[0]
+    quoted = False
+    if QUOTED_ARG in kwargs:
+        quoted = kwargs[QUOTED_ARG]
+    examples = None
+    param_name = None
+    return sys._getframe().f_code.co_name, field_name, quoted, examples, param_name
 
 def restler_custom_payload_uuid4_suffix(*args, **kwargs):
     """ Custom payload primitive with uuid suffix.

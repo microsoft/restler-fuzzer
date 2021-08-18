@@ -114,6 +114,8 @@ type CustomPayloadType =
     | String
     | UuidSuffix
     | Header
+    /// Used to inject query parameters that are not part of the specification.
+    | Query
 
 type CustomPayload =
     {

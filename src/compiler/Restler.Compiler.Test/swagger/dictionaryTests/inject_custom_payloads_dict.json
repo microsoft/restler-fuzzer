@@ -1,0 +1,16 @@
+{
+  "restler_custom_payload_header": {
+    "extra_header1": [ "one" ],
+    "extra_header2":  ["two"],
+    "spec_header1":  ["qp"]
+  },
+  "restler_custom_payload_query": {
+    "extra_query1": [ "one" ],
+    "extra_query2":  ["two"],
+    "spec_query1":  ["qp"]
+  },
+  "restler_custom_payload": {
+    "spec_query2":  ["qp2"],
+    "spec_header2":  ["hp2"]
+  }
+}

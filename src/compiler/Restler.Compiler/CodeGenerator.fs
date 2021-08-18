@@ -42,6 +42,7 @@ module Types =
         | Restler_multipart_formdata of string
         | Restler_custom_payload of RequestPrimitiveTypeData
         | Restler_custom_payload_header of string
+        | Restler_custom_payload_query of string
         | Restler_custom_payload_uuid4_suffix of string
         | Restler_refreshable_authentication_token of string
         | Shadow_values of string
@@ -96,6 +97,8 @@ let rec getRestlerPythonPayload (payload:FuzzingPayload) (isQuoted:bool) : Reque
                 Restler_custom_payload_uuid4_suffix c.payloadValue
             | CustomPayloadType.Header ->
                 Restler_custom_payload_header c.payloadValue  // TODO: need test
+            | CustomPayloadType.Query ->
+                Restler_custom_payload_query c.payloadValue  // TODO: need test
         | DynamicObject (primitiveType, s) ->
             Restler_static_string_variable (sprintf "%s.reader()" s, isQuoted)
         | PayloadParts p ->
@@ -439,7 +442,6 @@ let generatePythonFromRequestElement includeOptionalParameters (e:RequestElement
                 hp |> List.ofSeq
                    |> List.map (fun p ->
                                   [
-
                                       generatePythonParameter includeOptionalParameters ParameterKind.Header p
                                       [ Restler_static_string_constant RETURN ]
                                   ]
@@ -461,7 +463,6 @@ let generatePythonFromRequestElement includeOptionalParameters (e:RequestElement
                                             yield Restler_static_string_constant "&"
                                             yield! primitive
                                         ]
-
                                     else primitive
                                )
                    |> List.concat
@@ -551,6 +552,12 @@ let generatePythonFromRequest (request:Request) includeOptionalParameters mergeS
     let getParameterPayload queryOrBodyParameters =
         queryOrBodyParameters |> List.head |> snd
 
+    let getCustomParameterPayload (queryOrBodyParameters:(ParameterPayloadSource * _) list) =
+        match queryOrBodyParameters
+              |> List.tryFind (fun (payloadSource, pList) -> payloadSource = ParameterPayloadSource.DictionaryCustomPayload) with
+        | Some (_, ParameterList pList) -> pList
+        | _ -> Seq.empty
+
     let getMergedStaticStringSeq (strList:string seq) =
 
         let str =
@@ -585,7 +592,13 @@ let generatePythonFromRequest (request:Request) includeOptionalParameters mergeS
     let requestElements = [
         Method request.method
         Path request.path
-        QueryParameters (getParameterPayload request.queryParameters)
+        QueryParameters (let declaredPayload = getParameterPayload request.queryParameters
+                         match declaredPayload with
+                         | ParameterList pList ->
+                             // Add the injected custom payload parameters
+                             let customPList = getCustomParameterPayload request.queryParameters
+                             ParameterList ([pList ; customPList] |> Seq.concat)
+                         | _ -> declaredPayload)
         HttpVersion request.httpVersion
         Headers request.headers
         HeaderParameters (getParameterPayload request.headerParameters)
@@ -927,6 +940,8 @@ let getRequests(requests:Request list) includeOptionalParameters =
                 sprintf "primitives.restler_custom_payload_uuid4_suffix(\"%s\")" p
             | Restler_custom_payload_header p ->
                 sprintf "primitives.restler_custom_payload_header(\"%s\")" p
+            | Restler_custom_payload_query q ->
+                sprintf "primitives.restler_custom_payload_query(\"%s\")" q
             | Restler_refreshable_authentication_token tok ->
                 sprintf "primitives.restler_refreshable_authentication_token(\"%s\")" tok
             | Response_parser s -> s

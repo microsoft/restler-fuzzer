@@ -826,6 +826,7 @@ def format_request_block(request_id, request_block, candidate_values_pool):
         examples = request_block[4]
     elif primitive in [ primitives.CUSTOM_PAYLOAD,
                         primitives.CUSTOM_PAYLOAD_HEADER,
+                        primitives.CUSTOM_PAYLOAD_QUERY,
                         primitives.CUSTOM_PAYLOAD_UUID4_SUFFIX ]:
         default_val = None
         field_name = request_block[1]
@@ -847,8 +848,9 @@ def format_request_block(request_id, request_block, candidate_values_pool):
     elif primitive == "restler_multipart_formdata":
         values = ['_OMITTED_BINARY_DATA_']
         default_val = '_OMITTED_BINARY_DATA_'
-    # Handle custom payload
-    elif primitive == "restler_custom_payload_header":
+    # Handle custom payload header and query
+    elif (primitive == "restler_custom_payload_header" or\
+          primitive == "restler_custom_payload_query"):
         current_fuzzable_tag = field_name
         values = candidate_values_pool.get_candidate_values(primitive, request_id=request.request_id, tag=current_fuzzable_tag, quoted=quoted)
         if not isinstance(values, list):
