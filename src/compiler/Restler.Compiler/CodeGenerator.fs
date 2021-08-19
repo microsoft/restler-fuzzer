@@ -417,17 +417,24 @@ let generatePythonParameter includeOptionalParameters parameterKind (requestPara
     payloadPrimitives
 
 /// Generates the python restler grammar definitions corresponding to the request
-let generatePythonFromRequestElement includeOptionalParameters (e:RequestElement) =
+let generatePythonFromRequestElement includeOptionalParameters (requestId:RequestId) (e:RequestElement) =
     match e with
     | Method m ->
         [Restler_static_string_constant (sprintf "%s%s" (m.ToString().ToUpper()) SPACE)]
     | RequestElement.Path parts ->
+        let queryStartIndex =
+            match requestId.xMsPath with
+            | None -> parts.Length
+            | Some _ -> parts |> List.findIndex(fun x -> x = Constant (PrimitiveType.String, "?"))
         let x = parts
-                |> List.map (fun p -> getRestlerPythonPayload p false (*isQuoted*))
+                |> List.mapi(fun idx p ->
+                                idx, getRestlerPythonPayload p false (*isQuoted*))
                 |> (fun xs ->
                     [
-                        for primitive in xs do
-                            yield Restler_static_string_constant "/"
+                        for (idx,primitive) in xs do
+                            if idx < queryStartIndex then
+                                // Only add path delimiters in the path part
+                                yield Restler_static_string_constant "/"
                             yield! primitive
                     ]
                 )
@@ -471,7 +478,13 @@ let generatePythonFromRequestElement includeOptionalParameters (e:RequestElement
                 []
             else
                 [
-                    yield Restler_static_string_constant "?"
+                    // Special case: if the path of this request already contains a query (for example,
+                    // if the endpoint source is from x-ms-paths), then append rather than start the query list
+                    //
+                    if requestId.xMsPath.IsSome then
+                        yield Restler_static_string_constant "&"
+                    else
+                        yield Restler_static_string_constant "?"
                     yield! parameters
                 ]
         | _ ->
@@ -625,7 +638,7 @@ let generatePythonFromRequest (request:Request) includeOptionalParameters mergeS
 
     requestElements
     |> List.map (fun requestElement ->
-                    let primitives = generatePythonFromRequestElement includeOptionalParameters requestElement
+                    let primitives = generatePythonFromRequestElement includeOptionalParameters request.id requestElement
                     match requestElement with
                     | Body _ when mergeStaticStrings && primitives |> List.length > 1 ->
                         let filteredPrimitives =

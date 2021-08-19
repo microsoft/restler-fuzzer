@@ -5,6 +5,7 @@ module Restler.Grammar
 
 open System.IO
 open AccessPaths
+open Restler.XMsPaths
 
 /// Tree utilities.
 /// Reference: https://fsharpforfunandprofit.com/posts/recursive-types-and-folds/
@@ -171,10 +172,18 @@ type FuzzingPayload =
     /// In some cases, a payload may need to be split into multiple payload parts
     | PayloadParts of FuzzingPayload list
 
+
+
 /// The unique ID of a request.
 type RequestId =
     {
         endpoint : string
+
+        /// If a request is declared with an x-ms-path, 'xMsPath' contains the original path
+        /// from the specification.  The 'endpoint' above contains a transformed path for
+        /// so that the OpenAPI specification can be compiled with standard 'paths'.
+        xMsPath : XMsPath option
+
         method : OperationMethod
     }
 

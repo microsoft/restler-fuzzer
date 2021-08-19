@@ -43,6 +43,10 @@ module JsonParse =
         obj.[propertyName].Value<JObject>().Add(newValue)
         obj
 
+    let removeProperty (obj:JObject) (propertyName:string) =
+        if obj.ContainsKey(propertyName) then
+            obj.Remove(propertyName) |> ignore
+
     let getPropertyAsString (obj:JObject) (propertyName:string) =
         if obj.ContainsKey(propertyName) then
             let v = obj.[propertyName]
@@ -68,9 +72,9 @@ module Stream =
     /// https://en.wikipedia.org/wiki/UTF-8
     /// Byte order mark (or Preamble)
     /// If the UTF-16 Unicode byte order mark (BOM) character is at the start of a UTF-8 file, the first three bytes will be 0xEF, 0xBB, 0xBF.
-    ///The Unicode Standard neither requires nor recommends the use of the BOM for UTF-8, but warns that it may be encountered at the 
-    /// start of a file trans-coded from another encoding.[46] While ASCII text encoded using UTF-8 is backward compatible with ASCII, 
-    /// this is not true when Unicode Standard recommendations are ignored and a BOM is added. Nevertheless, there was and still is 
+    ///The Unicode Standard neither requires nor recommends the use of the BOM for UTF-8, but warns that it may be encountered at the
+    /// start of a file trans-coded from another encoding.[46] While ASCII text encoded using UTF-8 is backward compatible with ASCII,
+    /// this is not true when Unicode Standard recommendations are ignored and a BOM is added. Nevertheless, there was and still is
     /// software that always inserts a BOM when writing UTF-8, and refuses to correctly interpret UTF-8 unless the first character is a BOM
     type FileStreamWithoutPreamble(filePath, mode: System.IO.FileMode) =
         inherit System.IO.FileStream(filePath, mode)

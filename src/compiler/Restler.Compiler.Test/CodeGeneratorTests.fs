@@ -68,7 +68,7 @@ module CodeGenerator =
                 ]
             let request:Request =
                 {
-                    id = { endpoint = "/api/accounts/{accountId}" ; method = OperationMethod.Put }
+                    id = { endpoint = "/api/accounts/{accountId}" ; method = OperationMethod.Put ; xMsPath = None }
 
                     method = OperationMethod.Get
                     path = pathPayload

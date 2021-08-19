@@ -1,0 +1,681 @@
+{
+  "Requests": [
+    {
+      "id": {
+        "endpoint": "/{resourceName}?type=folder",
+        "xMsPath": {
+          "pathPart": "/{resourceName}",
+          "queryPart": "type=folder"
+        },
+        "method": "Put"
+      },
+      "method": "Put",
+      "path": [
+        {
+          "Custom": {
+            "payloadType": "UuidSuffix",
+            "primitiveType": "String",
+            "payloadValue": "resourceName",
+            "isObject": false,
+            "dynamicObject": {
+              "primitiveType": "String",
+              "variableName": "__resourceName__type_folder_put_resourceName_path",
+              "isWriter": false
+            }
+          }
+        },
+        {
+          "Constant": [
+            "String",
+            "?"
+          ]
+        },
+        {
+          "Constant": [
+            "String",
+            ""
+          ]
+        },
+        {
+          "Constant": [
+            "String",
+            "type=folder"
+          ]
+        }
+      ],
+      "queryParameters": [
+        [
+          "Schema",
+          {
+            "ParameterList": []
+          }
+        ],
+        [
+          "DictionaryCustomPayload",
+          {
+            "ParameterList": []
+          }
+        ]
+      ],
+      "bodyParameters": [
+        [
+          "Schema",
+          {
+            "ParameterList": []
+          }
+        ]
+      ],
+      "headerParameters": [
+        [
+          "Schema",
+          {
+            "ParameterList": [
+              {
+                "name": "api-version",
+                "payload": {
+                  "LeafNode": {
+                    "name": "",
+                    "payload": {
+                      "Fuzzable": [
+                        {
+                          "Enum": [
+                            "api-version",
+                            "String",
+                            [
+                              "2020-03-01"
+                            ],
+                            null
+                          ]
+                        },
+                        "2020-03-01",
+                        null,
+                        null
+                      ]
+                    },
+                    "isRequired": true,
+                    "isReadOnly": false
+                  }
+                }
+              }
+            ]
+          }
+        ],
+        [
+          "DictionaryCustomPayload",
+          {
+            "ParameterList": []
+          }
+        ]
+      ],
+      "token": "Refreshable",
+      "headers": [
+        [
+          "Accept",
+          "application/json"
+        ],
+        [
+          "Host",
+          ""
+        ]
+      ],
+      "httpVersion": "1.1",
+      "responseParser": {
+        "writerVariables": [],
+        "inputWriterVariables": [
+          {
+            "requestId": {
+              "endpoint": "/{resourceName}/type/folder",
+              "xMsPath": {
+                "pathPart": "/{resourceName}",
+                "queryPart": "type=folder"
+              },
+              "method": "Put"
+            },
+            "accessPathParts": {
+              "path": [
+                "resourceName",
+                "path"
+              ]
+            }
+          }
+        ]
+      },
+      "inputDynamicObjectVariables": [
+        {
+          "requestId": {
+            "endpoint": "/{resourceName}/type/folder",
+            "xMsPath": {
+              "pathPart": "/{resourceName}",
+              "queryPart": "type=folder"
+            },
+            "method": "Put"
+          },
+          "accessPathParts": {
+            "path": [
+              "resourceName",
+              "path"
+            ]
+          }
+        }
+      ],
+      "requestMetadata": {
+        "isLongRunningOperation": true
+      }
+    },
+    {
+      "id": {
+        "endpoint": "/{resourceName}?type=file",
+        "xMsPath": {
+          "pathPart": "/{resourceName}",
+          "queryPart": "type=file"
+        },
+        "method": "Put"
+      },
+      "method": "Put",
+      "path": [
+        {
+          "Custom": {
+            "payloadType": "UuidSuffix",
+            "primitiveType": "String",
+            "payloadValue": "resourceName",
+            "isObject": false,
+            "dynamicObject": {
+              "primitiveType": "String",
+              "variableName": "__resourceName__type_file_put_resourceName_path",
+              "isWriter": false
+            }
+          }
+        },
+        {
+          "Constant": [
+            "String",
+            "?"
+          ]
+        },
+        {
+          "Constant": [
+            "String",
+            ""
+          ]
+        },
+        {
+          "Constant": [
+            "String",
+            "type=file"
+          ]
+        }
+      ],
+      "queryParameters": [
+        [
+          "Schema",
+          {
+            "ParameterList": []
+          }
+        ],
+        [
+          "DictionaryCustomPayload",
+          {
+            "ParameterList": []
+          }
+        ]
+      ],
+      "bodyParameters": [
+        [
+          "Schema",
+          {
+            "ParameterList": []
+          }
+        ]
+      ],
+      "headerParameters": [
+        [
+          "Schema",
+          {
+            "ParameterList": [
+              {
+                "name": "api-version",
+                "payload": {
+                  "LeafNode": {
+                    "name": "",
+                    "payload": {
+                      "Fuzzable": [
+                        {
+                          "Enum": [
+                            "api-version",
+                            "String",
+                            [
+                              "2020-03-01"
+                            ],
+                            null
+                          ]
+                        },
+                        "2020-03-01",
+                        null,
+                        null
+                      ]
+                    },
+                    "isRequired": true,
+                    "isReadOnly": false
+                  }
+                }
+              }
+            ]
+          }
+        ],
+        [
+          "DictionaryCustomPayload",
+          {
+            "ParameterList": []
+          }
+        ]
+      ],
+      "token": "Refreshable",
+      "headers": [
+        [
+          "Accept",
+          "application/json"
+        ],
+        [
+          "Host",
+          ""
+        ]
+      ],
+      "httpVersion": "1.1",
+      "responseParser": {
+        "writerVariables": [],
+        "inputWriterVariables": [
+          {
+            "requestId": {
+              "endpoint": "/{resourceName}/type/file",
+              "xMsPath": {
+                "pathPart": "/{resourceName}",
+                "queryPart": "type=file"
+              },
+              "method": "Put"
+            },
+            "accessPathParts": {
+              "path": [
+                "resourceName",
+                "path"
+              ]
+            }
+          }
+        ]
+      },
+      "inputDynamicObjectVariables": [
+        {
+          "requestId": {
+            "endpoint": "/{resourceName}/type/file",
+            "xMsPath": {
+              "pathPart": "/{resourceName}",
+              "queryPart": "type=file"
+            },
+            "method": "Put"
+          },
+          "accessPathParts": {
+            "path": [
+              "resourceName",
+              "path"
+            ]
+          }
+        }
+      ],
+      "requestMetadata": {
+        "isLongRunningOperation": true
+      }
+    },
+    {
+      "id": {
+        "endpoint": "/{resourceName}?type=file&operation={operationId}",
+        "xMsPath": {
+          "pathPart": "/{resourceName}",
+          "queryPart": "type=file&operation={operationId}"
+        },
+        "method": "Get"
+      },
+      "method": "Get",
+      "path": [
+        {
+          "DynamicObject": {
+            "primitiveType": "String",
+            "variableName": "__resourceName__type_file_put_resourceName_path",
+            "isWriter": false
+          }
+        },
+        {
+          "Constant": [
+            "String",
+            "?"
+          ]
+        },
+        {
+          "Constant": [
+            "String",
+            "type=file&operation="
+          ]
+        },
+        {
+          "Custom": {
+            "payloadType": "String",
+            "primitiveType": "String",
+            "payloadValue": "operationId",
+            "isObject": false
+          }
+        },
+        {
+          "Constant": [
+            "String",
+            ""
+          ]
+        }
+      ],
+      "queryParameters": [
+        [
+          "Schema",
+          {
+            "ParameterList": [
+              {
+                "name": "tag",
+                "payload": {
+                  "LeafNode": {
+                    "name": "",
+                    "payload": {
+                      "Custom": {
+                        "payloadType": "String",
+                        "primitiveType": "String",
+                        "payloadValue": "tag",
+                        "isObject": false
+                      }
+                    },
+                    "isRequired": true,
+                    "isReadOnly": false
+                  }
+                }
+              }
+            ]
+          }
+        ],
+        [
+          "DictionaryCustomPayload",
+          {
+            "ParameterList": []
+          }
+        ]
+      ],
+      "bodyParameters": [
+        [
+          "Schema",
+          {
+            "ParameterList": []
+          }
+        ]
+      ],
+      "headerParameters": [
+        [
+          "Schema",
+          {
+            "ParameterList": [
+              {
+                "name": "api-version",
+                "payload": {
+                  "LeafNode": {
+                    "name": "",
+                    "payload": {
+                      "Fuzzable": [
+                        {
+                          "Enum": [
+                            "api-version",
+                            "String",
+                            [
+                              "2020-03-01"
+                            ],
+                            null
+                          ]
+                        },
+                        "2020-03-01",
+                        null,
+                        null
+                      ]
+                    },
+                    "isRequired": true,
+                    "isReadOnly": false
+                  }
+                }
+              }
+            ]
+          }
+        ],
+        [
+          "DictionaryCustomPayload",
+          {
+            "ParameterList": []
+          }
+        ]
+      ],
+      "token": "Refreshable",
+      "headers": [
+        [
+          "Accept",
+          "application/json"
+        ],
+        [
+          "Host",
+          ""
+        ]
+      ],
+      "httpVersion": "1.1",
+      "inputDynamicObjectVariables": [],
+      "requestMetadata": {
+        "isLongRunningOperation": false
+      }
+    },
+    {
+      "id": {
+        "endpoint": "/{resourceName}/{itemName}",
+        "method": "Get"
+      },
+      "method": "Get",
+      "path": [
+        {
+          "DynamicObject": {
+            "primitiveType": "String",
+            "variableName": "__resourceName__type_file_put_resourceName_path",
+            "isWriter": false
+          }
+        },
+        {
+          "Fuzzable": [
+            "String",
+            "fuzzstring",
+            null,
+            null
+          ]
+        }
+      ],
+      "queryParameters": [
+        [
+          "Schema",
+          {
+            "ParameterList": []
+          }
+        ],
+        [
+          "DictionaryCustomPayload",
+          {
+            "ParameterList": []
+          }
+        ]
+      ],
+      "bodyParameters": [
+        [
+          "Schema",
+          {
+            "ParameterList": []
+          }
+        ]
+      ],
+      "headerParameters": [
+        [
+          "Schema",
+          {
+            "ParameterList": [
+              {
+                "name": "api-version",
+                "payload": {
+                  "LeafNode": {
+                    "name": "",
+                    "payload": {
+                      "Fuzzable": [
+                        {
+                          "Enum": [
+                            "api-version",
+                            "String",
+                            [
+                              "2020-03-01"
+                            ],
+                            null
+                          ]
+                        },
+                        "2020-03-01",
+                        null,
+                        null
+                      ]
+                    },
+                    "isRequired": true,
+                    "isReadOnly": false
+                  }
+                }
+              }
+            ]
+          }
+        ],
+        [
+          "DictionaryCustomPayload",
+          {
+            "ParameterList": []
+          }
+        ]
+      ],
+      "token": "Refreshable",
+      "headers": [
+        [
+          "Accept",
+          "application/json"
+        ],
+        [
+          "Host",
+          ""
+        ]
+      ],
+      "httpVersion": "1.1",
+      "inputDynamicObjectVariables": [],
+      "requestMetadata": {
+        "isLongRunningOperation": false
+      }
+    },
+    {
+      "id": {
+        "endpoint": "/{resourceName}/{itemName}",
+        "method": "Delete"
+      },
+      "method": "Delete",
+      "path": [
+        {
+          "DynamicObject": {
+            "primitiveType": "String",
+            "variableName": "__resourceName__type_file_put_resourceName_path",
+            "isWriter": false
+          }
+        },
+        {
+          "Fuzzable": [
+            "String",
+            "fuzzstring",
+            null,
+            null
+          ]
+        }
+      ],
+      "queryParameters": [
+        [
+          "Schema",
+          {
+            "ParameterList": []
+          }
+        ],
+        [
+          "DictionaryCustomPayload",
+          {
+            "ParameterList": []
+          }
+        ]
+      ],
+      "bodyParameters": [
+        [
+          "Schema",
+          {
+            "ParameterList": []
+          }
+        ]
+      ],
+      "headerParameters": [
+        [
+          "Schema",
+          {
+            "ParameterList": [
+              {
+                "name": "api-version",
+                "payload": {
+                  "LeafNode": {
+                    "name": "",
+                    "payload": {
+                      "Fuzzable": [
+                        {
+                          "Enum": [
+                            "api-version",
+                            "String",
+                            [
+                              "2020-03-01"
+                            ],
+                            null
+                          ]
+                        },
+                        "2020-03-01",
+                        null,
+                        null
+                      ]
+                    },
+                    "isRequired": true,
+                    "isReadOnly": false
+                  }
+                }
+              }
+            ]
+          }
+        ],
+        [
+          "DictionaryCustomPayload",
+          {
+            "ParameterList": []
+          }
+        ]
+      ],
+      "token": "Refreshable",
+      "headers": [
+        [
+          "Accept",
+          "application/json"
+        ],
+        [
+          "Host",
+          ""
+        ]
+      ],
+      "httpVersion": "1.1",
+      "inputDynamicObjectVariables": [],
+      "requestMetadata": {
+        "isLongRunningOperation": false
+      }
+    }
+  ]
+}

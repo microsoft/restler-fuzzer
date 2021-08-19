@@ -28,7 +28,7 @@ let generatePython grammarOutputDirectoryPath config grammar =
 
 
 let getSwaggerDataForDoc doc workingDirectory =
-    let swaggerDoc = Restler.Swagger.getSwaggerDocument doc.SpecFilePath workingDirectory
+    let swaggerDoc, preprocessingResult = Restler.Swagger.getSwaggerDocument doc.SpecFilePath workingDirectory
     let globalAnnotations =
         match doc.AnnotationFilePath with
         | None -> None
@@ -65,14 +65,16 @@ let getSwaggerDataForDoc doc workingDirectory =
     {   swaggerDoc = swaggerDoc
         dictionary = dictionary
         globalAnnotations = globalAnnotations
+        xMsPathsMapping = if preprocessingResult.IsSome then preprocessingResult.Value.xMsPathsMapping else None
     }
 
-let generateGrammarFromSwagger grammarOutputDirectoryPath swaggerDoc config =
+
+let generateGrammarFromSwagger grammarOutputDirectoryPath (swaggerDoc, specMetadata) config =
 
     // Extract the Swagger documents and corresponding document-specific configuration, if any
     let swaggerDocs =
         match swaggerDoc with
-        | Some s -> [ s ]
+        | Some s -> [ (s,specMetadata) ]
         | None ->
             match config.SwaggerSpecFilePath with
             | None ->
@@ -92,10 +94,11 @@ let generateGrammarFromSwagger grammarOutputDirectoryPath swaggerDoc config =
 
     let docsWithEmptyConfig =
         swaggerDocs
-        |> List.map (fun x ->
+        |> List.map (fun (x,preprocessingResult) ->
                         {   swaggerDoc = x
                             dictionary = None
                             globalAnnotations = None
+                            xMsPathsMapping = if preprocessingResult.IsSome then preprocessingResult.Value.xMsPathsMapping else None
                         })
 
     let configuredSwaggerDocs =
@@ -244,7 +247,7 @@ let generateRestlerGrammar swaggerDoc (config:Config) =
             Microsoft.FSharpLu.Json.Compact.deserializeStream<GrammarDefinition> f
         | None ->
              logTimingInfo "Generating grammar..."
-             generateGrammarFromSwagger grammarOutputDirectoryPath swaggerDoc config
+             generateGrammarFromSwagger grammarOutputDirectoryPath (swaggerDoc,None) config
         | Some p ->
             printfn "ERROR: invalid path for grammar: %s" p
             exit 1

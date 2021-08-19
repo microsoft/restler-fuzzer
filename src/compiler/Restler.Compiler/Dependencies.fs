@@ -700,20 +700,27 @@ let findAnnotation globalAnnotations
                    (resourceName:string)
                    (resourceAccessPath:AccessPath) =
 
-    let annotationMatches consumerParameter resourceName resourceAccessPath =
-        match consumerParameter with
-        | ResourceName rn -> rn = resourceName
-        | ResourcePath p ->
-              resourceAccessPath = p
+    let annotationMatches consumerParameter resourceName resourceAccessPath exceptConsumers =
+        let consumerParameterMatches =
+            match consumerParameter with
+            | ResourceName rn -> rn = resourceName
+            | ResourcePath p ->
+                  resourceAccessPath = p
+        let requestIdMatches =
+            match exceptConsumers with
+            | None -> true
+            | Some exceptConsumers ->
+                not (exceptConsumers |> Seq.exists (fun ec -> ec = requestId))
+        consumerParameterMatches && requestIdMatches
 
     let globalAnnotation =
         match globalAnnotations
-              |> Seq.filter (fun a -> annotationMatches a.consumerParameter resourceName resourceAccessPath
+              |> Seq.filter (fun a -> annotationMatches a.consumerParameter resourceName resourceAccessPath a.exceptConsumerId
                              ) with
         | g when g |> Seq.isEmpty -> None
         | g ->
             if g |> Seq.length > 1 then
-                raise (Exception("ERROR: found more than one matching annotation"))
+                printfn "WARNING: found more than one matching annotation.  Only the first found will be used."
             g |> Seq.tryHead
     let localAnnotations =
         match parameterMap.TryFind requestId with
@@ -723,12 +730,12 @@ let findAnnotation globalAnnotations
 
     let localAnnotation =
         match localAnnotations
-              |> Seq.filter (fun a -> annotationMatches a.consumerParameter resourceName resourceAccessPath
+              |> Seq.filter (fun a -> annotationMatches a.consumerParameter resourceName resourceAccessPath a.exceptConsumerId
                              ) with
         | g when g |> Seq.isEmpty -> None
         | g ->
             if g |> Seq.length > 1 then
-                raise (Exception("ERROR: found more than one matching annotation"))
+                printfn "WARNING: found more than one matching annotation.  Only the first found will be used."
             g |> Seq.tryHead
 
     // Local annotation takes precedence
@@ -895,6 +902,7 @@ let createInputOnlyProducerFromAnnotation (a:ProducerConsumerAnnotation)
                 {
                     endpoint = a.producerId.requestId.endpoint
                     method = a.producerId.requestId.method
+                    xMsPath = a.producerId.requestId.xMsPath
                 }
             let pc = pathConsumers
                      |> Array.tryFind (fun (reqId, s) -> reqId = annotationProducerRequestId)

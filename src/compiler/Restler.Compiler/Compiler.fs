@@ -20,6 +20,7 @@ open Restler.Dictionary
 open Restler.Compiler.SwaggerVisitors
 open Restler.Utilities.Logging
 open Restler.Utilities.Operators
+open Restler.XMsPaths
 
 exception UnsupportedParameterSerialization of string
 
@@ -32,6 +33,8 @@ module Types =
             dictionary: MutationsDictionary option
 
             globalAnnotations: ProducerConsumerAnnotation list option
+
+            xMsPathsMapping : Map<string, string> option
         }
 
 let validResponseCodes = [200 .. 206] |> List.map string
@@ -409,6 +412,97 @@ module private Parameters =
             [localParameters ; declaredSharedParameters ] |> Seq.concat
         getParameters allParameters exampleConfig dataFuzzing trackParameters
 
+/// Functionality related to x-ms-paths support.  For more information, see:
+/// https://github.com/stankovski/AutoRest/blob/master/Documentation/swagger-extensions.md#x-ms-paths
+module private XMsPaths =
+    /// For a request with an endpoint in x-ms-path format that was mapped to a different endpoint,
+    /// re-construct the path payload in x-ms-path format.
+    let replaceWithOriginalPaths (req:Request) =
+        let xMsPath = req.id.xMsPath.Value
+        let xMsPathEndpoint = xMsPath.getEndpoint()
+
+        // Re-construct the path payload in x-ms-paths format
+        let queryPartSplit =
+            xMsPath.queryPart.Split([|'='; '&'|], StringSplitOptions.RemoveEmptyEntries)
+
+        let pathPartLength = req.path.Length - queryPartSplit.Length
+        let pathPart = req.path |> List.take pathPartLength
+        let queryPart = req.path |> List.skip pathPartLength
+
+        let pathParametersInQueryPart =
+            queryPartSplit
+            |> Array.mapi (fun idx p -> idx,p)
+            |> Array.filter (fun (idx,part) -> Parameters.isPathParameter part)
+
+        let queryParamPayloads =
+            pathParametersInQueryPart
+            |> Seq.fold (fun (queryPartPayload:(FuzzingPayload * string) list) (paramIndex, paramName) ->
+                            let _, remainingQueryPart = queryPartPayload |> List.last
+
+                            let paramIndexInQuery = remainingQueryPart.IndexOf(paramName)
+                            let constantPayload = remainingQueryPart.Substring(0, paramIndexInQuery)
+                            let paramPayload = queryPart.[paramIndex]
+                            let newRemainingQueryPart =
+                                remainingQueryPart.Substring(paramIndexInQuery + paramName.Length)
+
+                            [ Constant(PrimitiveType.String, constantPayload), ""
+                              paramPayload, newRemainingQueryPart ])
+                        [ Constant(PrimitiveType.String, ""), xMsPath.queryPart ]
+
+
+        let xMsPathQueryPayload =
+            [
+              [ Constant(PrimitiveType.String, "?") ]
+              queryParamPayloads |> List.map fst
+              [ Constant (PrimitiveType.String, (queryParamPayloads |> List.last |> snd))]
+            ]
+            |> Seq.concat
+            |> Seq.toList
+
+        { req with
+            id = { endpoint = xMsPathEndpoint ; method = req.id.method ; xMsPath = req.id.xMsPath }
+            path = pathPart @ xMsPathQueryPayload }
+
+    /// Given a list of all query parameters and an endpoint that contains query parameters,
+    /// returns the subset of query parameters excluding the ones that are in the path.
+    /// The excluded parameters will be processed as path parameters instead, to handle cases
+    /// when the query parameter declared in the x-ms-paths endpoint is a variable
+    /// (e.g. /X&op={opName} ).
+    let filterXMsPathQueryParameters (allQueryParameters:(ParameterPayloadSource * RequestParametersPayload) list)
+                                     (endpointQueryPart:string) =
+        // Filter any query parameters that are part of a path
+        // declared in x-ms-paths
+        let endpointQueryParameterNames =
+            endpointQueryPart.Split("&")
+            |> Array.choose (fun x ->
+                                 let splitParam = x.Split("=", StringSplitOptions.RemoveEmptyEntries)
+                                 match splitParam with
+                                 | [|name ; paramValue|] ->
+                                    if paramValue.StartsWith("{") then
+                                        Some (Parameters.getPathParameterName paramValue)
+                                    else None
+                                 | _ -> None
+                             )
+
+        let queryParametersFiltered =
+            allQueryParameters
+            |> List.map (fun (payloadSource, requestParameterPayload) ->
+                            match requestParameterPayload with
+                            | ParameterList pList when payloadSource = ParameterPayloadSource.Schema ->
+                                let queryParametersNotInPath =
+                                    pList
+                                    |> Seq.filter (fun requestParameter ->
+                                                        not (endpointQueryParameterNames|> Seq.contains requestParameter.name))
+                                (payloadSource, ParameterList queryParametersNotInPath)
+                            | ParameterList _ ->
+                                (payloadSource, requestParameterPayload)
+                            | Example e ->
+                                // Example query parameters for x-ms-paths query parameters are not supported.
+                                // Output a warning and return the example
+                                printfn "Warning: example found with x-ms-paths query parameters."
+                                (payloadSource, requestParameterPayload))
+        queryParametersFiltered
+
 let generateRequestPrimitives (requestId:RequestId)
                                (responseParser:ResponseParser option)
                                (requestParameters:RequestParameters)
@@ -428,27 +522,47 @@ let generateRequestPrimitives (requestId:RequestId)
             |> Seq.map (fun p -> p.name, p)
             |> Map.ofSeq
         | _ -> raise (UnsupportedType "Only a list of path parameters is supported.")
+    let queryParameters =
+        let schemaQueryParameters = requestParameters.query |> List.tryFind (fun (s, t) -> s = ParameterPayloadSource.Schema)
+        match schemaQueryParameters with
+        | Some (_, ParameterList parameterList) ->
+            parameterList
+            |> Seq.map (fun p -> p.name, p)
+            |> Map.ofSeq
+        | _ -> raise (UnsupportedType "Only a list of query parameters is supported.")
 
     let path =
         (basePath + requestId.endpoint).Split([|'/'|], StringSplitOptions.RemoveEmptyEntries)
         |> Array.choose (fun p ->
-                          if Parameters.isPathParameter p then
-                            let consumerResourceName = Parameters.getPathParameterName p
-                            match pathParameters |> Map.tryFind consumerResourceName with
-                            | Some rp ->
-                                let newRequestParameter, _ =
-                                    Restler.Dependencies.DependencyLookup.getDependencyPayload
-                                                dependencies
-                                                None
-                                                requestId
-                                                rp
-                                                dictionary
-                                Some (Parameters.getPathParameterPayload newRequestParameter.payload)
-                            | None ->
-                                // Parameter not found in parameter list.  This error was previously reported.
-                                None
-                          else
-                            Some (Constant (PrimitiveType.String, p))
+                            if Parameters.isPathParameter p then
+                                let consumerResourceName = Parameters.getPathParameterName p
+                                let declaredParameter =
+                                    match pathParameters |> Seq.tryFind (fun p -> p.Key = consumerResourceName) with
+                                    | Some dp -> Some dp.Value
+                                    | None when requestId.xMsPath.IsSome ->
+                                        // This is a query parameter that appears in the path that is in x-ms-path format
+                                        // Check the query parameters
+                                        match queryParameters |> Seq.tryFind (fun p -> p.Key = consumerResourceName) with
+                                        | Some dp -> Some dp.Value
+                                        | None -> None
+                                    | None ->
+                                        None
+
+                                match declaredParameter with
+                                | Some rp ->
+                                    let newRequestParameter, _ =
+                                        Restler.Dependencies.DependencyLookup.getDependencyPayload
+                                                    dependencies
+                                                    None
+                                                    requestId
+                                                    rp
+                                                    dictionary
+                                    Some (Parameters.getPathParameterPayload newRequestParameter.payload)
+                                | None ->
+                                    // Parameter not found in parameter list.  This error was previously reported.
+                                    None
+                            else
+                                Some (Constant (PrimitiveType.String, p))
                       )
         |> Array.toList
 
@@ -512,12 +626,21 @@ let generateRequestPrimitives (requestId:RequestId)
                             |> List.concat
                          ) []
 
+    // Special case for endpoints in x-ms-paths:
+    // handle query parameters present in the path. This must be done after the path payload has been determined above,
+    // so payloads for the query parameters declared in the path are correctly assigned.
+    let requestQueryParameters =
+        match requestId.xMsPath with
+        | None -> requestParameters.query
+        | Some xMsPath ->
+            XMsPaths.filterXMsPathQueryParameters requestParameters.query xMsPath.queryPart
+
     // Assign dynamic objects to query parameters if they have dependencies.
     // When there is more than one parameter set, the dictionary must be the one for the schema.
     //
     let queryParameters, replacedCustomPayloadQueries =
         let queriesSpecifiedAsCustomPayloads = dictionary.getCustomPayloadQueryParameterNames()
-        requestParameters.query
+        requestQueryParameters
         |> List.mapFold (fun newReplacedPayloadQueries (payloadSource, requestQuery) ->
                             let parameterList =
                                 // The grammar should always have examples, if they exist here,
@@ -664,14 +787,25 @@ let generateRequestGrammar (swaggerDocs:Types.ApiSpecFuzzingConfig list)
                            (config:Restler.Config.Config)
                            (globalExternalAnnotations: ProducerConsumerAnnotation list)
                            (userSpecifiedExamples:ExampleConfigFile option) =
-    let getRequestData (swaggerDoc:OpenApiDocument) =
+
+    let getRequestData (swaggerDoc:OpenApiDocument) (xMsPathsMapping:Map<string,string> option) =
         let requestDataSeq = seq {
             for path in swaggerDoc.Paths do
                 let ep = path.Key.TrimEnd([|'/'|])
-
+                let xMsPath =
+                    match xMsPathsMapping with
+                    | None -> None
+                    | Some m when m |> Map.containsKey ep ->
+                        let xMsPath = getXMsPath m.[ep]
+                        if xMsPath.IsNone then
+                            raise (invalidOp "getXMsPath should have returned a value")
+                        xMsPath
+                    | Some _ -> None
                 for m in path.Value do
+
                     let requestId = { RequestId.endpoint = ep;
-                                      RequestId.method = getOperationMethodFromString m.Key }
+                                      RequestId.method = getOperationMethodFromString m.Key
+                                      RequestId.xMsPath = xMsPath }
 
                     // If there are examples for this endpoint+method, extract the example file using the example options.
                     let exampleConfig =
@@ -710,15 +844,28 @@ let generateRequestGrammar (swaggerDocs:Types.ApiSpecFuzzingConfig list)
 
                     // If examples are being discovered, output them in the 'Examples' directory
                     if not config.ReadOnlyFuzz || readerMethods |> List.contains requestId.method then
+                        let allQueryParameters =
+                            let useQueryExamples =
+                                config.UseQueryExamples |> Option.defaultValue false
+
+                            Parameters.getAllParameters
+                                m.Value
+                                OpenApiParameterKind.Query
+                                (if useQueryExamples then exampleConfig else None)
+                                config.DataFuzzing
+                                config.TrackFuzzedParameterNames
+
+                        let pathParameters =
+                            let usePathExamples =
+                                config.UsePathExamples |> Option.defaultValue false
+                            Parameters.pathParameters
+                                    m.Value ep
+                                    (if usePathExamples then exampleConfig else None)
+                                    config.TrackFuzzedParameterNames
                         let requestParameters =
                             {
-                                RequestParameters.path =
-                                    let usePathExamples =
-                                        config.UsePathExamples |> Option.defaultValue false
-                                    Parameters.pathParameters
-                                            m.Value ep
-                                            (if usePathExamples then exampleConfig else None)
-                                            config.TrackFuzzedParameterNames
+                                RequestParameters.path = pathParameters
+
                                 RequestParameters.header =
                                     let useHeaderExamples =
                                         config.UseHeaderExamples |> Option.defaultValue false
@@ -728,15 +875,7 @@ let generateRequestGrammar (swaggerDocs:Types.ApiSpecFuzzingConfig list)
                                         (if useHeaderExamples then exampleConfig else None)
                                         config.DataFuzzing
                                         config.TrackFuzzedParameterNames
-                                RequestParameters.query =
-                                    let useQueryExamples =
-                                        config.UseQueryExamples |> Option.defaultValue false
-                                    Parameters.getAllParameters
-                                        m.Value
-                                        OpenApiParameterKind.Query
-                                        (if useQueryExamples then exampleConfig else None)
-                                        config.DataFuzzing
-                                        config.TrackFuzzedParameterNames
+                                RequestParameters.query = allQueryParameters
                                 RequestParameters.body =
                                     let useBodyExamples =
                                         config.UseBodyExamples |> Option.defaultValue false
@@ -788,7 +927,7 @@ let generateRequestGrammar (swaggerDocs:Types.ApiSpecFuzzingConfig list)
             orderedSwaggerDocs.AsParallel()
                               .AsOrdered()
                               .Select(fun (i, sd) ->
-                                         let r = getRequestData sd.swaggerDoc
+                                         let r = getRequestData sd.swaggerDoc sd.xMsPathsMapping
                                          r, i, sd.dictionary)
                               .ToList()
         let perResourceDictionariesSeq =
@@ -927,6 +1066,10 @@ let generateRequestGrammar (swaggerDocs:Types.ApiSpecFuzzingConfig list)
                                                                                     writerVariable.requestId.endpoint,
                                                                                     writerVariable.requestId.method,
                                                                                     writerVariable.accessPathParts.getJsonPointer().Value) } )
+                                    let req =
+                                        match req.id.xMsPath with
+                                        | None -> req
+                                        | Some xMsPath -> XMsPaths.replaceWithOriginalPaths req
                                     { req with responseParser = responseParser })
                 |> Seq.toList
 

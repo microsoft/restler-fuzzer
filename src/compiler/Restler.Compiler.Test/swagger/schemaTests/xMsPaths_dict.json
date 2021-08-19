@@ -1,0 +1,7 @@
+{
+  "restler_custom_payload": {
+    "type": ["T"],
+    "operationId": ["backup", "lock"],
+    "tag": ["tag1", "tag2"]
+  }
+}

@@ -9,6 +9,7 @@ open Newtonsoft.Json.Linq
 open System.Linq
 open System.Collections.Generic
 open Restler.Utilities.Operators
+open Restler.XMsPaths
 
 type RefResolution =
 | FileRefs
@@ -25,6 +26,13 @@ let normalizeFilePath x =
 type SpecFormat =
     | Json
     | Yaml
+
+type SpecPreprocessingResult =
+    {
+        /// Contains a mapping of x-ms-path endpoints to transformed endpoints
+        /// This mapping is only present if an x-ms-paths element is found in the specification
+        xMsPathsMapping : Map<(*XMsPath*)string, string> option
+    }
 
 let getSpecFormat (specFilePath:string) =
     let specExtension = System.IO.Path.GetExtension(specFilePath)
@@ -254,14 +262,61 @@ let inlineFileRefs (jsonObj:JObject)
     |> Seq.iter (fun p -> newObj.Add(p.Name, p.Value))
     newObj
 
+//open Newtonsoft.Json.Linq
+open Restler.Utilities.JsonParse
+
+let transformXMsPaths jsonSpec =
+    match getProperty jsonSpec "x-ms-paths" with
+    | None -> jsonSpec, None
+    | Some xMsPathsValue ->
+        let pathItems =
+            match getProperty jsonSpec "paths" with
+            | None -> Seq.empty
+            | Some p -> p.Value<JObject>().Properties() |> Seq.map (fun x -> x.Name, x.Value)
+
+        let xMsPathsItems =
+            xMsPathsValue.Value<JObject>().Properties() |> Seq.map (fun x -> x.Name, x.Value)
+
+        // Re-write the spec by transforming the x-ms-path keys into valid paths and inserting them into the
+        // paths property.
+        let mapping = convertXMsPathsToPaths (xMsPathsItems |> Seq.map fst)
+
+        // Replace the paths using the mapping
+        removeProperty jsonSpec "paths"
+        removeProperty jsonSpec "x-ms-paths"
+        let newPaths = JObject()
+        pathItems |> Seq.iter (fun (pathName,pathValue) -> newPaths.Add(pathName, pathValue))
+        xMsPathsItems |> Seq.iter (fun (pathName,pathValue) -> newPaths.Add(mapping.[pathName], pathValue))
+
+        jsonSpec.Add("paths", newPaths)
+
+        // Only the paths that were transformed need to be mapped back
+        let mapping =
+            let m = mapping |> Map.filter (fun k v -> k <> v)
+            if m.IsEmpty then None else Some m
+
+        jsonSpec, mapping
+
 /// Preprocesses the document to inline all file references in type definitions (excluding examples).
 let preprocessApiSpec specPath outputSpecPath =
     let jsonSpecText = getJsonSpec specPath
-    let jsonSpec = JObject.Parse(jsonSpecText)
+    let jsonSpecObj = JObject.Parse(jsonSpecText)
+
+    // Check whether x-ms-paths is present.  If yes, transform it to 'paths' and keep track of the paths.
+    //
+    let jsonSpecObj, pathMapping = transformXMsPaths jsonSpecObj
 
     let jsonSpec =
-        let newObject = inlineFileRefs jsonSpec specPath
+        let newObject = inlineFileRefs jsonSpecObj specPath
         newObject.ToString(Newtonsoft.Json.Formatting.None)
 
     File.WriteAllText(outputSpecPath, jsonSpec)
-    Ok()
+    let specPreprocessingResult =
+        {
+            xMsPathsMapping =
+                match pathMapping with
+                | None -> None
+                | Some m -> m |> Map.toSeq |> Seq.map (fun (a,b) -> b,a) |> Map.ofSeq |> Some
+        }
+    Ok(specPreprocessingResult)
+
