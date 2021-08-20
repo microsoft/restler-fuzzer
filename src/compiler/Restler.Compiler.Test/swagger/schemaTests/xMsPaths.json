@@ -1,0 +1,203 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "XMsPaths test case",
+    "version": "1",
+    "x-ms-code-generation-settings": {
+      "header": "MIT",
+      "strictSpecAdherence": false
+    }
+  },
+  "x-ms-parameterized-host": {
+    "hostTemplate": "{url}",
+    "useSchemePrefix": false,
+    "positionInOperation": "first",
+    "parameters": [
+      {
+        "$ref": "#/parameters/Url"
+      }
+    ]
+  },
+  "schemes": [
+    "https"
+  ],
+  "consumes": [
+    "application/xml"
+  ],
+  "produces": [
+    "application/xml"
+  ],
+  "paths": {},
+  "x-ms-paths": {
+    "/{resourceName}?type=folder": {
+      "put": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/ApiVersionParameter"
+          },
+          {
+            "in": "path",
+            "name": "resourceName",
+            "type": "string",
+            "required": true
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Success"
+          }
+        },
+        "x-ms-long-running-operation": true
+      }
+    },
+    "/{resourceName}?type=file": {
+      "put": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/ApiVersionParameter"
+          },
+          {
+            "in": "path",
+            "name": "resourceName",
+            "type": "string",
+            "required": true
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Success"
+          }
+        },
+        "x-ms-long-running-operation": true
+      }
+    },
+    "/{resourceName}?type=folder&operation={operationId}": {},
+    "/{resourceName}?type=file&operation={operationId}": {
+      "get": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/ApiVersionParameter"
+          },
+          {
+            "$ref": "#/parameters/Tag"
+          },
+          {
+            "in": "path",
+            "name": "resourceName",
+            "type": "string",
+            "required": true
+          },
+          {
+            "in": "query",
+            "name": "operationId",
+            "type": "string",
+            "required": true
+          },
+          {
+            $ref: "#/parameters/ApiVersionParameter"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/{resourceName}/{itemName}": {
+      "get": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/ApiVersionParameter"
+          },
+          {
+            "in": "path",
+            "name": "resourceName",
+            "type": "string",
+            "required": true
+          },
+          {
+            "in": "path",
+            "name": "itemName",
+            "type": "string",
+            "required": true
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Success"
+          }
+        }
+      },
+      "delete": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/ApiVersionParameter"
+          },
+          {
+            "in": "path",
+            "name": "resourceName",
+            "type": "string",
+            "required": true
+          },
+          {
+            "in": "path",
+            "name": "itemName",
+            "type": "string",
+            "required": true
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Success"
+          }
+        }
+      }
+    }
+  },
+  "parameters": {
+    "Tag": {
+      "name": "tag",
+      "required": true,
+      "type": "string",
+      "in": "query"
+    },
+    "Url": {
+      "name": "url",
+      "required": true,
+      "type": "string",
+      "in": "path",
+      "x-ms-skip-url-encoding": true
+    },
+    "ApiVersionParameter": {
+      "name": "api-version",
+      "x-ms-client-name": "version",
+      "in": "header",
+      "required": true,
+      "type": "string",
+      "description": "Specifies the version of the operation to use for this request.",
+      "enum": [
+        "2020-03-01"
+      ]
+    },
+    "File": {
+      "name": "file",
+      "in": "path",
+      "required": true,
+      "type": "string",
+      "pattern": "^[a-zA-Z0-9]+",
+      "minLength": 1,
+      "maxLength": 1024,
+      "x-ms-parameter-location": "method",
+      "description": "The file name."
+    },
+    "OperationId": {
+      "name": "operationid",
+      "x-ms-client-name": "operationId",
+      "in": "query",
+      "required": true,
+      "type": "string",
+      "x-ms-parameter-location": "method"
+    }
+  }
+}

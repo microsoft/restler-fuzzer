@@ -1,0 +1,26 @@
+{
+  "x-restler-global-annotations": [
+      {
+          "producer_endpoint": "/{resourceName}?type=file",
+          "producer_method": "PUT",
+          "producer_resource_name": "resourceName",
+          "consumer_param": "resourceName",
+          "except": [
+            {
+                "consumer_endpoint": "/{resourceName}?type=folder",
+                "consumer_method": "PUT"
+            }]
+      },
+      {
+        "producer_endpoint": "/{resourceName}?type=folder",
+        "producer_method": "PUT",
+        "producer_resource_name": "resourceName",
+        "consumer_param": "resourceName",
+        "except": [
+          {
+              "consumer_endpoint": "/{resourceName}?type=file",
+              "consumer_method": "PUT"
+          }]
+    }
+  ]
+}

@@ -17,7 +17,7 @@ module Dependencies =
     type DependencyTests(ctx:Fixtures.TestSetupAndCleanup, output:Xunit.Abstractions.ITestOutputHelper) =
 
         let dependenciesResolvedWithoutAnnotations config =
-            let swaggerDoc =
+            let swaggerDoc,_ =
                 Restler.Swagger.getSwaggerDocument config.SwaggerSpecFilePath.Value.[0] ctx.testRootDirPath
             let dictionary =
                 match config.CustomDictionaryFilePath with
@@ -28,7 +28,8 @@ module Dependencies =
 
             let grammar,dependencies, _, _ =
                 Restler.Compiler.Main.generateRequestGrammar
-                                    [{ swaggerDoc = swaggerDoc ; dictionary = None ; globalAnnotations = None}]
+                                    [{ swaggerDoc = swaggerDoc ; dictionary = None ; globalAnnotations = None;
+                                       xMsPathsMapping = None}]
                                     dictionary
                                     config
                                     List.empty

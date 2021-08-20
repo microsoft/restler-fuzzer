@@ -26,20 +26,23 @@ let getSwaggerDocument (swaggerPath:string) (workingDirectory:string) =
     async {
         // When a spec is preprocessed, it is converted to json
         let specExtension = ".json"
-
+        let preprocessedSpecsDirPath = workingDirectory ++ "preprocessed"
         let specName = sprintf "%s%s%s" (System.IO.Path.GetFileNameWithoutExtension(swaggerPath))
                                          "_preprocessed"
                                          specExtension
-        let preprocessedSpecPath = workingDirectory ++ specName
+        createDirIfNotExists preprocessedSpecsDirPath
+        let preprocessedSpecPath = preprocessedSpecsDirPath ++ specName
         let preprocessingResult =
             SwaggerSpecPreprocessor.preprocessApiSpec swaggerPath preprocessedSpecPath
         match preprocessingResult with
-        | Ok _ ->
-            return! getSwaggerDocumentAsync preprocessedSpecPath
+        | Ok pr ->
+            let! swaggerDoc = getSwaggerDocumentAsync preprocessedSpecPath
+            return swaggerDoc, Some pr
         | Error e ->
             printfn "API spec preprocessing failed (%s).  Please check that your specification is valid.  \
                         Attempting to compile Swagger document without preprocessing. " e
-            return! getSwaggerDocumentAsync swaggerPath
+            let! swaggerDoc = getSwaggerDocumentAsync swaggerPath
+            return swaggerDoc, None
     }
     |> Async.RunSynchronously
 

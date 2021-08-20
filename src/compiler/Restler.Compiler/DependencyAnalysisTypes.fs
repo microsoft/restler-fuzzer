@@ -94,7 +94,8 @@ type Producers() =
                             if not producer.id.IsNestedBodyResource then
                                 resourceProducers.sortedByMatchNonNested.Add(sortKey, producer)
                             let key = { endpoint = producer.id.RequestId.endpoint.ToLower()
-                                        method = producer.id.RequestId.method }
+                                        method = producer.id.RequestId.method
+                                        xMsPath = None }
                             resourceProducers.indexedByEndpoint.TryAdd(key, new List<ResponseProducer>()) |> ignore
                             resourceProducers.indexedByEndpoint.[key].Add(producer)
 
@@ -108,7 +109,8 @@ type Producers() =
     member x.AddSamePayloadProducer(resourceName:string, producer:BodyPayloadInputProducer) =
         lock producers (fun () ->
                             let key = { endpoint = producer.id.RequestId.endpoint.ToLower()
-                                        method = producer.id.RequestId.method }
+                                        method = producer.id.RequestId.method
+                                        xMsPath = None }
                             let resourceProducers = tryAdd resourceName
                             resourceProducers.samePayloadProducers.TryAdd(key, new List<BodyPayloadInputProducer>()) |> ignore
                             resourceProducers.samePayloadProducers.[key].Add(producer))
@@ -118,7 +120,8 @@ type Producers() =
         | None -> Seq.empty
         | Some p ->
             let key = { endpoint = requestId.endpoint.ToLower()
-                        method = requestId.method }
+                        method = requestId.method
+                        xMsPath = None }
             match p.samePayloadProducers.TryGetValue(key) with
             | false, _ -> Seq.empty
             | true, lst ->
@@ -128,7 +131,8 @@ type Producers() =
         lock producers (fun () ->
                             let resourceProducers = tryAdd resourceName
                             let key = { endpoint = producer.id.RequestId.endpoint.ToLower()
-                                        method = producer.id.RequestId.method }
+                                        method = producer.id.RequestId.method
+                                        xMsPath = None }
 
                             resourceProducers.inputOnlyProducers.Add(producer))
 
@@ -145,7 +149,7 @@ type Producers() =
             let endpointLookup = endpoint.ToLower()
             seq {
                 for m in operations do
-                    match p.indexedByEndpoint.TryGetValue({ endpoint = endpointLookup ; method = m}) with
+                    match p.indexedByEndpoint.TryGetValue({ endpoint = endpointLookup ; method = m; xMsPath = None}) with
                     | false, _ -> ()
                     | true, p -> yield p |> seq
             }

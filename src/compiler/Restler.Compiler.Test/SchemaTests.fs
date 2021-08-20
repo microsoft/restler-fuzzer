@@ -28,11 +28,47 @@ module ApiSpecSchema =
             Restler.Workflow.generateRestlerGrammar None config
             let grammarOutputFilePath =
                 config.GrammarOutputDirectoryPath.Value ++ Restler.Workflow.Constants.DefaultRestlerGrammarFileName
+
+
             Assert.True(File.Exists(grammarOutputFilePath))
+            let grammar = File.ReadAllText(grammarOutputFilePath)
+            // Make sure the grammar contains at least one request
+            Assert.True(grammar.Contains("req_collection.add_request(request)"))
 
         [<Fact>]
         let ``required header is parsed successfully`` () =
             compileSpec @"swagger\schemaTests\requiredHeader.yml"
+
+
+        [<Fact>]
+        let ``spec with x-ms-paths is parsed successfully`` () =
+            let specFilePath = Path.Combine(Environment.CurrentDirectory, @"swagger\schemaTests\xMsPaths.json")
+            let dictionaryFilePath = Path.Combine(Environment.CurrentDirectory, @"swagger\schemaTests\xMsPaths_dict.json")
+            let annotationsFilePath = Path.Combine(Environment.CurrentDirectory, @"swagger\schemaTests\xMsPaths_annotations.json")
+            let config = { Restler.Config.SampleConfig with
+                             IncludeOptionalParameters = true
+                             GrammarOutputDirectoryPath = Some ctx.testRootDirPath
+                             ResolveBodyDependencies = true
+                             ResolveQueryDependencies = true
+                             SwaggerSpecFilePath = Some [specFilePath]
+                             CustomDictionaryFilePath = Some dictionaryFilePath
+                             AnnotationFilePath = Some annotationsFilePath
+                         }
+            Restler.Workflow.generateRestlerGrammar None config
+
+            let checkBaseline actualFilePath expectedFilePath =
+                // Check that the baselines match
+                let resultText = File.ReadAllLines(actualFilePath) |> Array.map (fun x -> x.Trim())
+                let baselineText = File.ReadAllLines(expectedFilePath) |> Array.map (fun x -> x.Trim())
+                Assert.True((resultText = baselineText))
+
+            checkBaseline
+                (config.GrammarOutputDirectoryPath.Value ++ Restler.Workflow.Constants.DefaultRestlerGrammarFileName)
+                (Path.Combine(Environment.CurrentDirectory, @"baselines\schemaTests\xMsPaths_grammar.py"))
+
+            checkBaseline
+                (config.GrammarOutputDirectoryPath.Value ++ Restler.Workflow.Constants.DefaultJsonGrammarFileName)
+                (Path.Combine(Environment.CurrentDirectory, @"baselines\schemaTests\xMsPaths_grammar.json"))
 
 
         interface IClassFixture<Fixtures.TestSetupAndCleanup>

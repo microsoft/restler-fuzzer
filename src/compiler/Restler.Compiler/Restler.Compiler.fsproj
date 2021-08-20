@@ -17,6 +17,7 @@
     <Compile Include="Config.fs" />
     <Compile Include="Telemetry.fs" />
     <Compile Include="Utilities.fs" />
+    <Compile Include="XMsPaths.fs" />
     <Compile Include="SwaggerSpecPreprocessor.fs" />
     <Compile Include="Swagger.fs" />
     <Compile Include="AccessPaths.fs" />

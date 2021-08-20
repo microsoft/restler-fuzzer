@@ -7,9 +7,9 @@ open System.Collections.Generic
 open Restler.Grammar
 open System
 open System.IO
-open Restler.Utilities.Dict
 open Newtonsoft.Json.Linq
 open Restler.Utilities.JsonParse
+open Restler.XMsPaths
 
 type ExceptConsumerUserAnnotation =
     {
@@ -34,11 +34,18 @@ let parseAnnotation (ann:JToken) =
     | Choice2Of2 error ->
         failwith (sprintf "Invalid producer annotation: %s (%s)" error annJson)
     | Choice1Of2 annotation ->
+        let xMsPath = getXMsPath annotation.producer_endpoint
+        let endpoint =
+            match xMsPath with
+            | None -> annotation.producer_endpoint
+            | Some xMsPath ->
+                xMsPath.getNormalizedEndpoint()
         let producerId = {
                             requestId =
                                 {
-                                    endpoint = annotation.producer_endpoint
+                                    endpoint = endpoint
                                     method = getOperationMethodFromString annotation.producer_method
+                                    xMsPath = xMsPath
                                 }
                             resourceName = annotation.producer_resource_name
                             }
@@ -96,11 +103,18 @@ let parseAnnotation (ann:JToken) =
 
                 exceptConsumer
                 |> List.map (fun ec ->
+                                let xMsPath = getXMsPath ec.consumer_endpoint
+                                let endpoint =
+                                    match xMsPath with
+                                    | None -> ec.consumer_endpoint
+                                    | Some xMsPath ->
+                                        xMsPath.getNormalizedEndpoint()
 
-                                  {
-                                    endpoint = ec.consumer_endpoint
+                                {
+                                    endpoint = endpoint
                                     method = getOperationMethodFromString ec.consumer_method
-                                  })
+                                    xMsPath = xMsPath
+                                })
                 |> Some
         Some {  ProducerConsumerAnnotation.producerId = producerId
                 consumerParameter = consumerParameter
