@@ -262,28 +262,66 @@ module private Parameters =
             else
                 None
 
+    let getSpecParameters (swaggerMethodDefinition:OpenApiOperation)
+                          (parameterKind:NSwag.OpenApiParameterKind) =
+        let getSharedParameters (parameters:seq<OpenApiParameter>) parameterKind =
+            if isNull parameters then Seq.empty
+            else
+                parameters
+                |> Seq.filter (fun p -> p.Kind = parameterKind)
+
+        let localParameters = swaggerMethodDefinition.ActualParameters
+                              |> Seq.filter (fun p -> p.Kind = parameterKind)
+        // add shared parameters for the endpoint, if any
+        let declaredSharedParameters =
+            getSharedParameters swaggerMethodDefinition.Parent.Parameters parameterKind
+
+        // For path parameters, add global parameters in case the path parameters are declared there.
+        // This is a workaround for specs that do not declare path parameters explicitly.
+        let declaredGlobalParameters =
+            if parameterKind <> OpenApiParameterKind.Path then
+                Seq.empty
+            else if isNull swaggerMethodDefinition.Parent.Parent ||
+                    isNull swaggerMethodDefinition.Parent.Parent.Parameters then
+                Seq.empty
+            else
+                let globalParameterCollection =
+                    swaggerMethodDefinition.Parent.Parent.Parameters
+                    |> Seq.map (fun kvp -> kvp.Value)
+                    |> Seq.filter (fun kvp -> kvp.IsRequired)
+                getSharedParameters globalParameterCollection parameterKind
+
+        let allParameters =
+            [ localParameters
+              // In some cases, 'ActualParameters' above contains all parameters already.
+              // The additional filter below removes this duplication.
+              declaredSharedParameters
+              declaredGlobalParameters
+            ]
+            |> Seq.concat
+            |> Seq.distinctBy (fun dp -> dp.Name)
+        allParameters
+
     let pathParameters (swaggerMethodDefinition:OpenApiOperation) (endpoint:string)
                        (exampleConfig: ExampleRequestPayload list option)
                        (trackParameters:bool) =
-        let declaredPathParameters = swaggerMethodDefinition.ActualParameters
-                                     |> Seq.filter (fun p -> p.Kind = NSwag.OpenApiParameterKind.Path)
-
-        // add shared parameters for the endpoint, if any
-        let declaredSharedPathParameters =
-            if isNull swaggerMethodDefinition.Parent.Parameters then Seq.empty
-            else
-                swaggerMethodDefinition.Parent.Parameters
-                |> Seq.filter (fun p -> p.Kind = NSwag.OpenApiParameterKind.Path)
-
-        let allDeclaredPathParameters =
-            [declaredPathParameters ; declaredSharedPathParameters ] |> Seq.concat
+        let allDeclaredPathParameters = getSpecParameters swaggerMethodDefinition OpenApiParameterKind.Path
 
         let parameterList =
             endpoint.Split([|'/'|], StringSplitOptions.RemoveEmptyEntries)
             |> Array.filter (fun p -> isPathParameter p)
             // By default, all path parameters are fuzzable (unless a producer or custom value is found for them later)
             |> Seq.choose (fun part -> let parameterName = getPathParameterName part
-                                       let declaredParameter = allDeclaredPathParameters |> Seq.tryFind (fun p -> p.Name = parameterName)
+                                       let declaredParameter =
+                                            match allDeclaredPathParameters |> Seq.tryFind (fun p -> p.Name = parameterName) with
+                                            | Some dp -> Some dp
+                                            | None ->
+                                                // Also try to match case-insensitive and output a warning
+                                                match allDeclaredPathParameters |> Seq.tryFind (fun p -> p.Name.ToLower() = parameterName.ToLower()) with
+                                                | Some adp ->
+                                                    printfn "Warning: specification has inconsistent casing for path parameter (%s vs. %s)" parameterName adp.Name
+                                                    Some adp
+                                                | None -> None
 
                                        match declaredParameter with
                                        | None ->
@@ -392,24 +430,11 @@ module private Parameters =
             [schemaPayloadValue]
         | _ -> raise (invalidOp("invalid combination"))
 
-    let getSharedParameters (parameters:ICollection<OpenApiParameter>) parameterKind =
-        if isNull parameters then Seq.empty
-        else
-            parameters
-            |> Seq.filter (fun p -> p.Kind = parameterKind)
-
     let getAllParameters (swaggerMethodDefinition:OpenApiOperation)
                          (parameterKind:NSwag.OpenApiParameterKind)
                          exampleConfig dataFuzzing
                          trackParameters =
-        let localParameters = swaggerMethodDefinition.ActualParameters
-                              |> Seq.filter (fun p -> p.Kind = parameterKind)
-        // add shared parameters for the endpoint, if any
-        let declaredSharedParameters =
-            getSharedParameters swaggerMethodDefinition.Parent.Parameters parameterKind
-
-        let allParameters =
-            [localParameters ; declaredSharedParameters ] |> Seq.concat
+        let allParameters = getSpecParameters swaggerMethodDefinition parameterKind
         getParameters allParameters exampleConfig dataFuzzing trackParameters
 
 /// Functionality related to x-ms-paths support.  For more information, see:

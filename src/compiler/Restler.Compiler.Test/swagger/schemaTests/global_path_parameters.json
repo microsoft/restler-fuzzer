@@ -1,0 +1,29 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "Global path parameters test case",
+    "version": "1"
+  },
+
+  "host": "localhost:8888",
+  "paths": {
+    "/customer/{customerId}": {
+      "put": {
+        "responses": {
+          "201": {
+            "description": "Success"
+          }
+        },
+        "x-ms-long-running-operation": true
+      }
+    }
+  },
+  "parameters": {
+    "CustomerId": {
+      "name": "customerId",
+      "required": true,
+      "type": "string",
+      "in": "path"
+    }
+  }
+}
