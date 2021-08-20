@@ -81,7 +81,23 @@ let getObjInFile filePath (refPath:string) (jsonSpecs:Dictionary<string, JObject
     let jsonSpec = SpecCache.findSpec filePath jsonSpecs
 
     let refPathForSelectToken = refPath.Replace("/", ".")
-    let tok = jsonSpec.SelectToken(refPathForSelectToken)
+
+    let tok =
+        if refPathForSelectToken.Contains("[") then
+            let parts = refPathForSelectToken.Split(".", System.StringSplitOptions.RemoveEmptyEntries)
+            let selectedObject =
+                parts
+                |> Array.fold (fun (spec:JObject) (part:string) ->
+                                    let propertyValue = Restler.Utilities.JsonParse.getProperty spec part
+                                    match propertyValue with
+                                    | Some tok when tok.Type = JTokenType.Object ->
+                                        tok :?> JObject
+                                    | _ ->
+                                        raise (invalidOp "Only an object is expected here")
+                               ) jsonSpec
+            selectedObject :> JToken
+        else
+            jsonSpec.SelectToken(refPathForSelectToken)
     if isNull tok then
         raise (invalidOp(sprintf "Referenced property %s does not exist in file %s" refPath filePath))
     tok
