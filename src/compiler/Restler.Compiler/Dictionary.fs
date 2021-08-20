@@ -85,9 +85,22 @@ type MutationsDictionary =
                         | Some entry ->
                             let payloadTrimmed = entry.Trim()
                             let isObject = payloadTrimmed.StartsWith "{" || payloadTrimmed.StartsWith "["
-                            DictionaryPayload (payloadType, primitiveType, payloadName, isObject) |> stn
+                            DictionaryPayload
+                                {
+                                    payloadType = payloadType
+                                    primitiveType = primitiveType
+                                    name = payloadName
+                                    isObject = isObject
+                                } |> stn
                 | Some _ ->
-                    DictionaryPayload (payloadType, primitiveType, payloadName, false) |> stn
+                    DictionaryPayload
+                        {
+                            payloadType = payloadType
+                            primitiveType = primitiveType
+                            name = payloadName
+                            isObject = false
+                        } |> stn
+
                 | None -> Seq.empty)
             |> Seq.concat
 
@@ -124,9 +137,21 @@ type MutationsDictionary =
             | Some entry when payloadType = CustomPayloadType.String ->
                 let payloadTrimmed = entry.Trim()
                 let isObject = payloadTrimmed.StartsWith "{" || payloadTrimmed.StartsWith "["
-                DictionaryPayload (payloadType, primitiveType, payloadName, isObject) |> stn
+                DictionaryPayload
+                    {
+                        payloadType = payloadType
+                        primitiveType = primitiveType
+                        name = payloadName
+                        isObject = isObject
+                    } |> stn
             | Some _ ->
-                DictionaryPayload (payloadType, primitiveType, payloadName, false) |> stn
+                DictionaryPayload
+                    {
+                        payloadType = payloadType
+                        primitiveType = primitiveType
+                        name = payloadName
+                        isObject = false
+                    } |> stn
             | None -> Seq.empty
 
 

@@ -187,12 +187,22 @@ def des_param_payload(param_payload_json, tag='', body_param=True):
             content_type = payload['Constant'][0]
             content_value = payload['Constant'][1]
         elif 'DynamicObject' in payload:
-            content_type = payload['DynamicObject'][0]
-            content_value = payload['DynamicObject'][1]
+            content_type = payload['DynamicObject']['primitiveType']
+            content_value = payload['DynamicObject']['variableName']
         elif 'Custom' in payload:
             custom = True
             content_type = payload['Custom']['payloadType']
             content_value = payload['Custom']['payloadValue']
+
+            # TODO: these dynamic objects are not yet supported in the schema.
+            # This dictionary is currently not used, and will be used once
+            # dynamic objects are added to the schema types below (ParamValue, etc.).
+            dynamic_object_input_variable=None
+            if 'dynamicObject' in payload['Custom']:
+                dynamic_object_input_variable={}
+                dynamic_object_input_variable['content_type'] = payload['Custom']['dynamicObject']['primitiveType']
+                dynamic_object_input_variable['content_value'] = payload['Custom']['dynamicObject']['variableName']
+
         elif 'PayloadParts' in payload:
             definition = payload['PayloadParts'][-1]
             if 'Custom' in definition:

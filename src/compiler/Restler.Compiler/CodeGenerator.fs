@@ -43,7 +43,8 @@ module Types =
         | Restler_custom_payload of RequestPrimitiveTypeData
         | Restler_custom_payload_header of string
         | Restler_custom_payload_query of string
-        | Restler_custom_payload_uuid4_suffix of string
+        /// (Payload name, dynamic object writer name)
+        | Restler_custom_payload_uuid4_suffix of string * string option
         | Restler_refreshable_authentication_token of string
         | Shadow_values of string
         | Response_parser of string
@@ -94,13 +95,13 @@ let rec getRestlerPythonPayload (payload:FuzzingPayload) (isQuoted:bool) : Reque
             | CustomPayloadType.String ->
                 Restler_custom_payload { defaultValue = c.payloadValue ; isQuoted = isQuoted ; exampleValue = None ; trackedParameterName = None }
             | CustomPayloadType.UuidSuffix ->
-                Restler_custom_payload_uuid4_suffix c.payloadValue
+                Restler_custom_payload_uuid4_suffix (c.payloadValue, if c.dynamicObject.IsSome then Some c.dynamicObject.Value.variableName else None)
             | CustomPayloadType.Header ->
                 Restler_custom_payload_header c.payloadValue  // TODO: need test
             | CustomPayloadType.Query ->
                 Restler_custom_payload_query c.payloadValue  // TODO: need test
-        | DynamicObject (primitiveType, s) ->
-            Restler_static_string_variable (sprintf "%s.reader()" s, isQuoted)
+        | DynamicObject dv ->
+            Restler_static_string_variable (sprintf "%s.reader()" dv.variableName, isQuoted)
         | PayloadParts p ->
             raise (invalidArg "p" "expected primitive payload")
 
@@ -344,8 +345,8 @@ let generatePythonParameter includeOptionalParameters parameterKind (requestPara
                     // fuzzable values may not be set to null without changing the grammar.
                     isPrimitiveTypeQuoted primitiveType false,
                     true, false
-                | FuzzingPayload.DynamicObject (primitiveType, _) ->
-                    isPrimitiveTypeQuoted primitiveType false,
+                | FuzzingPayload.DynamicObject dv ->
+                    isPrimitiveTypeQuoted dv.primitiveType false,
                     false, true
                 | FuzzingPayload.PayloadParts (_) ->
                     false, false, false
@@ -519,9 +520,16 @@ let generatePythonFromRequestElement includeOptionalParameters (e:RequestElement
             let generateWriterStatement var =
                sprintf "%s.writer()" var
 
+            let parserStatement =
+                match responseParser.writerVariables with
+                | [] -> ""
+                | writerVariable::rest ->
+                   sprintf @"'parser': %s,"
+                        (NameGenerators.generateProducerEndpointResponseParserFunctionName writerVariable.requestId)
+
             let postSend =
                 let writerVariablesList =
-                    responseParser.writerVariables
+                    responseParser.writerVariables @ responseParser.inputWriterVariables
                     // TODO: generate this ID only once if possible.
                     |> List.map (fun producerWriter ->
                                       let stmt = generateWriterStatement (generateDynamicObjectVariableName producerWriter.requestId (Some producerWriter.accessPathParts) "_")
@@ -533,14 +541,14 @@ let generatePythonFromRequestElement includeOptionalParameters (e:RequestElement
     {
         'post_send':
         {
-            'parser': %s,
+            %s
             'dependencies':
             [
 %s
             ]
         }
     }"
-                    (NameGenerators.generateProducerEndpointResponseParserFunctionName responseParser.writerVariables.Head.requestId)
+                    parserStatement
                     writerVariablesList
 
             [Response_parser postSend]
@@ -709,18 +717,27 @@ type PythonGrammarElement =
     /// Comment
     | Comment of string
 
-let getResponseParsers (responseParsers:ResponseParser list) =
+let getDynamicObjectDefinitions (writerVariables:seq<DynamicObjectWriterVariable>) =
+    seq {
+        // First, define the dynamic variables initialized by the response parser
+        for writerVariable in writerVariables do
+            yield PythonGrammarElement.DynamicObjectDefinition
+                    (NameGenerators.generateDynamicObjectVariableDefinition writerVariable.accessPathParts writerVariable.requestId)
+    }
+    |> Seq.toList
+
+let getResponseParsers (requests: Request list) =
 
     let random = System.Random(0)
 
+    let responseParsers = requests |> Seq.choose (fun r -> r.responseParser)
+
     // First, define the dynamic variables initialized by the response parser
-    let dynamicObjectDefinitions =
-        [
-            for r in responseParsers do
-                for writerVariable in r.writerVariables do
-                    yield PythonGrammarElement.DynamicObjectDefinition
-                            (NameGenerators.generateDynamicObjectVariableDefinition writerVariable.accessPathParts writerVariable.requestId)
-        ]
+    let dynamicObjectDefinitionsFromResponses =
+        getDynamicObjectDefinitions (responseParsers |> Seq.map (fun r -> r.writerVariables |> seq) |> Seq.concat)
+
+    let dynamicObjectDefinitionsFromInputParameters =
+        getDynamicObjectDefinitions (responseParsers |> Seq.map (fun r -> r.inputWriterVariables |> seq) |> Seq.concat)
 
     let formatParserFunction (parser:ResponseParser) =
         let functionName = NameGenerators.generateProducerEndpointResponseParserFunctionName
@@ -806,9 +823,12 @@ def %s(data):
 
         PythonGrammarElement.ResponseParserDefinition functionDefinition
 
+    let responseParsersWithParserFunction =
+        responseParsers |> Seq.filter (fun rp -> rp.writerVariables.Length > 0)
     [
-        yield! dynamicObjectDefinitions
-        yield! (responseParsers |> List.map (fun r -> formatParserFunction r))
+        yield! dynamicObjectDefinitionsFromResponses
+        yield! dynamicObjectDefinitionsFromInputParameters
+        yield! (responseParsersWithParserFunction |> Seq.map (fun r -> formatParserFunction r) |> Seq.toList)
     ]
 
 let getRequests(requests:Request list) includeOptionalParameters =
@@ -936,8 +956,13 @@ let getRequests(requests:Request list) includeOptionalParameters =
                 sprintf "primitives.restler_custom_payload(\"%s\", quoted=%s)"
                         p.defaultValue
                         (if p.isQuoted then "True" else "False")
-            | Restler_custom_payload_uuid4_suffix p ->
-                sprintf "primitives.restler_custom_payload_uuid4_suffix(\"%s\")" p
+            | Restler_custom_payload_uuid4_suffix (p, variableName) ->
+                let variableNamePart =
+                    match variableName with
+                    | None -> ""
+                    | Some vn ->
+                        sprintf ", writer=%s.writer()" vn
+                sprintf "primitives.restler_custom_payload_uuid4_suffix(\"%s\"%s)" p variableNamePart
             | Restler_custom_payload_header p ->
                 sprintf "primitives.restler_custom_payload_header(\"%s\")" p
             | Restler_custom_payload_query q ->
@@ -994,7 +1019,7 @@ let generatePythonGrammar (grammar:GrammarDefinition) includeOptionalParameters 
         yield PythonGrammarElement.Comment "\"\"\" THIS IS AN AUTOMATICALLY GENERATED FILE!\"\"\""
         yield! getImportStatements()
 
-        yield! getResponseParsers (grammar.Requests |> List.choose (fun req -> req.responseParser))
+        yield! getResponseParsers (grammar.Requests)
 
         yield PythonGrammarElement.RequestCollectionDefinition "req_collection = requests.RequestCollection([])"
 

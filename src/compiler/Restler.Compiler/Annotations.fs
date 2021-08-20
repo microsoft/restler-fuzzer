@@ -23,7 +23,7 @@ type ProducerConsumerUserAnnotation =
         producer_method : string
         producer_resource_name : string
         consumer_param : string
-        except : ExceptConsumerUserAnnotation option
+        except : obj option
     }
 
 let parseAnnotation (ann:JToken) =
@@ -63,15 +63,45 @@ let parseAnnotation (ann:JToken) =
                 (ResourceName producerId.resourceName),
                 producerId
 
+        let getExceptProperty (o:JObject) (exceptConsumer:obj) =
+            {
+                consumer_endpoint =
+                    match getPropertyAsString o "consumer_endpoint" with
+                    | None ->
+                        failwith (sprintf "Invalid except clause specified in annotation: %A" exceptConsumer)
+                    | Some ep -> ep
+                consumer_method =
+                    match getPropertyAsString o "consumer_method" with
+                    | None ->
+                        failwith (sprintf "Invalid except clause specified in annotation: %A" exceptConsumer)
+                    | Some ep -> ep
+            }
+
         let exceptConsumerId =
             match annotation.except with
             | None -> None
             | Some exceptConsumer ->
-                Some {
-                        endpoint = exceptConsumer.consumer_endpoint
-                        method = getOperationMethodFromString exceptConsumer.consumer_method
-                     }
+                let exceptConsumer =
+                    match exceptConsumer  with
+                    | :? JArray as je ->
+                        je.Children()
+                        |> Seq.map (fun x ->
+                                        let o = x.Value<JObject>()
+                                        getExceptProperty o je)
+                        |> Seq.toList
+                    | :? JObject as jo ->
+                        [ getExceptProperty jo jo ]
+                    | _ ->
+                        failwith (sprintf "Invalid except clause specified in annotation: %A" exceptConsumer)
 
+                exceptConsumer
+                |> List.map (fun ec ->
+
+                                  {
+                                    endpoint = ec.consumer_endpoint
+                                    method = getOperationMethodFromString ec.consumer_method
+                                  })
+                |> Some
         Some {  ProducerConsumerAnnotation.producerId = producerId
                 consumerParameter = consumerParameter
                 producerParameter = producerParameter

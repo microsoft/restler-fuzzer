@@ -47,41 +47,62 @@ type UserSpecifiedRequestConfig =
         annotations: ProducerConsumerAnnotation option
     }
 
+let getWriterVariable (producer:Producer) =
+
+    match producer with
+    | InputParameter (iop, _) ->
+        {
+            requestId = iop.id.RequestId
+            accessPathParts = iop.getInputParameterAccessPath()
+        }
+    | ResponseObject rp ->
+        {
+            requestId = rp.id.RequestId
+            accessPathParts = rp.id.AccessPathParts
+        }
+    | _ ->
+        raise (invalidArg "producer" "only input parameter and response producers have an associated dynamic object")
+
 let getResponseParsers (dependencies:seq<ProducerConsumerDependency>) =
     // Index the dependencies by request ID.
     let parsers = new Dictionary<RequestId, ResponseParser>()
 
-    // Generate the parser for all the consumer variables (Note this means we need both producer
+   // Generate the parser for all the consumer variables (Note this means we need both producer
     // and consumer pairs.  A response parser is only generated if there is a consumer for one or more of the
     // response properties.)
     dependencies
-    |> Seq.choose (fun dep -> match dep.producer with
-                               | Some (ResponseObject p) ->
-                                    let writerVariable =
-                                        {
-                                            requestId = p.id.RequestId
-                                            accessPathParts = p.id.AccessPathParts
-                                        }
-                                    Some writerVariable
-                               | _ -> None)
-    |> Seq.iter (fun writerVariable ->
-                    let requestId = writerVariable.requestId
+    |> Seq.choose (fun dep ->
 
-                    if parsers.ContainsKey(requestId) then
-                        // Producer may be linked to multiple consumers in separate dependency pairs, so check it
-                        // has not been added yet.
-                        match parsers.[requestId].writerVariables |> List.tryFind  (fun p -> p = writerVariable) with
-                        | Some p -> ()
-                        | None ->
-                            parsers.[requestId] <-
-                                { parsers.[requestId] with writerVariables =
-                                                            parsers.[requestId].writerVariables @ [writerVariable] }
-                    else
-                        parsers.Add(requestId,
-                                    {
-                                        writerVariables = [ writerVariable ]
-                                    })
-                 )
+                        match dep.producer with
+                        | Some (ResponseObject _) ->
+                            let writerVariable = getWriterVariable dep.producer.Value
+                            Some (writerVariable, true)
+                        | Some (InputParameter (_, _)) ->
+                            let writerVariable = getWriterVariable dep.producer.Value
+                            Some (writerVariable, false)
+                        | _ -> None)
+    // Remove duplicates
+    // Producer may be linked to multiple consumers in separate dependency pairs
+    |> Seq.distinct
+    |> Seq.groupBy (fun (writerVariable, _) -> writerVariable.requestId)
+    |> Map.ofSeq
+    |> Map.iter (fun requestId writerVariables ->
+                    let writerVariables, inputWriterVariables =
+                        writerVariables
+                        |> Seq.fold
+                            (fun  (writerVariables, inputWriterVariables)
+                                    (writerVariable, isResponseObject) ->
+                                    if isResponseObject then
+                                        (writerVariable::writerVariables, inputWriterVariables)
+                                    else
+                                        (writerVariables, writerVariable::inputWriterVariables)) ([], [])
+                    let parser =
+                        {
+                            writerVariables = writerVariables
+                            inputWriterVariables = inputWriterVariables
+                        }
+
+                    parsers.Add(requestId, parser))
     parsers
 
 module ResourceUriInferenceFromExample =
@@ -450,6 +471,7 @@ let generateRequestPrimitives (requestId:RequestId)
                                             primitiveType = PrimitiveType.String
                                             payloadValue = requestParameter.name
                                             isObject = false
+                                            dynamicObject = None
                                         }
                                 LeafProperty.isRequired = isRequired
                                 LeafProperty.isReadOnly = isReadOnly
@@ -597,6 +619,7 @@ let generateRequestPrimitives (requestId:RequestId)
                                                             primitiveType = PrimitiveType.String
                                                             payloadValue = headerName
                                                             isObject = false
+                                                            dynamicObject = None
                                                         }
                                                 LeafProperty.isRequired = true
                                                 LeafProperty.isReadOnly = false
@@ -630,6 +653,7 @@ let generateRequestPrimitives (requestId:RequestId)
         token = TokenKind.Refreshable
         bodyParameters = bodyParameters
         responseParser  = responseParser
+        inputDynamicObjectVariables = if responseParser.IsSome then responseParser.Value.inputWriterVariables else []
         requestMetadata = requestMetadata
     },
     newDictionary
@@ -810,10 +834,13 @@ let generateRequestGrammar (swaggerDocs:Types.ApiSpecFuzzingConfig list)
                                 match sd.globalAnnotations with
                                 | None -> List.empty
                                 | Some g -> g
-                            [inlineAnnotations ; externalAnnotations ] |> List.concat
+                            [inlineAnnotations ; externalAnnotations ]
+                            |> List.concat
                          )
             |> List.concat
-        [perSwaggerAnnotations ; globalExternalAnnotations] |> List.concat
+        [perSwaggerAnnotations ; globalExternalAnnotations]
+        |> List.concat
+
 
     logTimingInfo "Getting dependencies..."
     let dependenciesIndex, newDictionary = Restler.Dependencies.extractDependencies
