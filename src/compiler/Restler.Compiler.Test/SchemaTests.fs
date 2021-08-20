@@ -39,7 +39,6 @@ module ApiSpecSchema =
         let ``required header is parsed successfully`` () =
             compileSpec @"swagger\schemaTests\requiredHeader.yml"
 
-
         [<Fact>]
         let ``spec with x-ms-paths is parsed successfully`` () =
             let specFilePath = Path.Combine(Environment.CurrentDirectory, @"swagger\schemaTests\xMsPaths.json")
@@ -69,6 +68,21 @@ module ApiSpecSchema =
             checkBaseline
                 (config.GrammarOutputDirectoryPath.Value ++ Restler.Workflow.Constants.DefaultJsonGrammarFileName)
                 (Path.Combine(Environment.CurrentDirectory, @"baselines\schemaTests\xMsPaths_grammar.json"))
+
+        [<Fact>]
+        let ``path parameter is read from the global parameters`` () =
+            let specFilePath = Path.Combine(Environment.CurrentDirectory, @"swagger\schemaTests\global_path_parameters.json")
+            let config = { Restler.Config.SampleConfig with
+                             IncludeOptionalParameters = true
+                             GrammarOutputDirectoryPath = Some ctx.testRootDirPath
+                             ResolveBodyDependencies = true
+                             ResolveQueryDependencies = true
+                             SwaggerSpecFilePath = Some [specFilePath]
+                         }
+            Restler.Workflow.generateRestlerGrammar None config
+            let grammarOutputFilePath = config.GrammarOutputDirectoryPath.Value ++ Restler.Workflow.Constants.DefaultRestlerGrammarFileName
+            let grammar = File.ReadAllText(grammarOutputFilePath)
+            Assert.True(grammar.Contains("restler_custom_payload_uuid4_suffix(\"customerId\")"))
 
 
         interface IClassFixture<Fixtures.TestSetupAndCleanup>
