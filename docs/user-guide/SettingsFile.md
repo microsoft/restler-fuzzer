@@ -106,7 +106,7 @@ The maximum number of parameter value combinations for parameters within a given
 The settings for advanced testing of parameter combinations.
 
 __header_param_combinations__
-Currently, testing
+Testing
 different combinations of headers is supported via the following property:
 ```json
 "test_combinations_settings": {
@@ -118,6 +118,17 @@ The supported values are 'optional', 'required', and 'all'.
 - optional: test all combinations of optional parameters, always sending the required parameters.
 - required: test combinations of required parameters, and omit all optional parameters.
 - all: test all combinations of headers, regardless of whether they are required or optional.
+
+__query_param_combinations__
+Testing
+different combinations of queries is supported via the following property:
+```json
+"test_combinations_settings": {
+      "query_param_combinations" : "required"
+}
+```
+The supported values are 'optional', 'required', and 'all'.  These have the same meaning as for
+header parameter combinations (see above).
 
 __example_payloads__
 

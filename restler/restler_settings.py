@@ -539,6 +539,12 @@ class RestlerSettings(object):
         return None
 
     @property
+    def query_param_combinations(self):
+        if 'query_param_combinations' in self._combinations_args.val:
+            return self._combinations_args.val['query_param_combinations']
+        return None
+
+    @property
     def example_payloads(self):
         if 'example_payloads' in self._combinations_args.val:
             return self._combinations_args.val['example_payloads']
