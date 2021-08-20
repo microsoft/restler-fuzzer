@@ -465,6 +465,7 @@ class RestlerSettingsTest(unittest.TestCase):
 
         self.assertEqual(20, settings.max_combinations)
         self.assertEqual("optional", settings.header_param_combinations)
+        self.assertEqual("required", settings.query_param_combinations)
         self.assertEqual("all", settings.example_payloads)
         self.assertEqual(90, settings.max_request_execution_time)
 

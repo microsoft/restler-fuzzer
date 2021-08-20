@@ -7,6 +7,7 @@ from abc import ABCMeta, abstractmethod
 
 from engine.fuzzing_parameters.request_params import *
 from engine.fuzzing_parameters.request_schema_parser import *
+import engine.primitives as primitives
 import utils.logger as logger
 
 class NoHeaderSchemaFound(Exception):
@@ -111,6 +112,21 @@ class QueryList(KeyValueParamList):
                     for query_param in query_param_list:
                         self.append(query_param)
 
+    def get_blocks(self) -> list:
+        """ Returns the request blocks for the query list
+
+        @return: The request blocks for this schema
+        @rtype : List[]
+
+        """
+        query_blocks = []
+        for idx, query in enumerate(self.param_list):
+            query_blocks += query.get_blocks()
+            if idx < len(self.param_list) - 1:
+                # Add the query separator
+                query_blocks.append(primitives.restler_static_string('&'))
+        return query_blocks
+
 class HeaderList(KeyValueParamList):
     def __init__(self, request_schema_json=None, param=None):
         """ Initializes the HeaderList
@@ -157,3 +173,17 @@ class HeaderList(KeyValueParamList):
                     for header_param in header_param_list:
                         self.append(header_param)
 
+    def get_blocks(self) -> list:
+        """ Returns the request blocks for the header list
+
+        @return: The request blocks for this schema
+        @rtype : List[]
+
+        """
+        header_blocks = []
+        for idx, header in enumerate(self.param_list):
+            header_blocks += header.get_blocks()
+            if idx < len(self.param_list):
+                # Must add header separator \r\n after every header
+                header_blocks.append(primitives.restler_static_string('\r\n'))
+        return header_blocks

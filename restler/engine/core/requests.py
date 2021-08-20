@@ -626,6 +626,12 @@ class Request(object):
             for hpc in self.get_header_param_combinations(header_param_combinations):
                 yield hpc
 
+        query_param_combinations = Settings().query_param_combinations
+        if query_param_combinations is not None:
+            tested_param_combinations = True
+            for hpc in self.get_query_param_combinations(query_param_combinations):
+                yield hpc
+
         if not (tested_param_combinations or tested_example_payloads):
             yield self
 
@@ -990,6 +996,22 @@ class Request(object):
         new_request._create_once_requests = old_request._create_once_requests
         return new_request
 
+    def get_query_param_combinations(self, query_param_combinations_setting):
+        """
+        """
+        for param_list in param_combinations.get_param_combinations(self, query_param_combinations_setting,
+                                                                    self.query_schema.param_list, "query"):
+            query_schema = QueryList(param=param_list)
+            query_blocks = query_schema.get_blocks()
+
+            new_request = self.substitute_query(query_blocks)
+            if new_request:
+                yield new_request
+            else:
+                # For malformed requests, it is possible that the place to insert parameters is not found,
+                # In such cases, skip the combination.
+                logger.write_to_main(f"Warning: could not substitute query parameters.")
+
     def get_header_param_combinations(self, header_param_combinations_setting):
         """
 
@@ -997,12 +1019,7 @@ class Request(object):
         for param_list in param_combinations.get_param_combinations(self, header_param_combinations_setting,
                                                                     self.headers_schema.param_list, "header"):
             headers_schema = HeaderList(param=param_list)
-            header_blocks = []
-            for idx, header in enumerate(headers_schema):
-                header_blocks += header.get_blocks()
-                if idx < len(headers_schema):
-                    # Must add header separator \r\n after every header
-                    header_blocks.append(primitives.restler_static_string('\r\n'))
+            header_blocks = headers_schema.get_blocks()
 
             new_request = self.substitute_headers(header_blocks)
             if new_request:
@@ -1034,15 +1051,9 @@ class Request(object):
             body_blocks = None
             if body_example:
                 body_blocks = body_example.get_blocks()
-            query_blocks = []
-            for idx, query in enumerate(query_example.param_list):
-                query_blocks += query.get_blocks()
-                if idx < len(query_example.param_list) - 1:
-                    # Add the query separator
-                    query_blocks.append(primitives.restler_static_string('&'))
+            query_blocks = query_example.get_blocks()
 
             new_request = self.substitute_query(query_blocks)
-
             # Only substitute the body if there is a body.
             if body_blocks:
                 new_request = new_request.substitute_body(body_blocks)
