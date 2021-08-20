@@ -57,7 +57,7 @@ let tryDeserializeJObjectFromFile filePath =
         let jObject = JObject.Load(reader)
         Some (jObject, Some filePath)
     else
-        printfn "example file %s not found" filePath
+        printfn "Warning: example file %s not found" filePath
         None
 
 let tryDeserializeJObjectFromToken (inlinedExampleObject:JToken) =
@@ -180,15 +180,14 @@ let getExampleConfig (endpoint:string, method:string)
             let exampleFilePathsOrInlinedPayloads = seq {
                 match payloadExamples.paths |> List.tryFind (fun x -> x.path = endpoint) with
                 | Some epPayload ->
-                    match epPayload.methods |> List.tryFind (fun x -> x.name = method) with
+                    match epPayload.methods |> List.tryFind (fun x -> x.name.ToLower() = method.ToLower()) with
                     | None -> ()
                     | Some methodPayload ->
-                        match methodPayload.examplePayloads |> Seq.tryHead with
-                        | Some h ->
-                            yield h.filePathOrInlinedPayload
-                        | None -> ()
+                        for ep in methodPayload.examplePayloads do
+                            yield ep.filePathOrInlinedPayload
                 | None -> ()
             }
+
             exampleFilePathsOrInlinedPayloads
             |> Seq.toList
             |> List.choose (fun ep ->
