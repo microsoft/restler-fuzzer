@@ -666,6 +666,7 @@ module private PropertyAccessPaths =
             | Property ->
                 ()
             | Array ->
+                // In the case of arrays, add the array element.
                 yield "[0]"
         }
         |> Seq.toList
@@ -767,9 +768,18 @@ let getProducer (request:RequestId) (response:ResponseProperties) =
                 | Some propertyName ->
                     Some propertyName
             else Some p.name
+
+        let accessPath = resourceAccessPath |> List.toArray
         if name.IsSome then
             accessPaths.Add( { Name = name.Value
-                               Path = { path = resourceAccessPath |> List.toArray } })
+                               Path = { path = accessPath } })
+        // Check if the item is an array.  If so, both the array item and
+        // the array itself should be producers.
+        // TODO: support cases where the entire response is an array
+        if accessPath.Length > 1 && accessPath |> Array.last = "[0]" then
+            accessPaths.Add( { Name = name.Value
+                               Path = { path = accessPath.[0..accessPath.Length-2] } })
+
 
     let visitInner2 (parentAccessPath:string list) (p:InnerProperty) =
         ()
@@ -898,14 +908,8 @@ let createInputOnlyProducerFromAnnotation (a:ProducerConsumerAnnotation)
         if a.producerId.requestId.endpoint.Contains(sprintf "{%s}" rn) then
             // Look for the corresponding path producer.
             // This is needed to determine its type.
-            let annotationProducerRequestId =
-                {
-                    endpoint = a.producerId.requestId.endpoint
-                    method = a.producerId.requestId.method
-                    xMsPath = a.producerId.requestId.xMsPath
-                }
             let pc = pathConsumers
-                     |> Array.tryFind (fun (reqId, s) -> reqId = annotationProducerRequestId)
+                     |> Array.tryFind (fun (reqId, s) -> reqId = a.producerId.requestId)
 
             let pathConsumer =
                 match pc with
@@ -1470,7 +1474,21 @@ module DependencyLookup =
 
         // First, check if the parameter itself has a dependency
         let (parameterName, properties) = requestParameter.name, requestParameter.payload
-        let defaultPayload = (Fuzzable (PrimitiveType.String, "", None, None))
+        let defaultPayload =
+            // The type of the payload gets substituted into the producer, so this must match the earlier declared type.
+            // TODO: check correctness for nested type (array vs. obj vs. property...)
+            match requestParameter.payload with
+            | Tree.LeafNode leafProperty ->
+                leafProperty.payload
+            | Tree.InternalNode (i, _) ->
+                match i.propertyType with
+                | NestedType.Object ->
+                    (Fuzzable (PrimitiveType.Object, "{}", None, None))
+                | NestedType.Array ->
+                    (Fuzzable (PrimitiveType.Object, "[]", None, None))
+                | NestedType.Property ->
+                    (Fuzzable (PrimitiveType.String, "", None, None))
+
         let dependencyPayload = getConsumerPayload dependencies pathPayload requestId parameterName EmptyAccessPath defaultPayload
 
         let payloadWithDependencies =

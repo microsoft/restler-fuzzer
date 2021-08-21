@@ -1,0 +1,16 @@
+{
+  "x-restler-global-annotations": [
+    {
+      "producer_resource_name": "order_items",
+      "producer_method": "POST",
+      "consumer_param": "arrayQueryParameter99",
+      "producer_endpoint": "/stores/{storeId}/order"
+    },
+    {
+      "producer_resource_name": "/order_items/[0]",
+      "producer_method": "POST",
+      "consumer_param": "stringQueryParameter77",
+      "producer_endpoint": "/stores/{storeId}/order"
+    }
+  ]
+}

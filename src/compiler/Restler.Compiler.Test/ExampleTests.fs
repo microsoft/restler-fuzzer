@@ -74,6 +74,26 @@ module Examples =
                         ExampleConfigFilePath = Some exampleConfigFile }
 
         [<Fact>]
+        let ``array example where the array itself is a dynamic object`` () =
+            let grammarDirectoryPath = ctx.testRootDirPath
+            let config = { Restler.Config.SampleConfig with
+                             IncludeOptionalParameters = true
+                             GrammarOutputDirectoryPath = Some grammarDirectoryPath
+                             ResolveBodyDependencies = false
+                             UseBodyExamples = Some true
+                             SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, @"swagger\array_example.json"))]
+                             AnnotationFilePath = Some (Path.Combine(Environment.CurrentDirectory, @"swagger\array_example_annotations.json"))
+                         }
+            Restler.Workflow.generateRestlerGrammar None config
+            let grammarFilePath = Path.Combine(grammarDirectoryPath,
+                                               Restler.Workflow.Constants.DefaultRestlerGrammarFileName)
+            let grammar = File.ReadAllText(grammarFilePath)
+            // Check that the grammar contains the array dependency (here, it is an input producer)
+            // and the array item dependency
+            Assert.True(grammar.Contains("primitives.restler_static_string(_stores__storeId__order_post_order_items.reader(), quoted=False),"))
+            Assert.True(grammar.Contains("primitives.restler_static_string(_stores__storeId__order_post_order_items_0.reader(), quoted=False),"))
+
+        [<Fact>]
         let ``object example in grammar without dependencies`` () =
             let grammarDirectoryPath = ctx.testRootDirPath
             let config = { Restler.Config.SampleConfig with

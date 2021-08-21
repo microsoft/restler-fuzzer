@@ -23,8 +23,7 @@ type AccessPath =
             else
                 x.path |> String.concat "/" |> Some
         member x.getNamePart() =
-            x.path |> Array.tryLast
-
+            x.getPathPropertyNameParts() |> Array.tryLast
 
 let EmptyAccessPath = { path = Array.empty }
 
