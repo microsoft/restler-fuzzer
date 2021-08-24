@@ -852,7 +852,7 @@ def format_request_block(request_id, request_block, candidate_values_pool):
     elif (primitive == "restler_custom_payload_header" or\
           primitive == "restler_custom_payload_query"):
         current_fuzzable_tag = field_name
-        values = candidate_values_pool.get_candidate_values(primitive, request_id=request.request_id, tag=current_fuzzable_tag, quoted=quoted)
+        values = candidate_values_pool.get_candidate_values(primitive, request_id=request_id, tag=current_fuzzable_tag, quoted=quoted)
         if not isinstance(values, list):
             values = [values]
         if len(values) == 1:
