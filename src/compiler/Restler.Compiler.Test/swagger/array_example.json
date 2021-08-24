@@ -26,10 +26,16 @@
                     "description": "The date the order will be ready",
                     "type": "string"
                 },
-                "status": {
-                    "description": "The order status",
-                    "type": "string"
+              "status": {
+                "description": "The order status",
+                "type": "string"
+              },
+              "order_items": {
+                "type": "array",
+                "items": {
+                  "type":  "string"
                 }
+              }
             }
         },
         "GroceryList": {
@@ -225,21 +231,35 @@
         "/stores/{storeId}/order/{orderId}": {
             "get": {
                 "operationId": "get_order",
-                "parameters": [
-                    {
-                        "in": "path",
-                        "name": "orderId",
-                        "required": true,
-                        "type": "integer"
-                    },
-                    {
-                        "in": "path",
-                        "name": "storeId",
-                        "required": true,
-                        "type": "integer"
-                    }
-                ],
-
+              "parameters": [
+                {
+                  "in": "path",
+                  "name": "orderId",
+                  "required": true,
+                  "type": "integer"
+                },
+                {
+                  "in": "path",
+                  "name": "storeId",
+                  "required": true,
+                  "type": "integer"
+                },
+                {
+                  "in": "query",
+                  "name": "arrayQueryParameter99",
+                  "required": true,
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "in": "query",
+                  "name": "stringQueryParameter77",
+                  "required": true,
+                  "type": "string"
+                }
+              ],
                 "responses": {
                     "200": {
                         "description": "Success",
