@@ -863,7 +863,6 @@ let getParameterDependencies parameterKind globalAnnotations
             let parameterDependency = getConsumer parameterName [] None
             consumerList.Add(parameterDependency)
     | ParameterKind.Body ->
-
         Tree.iterCtx visitLeaf visitInner PropertyAccessPaths.getInnerAccessPath [] parameterPayload
 
     consumerList |> List.ofSeq
@@ -1001,13 +1000,14 @@ let extractDependencies (requestData:(RequestId*RequestData)[])
             |> Seq.concat
         | _ -> Seq.empty
 
-    logTimingInfo "Getting consumers..."
+    logTimingInfo "Getting path consumers..."
 
     let pathConsumers =
         requestData
         |> Array.Parallel.map
             (fun (r, rd) -> r, getParameterConsumers r ParameterKind.Path rd.requestParameters.path true)
 
+    logTimingInfo "Getting query consumers..."
     let queryConsumers =
         requestData
         |> Array.Parallel.map
@@ -1035,6 +1035,9 @@ let extractDependencies (requestData:(RequestId*RequestData)[])
                 r, c)
 
     let producers = Producers()
+
+    logTimingInfo "Getting body consumers..."
+
     let bodyConsumers =
         requestData
         |> Array.Parallel.map
