@@ -492,14 +492,14 @@ if __name__ == '__main__':
             print_to_console=True
         )
         postprocessing.delete_create_once_resources(failobj.destructors, fuzzing_requests)
-        sys.exit(-1)
-    except InvalidDictionaryException:
+        raise failobj
+    except InvalidDictionaryException as ex:
         print(f"Failed preprocessing:\n\t"
                "An error was identified in the dictionary.")
-        sys.exit(-1)
+        raise ex
     except Exception as error:
         print(f"Failed preprocessing:\n\t{error!s}")
-        sys.exit(-1)
+        raise error
 
     grammar_path = settings.grammar_schema
     if os.path.exists(grammar_path):

@@ -6,6 +6,7 @@ import json
 from abc import ABCMeta, abstractmethod
 
 import engine.primitives as primitives
+import engine.dependencies as dependencies
 from engine.fuzzing_parameters.fuzzing_config import *
 
 TAG_SEPARATOR = '/'
@@ -36,6 +37,12 @@ class KeyValueParamBase():
         """ Is this a required parameter
         """
         return self.content.is_required
+
+    @property
+    def is_dynamic_object(self):
+        """ Is this a dynamic object
+        """
+        return self.content.is_dynamic_object
 
     def type(self):
         return self._type
@@ -94,10 +101,11 @@ class HeaderParam(KeyValueParamBase):
 
 class ParamBase():
     """ Base class for all body parameters """
-    def __init__(self, is_required=True):
+    def __init__(self, is_required=True, is_dynamic_object=False):
         self._fuzzable = False
         self._tag = ''
         self._is_required = is_required
+        self._is_dynamic_object = is_dynamic_object
 
     @property
     def tag(self):
@@ -128,6 +136,15 @@ class ParamBase():
 
         """
         return self._is_required
+
+    @property
+    def is_dynamic_object(self):
+        """ Returns whether the param is a dynamic object
+
+        @return: True if the parameter is a dynamic object
+        @rtype:  Bool
+        """
+        return self._is_dynamic_object
 
     def meta_copy(self, src):
         """ Copy meta data of a ParamValue
@@ -168,14 +185,14 @@ class ParamValue(ParamBase):
     """ Base class for value type parameters. Value can be Object, Array,
     String, Number, Boolean, ObjectLeaf, and Enum.
     """
-    def __init__(self, custom=False, is_required=True):
+    def __init__(self, custom=False, is_required=True, is_dynamic_object=False):
         """ Initialize a ParamValue.
 
         @return: None
         @rtype:  None
 
         """
-        ParamBase.__init__(self, is_required)
+        ParamBase.__init__(self, is_required, is_dynamic_object)
         self._content = None
         self._custom = custom
 
@@ -245,7 +262,12 @@ class ParamValue(ParamBase):
         """
         if self._custom:
             return[primitives.restler_custom_payload(self._content)]
-        return [primitives.restler_static_string(self._content)]
+
+        content = self._content
+        if self.is_dynamic_object:
+            content = dependencies.RDELIM + self._content + dependencies.RDELIM
+
+        return [primitives.restler_static_string(content)]
 
     def get_fuzzing_blocks(self, visitor):
         """ Gets the fuzzing blocks for this param """
@@ -272,7 +294,7 @@ class ParamValue(ParamBase):
 class ParamObject(ParamBase):
     """ Class for object type parameters """
 
-    def __init__(self, members, is_required=True):
+    def __init__(self, members, is_required=True, is_dynamic_object=False):
         """ Initialize an object type parameter
 
         @param members: A list of members
@@ -282,7 +304,7 @@ class ParamObject(ParamBase):
         @rtype:  None
 
         """
-        ParamBase.__init__(self, is_required)
+        ParamBase.__init__(self, is_required, is_dynamic_object)
         self._members = members
 
     def __eq__(self, other):
@@ -467,7 +489,7 @@ class ParamObject(ParamBase):
 class ParamArray(ParamBase):
     """ Class for array type parameters """
 
-    def __init__(self, values, is_required=True):
+    def __init__(self, values, is_required=True, is_dynamic_object=False):
         """ Initialize an array type parameter
 
         @param values: A list of array values
@@ -477,7 +499,7 @@ class ParamArray(ParamBase):
         @rtype:  None
 
         """
-        ParamBase.__init__(self, is_required)
+        ParamBase.__init__(self, is_required, is_dynamic_object)
         self._values = values
 
     @property
@@ -649,7 +671,7 @@ class ParamArray(ParamBase):
 class ParamString(ParamValue):
     """ Class for string type parameters """
 
-    def __init__(self, custom=False, is_required=True):
+    def __init__(self, custom=False, is_required=True, is_dynamic_object=False):
         """ Initialize a string type parameter
 
         @param custom: Whether or not this is a custom payload
@@ -659,7 +681,7 @@ class ParamString(ParamValue):
         @rtype:  None
 
         """
-        ParamValue.__init__(self, is_required)
+        ParamValue.__init__(self, is_required=is_required, is_dynamic_object=is_dynamic_object)
 
         self._is_custom = custom
         self._unknown = False
@@ -684,7 +706,12 @@ class ParamString(ParamValue):
         """
         if self._is_custom:
             return [primitives.restler_custom_payload(self._content, quoted=True)]
-        return [primitives.restler_static_string(self._content, quoted=True)]
+
+        if self.is_dynamic_object:
+            content = dependencies.RDELIM + self._content + dependencies.RDELIM
+        else:
+            content = self._content
+        return [primitives.restler_static_string(content, quoted=True)]
 
     def get_fuzzing_blocks(self, config):
         """ Returns the fuzzing request blocks per the config
@@ -729,6 +756,9 @@ class ParamString(ParamValue):
                 return [primitives.restler_static_string(default_value, quoted=False)]
 
         if not self.is_fuzzable():
+            if self.is_dynamic_object:
+                content = dependencies.RDELIM + self._content + dependencies.RDELIM
+                return [primitives.restler_static_string(content, quoted=True)]
             return [primitives.restler_static_string(default_value, quoted=True)]
 
         # fuzz as normal fuzzable string
@@ -800,6 +830,8 @@ class ParamNumber(ParamValue):
         default_value = str(default_value)
 
         if not self.is_fuzzable():
+            if self.is_dynamic_object:
+                default_value = dependencies.RDELIM + default_value + dependencies.RDELIM
             return [primitives.restler_static_string(default_value)]
 
         # fuzz as normal fuzzable int
@@ -854,11 +886,15 @@ class ParamBoolean(ParamValue):
         default_value = config.get_default_value(
             self.tag, primitives.FUZZABLE_BOOL
         )
-        default_value = str(default_value).lower()
 
         if not self.is_fuzzable():
+            if self.is_dynamic_object:
+                default_value = dependencies.RDELIM + default_value + dependencies.RDELIM
+            else:
+                default_value = str(default_value).lower()
             return [primitives.restler_static_string(default_value)]
 
+        default_value = str(default_value).lower()
         if not config.merge_fuzzable_values:
             return [primitives.restler_fuzzable_bool(default_value)]
 
@@ -906,6 +942,10 @@ class ParamObjectLeaf(ParamValue):
         @rtype : List[str]
 
         """
+        if self.is_dynamic_object:
+            content = dependencies.RDELIM + self._content + dependencies.RDELIM
+            return [primitives.restler_static_string(content)]
+
         formalized_content = self._content.replace("'", '"')
         formalized_content = formalized_content.replace('u"', '"')
 
@@ -936,11 +976,16 @@ class ParamObjectLeaf(ParamValue):
         default_value = config.get_default_value(
             self.tag, primitives.FUZZABLE_OBJECT
         )
-        default_value = formalize_object_value(default_value)
 
         # not fuzzalbe --> constant
         if not self.is_fuzzable():
+            if self.is_dynamic_object:
+                default_value = dependencies.RDELIM + default_value + dependencies.RDELIM
+            else:
+                default_value = formalize_object_value(default_value)
             return [primitives.restler_static_string(default_value)]
+
+        default_value = formalize_object_value(default_value)
 
         # fuzz as normal fuzzable object using wordbook
         if not config.merge_fuzzable_values:
@@ -976,7 +1021,7 @@ class ParamObjectLeaf(ParamValue):
 class ParamEnum(ParamBase):
     """ Class for Enum type parameters """
 
-    def __init__(self, contents, content_type, is_required=True, body_param=True):
+    def __init__(self, contents, content_type, is_required=True, body_param=True, is_dynamic_object=False):
         """ Initialize a Enum type parameter
 
         @param contents: A list of enum contents
@@ -988,7 +1033,7 @@ class ParamEnum(ParamBase):
         @rtype:  None
 
         """
-        ParamBase.__init__(self, is_required)
+        ParamBase.__init__(self, is_required, is_dynamic_object)
 
         self._contents = contents
         self._type = content_type
@@ -1080,7 +1125,7 @@ class ParamEnum(ParamBase):
 class ParamMember(ParamBase):
     """ Class for member type parameters """
 
-    def __init__(self, name, value, is_required=True):
+    def __init__(self, name, value, is_required=True, is_dynamic_object=False):
         """ Initialize a member type parameter
 
         @param name: Member name
@@ -1092,7 +1137,7 @@ class ParamMember(ParamBase):
         @rtype:  None
 
         """
-        ParamBase.__init__(self, is_required)
+        ParamBase.__init__(self, is_required, is_dynamic_object)
         self._name = name
         self._value = value
 
