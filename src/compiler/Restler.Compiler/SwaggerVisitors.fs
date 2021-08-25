@@ -15,6 +15,7 @@ exception NullArraySchema of string
 exception UnsupportedArrayExample of string
 exception UnsupportedRecursiveExample of string
 
+
 module SchemaUtilities =
 
     /// Get an example value as a string, either directly from the 'example' attribute or
@@ -140,6 +141,22 @@ module SchemaUtilities =
 open SchemaUtilities
 
 module SwaggerVisitors =
+
+    module SchemaCache =
+        let cache =
+            System.Collections.Concurrent.ConcurrentDictionary<NJsonSchema.JsonSchema, Tree<LeafProperty, InnerProperty>>()
+
+        /// Caches the specified schema. If an example is specified, the schema is not cached since
+        /// each example is transformed to a different schema.
+        let add schema grammarElement isExample =
+            if not isExample then
+                cache.TryAdd(schema, grammarElement) |> ignore
+
+        /// Gets the grammar element corresponding to the schema, if it exists
+        let tryGet schema =
+            match cache.TryGetValue(schema) with
+            | (true, v ) -> Some v
+            | (false, _ ) -> None
 
     let getFuzzableValueForProperty propertyName (propertySchema:NJsonSchema.JsonSchema) isRequired isReadOnly enumeration defaultValue (exampleValue:string option)
                                     (trackParameters:bool) =
@@ -416,6 +433,10 @@ module SwaggerVisitors =
 
         let schema = getActualSchema schema
 
+        // Check if the schema has already been cached.  if yes, just return the result.
+        let cachedProperty =
+            SchemaCache.tryGet schema
+
         // If a property is recursive, stop processing and treat the child property as an object.
         // Dependencies will use the parent, and fuzzing nested properties may be implemented later as an optimization.
         if parents |> List.contains schema then
@@ -423,11 +444,43 @@ module SwaggerVisitors =
                 // TODO: need test case for this example.  Raise an exception to flag these cases.
                 // Most likely, the current example value should simply be used in the leaf property
                 raise (UnsupportedRecursiveExample (sprintf "%A" exampleValue))
-            let leafProperty = { LeafProperty.name = ""; payload = Fuzzable (PrimitiveType.String, "", None, None); isRequired = true ; isReadOnly = false }
-            LeafNode leafProperty
-            |> cont
-        else
 
+            let grammarElement =
+                let leafProperty =
+                    {
+                        LeafProperty.name = ""
+                        payload =
+                            match schema.Type with
+                            | JsonObjectType.Array ->
+                                // get the type of the array element
+                                if isNull schema.Item then
+                                    Fuzzable (PrimitiveType.String, "fuzzstring", None, None)
+                                else
+                                    getFuzzableValueForObjectType schema.Item.Type schema.Format None None trackParameters
+                            | JsonObjectType.None ->
+                                Fuzzable (PrimitiveType.Object, "{ }", None, None)
+                            | _ ->
+                                getFuzzableValueForObjectType schema.Type schema.Format None None trackParameters
+                        isRequired = true
+                        isReadOnly = false }
+                match schema.Type with
+                | JsonObjectType.Array ->
+                    let innerProperty =
+                        {
+                            InnerProperty.name = ""
+                            isReadOnly = isReadOnly
+                            isRequired = isRequired
+                            propertyType = NestedType.Array
+                            payload = None
+                        }
+                    InternalNode (innerProperty, ((LeafNode leafProperty) |> stn))
+                | _ ->
+                    LeafNode leafProperty
+            // This one should not be cached
+            grammarElement |> cont
+        else if exampleValue.IsNone && cachedProperty.IsSome then
+            cachedProperty.Value |> cont
+        else
             let declaredPropertyParameters =
                 schema.Properties
                 |> Seq.choose (fun item ->
@@ -489,31 +542,45 @@ module SwaggerVisitors =
             let allOfParameterSchemas =
                 schema.AllOf
                 |> Seq.map (fun ao -> ao, generateGrammarElementForSchema ao.ActualSchema (exampleValue, false) trackParameters (isRequired, isReadOnly) (schema::parents) id)
+                |> Seq.cache
 
-            let allOfProperties =
-                allOfParameterSchemas
-                |> Seq.choose (fun (ao, parameterObject) ->
+            // For AnyOf, take the first schema.
+            // Supporting multiple variants is future work.
+            let anyOfParameterSchema =
+                schema.AnyOf
+                |> Seq.truncate 1
+                |> Seq.map (fun ao -> ao, generateGrammarElementForSchema ao.ActualSchema (exampleValue, false) trackParameters (isRequired, isReadOnly) (schema::parents) id)
+                |> Seq.cache
+
+            let getSchemaAndProperties schemas =
+                let allProperties =
+                    schemas
+                    |> Seq.choose (fun (ao, parameterObject) ->
+                                        match parameterObject with
+                                        | LeafNode leafProperty ->
+                                            None
+                                        | InternalNode (i, children) ->
+                                            Some children)
+                    |> Seq.concat
+
+                // If it possible that the schema is not declared directly, but only in terms of the
+                // AllOf or AnyOf.  For example:
+                // allOf:
+                // - type: string
+                // This case needs to be handled separately.
+                let schema =
+                    schemas
+                    |> Seq.choose (fun (ao, parameterObject) ->
                                     match parameterObject with
                                     | LeafNode leafProperty ->
-                                        // If it possible that the schema is not declared directly, but only in terms of the
-                                        // AllOf.  For example:
-                                        // allOf:
-                                        // - type: string
-                                        // This case should be handled separately.
-                                        None
+                                        Some leafProperty
                                     | InternalNode (i, children) ->
-                                        Some children)
-                |> Seq.concat
+                                        None)
+                    |> Seq.tryHead
+                allProperties, schema
 
-            let allOfSchema =
-                allOfParameterSchemas
-                |> Seq.choose (fun (ao, parameterObject) ->
-                                match parameterObject with
-                                | LeafNode leafProperty ->
-                                    Some leafProperty
-                                | InternalNode (i, children) ->
-                                    None)
-                |> Seq.tryHead
+            let allOfProperties, allOfSchema = getSchemaAndProperties allOfParameterSchemas
+            let anyOfProperties, anyOfSchema = getSchemaAndProperties anyOfParameterSchema
 
             // Note: 'AdditionalPropertiesSchema' is omitted here, because it should not have any required parameters.
             // This can be included as a later optimization to improve coverage.
@@ -523,6 +590,7 @@ module SwaggerVisitors =
                 seq { yield declaredPropertyParameters
                       yield arrayProperties
                       yield allOfProperties
+                      yield anyOfProperties
                     } |> Seq.concat
 
             if internalNodes |> Seq.isEmpty then
@@ -532,6 +600,8 @@ module SwaggerVisitors =
                     let leafProperty =
                         if schema.Type = JsonObjectType.None && allOfSchema.IsSome then
                             allOfSchema.Value
+                        else if schema.Type = JsonObjectType.None && anyOfSchema.IsSome then
+                            anyOfSchema.Value
                         else
                             // Check for local examples from the Swagger spec if external examples were not specified.
                             // A fuzzable payload with a local example as the default value will be generated.
@@ -545,8 +615,9 @@ module SwaggerVisitors =
                                 (tryGetDefault schema) (*defaultValue*)
                                 specExampleValue
                                 trackParameters
-                    LeafNode leafProperty
-                    |> cont
+                    let grammarElement = LeafNode leafProperty
+                    SchemaCache.add schema grammarElement exampleValue.IsSome
+                    grammarElement |> cont
                 | Some v ->
                     // Either none of the above properties matched, or there are no properties and
                     // this is a leaf object.
@@ -569,11 +640,14 @@ module SwaggerVisitors =
                             else
                                 FuzzingPayload.Constant (primitiveType, exampleValue)
 
-                        LeafNode ({ LeafProperty.name = ""
-                                    payload = leafPayload
-                                    isRequired = true
-                                    isReadOnly = false })
-                        |> cont
+                        let grammarElement =
+                            LeafNode ({ LeafProperty.name = ""
+                                        payload = leafPayload
+                                        isRequired = true
+                                        isReadOnly = false })
+
+                        SchemaCache.add schema grammarElement exampleValue.IsSome
+                        grammarElement |> cont
                     else
                         let propertyType =
                             if schema.IsArray then NestedType.Array
@@ -582,19 +656,22 @@ module SwaggerVisitors =
                         // any of the properties listed in the 'allOf'.
                         // Or, it could be due to an empty array specified as an example.
                         // Create an empty object
-                        let innerProperty = { InnerProperty.name = ""
-                                              payload = None
-                                              propertyType = propertyType
-                                              isRequired = true
-                                              isReadOnly = false }
-                        InternalNode (innerProperty, Seq.empty)
-                        |> cont
+                        let grammarElement =
+                            let innerProperty = { InnerProperty.name = ""
+                                                  payload = None
+                                                  propertyType = propertyType
+                                                  isRequired = true
+                                                  isReadOnly = false }
+                            InternalNode (innerProperty, Seq.empty)
+                        SchemaCache.add schema grammarElement exampleValue.IsSome
+                        grammarElement |> cont
             else
-                let innerProperty = { InnerProperty.name = ""
-                                      payload = None
-                                      propertyType = if schema.IsArray then Array else Object
-                                      isRequired = true
-                                      isReadOnly = false }
-                InternalNode (innerProperty, internalNodes)
-                |> cont
-
+                let grammarElement =
+                    let innerProperty = { InnerProperty.name = ""
+                                          payload = None
+                                          propertyType = if schema.IsArray then Array else Object
+                                          isRequired = true
+                                          isReadOnly = false }
+                    InternalNode (innerProperty, internalNodes)
+                SchemaCache.add schema grammarElement exampleValue.IsSome
+                grammarElement |> cont

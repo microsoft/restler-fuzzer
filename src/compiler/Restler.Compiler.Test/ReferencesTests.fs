@@ -49,4 +49,9 @@ module References =
             /// Both parsing first or second as the main Swagger file should work.
             testReferenceTypes "second.json"
 
+
+        [<Fact>]
+        let ``array circular reference test`` () =
+            testReferenceTypes "circular_array.json"
+
         interface IClassFixture<Fixtures.TestSetupAndCleanup>
