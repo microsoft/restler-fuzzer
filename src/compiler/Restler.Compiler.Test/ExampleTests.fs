@@ -68,6 +68,9 @@ module Examples =
                 let message = sprintf "Grammar Does not match baseline.  First difference: %A" grammarDiff
                 Assert.True(grammarDiff.IsNone, message)
             runTest config
+            // Also test this scenario when 'DataFuzzing' is false.  This tests the case where
+            // only examples are used for the schema.
+            runTest { config with DataFuzzing = false }
             let exampleConfigFile = Path.Combine(Environment.CurrentDirectory, "examples\example_config_file.json")
             runTest {config with
                         SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, @"swagger\array_example_external.json"))]

@@ -548,9 +548,12 @@ let generateRequestPrimitives (requestId:RequestId)
             |> Map.ofSeq
         | _ -> raise (UnsupportedType "Only a list of path parameters is supported.")
     let queryParameters =
-        let schemaQueryParameters = requestParameters.query |> List.tryFind (fun (s, t) -> s = ParameterPayloadSource.Schema)
-        match schemaQueryParameters with
-        | Some (_, ParameterList parameterList) ->
+        let queryParameterList =
+            match requestParameters.query |> List.tryFind (fun (s, t) -> s = ParameterPayloadSource.Schema) with
+            | Some schemaParameters -> schemaParameters
+            | None -> requestParameters.query |> List.head
+        match queryParameterList |> snd with
+        | ParameterList parameterList ->
             parameterList
             |> Seq.map (fun p -> p.name, p)
             |> Map.ofSeq
