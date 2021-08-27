@@ -107,7 +107,7 @@ let tryDeserializeExampleConfigFile exampleConfigFilePath =
                             let methods =
                                 pathProperty.Value.Value<JObject>().Properties()
                                 |> Seq.map (fun methodProperty ->
-                                                let methodName = methodProperty.Name
+                                                let methodName = methodProperty.Name.ToLower()
 
                                                 let methodExamples =
                                                     methodProperty.Value.Value<JObject>().Properties()
@@ -116,7 +116,10 @@ let tryDeserializeExampleConfigFile exampleConfigFilePath =
                                                             let examplePayload =
                                                                 match exampleProperty.Value.Type with
                                                                 | JTokenType.String ->
-                                                                    ExamplePayloadKind.FilePath (exampleProperty.Value.ToString())
+                                                                    let filePath = exampleProperty.Value.ToString()
+                                                                    // Convert to absolute file path
+                                                                    let absFilePath = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(exampleConfigFilePath), filePath)
+                                                                    ExamplePayloadKind.FilePath absFilePath
                                                                 | JTokenType.Object ->
                                                                     ExamplePayloadKind.InlineExample (exampleProperty.Value)
                                                                 | _ ->

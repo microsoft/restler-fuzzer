@@ -152,9 +152,16 @@ let generateGrammarFromSwagger grammarOutputDirectoryPath (swaggerDoc, specMetad
 
     let userSpecifiedExamples =
         match config.ExampleConfigFilePath with
+        | None -> None
         | Some fp when File.Exists fp ->
-            Examples.tryDeserializeExampleConfigFile fp
-        | _ -> None
+            match Examples.tryDeserializeExampleConfigFile fp with
+            | Some ef -> Some ef
+            | None ->
+                printfn "ERROR: example file could not be deserialized: %A" fp
+                raise (ArgumentException("invalid example config file"))
+        | Some fp ->
+            printfn "ERROR: invalid file path for the example config file given: %A" fp
+            raise (ArgumentException("invalid example config file path"))
 
     let grammar, dependencies, (newDictionary, perResourceDictionaries), examples =
         Restler.Compiler.Main.generateRequestGrammar

@@ -43,6 +43,9 @@ module Examples =
             Assert.True(x.Value.paths |> List.exists (fun x -> x.path = "/vm"))
 
         [<Fact>]
+        /// Test that uses both body and query examples, and tests
+        /// that the grammar is correct when (a) examples are referenced from the spec,
+        /// and (b) an external example config file is used.
         let ``array example in grammar without dependencies`` () =
             let grammarDirectoryPath = ctx.testRootDirPath
             let config = { Restler.Config.SampleConfig with
@@ -57,7 +60,7 @@ module Examples =
                          }
             // Run the example test using the Swagger example and using the external example.
             let runTest testConfig =
-                Restler.Workflow.generateRestlerGrammar None config
+                Restler.Workflow.generateRestlerGrammar None testConfig
                 // Read the baseline and make sure it matches the expected one
                 //
                 let expectedGrammarFilePath = Path.Combine(Environment.CurrentDirectory,
@@ -67,11 +70,15 @@ module Examples =
                 let grammarDiff = getLineDifferences expectedGrammarFilePath actualGrammarFilePath
                 let message = sprintf "Grammar Does not match baseline.  First difference: %A" grammarDiff
                 Assert.True(grammarDiff.IsNone, message)
+
             runTest config
-            let exampleConfigFile = Path.Combine(Environment.CurrentDirectory, "examples\example_config_file.json")
-            runTest {config with
+
+            let exampleConfigFile = Path.Combine(Environment.CurrentDirectory, "swagger\example_config_file.json")
+            let config =
+                 { config with
                         SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, @"swagger\array_example_external.json"))]
                         ExampleConfigFilePath = Some exampleConfigFile }
+            runTest config
 
         [<Fact>]
         let ``array example where the array itself is a dynamic object`` () =
