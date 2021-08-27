@@ -1,0 +1,78 @@
+{
+
+    "openapi": "3.0.1",
+    "info": {
+        "title": "Partial Graph API",
+        "version": "beta"
+    },
+    "servers": [
+        {
+            "url": "https://restlertest/beta/",
+            "description": "references test"
+        }
+    ],
+    "components": {
+      "schemas": {
+
+    "recursion.calendar": {
+      "allOf": [
+          {
+              "title": "calendar",
+              "type": "object",
+              "properties": {
+                  "calendarView": {
+                      "type": "array",
+                      "items": {
+                          "$ref": "#/components/schemas/recursion.event"
+                      }
+                  }
+              }
+          }
+      ]
+  },
+    "recursion.event": {
+      "allOf": [
+          {
+              "title": "event",
+              "type": "object",
+              "properties": {
+                  "calendar": {
+                      "anyOf": [
+                          {
+                              "$ref": "#/components/schemas/recursion.calendar"
+                          }
+                      ],
+                      "nullable": "true"
+                  }
+                }
+              }
+            ]
+      }
+    }
+  },
+  "paths": {
+    "/calendar": {
+      "post": {
+        "parameters": [
+          {
+            "name": "calendar",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/recursion.calendar"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/components/schemas/recursion.calendar"
+            }
+          }
+        }
+      }
+    }
+  },
+  "swagger": "2.0"
+}
