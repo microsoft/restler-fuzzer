@@ -165,7 +165,7 @@ def try_async_poll(request_data, response, max_async_wait_time):
             async_waited = True
             poll_wait_seconds = 1
             start_time = time.time()
-            RAW_LOGGING("Waiting for resource to be available...")
+            RAW_LOGGING(f"Waiting for resource to be available...max wait time: {max_async_wait_time}")
             while (time.time() - start_time) < max_async_wait_time:
                 try:
                     # Send the polling request
