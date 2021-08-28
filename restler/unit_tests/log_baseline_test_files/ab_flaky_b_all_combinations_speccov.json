@@ -9,13 +9,13 @@
         "invalid_due_to_resource_failure": 0,
         "invalid_due_to_parser_failure": 0,
         "invalid_due_to_500": 0,
-        "status_code": null,
-        "status_text": null,
+        "status_code": "201",
+        "status_text": "Created",
         "error_message": null,
         "request_order": 0,
         "sample_request": {
             "request_sent_timestamp": null,
-            "response_received_timestamp": "2021-07-02 00:55:24",
+            "response_received_timestamp": "2021-08-28 04:35:43",
             "request_verb": "PUT",
             "request_uri": "/A/A",
             "request_headers": [
@@ -48,13 +48,13 @@
         "invalid_due_to_resource_failure": 0,
         "invalid_due_to_parser_failure": 0,
         "invalid_due_to_500": 0,
-        "status_code": null,
-        "status_text": null,
+        "status_code": "400",
+        "status_text": "Bad Request",
         "error_message": "{\"error\": \"{\\\"flaky\\\": 2}\"}",
         "request_order": 0,
         "sample_request": {
             "request_sent_timestamp": null,
-            "response_received_timestamp": "2021-07-02 00:55:24",
+            "response_received_timestamp": "2021-08-28 04:35:43",
             "request_verb": "PUT",
             "request_uri": "/A/A",
             "request_headers": [
@@ -92,13 +92,13 @@
         "invalid_due_to_resource_failure": 0,
         "invalid_due_to_parser_failure": 0,
         "invalid_due_to_500": 0,
-        "status_code": null,
-        "status_text": null,
+        "status_code": "200",
+        "status_text": "OK",
         "error_message": null,
         "request_order": 1,
         "sample_request": {
             "request_sent_timestamp": null,
-            "response_received_timestamp": "2021-07-02 00:55:25",
+            "response_received_timestamp": "2021-08-28 04:35:43",
             "request_verb": "GET",
             "request_uri": "/A/A",
             "request_headers": [
@@ -144,7 +144,7 @@
         "request_order": 1,
         "sequence_failure_sample_request": {
             "request_sent_timestamp": null,
-            "response_received_timestamp": "2021-07-02 00:55:25",
+            "response_received_timestamp": "2021-08-28 04:35:43",
             "request_verb": "PUT",
             "request_uri": "/A/A",
             "request_headers": [
