@@ -80,8 +80,7 @@ class FunctionalityTests(unittest.TestCase):
 
     def tearDown(self):
         try:
-            #shutil.rmtree(self.get_experiments_dir())
-            print("")
+            shutil.rmtree(self.get_experiments_dir())
         except Exception as err:
             print(f"tearDown function failed: {err!s}.\n"
                   "Experiments directory was not deleted.")

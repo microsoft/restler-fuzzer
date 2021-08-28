@@ -138,10 +138,6 @@ class SmokeTestStats(object):
 
     def set_all_stats(self, renderings):
 
-        if self.failure is not None and self.failure != FailureInformation.SEQUENCE:
-            self.status_code = renderings.final_request_response.status_code
-            self.status_text = renderings.final_request_response.status_text
-
         self.valid = 1 if renderings.valid else 0
         if self.valid:
             self.has_valid_rendering = 1
@@ -158,6 +154,9 @@ class SmokeTestStats(object):
                 self.sequence_failure_sample_request.set_response_stats(renderings.final_request_response,
                                                                         renderings.final_response_datetime)
             else:
+                self.status_code = renderings.final_request_response.status_code
+                self.status_text = renderings.final_request_response.status_text
+
                 self.sample_request = RenderedRequestStats()
                 self.sample_request.set_request_stats(
                     renderings.sequence.sent_request_data_list[-1].rendered_data)
@@ -167,7 +166,6 @@ class SmokeTestStats(object):
 
                 if not renderings.valid:
                     self.error_msg = response_body
-
 
             # Set tracked parameters
             last_req = renderings.sequence.last_request
