@@ -72,7 +72,9 @@ module Examples =
                 Assert.True(grammarDiff.IsNone, message)
 
             runTest config
-
+            // Also test this scenario when 'DataFuzzing' is false.  This tests the case where
+            // only examples are used for the schema.
+            runTest { config with DataFuzzing = false }
             let exampleConfigFile = Path.Combine(Environment.CurrentDirectory, "swagger\example_config_file.json")
             let config =
                  { config with
