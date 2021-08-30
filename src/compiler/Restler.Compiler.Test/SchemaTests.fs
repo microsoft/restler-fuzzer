@@ -55,19 +55,19 @@ module ApiSpecSchema =
                          }
             Restler.Workflow.generateRestlerGrammar None config
 
-            let checkBaseline actualFilePath expectedFilePath =
-                // Check that the baselines match
-                let resultText = File.ReadAllLines(actualFilePath) |> Array.map (fun x -> x.Trim())
-                let baselineText = File.ReadAllLines(expectedFilePath) |> Array.map (fun x -> x.Trim())
-                Assert.True((resultText = baselineText))
+            let grammarDiff =
+                getLineDifferences
+                    (config.GrammarOutputDirectoryPath.Value ++ Restler.Workflow.Constants.DefaultRestlerGrammarFileName)
+                    (Path.Combine(Environment.CurrentDirectory, @"baselines\schemaTests\xMsPaths_grammar.py"))
+            let message = sprintf "grammar.py does not match baseline.  First difference: %A" grammarDiff
+            Assert.True(grammarDiff.IsNone, message)
 
-            checkBaseline
-                (config.GrammarOutputDirectoryPath.Value ++ Restler.Workflow.Constants.DefaultRestlerGrammarFileName)
-                (Path.Combine(Environment.CurrentDirectory, @"baselines\schemaTests\xMsPaths_grammar.py"))
-
-            checkBaseline
-                (config.GrammarOutputDirectoryPath.Value ++ Restler.Workflow.Constants.DefaultJsonGrammarFileName)
-                (Path.Combine(Environment.CurrentDirectory, @"baselines\schemaTests\xMsPaths_grammar.json"))
+            let grammarDiff =
+                getLineDifferences
+                    (config.GrammarOutputDirectoryPath.Value ++ Restler.Workflow.Constants.DefaultJsonGrammarFileName)
+                    (Path.Combine(Environment.CurrentDirectory, @"baselines\schemaTests\xMsPaths_grammar.json"))
+            let message = sprintf "grammar.json does not match baseline.  First difference: %A" grammarDiff
+            Assert.True(grammarDiff.IsNone, message)
 
         [<Fact>]
         let ``path parameter is read from the global parameters`` () =

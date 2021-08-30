@@ -779,18 +779,25 @@ let getResponseParsers (requests: Request list) =
                     let initStatement = sprintf "dependencies.set_variable(\"%s\", %s)"
                                             dynamicObjectVariableName
                                             tempVariableName
-                    yield (emptyInitStatement, parsingStatement, initCheck, initStatement, tempVariableName)
+                    let booleanConversionStatement =
+                        if w.primitiveType = PrimitiveType.Bool then
+                            sprintf "%s = %s.lower()" tempVariableName tempVariableName
+                            |> Some
+                        else None
+                    yield (emptyInitStatement, parsingStatement, initCheck, initStatement, tempVariableName, booleanConversionStatement)
             ]
 
-        let parsingStatementWithTryExcept parsingStatement =
+        let parsingStatementWithTryExcept parsingStatement (booleanConversionStatement:string option) =
             sprintf "
     try:
+        %s
         %s
     except Exception as error:
         # This is not an error, since some properties are not always returned
         pass
 "
                 parsingStatement
+                (if booleanConversionStatement.IsSome then booleanConversionStatement.Value else "")
 
 
         let functionDefinition = sprintf "
@@ -817,21 +824,21 @@ def %s(data):
 "
                                         functionName
                                         (responseParsingStatements
-                                         |> List.map(fun (emptyInitStatement,_,_,_,_) -> (TAB + emptyInitStatement)) |> String.concat "\n")
+                                         |> List.map(fun (emptyInitStatement,_,_,_,_,_) -> (TAB + emptyInitStatement)) |> String.concat "\n")
 
                                         (responseParsingStatements
-                                         |> List.map(fun (_,parsingStatement,_,_,_) ->
-                                                        parsingStatementWithTryExcept parsingStatement)
+                                         |> List.map(fun (_,parsingStatement,_,_,_,booleanConversionStatement) ->
+                                                        parsingStatementWithTryExcept parsingStatement booleanConversionStatement)
                                          |> String.concat "\n")
 
                                         (responseParsingStatements
-                                        |> List.map(fun (_,_,_,_,tempVariableName) ->
+                                        |> List.map(fun (_,_,_,_,tempVariableName,_) ->
                                                         tempVariableName)
 
                                         |> String.concat " or ")
 
                                         (responseParsingStatements
-                                         |> List.map(fun (_,_,initCheck,initStatement,_) ->
+                                         |> List.map(fun (_,_,initCheck,initStatement,_,_) ->
                                                         (TAB + initCheck + "\n" + TAB + TAB + initStatement)) |> String.concat "\n")
 
         PythonGrammarElement.ResponseParserDefinition functionDefinition

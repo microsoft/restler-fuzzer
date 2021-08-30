@@ -325,6 +325,9 @@ type DynamicObjectWriterVariable =
 
         /// The access path to the parameter associated with this dynamic object
         accessPathParts: AccessPath
+
+        /// The type of the variable
+        primitiveType : PrimitiveType
     }
 
 /// Information needed to generate a response parser
