@@ -72,6 +72,11 @@ class HttpSock(object):
         if self._sock:
             self._closeSocket()
 
+    def _get_method_from_message(self, message):
+        end_of_method_idx = message.find(" ")
+        method_name = message[0:end_of_method_idx]
+        return method_name
+
     def sendRecv(self, message, req_timeout_sec=600):
         """ Sends a specified request to the server and waits for a response
 
@@ -89,7 +94,8 @@ class HttpSock(object):
         try:
             self._sendRequest(message)
             if not Settings().use_test_socket:
-                response = HttpResponse(self._recvResponse(req_timeout_sec))
+                http_method_name = self._get_method_from_message(message)
+                response = HttpResponse(self._recvResponse(req_timeout_sec, http_method_name))
             else:
                 response = self._sock.recv()
             RAW_LOGGING(f'Received: {response.to_str!r}\n')
@@ -188,7 +194,7 @@ class HttpSock(object):
             HttpSock.__last_request_sent_time = time.time()
             HttpSock.__request_sem.release()
 
-    def _recvResponse(self, req_timeout_sec):
+    def _recvResponse(self, req_timeout_sec, method_name):
         """ Reads data from socket object.
 
         @param req_timeout_sec: The time, in seconds, to wait for request to complete
@@ -255,6 +261,8 @@ class HttpSock(object):
         header_len = data.index(DELIM) + len(DELIM)
 
         if data[:12] in ["HTTP/1.1 204", "HTTP/1.1 304"]:
+            content_len = 0
+        elif method_name.upper() == "HEAD":
             content_len = 0
         else:
             try:
