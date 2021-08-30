@@ -57,11 +57,13 @@ let getWriterVariable (producer:Producer) =
         {
             requestId = iop.id.RequestId
             accessPathParts = iop.getInputParameterAccessPath()
+            primitiveType = iop.id.PrimitiveType
         }
     | ResponseObject rp ->
         {
             requestId = rp.id.RequestId
             accessPathParts = rp.id.AccessPathParts
+            primitiveType = rp.id.PrimitiveType
         }
     | _ ->
         raise (invalidArg "producer" "only input parameter and response producers have an associated dynamic object")

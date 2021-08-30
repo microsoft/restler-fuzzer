@@ -12,7 +12,9 @@ open Tree
 let getLineDifferences grammar1FilePath grammar2FilePath =
 
     let g1 = File.ReadAllLines(grammar1FilePath)
+             |> Array.filter (fun x -> not (String.IsNullOrWhiteSpace x))
     let g2 = File.ReadAllLines(grammar2FilePath)
+             |> Array.filter (fun x -> not (String.IsNullOrWhiteSpace x))
 
     let diffElements =
         Seq.zip g1 g2

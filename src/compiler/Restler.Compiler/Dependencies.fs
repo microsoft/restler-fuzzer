@@ -649,6 +649,7 @@ type PropertyAccessPath =
     {
         Name : string
         Path : AccessPath
+        Type : PrimitiveType
     }
 
 module private PropertyAccessPaths =
@@ -749,6 +750,15 @@ let getProducer (request:RequestId) (response:ResponseProperties) =
     // All possible properties in this response
     let accessPaths = List<PropertyAccessPath>()
 
+    let getPayloadPrimitiveType (payload:FuzzingPayload) =
+        match payload with
+        | Constant (t,_) -> t
+        | Fuzzable (t,_,_,_) -> t
+        | Custom cp -> cp.primitiveType
+        | DynamicObject d -> d.primitiveType
+        | PayloadParts _ ->
+            PrimitiveType.String
+
     let visitLeaf2 (parentAccessPath:string list) (p:LeafProperty) =
         let resourceAccessPath = PropertyAccessPaths.getLeafAccessPathParts parentAccessPath p
         let name =
@@ -772,13 +782,15 @@ let getProducer (request:RequestId) (response:ResponseProperties) =
         let accessPath = resourceAccessPath |> List.toArray
         if name.IsSome then
             accessPaths.Add( { Name = name.Value
-                               Path = { path = accessPath } })
+                               Path = { path = accessPath }
+                               Type = getPayloadPrimitiveType p.payload })
         // Check if the item is an array.  If so, both the array item and
         // the array itself should be producers.
         // TODO: support cases where the entire response is an array
         if accessPath.Length > 1 && accessPath |> Array.last = "[0]" then
             accessPaths.Add( { Name = name.Value
-                               Path = { path = accessPath.[0..accessPath.Length-2] } })
+                               Path = { path = accessPath.[0..accessPath.Length-2] }
+                               Type = getPayloadPrimitiveType p.payload })
 
 
     let visitInner2 (parentAccessPath:string list) (p:InnerProperty) =
@@ -884,7 +896,8 @@ let createBodyPayloadInputProducer (consumerResourceId:ApiResource) =
 /// is identified by the last part of the endpoint.
 /// For example: POST /customers, or PUT /product/{productName}
 let createPathProducer (requestId:RequestId) (accessPath:PropertyAccessPath)
-                       (namingConvention:NamingConvention option) =
+                       (namingConvention:NamingConvention option)
+                       (primitiveType:PrimitiveType) =
     {
         ResponseProducer.id = ApiResource(requestId,
                                            // The producer is a body resource, since it comes from the
@@ -892,7 +905,7 @@ let createPathProducer (requestId:RequestId) (accessPath:PropertyAccessPath)
                                            BodyResource { name = accessPath.Name
                                                           fullPath = accessPath.Path
                                                           },
-                                           namingConvention, PrimitiveType.String)
+                                           namingConvention, primitiveType)
     }
 
 
@@ -1093,7 +1106,7 @@ let extractDependencies (requestData:(RequestId*RequestData)[])
                 | Some rp ->
                     let responseProducerAccessPaths = getProducer r rp
                     for ap in responseProducerAccessPaths do
-                        let producer = createPathProducer r ap namingConvention
+                        let producer = createPathProducer r ap namingConvention ap.Type
                         let resourceName = ap.Name
                         producers.AddResponseProducer(resourceName, producer)
 

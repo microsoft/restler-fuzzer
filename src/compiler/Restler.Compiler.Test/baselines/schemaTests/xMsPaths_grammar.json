@@ -136,7 +136,8 @@
                 "resourceName",
                 "path"
               ]
-            }
+            },
+            "primitiveType": "String"
           }
         ]
       },
@@ -155,7 +156,8 @@
               "resourceName",
               "path"
             ]
-          }
+          },
+          "primitiveType": "String"
         }
       ],
       "requestMetadata": {
@@ -298,7 +300,8 @@
                 "resourceName",
                 "path"
               ]
-            }
+            },
+            "primitiveType": "String"
           }
         ]
       },
@@ -317,7 +320,8 @@
               "resourceName",
               "path"
             ]
-          }
+          },
+          "primitiveType": "String"
         }
       ],
       "requestMetadata": {

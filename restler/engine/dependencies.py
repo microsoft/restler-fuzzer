@@ -99,8 +99,6 @@ def get_variable(type):
         return ''
 
     # Make sure the value is properly escaped for being sent
-    # This also handles cases when the variable is a boolean -
-    # and needs to be converted back to its json representation
     value = tlb[type]
     encoded_value = json.dumps(value)
     if isinstance(value, (str)):
