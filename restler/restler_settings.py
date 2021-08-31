@@ -296,7 +296,7 @@ MAX_REQUEST_EXECUTION_TIME_DEFAULT = 120
 # This time is used as a max timeout when waiting for resources to be created.
 # If the timeout is reached we will stop polling the status, but then immediately
 # send the GET request for the endpoint just in case it is now ready.
-MAX_ASYNC_RESOURCE_CREATION_TIME_DEFAULT = 240
+MAX_ASYNC_RESOURCE_CREATION_TIME_DEFAULT = 20
 # This small default for the maximum parameter combinations is intended for
 # first-time use, such as in Test mode.  Users are expected to increase this value
 # as needed for more extensive fuzzing.
