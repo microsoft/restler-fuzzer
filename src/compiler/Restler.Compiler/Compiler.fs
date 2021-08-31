@@ -222,7 +222,9 @@ module private Parameters =
                                         generateGrammarElementForSchema declaredParameter.ActualSchema
                                                                         (Some payloadValue, false) trackParameters
                                                                         (declaredParameter.IsRequired, (parameterIsReadOnly declaredParameter))
-                                                                        [] id
+                                                                        []
+                                                                        (SchemaCache())
+                                                                        id
                                     Some { name = declaredParameter.Name
                                            payload = parameterGrammarElement
                                            serialization = getParameterSerialization declaredParameter }
@@ -394,7 +396,10 @@ module private Parameters =
                                                                 (specExampleValue, true)
                                                                 trackParameters
                                                                 (p.IsRequired, (parameterIsReadOnly p))
-                                                                [] id
+                                                                []
+                                                                (SchemaCache())
+                                                                id
+
                                     // Add the name to the parameter payload
                                     let parameterPayload =
                                         match parameterPayload with
@@ -921,7 +926,9 @@ let generateRequestGrammar (swaggerDocs:Types.ApiSpecFuzzingConfig list)
                             for r in m.Value.Responses do
                                 if validResponseCodes |> List.contains r.Key && not (isNull r.Value.ActualResponse.Schema) then
                                     yield generateGrammarElementForSchema r.Value.ActualResponse.Schema (None, false) false
-                                                                          (true (*isRequired*), false (*isReadOnly*)) [] id
+                                                                          (true (*isRequired*), false (*isReadOnly*)) []
+                                                                          (SchemaCache()) id
+
                         }
 
                         // 'allResponseProperties' contains the schemas of all possible responses
