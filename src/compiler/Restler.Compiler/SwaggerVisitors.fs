@@ -142,18 +142,18 @@ open SchemaUtilities
 
 module SwaggerVisitors =
 
-    module SchemaCache =
+    type SchemaCache() =
         let cache =
             System.Collections.Concurrent.ConcurrentDictionary<NJsonSchema.JsonSchema, Tree<LeafProperty, InnerProperty>>()
 
         /// Caches the specified schema. If an example is specified, the schema is not cached since
         /// each example is transformed to a different schema.
-        let add schema grammarElement isExample =
+        member x.add schema grammarElement isExample =
             if not isExample then
                 cache.TryAdd(schema, grammarElement) |> ignore
 
         /// Gets the grammar element corresponding to the schema, if it exists
-        let tryGet schema =
+        member x.tryGet schema =
             match cache.TryGetValue(schema) with
             | (true, v ) -> Some v
             | (false, _ ) -> None
@@ -306,6 +306,7 @@ module SwaggerVisitors =
                             (propertyPayloadExampleValue: JToken option, generateFuzzablePayload:bool)
                             (trackParameters:bool)
                             (parents:NJsonSchema.JsonSchema list)
+                            (schemaCache:SchemaCache)
                             (cont: Tree<LeafProperty, InnerProperty> -> Tree<LeafProperty, InnerProperty>) =
 
         // If an example value was not specified, also check for a locally defined example
@@ -356,7 +357,7 @@ module SwaggerVisitors =
                 generateGrammarElementForSchema property.ActualSchema (propertyPayloadExampleValue, generateFuzzablePayload)
                                                 trackParameters
                                                 (property.IsRequired, (propertyIsReadOnly property))
-                                                parents (fun tree ->
+                                                parents schemaCache (fun tree ->
                     let innerProperty = { InnerProperty.name = propertyName
                                           payload = None
                                           propertyType = Property
@@ -376,7 +377,7 @@ module SwaggerVisitors =
                     generateGrammarElementForSchema property (propertyPayloadExampleValue, generateFuzzablePayload)
                                                         trackParameters
                                                         (property.IsRequired, (propertyIsReadOnly property))
-                                                        parents (fun tree -> tree)
+                                                        parents schemaCache (fun tree -> tree)
                                                         |> cont
                 // For tracked parameters, it is required to add the name to the fuzzable primitives
                 // This name will not be added if the array elements are leaf nodes that do not have inner properties.
@@ -394,7 +395,7 @@ module SwaggerVisitors =
                     // Similar to type 'None', just pass through the object and it will be taken care of downstream.
                     generateGrammarElementForSchema property.ActualSchema (propertyPayloadExampleValue, generateFuzzablePayload) trackParameters
                                                     (property.IsRequired, (propertyIsReadOnly property))
-                                                    parents (fun tree ->
+                                                    parents schemaCache (fun tree ->
                         // If the object has no properties, it should be set to its primitive type.
                         match tree with
                         | LeafNode l ->
@@ -421,6 +422,7 @@ module SwaggerVisitors =
                                         (trackParameters:bool)
                                         (isRequired:bool, isReadOnly:bool)
                                         (parents:NJsonSchema.JsonSchema list)
+                                        (schemaCache:SchemaCache)
                                         (cont: Tree<LeafProperty, InnerProperty> -> Tree<LeafProperty, InnerProperty>) =
 
         // As of NJsonSchema version 10, need to walk references explicitly.
@@ -435,7 +437,7 @@ module SwaggerVisitors =
 
         // Check if the schema has already been cached.  if yes, just return the result.
         let cachedProperty =
-            SchemaCache.tryGet schema
+            schemaCache.tryGet schema
 
         // If a property is recursive, stop processing and treat the child property as an object.
         // Dependencies will use the parent, and fuzzing nested properties may be implemented later as an optimization.
@@ -492,7 +494,7 @@ module SwaggerVisitors =
                                         Some (processProperty (name, item.Value)
                                                               (exValue, generateFuzzablePayloadsForExamples)
                                                               trackParameters
-                                                              (schema::parents) id))
+                                                              (schema::parents) schemaCache id))
             let arrayProperties =
                 if schema.IsArray then
                     // OpenAPI parsing succeeds when the array does not have an element type declared
@@ -511,7 +513,7 @@ module SwaggerVisitors =
                             let schemaArrayExamples = ExampleHelpers.tryGetArraySchemaExample schema
                             match schemaArrayExamples with
                             | None ->
-                                generateGrammarElementForSchema schema.Item.ActualSchema (None, false) trackParameters (isRequired, isReadOnly) (schema::parents) id
+                                generateGrammarElementForSchema schema.Item.ActualSchema (None, false) trackParameters (isRequired, isReadOnly) (schema::parents) schemaCache id
                                 |> stn
                             | Some sae ->
                                 sae |> Seq.map (fun (schemaExampleValue, generateFuzzablePayload) ->
@@ -520,6 +522,7 @@ module SwaggerVisitors =
                                                                                     trackParameters
                                                                                     (isRequired, isReadOnly)
                                                                                     (schema::parents)
+                                                                                    schemaCache
                                                                                     id
                                                 )
                         | Some payloadArrayExamples when payloadArrayExamples |> Seq.isEmpty ->
@@ -534,6 +537,7 @@ module SwaggerVisitors =
                                                     trackParameters
                                                     (isRequired, isReadOnly)
                                                     (schema::parents)
+                                                    schemaCache
                                                     id |> stn)
                                 |> Seq.concat
                             arrayElements
@@ -541,7 +545,7 @@ module SwaggerVisitors =
 
             let allOfParameterSchemas =
                 schema.AllOf
-                |> Seq.map (fun ao -> ao, generateGrammarElementForSchema ao.ActualSchema (exampleValue, false) trackParameters (isRequired, isReadOnly) (schema::parents) id)
+                |> Seq.map (fun ao -> ao, generateGrammarElementForSchema ao.ActualSchema (exampleValue, false) trackParameters (isRequired, isReadOnly) (schema::parents) schemaCache id)
                 |> Seq.cache
 
             // For AnyOf, take the first schema.
@@ -549,7 +553,7 @@ module SwaggerVisitors =
             let anyOfParameterSchema =
                 schema.AnyOf
                 |> Seq.truncate 1
-                |> Seq.map (fun ao -> ao, generateGrammarElementForSchema ao.ActualSchema (exampleValue, false) trackParameters (isRequired, isReadOnly) (schema::parents) id)
+                |> Seq.map (fun ao -> ao, generateGrammarElementForSchema ao.ActualSchema (exampleValue, false) trackParameters (isRequired, isReadOnly) (schema::parents) schemaCache id)
                 |> Seq.cache
 
             let getSchemaAndProperties schemas =
@@ -616,7 +620,7 @@ module SwaggerVisitors =
                                 specExampleValue
                                 trackParameters
                     let grammarElement = LeafNode leafProperty
-                    SchemaCache.add schema grammarElement exampleValue.IsSome
+                    schemaCache.add schema grammarElement exampleValue.IsSome
                     grammarElement |> cont
                 | Some v ->
                     // Either none of the above properties matched, or there are no properties and
@@ -646,7 +650,7 @@ module SwaggerVisitors =
                                         isRequired = true
                                         isReadOnly = false })
 
-                        SchemaCache.add schema grammarElement exampleValue.IsSome
+                        schemaCache.add schema grammarElement exampleValue.IsSome
                         grammarElement |> cont
                     else
                         let propertyType =
@@ -663,7 +667,7 @@ module SwaggerVisitors =
                                                   isRequired = true
                                                   isReadOnly = false }
                             InternalNode (innerProperty, Seq.empty)
-                        SchemaCache.add schema grammarElement exampleValue.IsSome
+                        schemaCache.add schema grammarElement exampleValue.IsSome
                         grammarElement |> cont
             else
                 let grammarElement =
@@ -673,5 +677,5 @@ module SwaggerVisitors =
                                           isRequired = true
                                           isReadOnly = false }
                     InternalNode (innerProperty, internalNodes)
-                SchemaCache.add schema grammarElement exampleValue.IsSome
+                schemaCache.add schema grammarElement exampleValue.IsSome
                 grammarElement |> cont
