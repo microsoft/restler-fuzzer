@@ -9,16 +9,19 @@ import json
 import engine.primitives as primitives
 import utils.logger as logger
 
-def get_param_list_combinations(param_list):
+def get_param_list_combinations(param_list, max_combinations):
     """
     Generator that takes the specified list and returns all combinations of the elements.
     """
-    for i in range(1, len(param_list) + 2):
-        num_items = i - 1
-        combinations_num_i = itertools.combinations(param_list, num_items)
-        for new_param_list in combinations_num_i:
-            new_param_list = list(new_param_list)
-            yield new_param_list
+    def generate_combinations():
+        for i in range(1, len(param_list) + 2):
+            num_items = i - 1
+            combinations_num_i = itertools.combinations(param_list, num_items)
+            for new_param_list in combinations_num_i:
+                new_param_list = list(new_param_list)
+                yield new_param_list
+
+    return itertools.islice(generate_combinations(), 0, max_combinations)
 
 def get_param_combinations(req, param_combinations_setting, param_list, param_type):
     """
@@ -30,22 +33,33 @@ def get_param_combinations(req, param_combinations_setting, param_list, param_ty
             if p.is_required == required_val:
                 rp.append(p)
         return rp
-    if param_combinations_setting == "all":
+
+
+    if 'param_kind' in param_combinations_setting:
+        param_kind = param_combinations_setting['param_kind']
+    else:
+        param_kind = "all"
+    if 'max_combinations' in param_combinations_setting:
+        max_combinations = param_combinations_setting['max_combinations']
+    else:
+        max_combinations = Settings().max_combinations
+
+    if param_kind == "all":
         # Send combinations of all available parameters.
-        for x in get_param_list_combinations(param_list):
+        for x in get_param_list_combinations(param_list, max_combinations):
             yield x
-    elif param_combinations_setting == "required":
+    elif param_kind == "required":
         # Only send required parameter combinations, and omit optional parameters.
         required_params_list = filter_required(param_list)
-        for x in get_param_list_combinations(required_params_list):
+        for x in get_param_list_combinations(required_params_list, max_combinations):
             yield x
-    elif param_combinations_setting == "optional":
+    elif param_kind == "optional":
         # Send required parameters, and additionally send combinations
         # of optional parameters.
         required_params_list = filter_required(param_list)
         optional_params_list = filter_required(param_list, required_val=False)
 
-        optional_param_combinations = get_param_list_combinations(optional_params_list)
+        optional_param_combinations = get_param_list_combinations(optional_params_list, max_combinations)
 
         for opc in optional_param_combinations:
             yield required_params_list + opc
