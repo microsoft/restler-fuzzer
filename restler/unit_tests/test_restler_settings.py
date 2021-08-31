@@ -464,9 +464,11 @@ class RestlerSettingsTest(unittest.TestCase):
         self.assertEqual("c:\\restler\\custom_dict2.json", custom_dicts[hex_def(request2)])
 
         self.assertEqual(20, settings.max_combinations)
-        self.assertEqual("optional", settings.header_param_combinations)
-        self.assertEqual("required", settings.query_param_combinations)
-        self.assertEqual("all", settings.example_payloads)
+        self.assertEqual("optional", settings.header_param_combinations['param_kind'])
+        self.assertEqual(10, settings.header_param_combinations['max_combinations'])
+        self.assertEqual("required", settings.query_param_combinations['param_kind'])
+        self.assertEqual(15, settings.query_param_combinations['max_combinations'])
+        self.assertEqual("all", settings.example_payloads['payload_kind'])
         self.assertEqual(90, settings.max_request_execution_time)
 
         self.assertEqual(False, settings.save_results_in_fixed_dirname)

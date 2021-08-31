@@ -110,10 +110,13 @@ Testing
 different combinations of headers is supported via the following property:
 ```json
 "test_combinations_settings": {
-      "header_param_combinations" : "optional"
+     "header_param_combinations": {
+      "max_combinations": 50,
+      "param_kind": "optional"
+    }
 }
 ```
-The supported values are 'optional', 'required', and 'all'.
+The supported ```param_kind``` values are 'optional', 'required', and 'all'.
 
 - optional: test all combinations of optional parameters, always sending the required parameters.
 - required: test combinations of required parameters, and omit all optional parameters.
@@ -124,10 +127,13 @@ Testing
 different combinations of queries is supported via the following property:
 ```json
 "test_combinations_settings": {
-      "query_param_combinations" : "required"
+     "query_param_combinations": {
+      "max_combinations": 50,
+      "param_kind": "required"
+    }
 }
 ```
-The supported values are 'optional', 'required', and 'all'.  These have the same meaning as for
+The supported ```param_kind``` values are 'optional', 'required', and 'all'.  These have the same meaning as for
 header parameter combinations (see above).
 
 __example_payloads__
@@ -137,10 +143,12 @@ the examples instead of just the first one.
 
 ```json
 "test_combinations_settings": {
-      "example_payloadds" : "all"
+      "example_payloadds" : {
+          "payload_kind": "all"
+      }
 }
 ```
-The supported value is 'all'.
+The supported ```payload_kind``` value is 'all'.
 
 
 ### max_request_execution_time: float (default 120, max 600)
