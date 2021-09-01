@@ -63,6 +63,16 @@ module Tree =
             subtrees |> Seq.iter (recurse newCtx)
             fNode ctx nodeInfo
 
+    /// Iterate over the tree, and visit each tree node
+    let rec iterTree fNode (tree:Tree<'LeafData,'INodeData>) : unit =
+        let recurse = iterTree fNode
+        match tree with
+        | LeafNode _ ->
+            fNode tree
+        | InternalNode (_,subtrees) ->
+            subtrees |> Seq.iter (recurse)
+            fNode tree
+
 type OperationMethod =
     | Get
     | Post

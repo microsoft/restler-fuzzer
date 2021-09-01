@@ -54,4 +54,9 @@ module References =
         let ``array circular reference test`` () =
             testReferenceTypes "circular_array.json"
 
+        [<Fact>]
+        let ``cached circular references - infinite recursion regression test`` () =
+            testReferenceTypes "multiple_circular_paths.json"
+
+
         interface IClassFixture<Fixtures.TestSetupAndCleanup>

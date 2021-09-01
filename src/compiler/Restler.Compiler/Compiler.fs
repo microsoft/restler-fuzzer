@@ -223,7 +223,6 @@ module private Parameters =
                                                                         (Some payloadValue, false) trackParameters
                                                                         (declaredParameter.IsRequired, (parameterIsReadOnly declaredParameter))
                                                                         []
-                                                                        (SchemaCache())
                                                                         id
                                     Some { name = declaredParameter.Name
                                            payload = parameterGrammarElement
@@ -397,7 +396,6 @@ module private Parameters =
                                                                 trackParameters
                                                                 (p.IsRequired, (parameterIsReadOnly p))
                                                                 []
-                                                                (SchemaCache())
                                                                 id
 
                                     // Add the name to the parameter payload
@@ -947,7 +945,7 @@ let generateRequestGrammar (swaggerDocs:Types.ApiSpecFuzzingConfig list)
                                 if validResponseCodes |> List.contains r.Key && not (isNull r.Value.ActualResponse.Schema) then
                                     yield generateGrammarElementForSchema r.Value.ActualResponse.Schema (None, false) false
                                                                           (true (*isRequired*), false (*isReadOnly*)) []
-                                                                          (SchemaCache()) id
+                                                                          id
 
                         }
 
