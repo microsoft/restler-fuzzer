@@ -8,6 +8,7 @@ import json
 
 import engine.primitives as primitives
 import utils.logger as logger
+from restler_settings import Settings
 
 def get_param_list_combinations(param_list, max_combinations):
     """
