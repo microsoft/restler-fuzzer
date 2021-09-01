@@ -67,6 +67,7 @@ let usage() =
             When connecting to the service, do not use SSL.  The default is to connect with SSL.
         --host <Host string>
             If specified, this string will set or override the Host in each request.
+            Example: management.web.com
         --settings <engine settings file>
         --enable_checkers <list of checkers>
         --disable_checkers <list of checkers>
