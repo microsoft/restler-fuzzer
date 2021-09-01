@@ -708,8 +708,28 @@ let generateRequestPrimitives (requestId:RequestId)
                          ) []
 
     let bodyParameters, newDictionary =
-        requestParameters.body
-        |> List.mapFold (fun (parameterSetDictionary:MutationsDictionary) (payloadSource, requestBody) ->
+        // Check if the body is being replaced by a custom payload
+        let endpoint =
+            match requestId.xMsPath with
+            | None -> requestId.endpoint
+            | Some xMsPath -> xMsPath.getEndpoint()
+
+        match dictionary.findBodyCustomPayload endpoint (requestId.method.ToString()) with
+        | Some entry ->
+            let bodyPayload =
+                FuzzingPayload.Custom
+                    {
+                        payloadType = CustomPayloadType.String
+                        primitiveType = PrimitiveType.String
+                        payloadValue = entry
+                        isObject = true  // Do not quote the body
+                        dynamicObject = None
+                    }
+            [ ParameterPayloadSource.DictionaryCustomPayload, Example bodyPayload ],
+            dictionary
+        | None ->
+            requestParameters.body
+            |> List.mapFold (fun (parameterSetDictionary:MutationsDictionary) (payloadSource, requestBody) ->
                                 let result, newParameterSetDict =
                                     match requestBody with
                                     | ParameterList parameterList ->

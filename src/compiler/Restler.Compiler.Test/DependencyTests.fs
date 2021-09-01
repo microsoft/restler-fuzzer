@@ -338,5 +338,40 @@ module Dependencies =
             Assert.True(grammar.Contains("""restler_static_string(_file__fileId__post_fileId_path.reader(), quoted=False)"""))
 
 
+        /// Test that the entire body should be able to be replaced with a custom payload
+        /// from the dictionary
+        [<Fact>]
+        let ``replace entire body with custom payload`` () =
+            let grammarOutputDirectoryPath = ctx.testRootDirPath
+
+            let customDictionaryText = "{ \"restler_custom_payload\":\
+                                                { \"/subnets/{subnetName}/get/__body__\": [\"abc\"] } }\
+                                       "
+            // TODO: passing in the dictionary directly via 'SwaggerSpecConfig' is not working.
+            // Write out the dictionary until the but is fixed
+            //
+            let dictionaryFilePath =
+                Path.Combine(grammarOutputDirectoryPath,
+                             "input_dict.json")
+            File.WriteAllText(dictionaryFilePath, customDictionaryText)
+
+            let config = { Restler.Config.SampleConfig with
+                             IncludeOptionalParameters = true
+                             GrammarOutputDirectoryPath = Some grammarOutputDirectoryPath
+                             ResolveBodyDependencies = true
+                             UseBodyExamples = Some true
+                             SwaggerSpecFilePath = Some [Path.Combine(Environment.CurrentDirectory, @"swagger\dependencyTests\subnet_id.json")]
+                             AllowGetProducers = true
+                             CustomDictionaryFilePath = Some dictionaryFilePath
+                         }
+
+            Restler.Workflow.generateRestlerGrammar None config
+
+            let grammarFilePath = Path.Combine(grammarOutputDirectoryPath,
+                                               Restler.Workflow.Constants.DefaultRestlerGrammarFileName)
+            let grammar = File.ReadAllText(grammarFilePath)
+
+            Assert.True(grammar.Contains("""restler_custom_payload("/subnets/{subnetName}/get/__body__", quoted=False)"""))
+
         interface IClassFixture<Fixtures.TestSetupAndCleanup>
 
