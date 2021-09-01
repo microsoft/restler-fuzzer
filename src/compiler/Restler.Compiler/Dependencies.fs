@@ -1053,6 +1053,19 @@ let extractDependencies (requestData:(RequestId*RequestData)[])
 
     let bodyConsumers =
         requestData
+        |> Array.filter
+            (fun (r, rd) ->
+                // Special case: if the entire body is being replaced by a dictionary payload,
+                // the body schema should be ignored since there are no producer-consumer dependencies for it.
+                // Note: this is not the same as specifying an example payload for the body.
+                let endpoint =
+                    match r.xMsPath with
+                    | None -> r.endpoint
+                    | Some xMsPath -> xMsPath.getEndpoint()
+                match customDictionary.findBodyCustomPayload endpoint (r.method.ToString()) with
+                | None -> true
+                | Some _ -> false
+            )
         |> Array.Parallel.map
             (fun (r, rd) ->
                 let bodyParametersList =

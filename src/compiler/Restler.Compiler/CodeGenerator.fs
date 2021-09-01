@@ -512,6 +512,9 @@ let generatePythonFromRequestElement includeOptionalParameters (requestId:Reques
                     Restler_static_string_constant RETURN
                     Restler_static_string_constant exString
                 ]
+        | Example (FuzzingPayload.Custom customBodyPayload) ->
+            (Restler_static_string_constant RETURN)::
+            getRestlerPythonPayload (FuzzingPayload.Custom customBodyPayload) false
         | _ ->
             raise (UnsupportedType (sprintf "This request parameters payload type is not supported: %A." b))
 

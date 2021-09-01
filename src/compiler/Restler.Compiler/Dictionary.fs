@@ -54,10 +54,14 @@ type MutationsDictionary =
                 m |> Map.tryFind entryName
             | None -> None
 
+        member x.findBodyCustomPayload endpoint (method:string) =
+            let bodyPayloadName = sprintf "%s/%s/__body__" endpoint (method.ToLower())
+            match x.findPayloadEntry x.restler_custom_payload bodyPayloadName with
+            | Some _ -> Some bodyPayloadName
+            | None -> None
+
         // Note: per-endpoint dictionaries allow restricting a payload to a specific endpoint.
         member x.getParameterForCustomPayload consumerResourceName (accessPathParts: AccessPath) primitiveType parameterKind =
-
-
             // Check both custom payloads and unquoted custom payloads.
             [
                 (if parameterKind = ParameterKind.Query then
