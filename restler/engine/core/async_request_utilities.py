@@ -165,17 +165,17 @@ def try_async_poll(request_data, response, max_async_wait_time):
             async_waited = True
             poll_wait_seconds = 1
             start_time = time.time()
-            RAW_LOGGING("Waiting for resource to be available...")
+            RAW_LOGGING(f"Waiting for resource to be available... max_async_wait_time: {max_async_wait_time} seconds.")
             while (time.time() - start_time) < max_async_wait_time:
                 try:
                     # Send the polling request
                     poll_response = request_utilities.send_request_data(data)
                     time_str = str(round((time.time() - start_time), 2))
                     if data_in_poll_response:
-                        # If this returned a '200' status code, the response should contain the parsable data.
+                        # If this returned a '200' or '201' status code, the response should contain the parsable data.
                         # Otherwise, continue to poll as the resource has not yet been created. These types will
                         # return a '202 - Accepted' while the resource is still being created.
-                        if poll_response.status_code == '200':
+                        if poll_response.status_code == '200' or poll_response.status_code == '201':
                             LOG_RESULTS(request_data,
                                 f"Resource creation succeeded after {time_str} seconds.")
                             # Break and return the polling response to be parsed
