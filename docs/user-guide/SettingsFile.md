@@ -93,7 +93,7 @@ This is required when using the examples and payload body checkers.
 ### host: string (default None)
 Set to override the Host that's specified in the grammar.
 
-Ex: management.web.com
+Example: `management.web.com`
 
 (Note: do NOT include https:// or slashes here!)
 
@@ -164,9 +164,9 @@ Set to True to disable SSL for requests
 ### path_regex: str (default None=No regex filtering)
 Filters the grammar to only use endpoints whose paths contain the given regex string. 
 
-Ex: (\w*)/virtualNetworks/(\w*)
+Example: `(\w*)/virtualNetworks/(\w*)`
 
-Ex: disk|virtualNetwork
+Example: `disk|virtualNetwork`
 
 ### save_results_in_fixed_dirname: bool (default False)
 Save the results in a directory with a fixed name (skip the 'experiment\<pid\>' subdir).
