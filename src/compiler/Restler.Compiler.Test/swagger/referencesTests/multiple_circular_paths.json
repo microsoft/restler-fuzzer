@@ -1,0 +1,94 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "version": "2021-01-01",
+        "title": "Spec with recursive type definitions."
+    },
+    "schemes": [
+        "https"
+    ],
+    "consumes": [
+        "application/json"
+    ],
+    "produces": [
+        "application/json"
+    ],
+    "paths": {
+
+        "/one": {
+            "put": {
+                "parameters": [
+                    {
+                        "$ref": "#/parameters/apiVersionParameter"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "schema": {
+                            "$ref": "#/definitions/Export"
+                        }
+                    }
+                }
+            }
+        },
+        "/two": {
+            "get": {
+                "parameters": [
+                    {
+                        "$ref": "#/parameters/apiVersionParameter"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "schema": {
+                            "$ref": "#/definitions/ExportExecutionListResult"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "Export": {
+            "type": "object",
+            "properties": {
+                "properties": {
+                    "$ref": "#/definitions/CommonExportProperties"
+                }
+            }
+        },
+        "CommonExportProperties": {
+            "type": "object",
+            "properties": {
+                "format": {
+                    "description": "This property is necessary for the repro, and it must be the first one.",
+                    "type": "string"
+                },
+                "runHistory": {
+                    "$ref": "#/definitions/ExportExecutionListResult"
+                }
+            }
+        },
+        "ExportExecutionListResult": {
+            "type": "object",
+            "properties": {
+                "value": {
+                    "type": "array",
+                    "readOnly": true,
+                    "items": {
+                        "$ref": "#/definitions/CommonExportProperties"
+                    }
+                }
+            }
+        }
+    },
+    "parameters": {
+        "apiVersionParameter": {
+            "name": "api-version",
+            "in": "query",
+            "required": true,
+            "type": "string",
+            "description": "Version of the API to be used with the client request."
+        }
+    }
+}

@@ -177,6 +177,9 @@
     <Content Include="swagger\referencesTests\circular_array.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="swagger\referencesTests\multiple_circular_paths.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="swagger\referencesTests\second.json">
     <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
