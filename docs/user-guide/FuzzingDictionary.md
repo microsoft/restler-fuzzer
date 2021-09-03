@@ -2,6 +2,8 @@
 
 The fuzzing dictionary allows users to configure sets of values for specific data types or individual parameters.
 
+RESTler *automatically* generates references to the dictionary when it compiles a Swagger specification.  The dictionary elements correspond to grammar elements in the RESTler grammar, and will determine part of a payload for one or more requests.
+
 There are three categories of configurable values in the dictionary:
 
 1. **Data type**: Values to use for every parameter or property with the given data type.  These will be used when no other values are configured.
@@ -9,8 +11,48 @@ There are three categories of configurable values in the dictionary:
 3. **Custom payload:** A specific property should only be set to this set of values.  This may be configured based on the name or full path to the property (in json pointer format).  Note: to customize an entire body payload with many properties, it is recommended to use examples instead (see [Examples](Examples.md)).
 
 
+## How to configure the dictionary
 
-RESTler *automatically* generates references to the dictionary when it compiles a Swagger specification.  The dictionary elements correspond to grammar elements in the RESTler grammar, and will determine part of a payload for one or more requests.
+When you first try RESTler, using the command
+    ```restler.exe compile --api_spec <your spec>```,
+RESTler will generate a ```Compile``` folder that contains the grammar, plus a
+default dictionary ```dict.json``` and ```config.json``` (and several other configuration files).
+The latter may be used to customize the fuzzing grammar, by modifying the
+configuration files and then re-compiling.
+
+**If you are just adding new values to the dictionary:**
+
+To add more values to the existing lists of values in the dictionary (```restler_fuzzable_string```, etc.): simply copy the dictionary out of the ```Compile```
+folder (to avoid accidentally re-compiling and overwriting the dictionary in the future),
+modify it, and proceed to testing and fuzzing (see Testing.md).
+
+**If you add a new custom property to the dictionary:**
+
+Sometimes, you need to configure a specific property
+to be a certain value, or inject a query/header parameter
+that is not declared in the spec.  In this case, you
+will be adding new properties to the dictionary custom
+payloads.  For example, if you need to use a specific ```api-version```, you may add
+
+```json
+"restler_custom_payload" {
+      "api-version": ["2021-01-01"]
+    }
+}
+```
+
+<ins>To add new custom payloads, you must follow these steps:</ins>
+
+
+1.	Copy the ```config.json``` and ```dict.json``` (and possibly ```engine_settings.json``` if you need to modify them) out of this Compile folder.
+2.	Change the dictionary as needed.
+
+3.	Change the ```config.json``` path to the dictionary (```CustomDictionaryFilePath```) to
+the dictionary you copied and modified in step (2).
+4.	Run the ```compile``` command that takes a configuration file as input, ```restler.exe compile config.json```, using the ```config.json``` modified in step (3).  Once you have compiled with the new property, you can add new values to be fuzzed without having to re-compile again.
+
+
+## Dictionary Properties
 
 The following describes how each property in the dictionary is used in a RESTler grammar.  If needed, users may also customize the grammar further by referring directly to the dictionary.
 
