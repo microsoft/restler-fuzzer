@@ -754,16 +754,64 @@ let generateRequestPrimitives (requestId:RequestId)
                                 result, newParameterSetDict)
                           dictionary
 
-    let contentHeaders =
+    let contentTypeHeader =
         let requestHasBody = match (requestParameters.body |> Seq.head |> snd) with
                              | ParameterList p -> p |> Seq.length > 0
                              | Example (FuzzingPayload.Constant (PrimitiveType.String, str)) ->
                                 not (String.IsNullOrWhiteSpace str)
                              | _ -> raise (UnsupportedType "unsupported body parameter type")
         if requestHasBody then
-            [("Content-Type","application/json")]
-        else []
+            // Check if the custom dictionary overrides the content type for this request body
+            // If so, construct a payload
+            let ContentTypeHeaderName = "Content-Type"
+            // Check if the body is being replaced by a custom payload
+            let endpoint =
+                match requestId.xMsPath with
+                | None -> requestId.endpoint
+                | Some xMsPath -> xMsPath.getEndpoint()
 
+            let contentType =
+                match dictionary.findRequestTypeCustomPayload endpoint (requestId.method.ToString()) ContentTypeHeaderName with
+                | Some x ->
+                    let leafNode =
+                        Tree.LeafNode
+                            {
+                                LeafProperty.name = ""
+                                LeafProperty.payload =
+                                    FuzzingPayload.Custom
+                                        {
+                                            payloadType = CustomPayloadType.String
+                                            primitiveType = PrimitiveType.String
+                                            payloadValue = x
+                                            isObject = false
+                                            dynamicObject = None
+                                        }
+                                LeafProperty.isRequired = true
+                                LeafProperty.isReadOnly = false
+                            }
+                    {
+                        name = ContentTypeHeaderName
+                        payload =  leafNode
+                        serialization = None
+                    }
+                | None ->
+                    let leafNode =
+                        Tree.LeafNode
+                            {
+                                LeafProperty.name = ""
+                                LeafProperty.payload =
+                                    FuzzingPayload.Constant (PrimitiveType.String, "application/json")
+                                LeafProperty.isRequired = true
+                                LeafProperty.isReadOnly = false
+                            }
+                    {
+                        name = ContentTypeHeaderName
+                        payload =  leafNode
+                        serialization = None
+                    }
+
+            [ contentType ]
+        else []
 
     let getCustomPayloadParameters customPayloadType parametersFoundInSpec =
         let parameterNames =
@@ -811,9 +859,7 @@ let generateRequestPrimitives (requestId:RequestId)
 
     let headers =
         ([ ("Accept", "application/json")
-           ("Host", host)] @
-           contentHeaders
-           )
+           ("Host", host)])
     {
         id = requestId
         Request.method = method
@@ -823,7 +869,7 @@ let generateRequestPrimitives (requestId:RequestId)
                                   RequestParametersPayload.ParameterList customPayloadQueryParameters)]
         headerParameters = headerParameters @
                                 [(ParameterPayloadSource.DictionaryCustomPayload,
-                                  RequestParametersPayload.ParameterList customPayloadHeaderParameters)]
+                                  RequestParametersPayload.ParameterList (contentTypeHeader @ customPayloadHeaderParameters))]
         httpVersion = "1.1"
         headers = headers
         token = TokenKind.Refreshable

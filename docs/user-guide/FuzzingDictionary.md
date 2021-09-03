@@ -33,14 +33,16 @@ A special syntax may be used to replace the entire contents
 of the body of a request.  For a request with endpoint
 ```/api/blog/{blogId}``` and method ```GET```, the following replaces the body of this request with the
 specified custom payloads.
-
   ``` json
   {
      "restler_custom_payload": {
-         "/api/blog/{blogId}/get/__body__": "new body"
+         "/api/blog/{blogId}/get/__body__": ["new body"],
+         "/api/blog/{blogId}/get/Content-Type": ["xml"]
      }
   }
   ```
+The content type may also be replaced using the same syntax, as above.
+
 
 - *restler_custom_payload_header* - specifies a list of specific values required for header parameters.
 

@@ -60,6 +60,17 @@ type MutationsDictionary =
             | Some _ -> Some bodyPayloadName
             | None -> None
 
+        /// Find a custom payload that is specific to the request type
+        /// The syntax is <endpoint>/<method>/<propertyNameOrPath>
+        /// Examples:
+        ///   - Specify values for the parameter 'blogId' anywhere in the payload
+        ///         (path parameter will be replaced):  /blog/{blogId}/get/blogId
+        member x.findRequestTypeCustomPayload endpoint (method:string) propertyNameOrPath =
+            let requestTypePayloadName = sprintf "%s/%s/%s" endpoint (method.ToLower()) propertyNameOrPath
+            match x.findPayloadEntry x.restler_custom_payload requestTypePayloadName with
+            | Some _ -> Some requestTypePayloadName
+            | None -> None
+
         // Note: per-endpoint dictionaries allow restricting a payload to a specific endpoint.
         member x.getParameterForCustomPayload consumerResourceName (accessPathParts: AccessPath) primitiveType parameterKind =
             // Check both custom payloads and unquoted custom payloads.

@@ -120,5 +120,28 @@ module Dictionary =
             let numFuzzableStrings2 = grammarLines2 |> Seq.filter (fun s -> s.Contains("restler_fuzzable_string(")) |> Seq.length
             Assert.True((numFuzzableStrings2 = 1))
 
+        [<Fact>]
+        /// Test that you can replace the content type of the request payload
+        let ``content type can be modified via custom_payload_header`` () =
+            let grammarOutputDirPath = ctx.testRootDirPath
+            let config = { Restler.Config.SampleConfig with
+                             IncludeOptionalParameters = true
+                             GrammarOutputDirectoryPath = Some grammarOutputDirPath
+                             ResolveBodyDependencies = true
+                             ResolveQueryDependencies = true
+                             UseBodyExamples = Some false
+                             UseQueryExamples = Some false
+                             SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, @"swagger\dictionaryTests\customPayloadSwagger.json"))]
+                             CustomDictionaryFilePath = Some (Path.Combine(Environment.CurrentDirectory, @"swagger\dictionaryTests\customPayloadRequestTypeDict.json"))
+                         }
+            Restler.Workflow.generateRestlerGrammar None config
+
+            let grammarFilePath = Path.Combine(grammarOutputDirPath,
+                                               Restler.Workflow.Constants.DefaultRestlerGrammarFileName)
+            let grammar = File.ReadAllText(grammarFilePath)
+
+            Assert.True(grammar.Contains("""primitives.restler_static_string("Content-Type: "),"""))
+            Assert.True(grammar.Contains("""primitives.restler_static_string("application/json"),"""))
+            Assert.True(grammar.Contains("""primitives.restler_custom_payload("/stores/{storeId}/order/post/Content-Type", quoted=False),"""))
 
         interface IClassFixture<Fixtures.TestSetupAndCleanup>
