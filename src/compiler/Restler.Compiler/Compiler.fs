@@ -50,7 +50,7 @@ type UserSpecifiedRequestConfig =
         annotations: ProducerConsumerAnnotation option
     }
 
-let getWriterVariable (producer:Producer) =
+let getWriterVariable (producer:Producer) (kind:DynamicObjectVariableKind) =
 
     match producer with
     | InputParameter (iop, _) ->
@@ -58,12 +58,24 @@ let getWriterVariable (producer:Producer) =
             requestId = iop.id.RequestId
             accessPathParts = iop.getInputParameterAccessPath()
             primitiveType = iop.id.PrimitiveType
+            kind = kind
         }
     | ResponseObject rp ->
+        let accessPathParts =
+            match rp.id.ResourceReference with
+            | HeaderResource hr ->
+                    { Restler.AccessPaths.AccessPath.path =
+                        [|
+                            hr
+                            "header" // handle ambiguity with body
+                        |] }
+            | _ ->
+                rp.id.AccessPathParts
         {
             requestId = rp.id.RequestId
-            accessPathParts = rp.id.AccessPathParts
+            accessPathParts = accessPathParts
             primitiveType = rp.id.PrimitiveType
+            kind = kind
         }
     | _ ->
         raise (invalidArg "producer" "only input parameter and response producers have an associated dynamic object")
@@ -75,36 +87,48 @@ let getResponseParsers (dependencies:seq<ProducerConsumerDependency>) =
    // Generate the parser for all the consumer variables (Note this means we need both producer
     // and consumer pairs.  A response parser is only generated if there is a consumer for one or more of the
     // response properties.)
-    dependencies
-    |> Seq.choose (fun dep ->
 
-                        match dep.producer with
-                        | Some (ResponseObject _) ->
-                            let writerVariable = getWriterVariable dep.producer.Value
-                            Some (writerVariable, true)
-                        | Some (InputParameter (_, _)) ->
-                            let writerVariable = getWriterVariable dep.producer.Value
-                            Some (writerVariable, false)
-                        | _ -> None)
+    dependencies
+    |> Seq.filter (fun dep -> dep.producer.IsSome)
+    |> Seq.choose (fun dep ->
+                    let writerVariableKind =
+                        match dep.producer.Value with
+                        | ResponseObject ro ->
+                            match ro.id.ResourceReference with
+                            | HeaderResource _ -> Some DynamicObjectVariableKind.Header
+                            | _ -> Some DynamicObjectVariableKind.BodyResponseProperty
+                        | InputParameter (_, _) ->
+                            Some DynamicObjectVariableKind.InputParameter
+                        | _ -> None
+                    match writerVariableKind with
+                    | Some v ->
+                        getWriterVariable dep.producer.Value v
+                        |> Some
+                    | None -> None)
     // Remove duplicates
     // Producer may be linked to multiple consumers in separate dependency pairs
     |> Seq.distinct
-    |> Seq.groupBy (fun (writerVariable, _) -> writerVariable.requestId)
+    |> Seq.groupBy (fun writerVariable -> writerVariable.requestId)
     |> Map.ofSeq
-    |> Map.iter (fun requestId writerVariables ->
-                    let writerVariables, inputWriterVariables =
-                        writerVariables
-                        |> Seq.fold
-                            (fun  (writerVariables, inputWriterVariables)
-                                    (writerVariable, isResponseObject) ->
-                                    if isResponseObject then
-                                        (writerVariable::writerVariables, inputWriterVariables)
-                                    else
-                                        (writerVariables, writerVariable::inputWriterVariables)) ([], [])
+    |> Map.iter (fun requestId allWriterVariables ->
+                    let groupedWriterVariables = allWriterVariables |> Seq.groupBy (fun x -> x.kind)
+                                                 |> Map.ofSeq
                     let parser =
                         {
-                            writerVariables = writerVariables
-                            inputWriterVariables = inputWriterVariables
+                            writerVariables =
+                                match groupedWriterVariables |> Map.tryFind DynamicObjectVariableKind.BodyResponseProperty with
+                                | None -> []
+                                | Some x -> x |> Seq.toList
+                            inputWriterVariables =
+                                match groupedWriterVariables |> Map.tryFind DynamicObjectVariableKind.InputParameter with
+                                | None -> []
+                                | Some x -> x |> Seq.toList
+
+                            headerWriterVariables =
+                                match groupedWriterVariables |> Map.tryFind DynamicObjectVariableKind.Header with
+                                | None -> []
+                                | Some x -> x |> Seq.toList
+
                         }
 
                     parsers.Add(requestId, parser))
@@ -986,19 +1010,39 @@ let generateRequestGrammar (swaggerDocs:Types.ApiSpecFuzzingConfig list)
                                         config.TrackFuzzedParameterNames
                             }
 
-                        let allResponseProperties = seq {
-                            for r in m.Value.Responses do
-                                if validResponseCodes |> List.contains r.Key && not (isNull r.Value.ActualResponse.Schema) then
-                                    yield generateGrammarElementForSchema r.Value.ActualResponse.Schema (None, false) false
-                                                                          (true (*isRequired*), false (*isReadOnly*)) []
-                                                                          id
+                        let allResponses = seq {
+                            let responses = m.Value.Responses
+                                            |> Seq.filter (fun r -> validResponseCodes |> List.contains r.Key)
+                                            |> Seq.sortBy (fun r ->
+                                                                let hasResponseBody = if isNull r.Value.ActualResponse.Schema then 1 else 0
+                                                                let hasResponseHeaders = if r.Value.Headers |> Seq.isEmpty then 1 else 0
+                                                                // Prefer the responses that have a response schema defined.
+                                                                hasResponseBody, hasResponseHeaders, r.Key)
+                            for r in responses do
+                                let headerResponseSchema =
+                                    r.Value.Headers
+                                    |> Seq.map (fun h -> let headerSchema =
+                                                             generateGrammarElementForSchema h.Value (None, false) false
+                                                                                             (true (*isRequired*), false (*isReadOnly*)) []
+                                                                                             id
+                                                         h.Key, headerSchema)
+                                    |> Seq.toList
 
+                                let bodyResponseSchema =
+                                    if isNull r.Value.ActualResponse.Schema then None
+                                    else
+                                        generateGrammarElementForSchema r.Value.ActualResponse.Schema (None, false) false
+                                                                        (true (*isRequired*), false (*isReadOnly*)) []
+                                                                        id
+                                        |> Some
+                                {| bodyResponse = bodyResponseSchema
+                                   headerResponse = headerResponseSchema |}
                         }
 
                         // 'allResponseProperties' contains the schemas of all possible responses
                         // Pick just the first one for now
                         // TODO: capture all of them and generate cases for each one in the response parser
-                        let responseProperties = allResponseProperties |> Seq.tryHead
+                        let response = allResponses |> Seq.tryHead
 
                         let localAnnotations = Restler.Annotations.getAnnotationsFromExtensionData m.Value.ExtensionData "x-restler-annotations"
 
@@ -1012,7 +1056,14 @@ let generateRequestGrammar (swaggerDocs:Types.ApiSpecFuzzingConfig list)
 
                         yield (requestId, { RequestData.requestParameters = requestParameters
                                             localAnnotations = localAnnotations
-                                            responseProperties = responseProperties
+                                            responseProperties =
+                                                match response with
+                                                | None -> None
+                                                | Some r -> r.bodyResponse
+                                            responseHeaders =
+                                                match response with
+                                                | None -> []
+                                                | Some r -> r.headerResponse
                                             requestMetadata = requestMetadata
                                             exampleConfig = exampleConfig })
         }

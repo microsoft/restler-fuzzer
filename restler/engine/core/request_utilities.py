@@ -262,7 +262,14 @@ def call_response_parser(parser, response, request=None):
     # parse response and set dependent variables (for garbage collector)
     try:
         if parser:
-            parser(response.json_body)
+            # For backwards compatibility, check if the parser accepts named arguments.
+            # If not, this is an older grammar that only supports a json body as the argument
+            import inspect
+            args, varargs, varkw, defaults = inspect.getargspec(parser)
+            if varkw=='kwargs':
+                parser(response.json_body, headers=response.headers_dict)
+            else:
+                parser(response.json_body)
             # Check request's producers to verify dynamic objects were set
             if request:
                 for producer in request.produces:

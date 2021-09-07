@@ -535,9 +535,9 @@ let generatePythonFromRequestElement includeOptionalParameters (requestId:Reques
         | Some responseParser ->
             let generateWriterStatement var =
                sprintf "%s.writer()" var
-
+            let variablesReferencedInParser = responseParser.writerVariables @ responseParser.headerWriterVariables
             let parserStatement =
-                match responseParser.writerVariables with
+                match variablesReferencedInParser with
                 | [] -> ""
                 | writerVariable::rest ->
                    sprintf @"'parser': %s,"
@@ -545,7 +545,7 @@ let generatePythonFromRequestElement includeOptionalParameters (requestId:Reques
 
             let postSend =
                 let writerVariablesList =
-                    responseParser.writerVariables @ responseParser.inputWriterVariables
+                    variablesReferencedInParser @ responseParser.inputWriterVariables
                     // TODO: generate this ID only once if possible.
                     |> List.map (fun producerWriter ->
                                       let stmt = generateWriterStatement (generateDynamicObjectVariableName producerWriter.requestId (Some producerWriter.accessPathParts) "_")
@@ -742,6 +742,10 @@ let getDynamicObjectDefinitions (writerVariables:seq<DynamicObjectWriterVariable
     }
     |> Seq.toList
 
+type ResponseVariableKind =
+    | Body
+    | Header
+
 let getResponseParsers (requests: Request list) =
 
     let random = System.Random(0)
@@ -749,20 +753,26 @@ let getResponseParsers (requests: Request list) =
     let responseParsers = requests |> Seq.choose (fun r -> r.responseParser)
 
     // First, define the dynamic variables initialized by the response parser
-    let dynamicObjectDefinitionsFromResponses =
+    let dynamicObjectDefinitionsFromBodyResponses =
         getDynamicObjectDefinitions (responseParsers |> Seq.map (fun r -> r.writerVariables |> seq) |> Seq.concat)
+
+    let dynamicObjectDefinitionsFromHeaderResponses =
+        getDynamicObjectDefinitions (responseParsers |> Seq.map (fun r -> r.headerWriterVariables |> seq) |> Seq.concat)
 
     let dynamicObjectDefinitionsFromInputParameters =
         getDynamicObjectDefinitions (responseParsers |> Seq.map (fun r -> r.inputWriterVariables |> seq) |> Seq.concat)
 
     let formatParserFunction (parser:ResponseParser) =
-        let functionName = NameGenerators.generateProducerEndpointResponseParserFunctionName
-                                parser.writerVariables.[0].requestId
+        let functionName =
+            let writerVariables = parser.writerVariables @ parser.headerWriterVariables
+            NameGenerators.generateProducerEndpointResponseParserFunctionName writerVariables.[0].requestId
 
         // Go through the producer fields and parse them all out of the response
-        let responseParsingStatements =
+        // STOPPED HERE:
+        // also do 'if true' for header parsing and body parsing where 'true' is if there are actually variables to parse out of there.
+        let getResponseParsingStatements writerVariables (variableKind:ResponseVariableKind) =
             [
-                for w in parser.writerVariables do
+                for w in writerVariables do
                     let dynamicObjectVariableName = generateDynamicObjectVariableName w.requestId (Some w.accessPathParts) "_"
                     let tempVariableName = sprintf "temp_%d" (random.Next(10000))
                     let emptyInitStatement = sprintf "%s = None" tempVariableName
@@ -774,10 +784,18 @@ let getResponseParsers (requests: Request list) =
                         else
                             sprintf "[\"%s\"]" part
 
-                    let extractData =
-                        w.accessPathParts.path |> Array.map getPath
-                        |> String.concat ""
-                    let parsingStatement = sprintf "%s = str(data%s)" tempVariableName extractData
+                    let parsingStatement =
+                        let dataSource, accessPath =
+                            match variableKind with
+                            | ResponseVariableKind.Body -> "data", w.accessPathParts.path
+                            | ResponseVariableKind.Header -> "headers", w.accessPathParts.path |> Array.truncate 1
+
+                        let extractData =
+                            accessPath
+                            |> Array.map getPath
+                            |> String.concat ""
+
+                        sprintf "%s = str(%s%s)" tempVariableName dataSource extractData
                     let initCheck = sprintf "if %s:" tempVariableName
                     let initStatement = sprintf "dependencies.set_variable(\"%s\", %s)"
                                             dynamicObjectVariableName
@@ -790,34 +808,62 @@ let getResponseParsers (requests: Request list) =
                     yield (emptyInitStatement, parsingStatement, initCheck, initStatement, tempVariableName, booleanConversionStatement)
             ]
 
+        let responseBodyParsingStatements = getResponseParsingStatements parser.writerVariables ResponseVariableKind.Body
+        let responseHeaderParsingStatements = getResponseParsingStatements parser.headerWriterVariables ResponseVariableKind.Header
+
         let parsingStatementWithTryExcept parsingStatement (booleanConversionStatement:string option) =
             sprintf "
-    try:
-        %s
-        %s
-    except Exception as error:
-        # This is not an error, since some properties are not always returned
-        pass
-"
-                parsingStatement
+        try:
+            %s
+            %s
+        except Exception as error:
+            # This is not an error, since some properties are not always returned
+            pass
+"                parsingStatement
                 (if booleanConversionStatement.IsSome then booleanConversionStatement.Value else "")
 
 
+        let getParseBodyStatement() =
+            """
+        try:
+            data = json.loads(data)
+        except Exception as error:
+            raise ResponseParsingException("Exception parsing response, data was not valid json: {}".format(error))"""
+
+        let getHeaderParsingStatements responseHeaderParsingStatements =
+            let parsingStatements =
+                responseHeaderParsingStatements
+                 |> List.map(fun (_,parsingStatement,_,_,_,booleanConversionStatement) ->
+                                parsingStatementWithTryExcept parsingStatement booleanConversionStatement)
+                 |> String.concat "\n"
+
+            sprintf """
+    if headers:
+        # Try to extract dynamic objects from headers
+%s
+        pass
+        """
+                parsingStatements
+
         let functionDefinition = sprintf "
-def %s(data):
+def %s(data, **kwargs):
     \"\"\" Automatically generated response parser \"\"\"
     # Declare response variables
 %s
-    # Parse the response into json
-    try:
-        data = json.loads(data)
-    except Exception as error:
-        raise ResponseParsingException(\"Exception parsing response, data was not valid json: {}\".format(error))
+%s
+    if 'headers' in kwargs:
+        headers = kwargs['headers']
+
+
+    # Parse body if needed
+    if data:
+%s
+        pass
 
     # Try to extract each dynamic object
-
 %s
 
+%s
     # If no dynamic objects were extracted, throw.
     if not (%s):
         raise ResponseParsingException(\"Error: all of the expected dynamic objects were not present in the response.\")
@@ -826,30 +872,38 @@ def %s(data):
 %s
 "
                                         functionName
-                                        (responseParsingStatements
+                                        // Response variable declarations (body and header)
+                                        (responseBodyParsingStatements
+                                         |> List.map(fun (emptyInitStatement,_,_,_,_,_) -> (TAB + emptyInitStatement)) |> String.concat "\n")
+                                        (responseHeaderParsingStatements
                                          |> List.map(fun (emptyInitStatement,_,_,_,_,_) -> (TAB + emptyInitStatement)) |> String.concat "\n")
 
-                                        (responseParsingStatements
+                                        // Statement to parse the body
+                                        (if parser.writerVariables.Length > 0 then getParseBodyStatement() else "")
+
+                                        (responseBodyParsingStatements
                                          |> List.map(fun (_,parsingStatement,_,_,_,booleanConversionStatement) ->
                                                         parsingStatementWithTryExcept parsingStatement booleanConversionStatement)
                                          |> String.concat "\n")
 
-                                        (responseParsingStatements
-                                        |> List.map(fun (_,_,_,_,tempVariableName,_) ->
-                                                        tempVariableName)
+                                        (if parser.headerWriterVariables.Length > 0 then getHeaderParsingStatements responseHeaderParsingStatements else "")
 
+                                        (responseBodyParsingStatements @ responseHeaderParsingStatements
+                                         |> List.map(fun (_,_,_,_,tempVariableName,_) ->
+                                                        tempVariableName)
                                         |> String.concat " or ")
 
-                                        (responseParsingStatements
+                                        (responseBodyParsingStatements @ responseHeaderParsingStatements
                                          |> List.map(fun (_,_,initCheck,initStatement,_,_) ->
                                                         (TAB + initCheck + "\n" + TAB + TAB + initStatement)) |> String.concat "\n")
 
         PythonGrammarElement.ResponseParserDefinition functionDefinition
 
     let responseParsersWithParserFunction =
-        responseParsers |> Seq.filter (fun rp -> rp.writerVariables.Length > 0)
+        responseParsers |> Seq.filter (fun rp -> rp.writerVariables.Length + rp.headerWriterVariables.Length > 0)
     [
-        yield! dynamicObjectDefinitionsFromResponses
+        yield! dynamicObjectDefinitionsFromBodyResponses
+        yield! dynamicObjectDefinitionsFromHeaderResponses
         yield! dynamicObjectDefinitionsFromInputParameters
         yield! (responseParsersWithParserFunction |> Seq.map (fun r -> formatParserFunction r) |> Seq.toList)
     ]

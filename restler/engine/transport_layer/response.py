@@ -82,6 +82,27 @@ class HttpResponse(object):
             return None
 
     @property
+    def headers_dict(self):
+        """ The parsed name-value pairs of the headers of the response
+        Headers which are not in the expected format are ignored.
+
+        @return: The headers
+        @rtype : Dict[Str, Str]
+
+        """
+        headers_dict = {}
+        for header in self.headers:
+            payload_start_idx = header.index(":")
+            try:
+                header_name = header[0:payload_start_idx]
+                header_val = header[payload_start_idx+1:]
+                headers_dict[header_name] = header_val
+            except Exception as error:
+                print(f"Error parsing header: {x}", x)
+                pass
+        return headers_dict
+
+    @property
     def json_body(self):
         """ The json portion of the body if exists.
 

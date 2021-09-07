@@ -625,22 +625,36 @@ let findProducer (producers:Producers)
         [ consumer.id.ProducerParameterName ; consumer.id.ResourceName ]
 
     let matchingProducers =
-        possibleProducerParameterNames
-        |> Seq.distinct
-        |> Seq.choose (
-            fun producerParameterName ->
-                let mutationsDictionary, producer =
-                    findProducerWithResourceName
-                        producers
-                        consumer
-                        dictionary
-                        allowGetProducers
-                        perRequestDictionary
-                        producerParameterName
-                if producer.IsSome then
-                    Some (mutationsDictionary, producer)
-                else None
-            )
+        let possibleProducers =
+            possibleProducerParameterNames
+            |> Seq.distinct
+            |> Seq.choose (
+                fun producerParameterName ->
+                    let mutationsDictionary, producer =
+                        findProducerWithResourceName
+                            producers
+                            consumer
+                            dictionary
+                            allowGetProducers
+                            perRequestDictionary
+                            producerParameterName
+                    if producer.IsSome then
+                        Some (mutationsDictionary, producer)
+                    else None
+                )
+
+        // Workaround: prefer a response over a dictionary payload.
+        // over a dictionary payload.
+        // TODO: this workaround should be removed when the
+        // producer-consumer dependency algorithm is improved to process
+        // dependencies grouped by paths, rather than independently.
+        possibleProducers
+        |> Seq.sortBy (fun (dictionary, producer) ->
+                            match producer.Value with
+                            | ResponseObject _ -> 1
+                            | DictionaryPayload _ -> 2
+                            | _ -> 3)
+
     match matchingProducers |> Seq.tryHead with
     | Some result -> result
     | None -> dictionary, None
@@ -745,19 +759,19 @@ let findAnnotation globalAnnotations
     | (Some l, _) -> Some l
     | (None, g) -> g
 
+let getPayloadPrimitiveType (payload:FuzzingPayload) =
+    match payload with
+    | Constant (t,_) -> t
+    | Fuzzable (t,_,_,_) -> t
+    | Custom cp -> cp.primitiveType
+    | DynamicObject d -> d.primitiveType
+    | PayloadParts _ ->
+        PrimitiveType.String
+
 let getProducer (request:RequestId) (response:ResponseProperties) =
 
     // All possible properties in this response
     let accessPaths = List<PropertyAccessPath>()
-
-    let getPayloadPrimitiveType (payload:FuzzingPayload) =
-        match payload with
-        | Constant (t,_) -> t
-        | Fuzzable (t,_,_,_) -> t
-        | Custom cp -> cp.primitiveType
-        | DynamicObject d -> d.primitiveType
-        | PayloadParts _ ->
-            PrimitiveType.String
 
     let visitLeaf2 (parentAccessPath:string list) (p:LeafProperty) =
         let resourceAccessPath = PropertyAccessPaths.getLeafAccessPathParts parentAccessPath p
@@ -906,6 +920,15 @@ let createPathProducer (requestId:RequestId) (accessPath:PropertyAccessPath)
                                                           fullPath = accessPath.Path
                                                           },
                                            namingConvention, primitiveType)
+    }
+
+let createHeaderResponseProducer (requestId:RequestId) (headerParameterName:string)
+                                 (namingConvention:NamingConvention option)
+                                 (primitiveType:PrimitiveType) =
+    {
+        ResponseProducer.id = ApiResource(requestId,
+                                          HeaderResource headerParameterName,
+                                          namingConvention, primitiveType)
     }
 
 
@@ -1122,6 +1145,20 @@ let extractDependencies (requestData:(RequestId*RequestData)[])
                         let producer = createPathProducer r ap namingConvention ap.Type
                         let resourceName = ap.Name
                         producers.AddResponseProducer(resourceName, producer)
+
+                for header in rd.responseHeaders do
+                    // Add the header name as a producer only
+                    let primitiveType =
+                        let headerPayload = (snd header)
+                        match headerPayload with
+                        | Tree.LeafNode lp ->
+                            getPayloadPrimitiveType lp.payload
+                        | Tree.InternalNode (ip, _) ->
+                            PrimitiveType.Object
+
+                    let resourceName = fst header
+                    let producer = createHeaderResponseProducer r resourceName namingConvention primitiveType
+                    producers.AddResponseProducer(resourceName, producer)
 
                 // Also check for input-only producers that should be added for this request.
                 // At this time, only producers specified in annotations are supported.
@@ -1371,7 +1408,12 @@ module DependencyLookup =
         match producer with
         | None -> defaultPayload
         | Some (ResponseObject responseProducer) ->
-            let variableName = generateDynamicObjectVariableName responseProducer.id.RequestId (Some responseProducer.id.AccessPathParts) "_"
+            let variableName =
+                match responseProducer.id.ResourceReference with
+                | HeaderResource hr ->
+                    (generateDynamicObjectVariableName responseProducer.id.RequestId (Some { AccessPath.path = [| hr ; "header"|]} ) "_")
+                | _ ->
+                    generateDynamicObjectVariableName responseProducer.id.RequestId (Some responseProducer.id.AccessPathParts) "_"
             // Mark the type of the dynamic object to be the type of the input parameter if available
             let primitiveType =
                 match defaultPayload with
@@ -1600,6 +1642,8 @@ let writeDependencies dependenciesFilePath dependencies (unresolvedOnly:bool) =
             p.name
         | QueryResource q ->
             q
+        | HeaderResource h ->
+            h
         | BodyResource b ->
             b.fullPath.getJsonPointer().Value
 

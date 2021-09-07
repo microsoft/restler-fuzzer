@@ -121,6 +121,7 @@
       "httpVersion": "1.1",
       "responseParser": {
         "writerVariables": [],
+        "headerWriterVariables": [],
         "inputWriterVariables": [
           {
             "requestId": {
@@ -137,7 +138,8 @@
                 "path"
               ]
             },
-            "primitiveType": "String"
+            "primitiveType": "String",
+            "kind": "InputParameter"
           }
         ]
       },
@@ -157,7 +159,8 @@
               "path"
             ]
           },
-          "primitiveType": "String"
+          "primitiveType": "String",
+          "kind": "InputParameter"
         }
       ],
       "requestMetadata": {
@@ -285,6 +288,7 @@
       "httpVersion": "1.1",
       "responseParser": {
         "writerVariables": [],
+        "headerWriterVariables": [],
         "inputWriterVariables": [
           {
             "requestId": {
@@ -301,7 +305,8 @@
                 "path"
               ]
             },
-            "primitiveType": "String"
+            "primitiveType": "String",
+            "kind": "InputParameter"
           }
         ]
       },
@@ -321,7 +326,8 @@
               "path"
             ]
           },
-          "primitiveType": "String"
+          "primitiveType": "String",
+          "kind": "InputParameter"
         }
       ],
       "requestMetadata": {
