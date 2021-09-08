@@ -131,6 +131,7 @@ class CandidateValuesPool(object):
             CUSTOM_PAYLOAD_HEADER,
             CUSTOM_PAYLOAD_QUERY,
             CUSTOM_PAYLOAD_UUID4_SUFFIX,
+            FUZZABLE_MULTIPART_FORMDATA,
             REFRESHABLE_AUTHENTICATION_TOKEN,
             SHADOW_VALUES
         ]

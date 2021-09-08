@@ -653,6 +653,7 @@ class Request(object):
             elif primitive_type in [ primitives.CUSTOM_PAYLOAD,
                                      primitives.CUSTOM_PAYLOAD_HEADER,
                                      primitives.CUSTOM_PAYLOAD_QUERY,
+                                     primitives.FUZZABLE_MULTIPART_FORMDATA,
                                      primitives.CUSTOM_PAYLOAD_UUID4_SUFFIX ]:
                 field_name = request_block[1]
                 quoted = request_block[2]
@@ -692,7 +693,7 @@ class Request(object):
             elif primitive_type == primitives.FUZZABLE_MULTIPART_FORMDATA:
                 try:
                     current_fuzzable_values = candidate_values_pool.\
-                        get_candidate_values(primitive_type, request_id=self._request_id, tag=default_val, quoted=quoted)
+                        get_candidate_values(primitive_type, request_id=self._request_id, tag=field_name, quoted=quoted)
                     values = [multipart_formdata.render(current_fuzzable_values)]
                 except primitives.CandidateValueException:
                     _raise_dict_err(primitive_type, default_val)
