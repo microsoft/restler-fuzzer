@@ -81,7 +81,7 @@ class ExamplesChecker(CheckerBase):
         status_codes = {}
 
         # Send new request for each body example
-        for example in request.examples.body_examples:
+        for example in filter(lambda x : x is not None, request.examples.body_examples):
             blocks = example.get_blocks()
             new_request = request.substitute_body(blocks)
             if new_request:
@@ -91,7 +91,7 @@ class ExamplesChecker(CheckerBase):
         # Send new request for each query example.
         # For now don't try to match these up with body examples.
         # There will soon be IDs associated with the examples, so they can be matched.
-        for example in request.examples.query_examples:
+        for example in filter(lambda x : x is not None, request.examples.query_examples):
             q_blocks = []
             for idx, query in enumerate(example.param_list):
                 q_blocks += query.get_blocks()
