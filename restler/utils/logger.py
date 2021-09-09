@@ -813,6 +813,7 @@ def print_generation_stats(req_collection, fuzzing_monitor, global_lock, final=F
         testing_summary['total_object_creations'] = total_object_creations
         testing_summary['total_requests_sent'] = total_requests_sent
         testing_summary['bug_buckets'] = bug_buckets
+        testing_summary['reproducible_bug_buckets'] = BugBuckets.Instance().repro_bug_buckets()
 
         with open(os.path.join(LOGS_DIR, "testing_summary.json"), "w+", encoding='utf-8') as summary_json:
             json.dump(testing_summary, summary_json, indent=4)
