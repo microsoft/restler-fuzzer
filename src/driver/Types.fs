@@ -167,7 +167,10 @@ module Engine =
     //        "main_driver": 66
     //    },
     //    "bug_buckets": {
-    //        "main_driver_500": 0
+    //        "main_driver_500": 1
+    //    },
+    //    "reproducible_bug_buckets": {
+    //        "main_driver_500": 1
     //    }
     //}
     type TestingSummary =
@@ -181,6 +184,7 @@ module Engine =
             total_object_creations : int
             total_requests_sent : Dictionary<string, int>
             bug_buckets : Dictionary<string, int>
+            reproducible_bug_buckets : Dictionary<string, int>
         }
 
 /// Helper module to produce compact messages in the console, but more

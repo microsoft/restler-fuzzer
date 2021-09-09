@@ -219,8 +219,7 @@ class BugBuckets(object):
                 lock.release()
 
     def num_bug_buckets(self, lock=None):
-        """ Calculates the total number of bug buckets and the buckets
-        per class.
+        """ Calculates the total number of bug buckets per bucket class.
 
         @param lock: Lock object used for sync of more than one fuzzing jobs.
         @type  lock: thread.Lock object
@@ -236,6 +235,35 @@ class BugBuckets(object):
             d = OrderedDict()
             for k in sorted(self._bug_buckets):
                 d[k] = len(self._bug_buckets[k])
+        finally:
+            if lock is not None:
+                lock.release()
+
+        return dict(d)
+
+    def repro_bug_buckets(self, lock=None):
+        """ Calculates the total number of reproducible bug buckets
+        per class.
+
+        @param lock: Lock object used for sync of more than one fuzzing jobs.
+        @type  lock: thread.Lock object
+
+        @return: Number of requests sent so far.
+        @rtype : Dict
+
+        """
+        if lock is not None:
+            lock.acquire()
+
+        try:
+            d = OrderedDict()
+            for k in sorted(self._bug_buckets):
+                count_repro_buckets = 0
+                bucket_class = self._bug_buckets[k]
+                for bucket in bucket_class:
+                    if bucket_class[bucket].reproducible:
+                        count_repro_buckets += 1
+                d[k] = count_repro_buckets
         finally:
             if lock is not None:
                 lock.release()
