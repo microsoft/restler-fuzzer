@@ -58,7 +58,7 @@ def create_fuzzing_req_collection(path_regex):
                 reqs = driver.compute_request_goal_seq(
                     request, GrammarRequestCollection())
                 for req in reqs:
-                    included_requests.add(req)
+                    included_requests.append(req)
     else:
         included_requests = list (GrammarRequestCollection()._requests)
 
