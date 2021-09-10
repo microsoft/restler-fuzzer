@@ -377,7 +377,7 @@ module Fuzz =
             if parameters.maxDurationHours = float 0 then DefaultFuzzingDurationHours
             else parameters.maxDurationHours
 
-        let fuzzingMode = 
+        let fuzzingMode =
             if parameters.searchStrategy.IsNone then
                 "bfs-fast"
             else parameters.searchStrategy.Value
@@ -905,18 +905,28 @@ let main argv =
                 LogCollection.uploadLogs args.workingDirectoryPath taskWorkingDirectory logsUploadDirPath.Value "task_logs"
         with e ->
             Logging.logError <| sprintf "Log upload failed, please contact support.  Upload directory: %A, exception: %A" logsUploadDirPath e
+
+        let result =
+            match result.taskResult with
+            | 0 -> Ok 0
+            | e -> Error e
+        return result
     }
 
     let executionId = System.Guid.NewGuid()
     let taskName = args.task.ToString()
     try
-        async {
-            do! runRestlerTask executionId taskName
-        }
-        |> Async.RunSynchronously
+        let result =
+            async {
+                return! runRestlerTask executionId taskName
+            }
+            |> Async.RunSynchronously
+        match result with
+        | Ok _ -> exit 0
+        | _ -> exit 1
     with e ->
         // Report that an error occurred in telemetry
         telemetryClient.RestlerDriverFailed(CurrentVersion, taskName, executionId)
         reraise()
-    0
+
 
