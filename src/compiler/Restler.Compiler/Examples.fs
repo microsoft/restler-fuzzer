@@ -35,6 +35,7 @@ type ExamplePath =
 type ExampleConfigFile =
     {
         paths : ExamplePath list
+        exactCopy : bool
     }
 
 /// Deserialize the example config file
@@ -134,7 +135,10 @@ let tryDeserializeExampleConfigFile exampleConfigFilePath =
                             { ExamplePath.path = pathName
                               methods = methods |> Seq.toList }
             )
-        { ExampleConfigFile.paths = paths |> Seq.toList }
+        {
+            ExampleConfigFile.paths = paths |> Seq.toList
+            exactCopy = false
+        }
         |> Some
     | None -> None
 
@@ -162,120 +166,145 @@ type ExampleRequestPayload =
 
         /// The payloads for each parameter
         parameterExamples : ExampleParameterPayload list
+
+        /// Make an exact copy of this example payload, without matching with the schema
+        exactCopy : bool
     }
 
 open NSwag
+
+/// Merges the example payloads from all of the specified config files
+let getUserSpecifiedPayloadExamples (endpoint:string) (method:string) (config:ExampleConfigFile list) (discoverExamples:bool) =
+    config
+    |> List.map (fun payloadExamples ->
+                    if discoverExamples then
+                        raise (invalidOp "Only one of 'discoverExamples' or an example config file can be specified.")
+                    let exampleFilePathsOrInlinedPayloads = seq {
+                        match payloadExamples.paths |> List.tryFind (fun x -> x.path = endpoint) with
+                        | Some epPayload ->
+                            match epPayload.methods |> List.tryFind (fun x -> x.name.ToLower() = method.ToLower()) with
+                            | None -> ()
+                            | Some methodPayload ->
+                                for ep in methodPayload.examplePayloads do
+                                    yield ep.filePathOrInlinedPayload
+                        | None -> ()
+                    }
+
+                    exampleFilePathsOrInlinedPayloads
+                    |> Seq.toList
+                    |> List.choose (fun ep ->
+                                        match ep with
+                                        | ExamplePayloadKind.FilePath fp ->
+                                            tryDeserializeJObjectFromFile fp
+                                        | ExamplePayloadKind.InlineExample ie ->
+                                            tryDeserializeJObjectFromToken ie)
+                    |> List.map (fun (json, exampleFilePath) ->
+                                    /// For spec examples, the schema matches the spec, so 'exactCopy' should be false.
+                                    {| exampleJson = json
+                                       filePath = exampleFilePath
+                                       exactCopy = payloadExamples.exactCopy |}))
+    |> List.concat
+
+
+/// Gets the example payloads that were specified inline in the specification
+/// These are the examples specified as full payloads - individual property examples are extracted in a different place, while
+/// traversing the schema.
+let getSpecPayloadExamples (swaggerMethodDefinition:OpenApiOperation) (examplesDirectoryPath:string) (discoverExamples:bool) =
+    let extensionData =
+        if isNull swaggerMethodDefinition.ExtensionData then None
+        else swaggerMethodDefinition.ExtensionData
+                |> Seq.tryFind (fun kvp -> kvp.Key = "x-ms-examples" || kvp.Key.ToLower() = "examples")
+
+    // Get example if it exists.  If not, fall back on the parameter list.
+    match extensionData with
+    | None -> List.empty
+    | Some example ->
+        let dict = example.Value :?> System.Collections.IDictionary
+        let specExampleValues =
+            let filesOrRawExamples = seq {
+                for i in dict.Values do
+                    let exampleValues = i :?> System.Collections.IDictionary
+                    if exampleValues.Count < 1 then
+                        printfn "Invalid example specification found: %A" exampleValues
+                    else
+                        // The examples may be file references or inlined
+                        // simply return the object.
+                        if exampleValues.Contains("__referencePath") then
+                            yield exampleValues.["__referencePath"]
+
+                        if exampleValues.Contains("parameters") then
+                            yield exampleValues :> obj
+            }
+            filesOrRawExamples |> Seq.toList
+
+        let getExampleFilePath relativePathFromSwagger =
+            let swaggerDocDirectory =
+                System.IO.Path.GetDirectoryName(swaggerMethodDefinition.Parent.Parent.DocumentPath)
+
+            let swaggerExampleFilePath = System.IO.Path.Combine(swaggerDocDirectory, relativePathFromSwagger)
+            // When discovering examples, use the swaggerDoc directory, otherwise check the local directory
+            // and use that example first.
+            if discoverExamples then
+                swaggerExampleFilePath
+            else
+                let localFilePath = System.IO.Path.Combine(examplesDirectoryPath, System.IO.Path.GetFileName(swaggerExampleFilePath))
+                if System.IO.File.Exists localFilePath then
+                    localFilePath
+                else
+                    swaggerExampleFilePath
+
+        specExampleValues
+        |> List.choose (fun relativeExampleFilePathOrRaw ->
+                            match relativeExampleFilePathOrRaw with
+                            | :? string as relativeExampleFilePath ->
+                                let exampleFilePath = getExampleFilePath relativeExampleFilePath
+                                tryDeserializeJObjectFromFile exampleFilePath
+                            | rawExample ->
+                                // Warning: NJsonSchema does not support x-ms-examples or Examples - it reads
+                                // the JSON as a schema, which should not be used here.
+                                // Instead, retrieve the raw json from the original Swagger file using
+                                // the path.
+                                // Note: An empty entry will not be included in this JSON by default.
+                                // For example, if the dictionary contains ("Properties": {}, the properties
+                                // key will be excluded from the json
+                                try
+                                    // BUG: [external] in a few cases, the example JSON objects cannot be round-tripped
+                                    // through the schema (for instance, if the example contains a 'type' property).
+                                    // A workaround for users is to extract the example to a file and
+                                    // use a $ref to refer to it.
+                                    let json = JObject.FromObject(rawExample)
+                                    Some (json, None)
+                                with e ->
+                                    printfn "example %O is invalid. %O" rawExample e
+                                    None
+                        )
+        |> List.map (fun (json, exampleFilePath) ->
+                            /// For spec examples, the schema should match the spec, so 'exactCopy' should be false.
+                            {| exampleJson = json
+                               filePath = exampleFilePath
+                               exactCopy = false |})
 
 let getExampleConfig (endpoint:string, method:string)
                      (swaggerMethodDefinition:OpenApiOperation)
                      discoverExamples
                      (examplesDirectoryPath:string)
-                     (userSpecifiedPayloadExamples:ExampleConfigFile option) =
+                     (userSpecifiedPayloads:ExampleConfigFile list)
+                     (useAllExamples:bool) =
     // TODO: only do user specified if discoverExamples is false.
 
     // The example payloads specified in the example config file take precedence over the
     // examples in the specification.
-    let userSpecifiedPayloadExampleValues =
-        match userSpecifiedPayloadExamples with
-        | Some payloadExamples ->
-            if discoverExamples then
-                raise (invalidOp "Only one of 'discoverExamples' or an example config file can be specified.")
-            let exampleFilePathsOrInlinedPayloads = seq {
-                match payloadExamples.paths |> List.tryFind (fun x -> x.path = endpoint) with
-                | Some epPayload ->
-                    match epPayload.methods |> List.tryFind (fun x -> x.name.ToLower() = method.ToLower()) with
-                    | None -> ()
-                    | Some methodPayload ->
-                        for ep in methodPayload.examplePayloads do
-                            yield ep.filePathOrInlinedPayload
-                | None -> ()
-            }
+    let userSpecifiedPayloadExampleValues = getUserSpecifiedPayloadExamples endpoint method userSpecifiedPayloads discoverExamples
+    let specPayloadExamples =
+        if useAllExamples || userSpecifiedPayloadExampleValues.Length = 0 then
+            getSpecPayloadExamples swaggerMethodDefinition examplesDirectoryPath discoverExamples
+        else []
 
-            exampleFilePathsOrInlinedPayloads
-            |> Seq.toList
-            |> List.choose (fun ep ->
-                                match ep with
-                                | ExamplePayloadKind.FilePath fp ->
-                                    tryDeserializeJObjectFromFile fp
-                                | ExamplePayloadKind.InlineExample ie ->
-                                    tryDeserializeJObjectFromToken ie)
-        | None -> List.empty
+    let examplePayloads = userSpecifiedPayloadExampleValues @ specPayloadExamples
 
-    let exampleValues =
-        if userSpecifiedPayloadExampleValues.Length > 0 then
-            userSpecifiedPayloadExampleValues
-        else
-            let extensionData =
-                if isNull swaggerMethodDefinition.ExtensionData then None
-                else swaggerMethodDefinition.ExtensionData
-                        |> Seq.tryFind (fun kvp -> kvp.Key = "x-ms-examples" || kvp.Key.ToLower() = "examples")
-
-            // Get example if it exists.  If not, fall back on the parameter list.
-            match extensionData with
-            | None -> List.empty
-            | Some example ->
-                let dict = example.Value :?> System.Collections.IDictionary
-                let specExampleValues =
-                    let filesOrRawExamples = seq {
-                        for i in dict.Values do
-                            let exampleValues = i :?> System.Collections.IDictionary
-                            if exampleValues.Count < 1 then
-                                printfn "Invalid example specification found: %A" exampleValues
-                            else
-                                // The examples may be file references or inlined
-                                // simply return the object.
-                                if exampleValues.Contains("__referencePath") then
-                                    yield exampleValues.["__referencePath"]
-
-                                if exampleValues.Contains("parameters") then
-                                    yield exampleValues :> obj
-                    }
-                    filesOrRawExamples |> Seq.toList
-
-                let getExampleFilePath relativePathFromSwagger =
-                    let swaggerDocDirectory =
-                        System.IO.Path.GetDirectoryName(swaggerMethodDefinition.Parent.Parent.DocumentPath)
-
-                    let swaggerExampleFilePath = System.IO.Path.Combine(swaggerDocDirectory, relativePathFromSwagger)
-                    // When discovering examples, use the swaggerDoc directory, otherwise check the local directory
-                    // and use that example first.
-                    if discoverExamples then
-                        swaggerExampleFilePath
-                    else
-                        let localFilePath = System.IO.Path.Combine(examplesDirectoryPath, System.IO.Path.GetFileName(swaggerExampleFilePath))
-                        if System.IO.File.Exists localFilePath then
-                            localFilePath
-                        else
-                            swaggerExampleFilePath
-
-                specExampleValues
-                |> List.choose (fun relativeExampleFilePathOrRaw ->
-                                    match relativeExampleFilePathOrRaw with
-                                    | :? string as relativeExampleFilePath ->
-                                        let exampleFilePath = getExampleFilePath relativeExampleFilePath
-                                        tryDeserializeJObjectFromFile exampleFilePath
-                                    | rawExample ->
-                                        // Warning: NJsonSchema does not support x-ms-examples or Examples - it reads
-                                        // the JSON as a schema, which should not be used here.
-                                        // Instead, retrieve the raw json from the original Swagger file using
-                                        // the path.
-                                        // Note: An empty entry will not be included in this JSON by default.
-                                        // For example, if the dictionary contains ("Properties": {}, the properties
-                                        // key will be excluded from the json
-                                        try
-                                            // BUG: [external] in a few cases, the example JSON objects cannot be round-tripped
-                                            // through the schema (for instance, if the example contains a 'type' property).
-                                            // A workaround for users is to extract the example to a file and
-                                            // use a $ref to refer to it.
-                                            let json = JObject.FromObject(rawExample)
-                                            Some (json, None)
-                                        with e ->
-                                            printfn "example %O is invalid. %O" rawExample e
-                                            None
-                                )
-    exampleValues
-    |> List.map (fun (json, exampleFilePath) ->
-                    let exampleParameterValues = json.["parameters"].Value<JObject>()
+    examplePayloads
+    |> List.map (fun examplePayload ->
+                    let exampleParameterValues = examplePayload.exampleJson.["parameters"].Value<JObject>()
                     let examplePayloads =
                         exampleParameterValues.Properties()
                         |> Seq.map (fun exampleParameter ->
@@ -286,7 +315,8 @@ let getExampleConfig (endpoint:string, method:string)
                                     )
                         |> Seq.toList
                     {
-                        exampleFilePath = exampleFilePath
+                        exampleFilePath = examplePayload.filePath
                         parameterExamples = examplePayloads
+                        exactCopy = examplePayload.exactCopy
                     }
                 )
