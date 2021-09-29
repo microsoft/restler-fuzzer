@@ -71,6 +71,41 @@ directory.  If *DiscoverExamples* is false, every time an example is used
 in the Swagger file, RESTler will first look for it in metadata,
 and, if found, the externally specified example will override the example from the specification.
 
+    See /docs/user-guide/Examples.md for a description of the file format.
+If this setting is not specified, and *DiscoverExamples* is set to ```false```,
+the compiler looks for a default file named ```examples.json``` in the specified examples
+directory.  If *DiscoverExamples* is false, every time an example is used
+in the Swagger file, RESTler will first look for it in metadata,
+and, if found, the externally specified example will override the example from the specification.
+
+
+* *ExampleConfigFiles* is a setting that allows specifying several example config files
+(files in which example parameter payload metadata is located), plus additional settings.
+The currently supported settings are:
+```
+  "ExampleConfigFiles": [
+    {
+      "filePath": "C:\\examples_1.json",
+      "exactCopy": false
+    },
+    {
+      "filePath": "C:\\examples_2.json",
+      "exactCopy": true
+    },
+  ]
+```
+
+- ```filePath``` is the path to the file containing metadata about example parameter payloads
+- ```exactCopy``` specifies whether the example values should be merged with the schema and dictionary
+(for example, this will discard parameters that are not present in the spec), or
+used exactly as specified (for example, this will not substitute any values from the dictionary).
+```exactCopy``` is ```false``` by default.
+
+* *UseAllExamplePayloads* When set to ```true```, all available example payloads are used (currently, both
+the ones referenced in the specification and the ones
+specified by the user in one or more example config files). ```False``` by default (the user-specified examples override
+the ones from the specification).
+
 * *ExamplesDirectory* is the directory where the compiler will copy example payloads
 found in the Swagger file if *DiscoverExamples* is set to ```true```.
 If *DiscoverExamples* is set to ```false```, RESTler tries to use examples in the

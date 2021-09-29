@@ -1,0 +1,91 @@
+{
+  "swagger": "2.0",
+  "basePath": "/api",
+  "paths": {
+    "/stores": {
+      "post": {
+        "responses": {
+          "200": {
+            "description": "Success"
+
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "required": true,
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/Store"
+            }
+          }
+        ],
+        "tags": [
+          "blog/posts"
+        ]
+      }
+    },
+    "/stores/{storeId}": {
+      "put": {
+        "responses": {
+          "200": {
+            "description": "Success"
+
+          }
+        },
+        "parameters": [
+          {
+            "name": "storeId",
+            "required": true,
+            "in": "path",
+            "type":  "string"
+          },
+          {
+            "name": "body",
+            "required": true,
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/Store"
+            }
+          }
+        ],
+        "tags": [
+          "blog/posts"
+        ]
+      }
+    }
+
+  },
+  "info": {
+    "title": "One PUT API with examples",
+    "version": "1.0"
+  },
+  "produces": [
+    "application/json"
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "tags": [
+    {
+      "name": "blog/posts",
+      "description": "Operations related to blog posts"
+    },
+    {
+      "name": "/",
+      "description": "Operations related to blog categories"
+    }
+  ],
+  "definitions": {
+    "Store": {
+      "properties": {
+        "window": {
+          "type": "integer",
+          "description": "The unique identifier of a blog post",
+          "example": 123
+        }
+      },
+      "type": "object"
+    }
+  }
+}

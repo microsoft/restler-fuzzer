@@ -223,25 +223,45 @@ module private Parameters =
         // If the declared parameter is the body, then also look for the special keyword denoting
         // a body parameter in examples
         let bodyName = "__body__"
-        let exampleParameters =
+
+        let exampleParametersFromSpec =
             parameterList
             |> Seq.choose
                 (fun declaredParameter ->
-                            // If the declared parameter isn't in the example, skip it.  Here, the example is used to
-                            // select which parameters must be passed to the API.
-                            let foundParameter =
-                                match examplePayload.parameterExamples
-                                      |> List.tryFind (fun r -> r.parameterName = declaredParameter.Name) with
-                                | Some p -> Some p
-                                | None when declaredParameter.Kind = OpenApiParameterKind.Body ->
-                                    examplePayload.parameterExamples
-                                    |> List.tryFind (fun r -> r.parameterName = bodyName)
-                                | None -> None
-                            match foundParameter with
+                        // If the declared parameter isn't in the example, skip it.  Here, the example is used to
+                        // select which parameters must be passed to the API.
+                        let foundParameter =
+                            match examplePayload.parameterExamples
+                                    |> List.tryFind (fun r -> r.parameterName = declaredParameter.Name) with
+                            | Some p -> Some p
+                            | None when declaredParameter.Kind = OpenApiParameterKind.Body ->
+                                examplePayload.parameterExamples
+                                |> List.tryFind (fun r -> r.parameterName = bodyName)
                             | None -> None
-                            | Some found ->
-                                match found.payload with
-                                | PayloadFormat.JToken payloadValue ->
+
+                        match foundParameter with
+                        | None -> None
+                        | Some found ->
+                            match found.payload with
+                            | PayloadFormat.JToken payloadValue ->
+                                if examplePayload.exactCopy then
+                                    let payload =
+                                        let primitiveType =
+                                            match payloadValue.Type with
+                                            | JTokenType.Array
+                                            | JTokenType.Object ->
+                                                PrimitiveType.Object
+                                            | _ ->
+                                                PrimitiveType.String
+                                        Constant (primitiveType, payloadValue.ToString(Newtonsoft.Json.Formatting.None))
+
+                                    Some { name = declaredParameter.Name
+                                           payload = LeafNode { LeafProperty.name = ""
+                                                                payload = payload
+                                                                isReadOnly = false
+                                                                isRequired = true }
+                                           serialization = None }
+                                else
                                     let parameterGrammarElement =
                                         generateGrammarElementForSchema declaredParameter.ActualSchema
                                                                         (Some payloadValue, false) trackParameters
@@ -252,13 +272,39 @@ module private Parameters =
                                            payload = parameterGrammarElement
                                            serialization = getParameterSerialization declaredParameter }
                 )
+            |> Seq.toList
 
-        examplePayload.parameterExamples
-        |> List.filter (fun exampleParameter ->
-                            exampleParameter.parameterName <> bodyName &&
-                            parameterList |> Seq.tryFind (fun dp -> dp.Name = exampleParameter.parameterName) = None)
-        |> List.iter (fun p -> printfn "Warning: example parameter not found in spec: %s" p.parameterName)
-        exampleParameters
+        let exampleParametersNotFromSpec =
+            if examplePayload.exactCopy then
+                examplePayload.parameterExamples
+                |> List.filter (fun exampleParameter ->
+                                    exampleParameter.parameterName <> bodyName &&
+                                    parameterList |> Seq.tryFind (fun dp -> dp.Name = exampleParameter.parameterName) = None)
+                |> List.map (fun p ->
+
+                                    printfn "Warning: example parameter not found in spec: %s" p.parameterName
+                                    let payload =
+                                        match p.payload with
+                                        | PayloadFormat.JToken payloadValue ->
+                                            let primitiveType =
+                                                match payloadValue.Type with
+                                                | JTokenType.Array
+                                                | JTokenType.Object ->
+                                                    PrimitiveType.Object
+                                                | _ ->
+                                                    PrimitiveType.String
+                                            Constant (primitiveType, payloadValue.ToString(Newtonsoft.Json.Formatting.None))
+
+                                    { name = p.parameterName
+                                      payload = LeafNode { LeafProperty.name = ""
+                                                           payload = payload
+                                                           isReadOnly = false
+                                                           isRequired = true }
+                                      serialization = None })
+            else
+                // Only use the spec examples
+                []
+        exampleParametersFromSpec @ exampleParametersNotFromSpec
 
     // Gets the first example found from the open API parameter:
     // The priority is:
@@ -910,7 +956,7 @@ let generateRequestGrammar (swaggerDocs:Types.ApiSpecFuzzingConfig list)
                            (dictionary:MutationsDictionary)
                            (config:Restler.Config.Config)
                            (globalExternalAnnotations: ProducerConsumerAnnotation list)
-                           (userSpecifiedExamples:ExampleConfigFile option) =
+                           (userSpecifiedExamples:ExampleConfigFile list) =
 
     let getRequestData (swaggerDoc:OpenApiDocument) (xMsPathsMapping:Map<string,string> option) =
         let requestDataSeq = seq {
@@ -944,7 +990,10 @@ let generateRequestGrammar (swaggerDocs:Types.ApiSpecFuzzingConfig list)
                         let useExamples =
                             usePathExamples || useBodyExamples || useQueryExamples || useHeaderExamples
                         if useExamples || config.DiscoverExamples then
-                            let exampleRequestPayloads = getExampleConfig (ep,m.Key) m.Value config.DiscoverExamples config.ExamplesDirectory userSpecifiedExamples
+                            let exampleRequestPayloads = getExampleConfig (ep,m.Key) m.Value config.DiscoverExamples
+                                                                          config.ExamplesDirectory
+                                                                          userSpecifiedExamples
+                                                                          (config.UseAllExamplePayloads |> Option.defaultValue false)
                             // If 'discoverExamples' is specified, create a local copy in the specified examples directory for
                             // all the examples found.
                             if config.DiscoverExamples then
