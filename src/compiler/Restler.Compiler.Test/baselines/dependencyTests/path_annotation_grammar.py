@@ -12,40 +12,51 @@ _stores_post_id = dependencies.DynamicVariable("_stores_post_id")
 
 _stores_post_metadata = dependencies.DynamicVariable("_stores_post_metadata")
 
-def parse_storespost(data):
+def parse_storespost(data, **kwargs):
     """ Automatically generated response parser """
     # Declare response variables
     temp_7262 = None
     temp_8173 = None
     temp_7680 = None
-    # Parse the response into json
-    try:
-        data = json.loads(data)
-    except Exception as error:
-        raise ResponseParsingException("Exception parsing response, data was not valid json: {}".format(error))
+
+    if 'headers' in kwargs:
+        headers = kwargs['headers']
+
+
+    # Parse body if needed
+    if data:
+
+        try:
+            data = json.loads(data)
+        except Exception as error:
+            raise ResponseParsingException("Exception parsing response, data was not valid json: {}".format(error))
+        pass
 
     # Try to extract each dynamic object
 
-
-    try:
-        temp_7262 = str(data["delivery"]["metadata"])
-    except Exception as error:
-        # This is not an error, since some properties are not always returned
-        pass
-
-
-    try:
-        temp_8173 = str(data["id"])
-    except Exception as error:
-        # This is not an error, since some properties are not always returned
-        pass
+        try:
+            temp_7262 = str(data["delivery"]["metadata"])
+            
+        except Exception as error:
+            # This is not an error, since some properties are not always returned
+            pass
 
 
-    try:
-        temp_7680 = str(data["metadata"])
-    except Exception as error:
-        # This is not an error, since some properties are not always returned
-        pass
+        try:
+            temp_8173 = str(data["id"])
+            
+        except Exception as error:
+            # This is not an error, since some properties are not always returned
+            pass
+
+
+        try:
+            temp_7680 = str(data["metadata"])
+            
+        except Exception as error:
+            # This is not an error, since some properties are not always returned
+            pass
+
 
 
     # If no dynamic objects were extracted, throw.
@@ -73,7 +84,7 @@ request = requests.Request([
     primitives.restler_static_string("Host: localhost:8888\r\n"),
     primitives.restler_refreshable_authentication_token("authentication_token_tag"),
     primitives.restler_static_string("\r\n"),
-
+    
     {
         'post_send':
         {

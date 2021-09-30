@@ -8,24 +8,33 @@ from engine import dependencies
 
 _stores__storeId__order_post_id = dependencies.DynamicVariable("_stores__storeId__order_post_id")
 
-def parse_storesstoreIdorderpost(data):
+def parse_storesstoreIdorderpost(data, **kwargs):
     """ Automatically generated response parser """
     # Declare response variables
     temp_7262 = None
-    # Parse the response into json
-    try:
-        data = json.loads(data)
-    except Exception as error:
-        raise ResponseParsingException("Exception parsing response, data was not valid json: {}".format(error))
+
+    if 'headers' in kwargs:
+        headers = kwargs['headers']
+
+
+    # Parse body if needed
+    if data:
+
+        try:
+            data = json.loads(data)
+        except Exception as error:
+            raise ResponseParsingException("Exception parsing response, data was not valid json: {}".format(error))
+        pass
 
     # Try to extract each dynamic object
 
+        try:
+            temp_7262 = str(data["id"])
+            
+        except Exception as error:
+            # This is not an error, since some properties are not always returned
+            pass
 
-    try:
-        temp_7262 = str(data["id"])
-    except Exception as error:
-        # This is not an error, since some properties are not always returned
-        pass
 
 
     # If no dynamic objects were extracted, throw.
@@ -112,7 +121,7 @@ request = requests.Request([
         "awesome"
     ]}"""),
     primitives.restler_static_string("\r\n"),
-
+    
     {
         'post_send':
         {

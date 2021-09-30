@@ -222,21 +222,6 @@ type ProducerConsumerAnnotation =
         consumerParameter : AnnotationResourceReference
         exceptConsumerId: RequestId list option
     }
-    //with
-    //    /// Given the 'consumerParameter', returns the access path or None if the consumer parameter
-    //    /// is a name.
-    //    member x.tryGetConsumerAccessPath =
-    //        match x.consumerParameter with
-    //        | ResourceName _ -> None
-    //        | ResourcePath parts ->
-    //            Some (parts |> String.concat ";")
-
-    //    member x.tryGetProducerAccessPath =
-    //        match x.producerParameter with
-    //        | ResourceName _ -> None
-    //        | ResourcePath parts ->
-    //            Some (parts |> String.concat ";")
-
 
 /// A property that does not have any nested properties
 type LeafProperty =
@@ -327,6 +312,11 @@ type TokenKind =
     | Static of string
     | Refreshable
 
+/// The type of dynamic object variable
+type DynamicObjectVariableKind =
+    | BodyResponseProperty
+    | Header
+    | InputParameter
 
 type DynamicObjectWriterVariable =
     {
@@ -338,6 +328,9 @@ type DynamicObjectWriterVariable =
 
         /// The type of the variable
         primitiveType : PrimitiveType
+
+        /// The kind of the variable (e.g. header or response property)
+        kind : DynamicObjectVariableKind
     }
 
 /// Information needed to generate a response parser
@@ -345,6 +338,9 @@ type ResponseParser =
     {
         /// The writer variables returned in the response
         writerVariables : DynamicObjectWriterVariable list
+
+        /// The writer variables returned in the response headers
+        headerWriterVariables : DynamicObjectWriterVariable list
 
         /// The writer variables that are written when the request is sent, and which
         /// are not returned in the response
@@ -416,7 +412,6 @@ type GrammarDefinition =
     {
         Requests : Request list
     }
-
 
 let generateDynamicObjectVariableName (requestId:RequestId) (accessPath:AccessPath option) delimiter =
     // split endpoint, add "id" at the end.  TBD: jobs_0 vs jobs_1 - where is the increment?

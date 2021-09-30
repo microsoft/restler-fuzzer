@@ -1,0 +1,85 @@
+{
+  "basePath": "/api",
+  "consumes": [
+    "application/json"
+  ],
+  "host": "localhost:8888",
+  "info": {
+    "description": "Small example for header dependencies.",
+    "title": "The title.",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/service/user": {
+      "post": {
+        "responses": {
+          "201": {
+            "headers": {
+              "Location": {
+                "description": "The location (URI) of the new resource",
+                "schema": {
+                  "type": "string",
+                  "format": "uri"
+                }
+              },
+              "userId": {
+                "description": "The ID of the new user.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/service/user/{userId}": {
+      "get": {
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "type": "string",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      },
+      "put": {
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "type": "string",
+            "required": true
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Success"
+          }
+        }
+      },
+      "delete": {
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        },
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "type": "string",
+            "required": true
+          }
+        ]
+      }
+    }
+  },
+  "swagger": "2.0"
+}

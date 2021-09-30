@@ -50,6 +50,8 @@ type ResourceReference =
     | QueryResource of string
     /// A body parameter
     | BodyResource of JsonParameterReference
+    /// A header parameter
+    | HeaderResource of string
 
 let private pluralizer = Pluralize.NET.Core.Pluralizer()
 
@@ -92,10 +94,12 @@ type ApiResource(requestId:RequestId,
         match resourceReference with
         | PathResource pr ->
             getContainerPartFromBody pr.responsePath
-        | QueryResource qr ->
+        | QueryResource _ ->
             None
         | BodyResource br ->
             getContainerPartFromBody br.fullPath
+        | HeaderResource _ ->
+            None
 
     let resourceName =
         match resourceReference with
@@ -105,6 +109,8 @@ type ApiResource(requestId:RequestId,
             qr
         | BodyResource br ->
             br.name
+        | HeaderResource hr ->
+            hr
 
     let isNestedBodyResource =
         match resourceReference with
@@ -114,13 +120,16 @@ type ApiResource(requestId:RequestId,
             false
         | BodyResource br ->
             br.fullPath.getPathPropertyNameParts().Length > 1
+        | HeaderResource hr ->
+            false
 
     let getContainerName() =
         let containerNamePart =
             match resourceReference with
             | PathResource pr ->
                 getContainerPartFromPath pr.pathToParameter
-            | QueryResource qr ->
+            | QueryResource _
+            | HeaderResource _ ->
                 getContainerPartFromPath endpointParts
             | BodyResource br ->
                 // If the path to property contains at least 2 identifiers, then it has a body container.
@@ -244,25 +253,32 @@ type ApiResource(requestId:RequestId,
         | BodyResource b -> b.fullPath.getJsonPointer()
         | PathResource p ->
             p.responsePath.getJsonPointer()
-        | QueryResource q -> None
+        | QueryResource _
+        | HeaderResource _ ->
+            None
 
     member x.AccessPathParts =
         match resourceReference with
         | BodyResource b -> b.fullPath
         | PathResource p -> p.responsePath
-        | QueryResource q -> { AccessPath.path = Array.empty }
+        | QueryResource _
+        | HeaderResource _ ->
+            { AccessPath.path = Array.empty }
 
     member x.getParentAccessPath() =
         match resourceReference with
         | BodyResource b -> b.fullPath.getParentPath()
         | PathResource p -> p.responsePath.getParentPath()
-        | QueryResource q -> { path = Array.empty }
+        | QueryResource _
+        | HeaderResource _ ->
+            { path = Array.empty }
 
     member x.ResourceName =
         match resourceReference with
         | BodyResource b -> b.name
         | PathResource p -> p.name
         | QueryResource q -> q
+        | HeaderResource h -> h
 
     // Gets the variable name that should be present in the response
     // Example: /api/accounts/{accountId}
