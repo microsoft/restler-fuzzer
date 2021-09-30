@@ -573,14 +573,46 @@ let generatePythonFromRequestElement includeOptionalParameters (requestId:Reques
 
 /// Generates the python restler grammar definitions corresponding to the request
 let generatePythonFromRequest (request:Request) includeOptionalParameters mergeStaticStrings =
+    /// Gets either the schema or examples payload present in the list
     let getParameterPayload queryOrBodyParameters =
-        queryOrBodyParameters |> List.head |> snd
-
-    let getCustomParameterPayload (queryOrBodyParameters:(ParameterPayloadSource * _) list) =
         match queryOrBodyParameters
-              |> List.tryFind (fun (payloadSource, pList) -> payloadSource = ParameterPayloadSource.DictionaryCustomPayload) with
+              |> List.tryFind (fun (payloadSource, _) ->
+                                 payloadSource = ParameterPayloadSource.Examples || payloadSource = ParameterPayloadSource.Schema) with
         | Some (_, ParameterList pList) -> pList
         | _ -> Seq.empty
+
+
+    /// Merges all the dictionary custom payloads present in the list and returns them
+    let getCustomParameterPayload (queryOrBodyParameters:(ParameterPayloadSource * RequestParametersPayload) list) =
+        queryOrBodyParameters
+        |> List.fold (fun (currentPList) (payloadSource, pList) ->
+                            let parameterList =
+                                if payloadSource = ParameterPayloadSource.DictionaryCustomPayload then
+                                    match pList with
+                                    | ParameterList pl -> pl
+                                    | Example _ ->
+                                        // filter out the example here ; it will be handled elsewhere.
+                                        Seq.empty
+                                else
+                                    Seq.empty
+                            [parameterList ; currentPList] |> Seq.concat)
+                        Seq.empty
+
+    let getParameterListPayload (queryOrBodyParameters:(ParameterPayloadSource * RequestParametersPayload) list) =
+        let declaredPayload = getParameterPayload queryOrBodyParameters
+        let injectedPayload = getCustomParameterPayload queryOrBodyParameters
+        ParameterList ([declaredPayload ; injectedPayload] |> Seq.concat)
+
+    let getExamplePayload (queryOrBodyParameters:(ParameterPayloadSource * RequestParametersPayload) list) =
+        queryOrBodyParameters
+        |> Seq.choose (fun (payloadSource, payloadValue) ->
+                            if payloadSource = ParameterPayloadSource.DictionaryCustomPayload then
+                                match payloadValue with
+                                | ParameterList _ -> None
+                                | Example example ->
+                                    Some example
+                            else None)
+        |> Seq.tryHead
 
     let getMergedStaticStringSeq (strList:string seq) =
 
@@ -616,25 +648,21 @@ let generatePythonFromRequest (request:Request) includeOptionalParameters mergeS
     let requestElements = [
         Method request.method
         Path request.path
-        QueryParameters (let declaredPayload = getParameterPayload request.queryParameters
-                         match declaredPayload with
-                         | ParameterList pList ->
-                             // Add the injected custom payload parameters
-                             let customPList = getCustomParameterPayload request.queryParameters
-                             ParameterList ([pList ; customPList] |> Seq.concat)
-                         | _ -> declaredPayload)
+        QueryParameters (getParameterListPayload request.queryParameters)
         HttpVersion request.httpVersion
         Headers request.headers
-        HeaderParameters (getParameterPayload request.headerParameters)
-        // custom parameters special case
-        HeaderParameters (match request.headerParameters
-                                |> List.tryFind (fun (ps,_) -> ps = DictionaryCustomPayload) with
-                          | None -> ParameterList []
-                          | Some x -> getParameterPayload [x])
+        HeaderParameters (getParameterListPayload request.headerParameters)
         (match request.token with
             | TokenKind.Refreshable -> RefreshableToken
             | (TokenKind.Static token) -> Token (token))
-        Body (getParameterPayload request.bodyParameters)
+        Body (let parameterListPayload = getParameterListPayload request.bodyParameters
+              let examplePayload = getExamplePayload request.bodyParameters
+              // Either an example or parameter list should be present, but not both.
+              // For example, additional parameters will not be combined with an 'Example' payload which
+              // the user expects to be used without modification.
+              match examplePayload with
+              | Some p -> Example p
+              | None -> parameterListPayload)
         Delimiter
         ResponseParser request.responseParser
     ]
