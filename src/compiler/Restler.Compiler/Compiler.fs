@@ -579,6 +579,44 @@ module private XMsPaths =
                                 (payloadSource, requestParameterPayload))
         queryParametersFiltered
 
+let private getCustomPayloadParameters (dictionary:MutationsDictionary) customPayloadType parametersFoundInSpec =
+    let parameterNames =
+        let parameterNamesSpecifiedAsCustomPayloads =
+            match customPayloadType with
+            | CustomPayloadType.Header ->
+                dictionary.getCustomPayloadHeaderParameterNames()
+            | CustomPayloadType.Query ->
+                dictionary.getCustomPayloadQueryParameterNames()
+            | _ ->
+                raise (invalidArg "customPayloadType" (sprintf "%A is not supported in this context." customPayloadType))
+        parameterNamesSpecifiedAsCustomPayloads
+        |> Seq.filter (fun name -> not (parametersFoundInSpec |> List.contains name))
+
+    parameterNames
+        |> Seq.map (fun headerName ->
+                        let newParameter =
+                            {
+                                RequestParameter.name = headerName
+                                serialization = None
+                                payload =
+                                    Tree.LeafNode
+                                        {
+                                            LeafProperty.name = ""
+                                            LeafProperty.payload =
+                                                FuzzingPayload.Custom
+                                                    {
+                                                        payloadType = customPayloadType
+                                                        primitiveType = PrimitiveType.String
+                                                        payloadValue = headerName
+                                                        isObject = false
+                                                        dynamicObject = None
+                                                    }
+                                            LeafProperty.isRequired = true
+                                            LeafProperty.isReadOnly = false
+                                        }}
+                        newParameter)
+            |> Seq.toList
+
 let generateRequestPrimitives (requestId:RequestId)
                                (responseParser:ResponseParser option)
                                (requestParameters:RequestParameters)
@@ -714,13 +752,14 @@ let generateRequestPrimitives (requestId:RequestId)
         | Some xMsPath ->
             XMsPaths.filterXMsPathQueryParameters requestParameters.query xMsPath.queryPart
 
+
     // Assign dynamic objects to query parameters if they have dependencies.
     // When there is more than one parameter set, the dictionary must be the one for the schema.
     //
-    let queryParameters, replacedCustomPayloadQueries =
+    let requestQueryParameters =
         let queriesSpecifiedAsCustomPayloads = dictionary.getCustomPayloadQueryParameterNames()
         requestQueryParameters
-        |> List.mapFold (fun newReplacedPayloadQueries (payloadSource, requestQuery) ->
+        |> List.map (fun (payloadSource, requestQuery) ->
                             let parameterList =
                                 // The grammar should always have examples, if they exist here,
                                 // which implies that 'useExamples' was specified by the user.
@@ -746,10 +785,10 @@ let generateRequestPrimitives (requestId:RequestId)
                                 |> Seq.map (fun p -> p.name)
                                 |> Seq.toList
 
-                            (payloadSource, ParameterList parameterList),
-                            [ replacedPayloadQueries ; newReplacedPayloadQueries ]
-                            |> List.concat
-                         ) []
+                            // Get the additional custom payload query parameters that should be injected
+                            let customPayloadQueryParameters = getCustomPayloadParameters dictionary CustomPayloadType.Query replacedPayloadQueries
+                            let allQueryParameters = [ parameterList ; customPayloadQueryParameters |> seq ] |> Seq.concat
+                            payloadSource, ParameterList allQueryParameters)
 
     let bodyParameters, newDictionary =
         // Check if the body is being replaced by a custom payload
@@ -859,49 +898,7 @@ let generateRequestPrimitives (requestId:RequestId)
             [ contentType ]
         else []
 
-    let getCustomPayloadParameters customPayloadType parametersFoundInSpec =
-        let parameterNames =
-            let parameterNamesSpecifiedAsCustomPayloads =
-                match customPayloadType with
-                | CustomPayloadType.Header ->
-                    dictionary.getCustomPayloadHeaderParameterNames()
-                | CustomPayloadType.Query ->
-                    dictionary.getCustomPayloadQueryParameterNames()
-                | _ ->
-                    raise (invalidArg "customPayloadType" (sprintf "%A is not supported in this context." customPayloadType))
-            parameterNamesSpecifiedAsCustomPayloads
-            |> Seq.filter (fun name -> not (parametersFoundInSpec |> List.contains name))
-
-        parameterNames
-            |> Seq.map (fun headerName ->
-                            let newParameter =
-                                {
-                                    RequestParameter.name = headerName
-                                    serialization = None
-                                    payload =
-                                        Tree.LeafNode
-                                            {
-                                                LeafProperty.name = ""
-                                                LeafProperty.payload =
-                                                    FuzzingPayload.Custom
-                                                        {
-                                                            payloadType = customPayloadType
-                                                            primitiveType = PrimitiveType.String
-                                                            payloadValue = headerName
-                                                            isObject = false
-                                                            dynamicObject = None
-                                                        }
-                                                LeafProperty.isRequired = true
-                                                LeafProperty.isReadOnly = false
-                                            }}
-                            newParameter)
-                |> Seq.toList
-
-    let customPayloadHeaderParameters = getCustomPayloadParameters CustomPayloadType.Header replacedCustomPayloadHeaders
-
-    // Note: only injecting custom payload query parameters is supported at this time.
-    // For replacement, restler_custom_payload should be used.
-    let customPayloadQueryParameters = getCustomPayloadParameters CustomPayloadType.Query replacedCustomPayloadQueries
+    let customPayloadHeaderParameters = getCustomPayloadParameters dictionary CustomPayloadType.Header replacedCustomPayloadHeaders
 
     let headers =
         ([ ("Accept", "application/json")
@@ -910,9 +907,11 @@ let generateRequestPrimitives (requestId:RequestId)
         id = requestId
         Request.method = method
         Request.path = path
-        queryParameters = queryParameters @
-                                [(ParameterPayloadSource.DictionaryCustomPayload,
-                                  RequestParametersPayload.ParameterList customPayloadQueryParameters)]
+
+        queryParameters = requestQueryParameters
+            //queryParameters @
+            //                    [(ParameterPayloadSource.DictionaryCustomPayload,
+            //                      RequestParametersPayload.ParameterList customPayloadQueryParameters)]
         headerParameters = headerParameters @
                                 [(ParameterPayloadSource.DictionaryCustomPayload,
                                   RequestParametersPayload.ParameterList (contentTypeHeader @ customPayloadHeaderParameters))]
