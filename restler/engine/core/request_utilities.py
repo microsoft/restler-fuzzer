@@ -70,16 +70,8 @@ def execute_token_refresh_cmd(cmd):
                 cmd_result = subprocess.getoutput(str(cmd).split(' '))
             else:
                 cmd_result = subprocess.getoutput([cmd])
-            metadata = cmd_result.split("\n")[0]
-            if not metadata:
-                raise EmptyTokenException
-            metadata = ast.literal_eval(metadata)
-            latest_token_value = cmd_result.split("\n")[1].strip('\r') + "\r\n"
-            if not latest_token_value:
-                raise EmptyTokenException
-            n_apps = len(metadata.keys())
-            if n_apps == 2:
-                latest_shadow_token_value = cmd_result.split("\n")[2].strip('\r') + "\r\n"
+
+            _, latest_token_value, latest_shadow_token_value = parse_authentication_tokens(cmd_result)
             _RAW_LOGGING(f"New value: {cmd_result}")
             break
         except subprocess.CalledProcessError:
@@ -104,6 +96,43 @@ def execute_token_refresh_cmd(cmd):
         _RAW_LOGGING(f"\nMaximum number of retries ({MAX_RETRIES}) exceeded. Exiting program.")
         sys.exit(-1)
 
+def parse_authentication_tokens(cmd_result):
+    """ Parses the output @param cmd_result from token scripts to refresh tokens.
+
+    @param cmd_result: The user-provided command to refresh the token.
+    @type  cmd_result: Str
+
+    @return: Metadata, token values and shadow token values
+    @rtype : Tuple[Dict, Str, Str]
+
+    """
+    token_value = NO_TOKEN_SPECIFIED
+    shadow_token_value = NO_SHADOW_TOKEN_SPECIFIED
+    DELIMITER = '---'
+
+    metadata = cmd_result.split("\n")[0]
+    if not metadata:
+        raise EmptyTokenException
+    metadata = ast.literal_eval(metadata)
+
+    n_apps = len(metadata.keys())
+    tokens = [line.strip() for line in cmd_result.strip().split('\n')[1:]]
+
+    if n_apps == 1 and DELIMITER not in tokens:
+        token_value = '\r\n'.join(tokens) + '\r\n'
+    elif n_apps == 2 and DELIMITER not in tokens:
+        token_value = tokens[0] + '\r\n'
+        shadow_token_value = tokens[1] + '\r\n'
+    else:
+        token_value = '\r\n'.join(tokens[:tokens.index(DELIMITER)]) + '\r\n'
+        if n_apps == 2:
+            shadow_token_value = '\r\n'.join(tokens[tokens.index(DELIMITER)+1:]) + '\r\n'
+
+    if not latest_token_value:
+        raise EmptyTokenException
+
+    return metadata, token_value, shadow_token_value
+
 def replace_auth_token(data, replace_str):
     """ Replaces any authentication tokens from a data string with a
     specified @replace_str and returns the new data
@@ -119,9 +148,9 @@ def replace_auth_token(data, replace_str):
     """
     if data:
         if latest_token_value:
-            data = data.replace(latest_token_value.split('\r\n')[0], replace_str)
+            data = data.replace(latest_token_value.strip('\r\n'), replace_str)
         if latest_shadow_token_value:
-            data = data.replace(latest_shadow_token_value.split('\r\n')[0], replace_str)
+            data = data.replace(latest_shadow_token_value.strip('\r\n'), replace_str)
     return data
 
 def resolve_dynamic_primitives(values, candidate_values_pool):
