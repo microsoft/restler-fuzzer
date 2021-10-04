@@ -49,12 +49,6 @@
           {
             "ParameterList": []
           }
-        ],
-        [
-          "DictionaryCustomPayload",
-          {
-            "ParameterList": []
-          }
         ]
       ],
       "bodyParameters": [
@@ -213,12 +207,6 @@
       "queryParameters": [
         [
           "Schema",
-          {
-            "ParameterList": []
-          }
-        ],
-        [
-          "DictionaryCustomPayload",
           {
             "ParameterList": []
           }
@@ -404,12 +392,6 @@
               }
             ]
           }
-        ],
-        [
-          "DictionaryCustomPayload",
-          {
-            "ParameterList": []
-          }
         ]
       ],
       "bodyParameters": [
@@ -508,12 +490,6 @@
           {
             "ParameterList": []
           }
-        ],
-        [
-          "DictionaryCustomPayload",
-          {
-            "ParameterList": []
-          }
         ]
       ],
       "bodyParameters": [
@@ -609,12 +585,6 @@
       "queryParameters": [
         [
           "Schema",
-          {
-            "ParameterList": []
-          }
-        ],
-        [
-          "DictionaryCustomPayload",
           {
             "ParameterList": []
           }
