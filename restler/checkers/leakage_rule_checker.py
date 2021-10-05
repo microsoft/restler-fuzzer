@@ -12,6 +12,7 @@ import itertools
 from engine.bug_bucketing import BugBuckets
 import engine.dependencies as dependencies
 import engine.core.sequences as sequences
+from engine.core.requests import FailureInformation
 
 class LeakageRuleChecker(CheckerBase):
     """ Checker for resource leakage violations. """
@@ -34,8 +35,9 @@ class LeakageRuleChecker(CheckerBase):
         if rendered_sequence.valid:
             return
         # Return if the sequence was never fully rendered
-        if rendered_sequence.sequence is None:
+        if rendered_sequence.sequence is None or rendered_sequence.failure_info == FailureInformation.SEQUENCE:
             return
+
         self._sequence = rendered_sequence.sequence
 
         # We skip any sequence that contains DELETE methods so that we
@@ -91,6 +93,9 @@ class LeakageRuleChecker(CheckerBase):
         # placeholder_split = [PUT somevar, _READER_DELIM_A_READER_DELIM_, someothervar, _READER_DELIM_A_READER_DELIM_]
         sent_split = sent_data.split('/')
         placeholder_split = request.endpoint.split('/')
+
+        if len(sent_split) != len(placeholder_split):
+            raise Exception("Error: specified request sequence does not correspond to the sent data (is this a failed re-rendering?)")
 
         # Iterate through the request endpoint and set the dynamic variables with the matching
         # values that were sent in the request that triggered this checker

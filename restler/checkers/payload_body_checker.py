@@ -18,6 +18,7 @@ from copy import copy
 from engine.bug_bucketing import BugBuckets
 import engine.dependencies as dependencies
 import engine.core.requests as requests
+from engine.core.requests import FailureInformation
 import engine.core.sequences as sequences
 from engine.core.fuzzing_monitor import Monitor
 from engine.core.request_utilities import str_to_hex_def
@@ -120,7 +121,8 @@ class PayloadBodyChecker(CheckerBase):
             # finish one-time setup
             self._setup_done = True
 
-        if not rendered_sequence.sequence or\
+        if rendered_sequence.sequence is None or\
+        rendered_sequence.failure_info == FailureInformation.SEQUENCE or\
         (rendered_sequence.valid and not self._fuzz_valid) or\
         (not rendered_sequence.valid and not self._fuzz_invalid):
             return

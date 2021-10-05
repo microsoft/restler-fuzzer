@@ -8,6 +8,7 @@ from engine.fuzzing_parameters.fuzzing_utils import *
 from engine.bug_bucketing import BugBuckets
 from engine.core.request_utilities import str_to_hex_def
 from engine.core.requests import Request
+from engine.core.requests import FailureInformation
 from engine.core.sequences import Sequence
 import engine.primitives as primitives
 
@@ -34,7 +35,7 @@ class ExamplesChecker(CheckerBase):
         @type  : None
 
         """
-        if not rendered_sequence.sequence:
+        if rendered_sequence.sequence is None or rendered_sequence.failure_info == FailureInformation.SEQUENCE:
             return
 
         self._sequence = copy.copy(rendered_sequence.sequence)
