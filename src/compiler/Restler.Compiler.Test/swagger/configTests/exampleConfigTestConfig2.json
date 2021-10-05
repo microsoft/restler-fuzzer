@@ -1,0 +1,15 @@
+{
+  "paths": {
+    "/stores/{storeId}": {
+      "put": {
+        "1": {
+          "parameters": {
+            "__body__": {
+              "wood": "abc"
+            }
+          }
+        }
+      }
+    }
+  }
+}

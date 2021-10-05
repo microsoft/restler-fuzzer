@@ -34,6 +34,19 @@ type SwaggerSpecConfig =
         AnnotationFilePath: string option
     }
 
+/// The configuration for the payload examples.
+type ExampleFileConfig =
+    {
+        /// The path to the example configuration file that contains the examples associated with
+        /// one or more request types from the spec.
+        filePath : string
+
+        // If 'true', copy these examples exactly, without substituting any parameter values from the dictionary
+        // If 'false' (default), the examples are merged with the schema.  In particular, parameters with names
+        // that do not match the schema are discarded.
+        exactCopy : bool
+    }
+
 /// User-specified compiler configuration
 type Config =
     {
@@ -66,6 +79,11 @@ type Config =
 
         UseBodyExamples : bool option
 
+        /// When specified, all example payloads are used - both the ones in the specification and the ones in the
+        /// example config file.
+        /// False by default - example config files override any other available payload examples
+        UseAllExamplePayloads : bool option
+
         /// When set to 'true', discovers examples and outputs them to a directory next to the grammar.
         /// If an existing directory exists, does not over-write it.
         DiscoverExamples : bool
@@ -79,6 +97,10 @@ type Config =
 
         /// File path specifying the example config file
         ExampleConfigFilePath : string option
+
+        /// Specifies the example config files.  If the example config file path
+        /// is specified, both are used.
+        ExampleConfigFiles : ExampleFileConfig list option
 
         /// Perform data fuzzing
         DataFuzzing : bool
@@ -198,6 +220,7 @@ let SampleConfig =
         CustomDictionaryFilePath = None
         AnnotationFilePath = None
         ExampleConfigFilePath = None
+        ExampleConfigFiles = None
         GrammarOutputDirectoryPath = None
         IncludeOptionalParameters = true
         UsePathExamples = None
@@ -205,6 +228,7 @@ let SampleConfig =
         UseBodyExamples = None
         UseHeaderExamples = None
         DiscoverExamples = false
+        UseAllExamplePayloads = None
         ExamplesDirectory = ""
         ResolveQueryDependencies = true
         ResolveBodyDependencies = false
@@ -228,12 +252,14 @@ let DefaultConfig =
         CustomDictionaryFilePath = None
         AnnotationFilePath = None
         ExampleConfigFilePath = None
+        ExampleConfigFiles = None
         GrammarOutputDirectoryPath = None
         IncludeOptionalParameters = true
         UseQueryExamples = Some true
         UseHeaderExamples = Some true
         UseBodyExamples = Some true
         UsePathExamples = Some false
+        UseAllExamplePayloads = Some false
         DiscoverExamples = false
         ExamplesDirectory = ""
         ResolveQueryDependencies = true

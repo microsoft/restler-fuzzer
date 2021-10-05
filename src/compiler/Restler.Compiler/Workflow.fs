@@ -151,17 +151,30 @@ let generateGrammarFromSwagger grammarOutputDirectoryPath (swaggerDoc, specMetad
         Microsoft.FSharpLu.File.recreateDir examplesDirectory
 
     let userSpecifiedExamples =
-        match config.ExampleConfigFilePath with
-        | None -> None
-        | Some fp when File.Exists fp ->
-            match Examples.tryDeserializeExampleConfigFile fp with
-            | Some ef -> Some ef
-            | None ->
-                printfn "ERROR: example file could not be deserialized: %A" fp
-                raise (ArgumentException("invalid example config file"))
-        | Some fp ->
-            printfn "ERROR: invalid file path for the example config file given: %A" fp
-            raise (ArgumentException("invalid example config file path"))
+        let getExampleConfigFile filePath exactCopy =
+            match filePath with
+            | None -> None
+            | Some fp when File.Exists fp ->
+                match Examples.tryDeserializeExampleConfigFile fp with
+                | Some ef -> Some { ef with exactCopy = exactCopy }
+                | None ->
+                    printfn "ERROR: example file could not be deserialized: %A" fp
+                    raise (ArgumentException("invalid example config file"))
+            | Some fp ->
+                printfn "ERROR: invalid file path for the example config file given: %A" fp
+                raise (ArgumentException("invalid example config file path"))
+
+        let exampleFileWithEmptyConfig = getExampleConfigFile config.ExampleConfigFilePath false
+        let configuredExampleFiles =
+            match config.ExampleConfigFiles with
+            | None -> []
+            | Some exampleConfigFiles ->
+                exampleConfigFiles
+                |> List.choose (fun ecf -> getExampleConfigFile (Some ecf.filePath) ecf.exactCopy)
+
+        match exampleFileWithEmptyConfig with
+        | None -> configuredExampleFiles
+        | Some exampleFile -> exampleFile::configuredExampleFiles
 
     let grammar, dependencies, (newDictionary, perResourceDictionaries), examples =
         Restler.Compiler.Main.generateRequestGrammar

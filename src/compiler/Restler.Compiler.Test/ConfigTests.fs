@@ -179,5 +179,39 @@ module Config =
             let message = sprintf "Found differences, expected none: %A" grammarsWithAnnotationsDiff
             Assert.True(grammarsWithAnnotationsDiff.IsNone, message)
 
+
+        [<Fact>]
+        let ``Multiple example configs sanity test`` () =
+            let grammarOutputDirectoryPath = ctx.testRootDirPath
+
+            // The body of the POST and PUT requests in the below spec have a single defined parameter "window"
+            // The first example contains "window" and "door" in the body, and the second example contains "wood".
+            // With 'exactCopy' set to false, the first example should filter out "door" and contain just "window".
+            // With 'exactCopy' set to true, the second example should contain "wood".
+            let config = { Restler.Config.SampleConfig with
+                             SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, @"swagger\configTests\exampleConfigTestPut.json"))]
+                             ExampleConfigFiles = Some [
+                                                         { exactCopy = false ; filePath = @"swagger\configTests\exampleConfigTestConfig1.json" }
+                                                         { exactCopy = true ; filePath = @"swagger\configTests\exampleConfigTestConfig2.json" }
+                                                       ]
+                             UseBodyExamples = Some true
+                             GrammarOutputDirectoryPath = Some grammarOutputDirectoryPath
+                         }
+            Restler.Workflow.generateRestlerGrammar None config
+
+            let grammarFilePath = Path.Combine(grammarOutputDirectoryPath, Restler.Workflow.Constants.DefaultRestlerGrammarFileName)
+            let grammar = File.ReadAllLines(grammarFilePath)
+
+            let windowCount = grammar |> Seq.filter (fun line -> line.Contains("window")) |> Seq.length
+            let doorCount = grammar |> Seq.filter (fun line -> line.Contains("door")) |> Seq.length
+            let woodCount = grammar |> Seq.filter (fun line -> line.Contains("wood")) |> Seq.length
+            if windowCount <> 1 then
+                Assert.True(false, sprintf "There should be 1 window from example, found %d" windowCount)
+            if doorCount <> 0 then
+                Assert.True(false, sprintf "There should be 0 door from example, found %d" doorCount)
+            if woodCount <> 1 then
+                Assert.True(false, sprintf "There should be 1 wood from example, found %d" woodCount)
+
+
         interface IClassFixture<Fixtures.TestSetupAndCleanup>
 
