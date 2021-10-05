@@ -1161,9 +1161,13 @@ class PayloadBodyChecker(CheckerBase):
                 except Exception:
                     rendered_data = original_rendered_data
 
-            # send out the request
+            # send out the request and parse the response
             response = self._send_request(parser, rendered_data)
-            request_utilities.call_response_parser(parser, response)
+            async_wait = Settings().get_max_async_resource_creation_time(request.request_id)
+            response_to_parse, _, _ = async_request_utilities.try_async_poll(
+                rendered_data, response, async_wait)
+            request_utilities.call_response_parser(parser, response_to_parse)
+
             self._set_refresh_req(request, response)
 
             if not response or not response.status_code:
