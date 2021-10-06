@@ -155,6 +155,13 @@ the examples instead of just the first one.
 The supported ```payload_kind``` value is 'all'.
 
 
+### add_fuzzable_dates: bool (default False)
+Set to True to generate additional dates
+near the current date (e.g. one in the future) that will be used for fuzzable date types in addition to
+the values specified in the dictionary.
+Since some API parameters require a current or future date,
+this setting can be used to generate those values, without having to modify the dictionary.
+
 ### max_request_execution_time: float (default 120, max 600)
 The maximum amount of time, in seconds, to wait for a response after sending a request.
 
@@ -162,7 +169,7 @@ The maximum amount of time, in seconds, to wait for a response after sending a r
 Set to True to disable SSL for requests
 
 ### path_regex: str (default None=No regex filtering)
-Filters the grammar to only use endpoints whose paths contain the given regex string. 
+Filters the grammar to only use endpoints whose paths contain the given regex string.
 
 Example: `(\w*)/virtualNetworks/(\w*)`
 

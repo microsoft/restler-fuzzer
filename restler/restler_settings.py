@@ -439,6 +439,8 @@ class RestlerSettings(object):
         self._test_server = SettingsArg('test_server', str, DEFAULT_TEST_SERVER_ID, user_args)
         ## Stops fuzzing after given time (hours)
         self._time_budget = SettingsArg('time_budget', (int, float), TIME_BUDGET_DEFAULT, user_args, minval=0)
+        ## Add current dates in addition to the ones specified in the dictionary
+        self._add_fuzzable_dates = SettingsArg('add_fuzzable_dates', bool, False, user_args)
         ## The command to execute in order to refresh the authentication token
         self._token_refresh_cmd = SettingsArg('token_refresh_cmd', str, None, user_args)
         ## Interval to periodically refresh the authentication token (seconds)
@@ -593,6 +595,10 @@ class RestlerSettings(object):
     @property
     def time_budget(self):
         return self._time_budget.val
+
+    @property
+    def add_fuzzable_dates(self):
+        return self._add_fuzzable_dates.val
 
     @property
     def token_refresh_cmd(self):

@@ -393,23 +393,25 @@ class FunctionalityTests(unittest.TestCase):
         args = Common_Settings + [
             '--fuzzing_mode', 'bfs-cheap',
             '--restler_grammar',f'{os.path.join(Test_File_Directory, "test_grammar.py")}',
-            '--time_budget', f'{Fuzz_Time}', '--enable_checkers', '*',
+            '--time_budget', f'{Fuzz_Time}',
+            '--enable_checkers', '*',
             '--disable_checkers', 'namespacerule'
         ]
 
         result = subprocess.run(args, capture_output=True)
         if result.stderr:
-            self.fail(result.stderr)
+            self.fail(f"{result.stderr}")
         try:
             result.check_returncode()
         except subprocess.CalledProcessError:
-            self.fail(f"Restler returned non-zero exit code: {result.returncode}")
+            self.fail(f"Restler returned non-zero exit code: {result.returncode}, Stdout: {result.stdout}")
 
         experiments_dir = self.get_experiments_dir()
-
+        #experiments_dir = "D:\git\restler-fuzzer\restler\RestlerResults\experiment31916"
         try:
             default_parser = FuzzingLogParser(os.path.join(Test_File_Directory, "fuzz_testing_log.txt"), max_seq=Num_Sequences)
             test_parser = FuzzingLogParser(self.get_network_log_path(experiments_dir, logger.LOG_TYPE_TESTING), max_seq=Num_Sequences)
+            #test_parser = FuzzingLogParser("D:\\git\\restler-fuzzer\\restler\\RestlerResults\\experiment31916\\logs\\network.testing.23496.1.txt", max_seq=Num_Sequences)
             self.assertTrue(default_parser.diff_log(test_parser))
         except TestFailedException:
             self.fail("Fuzz failed: Fuzzing")
