@@ -110,8 +110,8 @@
             "properties": {
                 "notAfter": {
                     "type": "string",
-                    "format": "date-time",
-                    "description": "The expiry time."
+                    "format": "date",
+                    "description": "The expiry date."
                 },
                 "keyType": {
                     "$ref": "#/definitions/KeyType",

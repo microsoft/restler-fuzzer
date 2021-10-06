@@ -17,6 +17,8 @@ type MutationsDictionary =
         restler_fuzzable_string_unquoted : string list
         restler_fuzzable_datetime : string list
         restler_fuzzable_datetime_unquoted : string list
+        restler_fuzzable_date : string list
+        restler_fuzzable_date_unquoted : string list
         restler_fuzzable_uuid4 : string list
         restler_fuzzable_uuid4_unquoted : string list
 
@@ -199,6 +201,8 @@ let DefaultMutationsDictionary =
         restler_fuzzable_bool = [DefaultPrimitiveValues.[PrimitiveType.Bool]]
         restler_fuzzable_datetime = [DefaultPrimitiveValues.[PrimitiveType.DateTime]]
         restler_fuzzable_datetime_unquoted = []
+        restler_fuzzable_date = [DefaultPrimitiveValues.[PrimitiveType.Date]]
+        restler_fuzzable_date_unquoted = []
         restler_fuzzable_object = [DefaultPrimitiveValues.[PrimitiveType.Object]]
         restler_fuzzable_uuid4 = [DefaultPrimitiveValues.[PrimitiveType.Uuid]]
         restler_fuzzable_uuid4_unquoted = []

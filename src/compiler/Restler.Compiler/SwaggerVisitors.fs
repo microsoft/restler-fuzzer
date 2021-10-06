@@ -81,9 +81,13 @@ module SchemaUtilities =
                     | "guid" ->
                         PrimitiveType.Uuid,
                         DefaultPrimitiveValues.[PrimitiveType.Uuid]
-                    | "date-time" ->
+                    | "date-time"
+                    | "datetime "-> // Support both officially defined "date-time" and "datetime" because some specs use the latter
                          PrimitiveType.DateTime,
                          DefaultPrimitiveValues.[PrimitiveType.DateTime]
+                    | "date" ->
+                        PrimitiveType.Date,
+                        DefaultPrimitiveValues.[PrimitiveType.Date]
                     | "double" ->
                         PrimitiveType.Number,
                         DefaultPrimitiveValues.[PrimitiveType.Number]

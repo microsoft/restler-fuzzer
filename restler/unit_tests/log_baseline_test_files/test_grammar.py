@@ -804,7 +804,7 @@ request = requests.Request([
     primitives.restler_static_string(_item_put_name.reader()),
     primitives.restler_static_string("?"),
     primitives.restler_static_string("date="),
-    primitives.restler_fuzzable_datetime("2020-1-1"),
+    primitives.restler_fuzzable_date("2020-1-1"),
     primitives.restler_static_string(" HTTP/1.1\r\n"),
     primitives.restler_static_string("Accept: application/json\r\n"),
     primitives.restler_static_string("Host: restler.unit.test.server.com\r\n"),

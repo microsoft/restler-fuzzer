@@ -111,6 +111,7 @@ type PrimitiveType =
     | Uuid
     | Bool
     | DateTime
+    | Date
     /// The enum type specifies the list of possible enum values
     /// and the default value, if specified.
     /// (tag, data type, possible values, default value if present)
@@ -467,6 +468,7 @@ let DefaultPrimitiveValues =
         PrimitiveType.String, "fuzzstring" // Note: quotes are intentionally omitted.
         PrimitiveType.Uuid, "566048da-ed19-4cd3-8e0a-b7e0e1ec4d72" // Note: quotes are intentionally omitted.
         PrimitiveType.DateTime, "2019-06-26T20:20:39+00:00" // Note: quotes are intentionally omitted.
+        PrimitiveType.Date, "2019-06-26" // Note: quotes are intentionally omitted.
         PrimitiveType.Number, "1.23" // Note: quotes are intentionally omitted.
         PrimitiveType.Int, "1"
         PrimitiveType.Bool, "true"
