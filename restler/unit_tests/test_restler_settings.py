@@ -494,6 +494,7 @@ class RestlerSettingsTest(unittest.TestCase):
         self.assertEqual('100.100.100.100', settings.connection_settings.target_ip)
         self.assertEqual(500, settings.connection_settings.target_port)
         self.assertEqual(12, settings.time_budget)
+        self.assertEqual(True, settings.add_fuzzable_dates)
         self.assertEqual('some refresh command', settings.token_refresh_cmd)
         self.assertEqual(60, settings.token_refresh_interval)
         self.assertEqual(False, settings.wait_for_async_resource_creation)

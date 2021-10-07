@@ -4,6 +4,8 @@
 """ Module includes classes used to parse logs for testing purposes """
 from test_servers.parsed_requests import *
 
+import copy
+
 SENDING = ': Sending: '
 GENERATION = 'Generation-'
 RENDERING_SEQUENCE = ': Rendering Sequence-'
@@ -116,11 +118,12 @@ class FuzzingLogParser(LogParser):
         """
 
         def get_diff(left_seq_list, right_seq_list, description_str):
+            right_seq_list_copy = copy.copy(right_seq_list)
             for left in left_seq_list:
                 found = False
                 found_idx = -1
                 found_count = 0
-                for idx, right in enumerate(right_seq_list):
+                for idx, right in enumerate(right_seq_list_copy):
                     if left.requests == right.requests and \
                         left.checker_requests == right.checker_requests:
                         found = True
@@ -128,7 +131,7 @@ class FuzzingLogParser(LogParser):
                         found_count += 1
                         break
                 if found:
-                    right_seq_list.pop(found_idx)
+                    right_seq_list_copy.pop(found_idx)
                 if not found:
                     print(f"+++ Found item not in {description_str} set +++")
                     print("+++ Requests: +++")
@@ -140,6 +143,8 @@ class FuzzingLogParser(LogParser):
                             print(f"Checker name: {name}")
                             for req in reqs:
                                 print(f"endpoint: {req.endpoint}, method: {req.method}, body: {req.body}")
+                        else:
+                            print(f"Checker {name} is enabled, but did not kick in.")
                     return False
                 if found_count > 1:
                     print(f"+++ Found item {found_count} (more than once) times in {description_str} set +++")
@@ -194,6 +199,7 @@ class FuzzingLogParser(LogParser):
         with open(self._path, 'r') as file:
             try:
                 line = file.readline()
+
                 while line:
                     # Find the start of a new sequence
                     if GENERATION in line and RENDERING_SEQUENCE in line:
@@ -201,7 +207,8 @@ class FuzzingLogParser(LogParser):
                         num_reqs = int(line.split(GENERATION)[1].split(': ')[0])
                         seq_num = int(line.split(RENDERING_SEQUENCE)[1])
 
-                        if max_seq > 0 and seq_num > max_seq:
+                        if max_seq > 0 and len(self._seq_list) >= max_seq:
+                            print(f"Testing max={max_seq} sequences.")
                             return
 
                         seq = ParsedSequence([])
@@ -223,7 +230,7 @@ class FuzzingLogParser(LogParser):
                                 break
 
                         # Extend the list of sequences in this log
-                        self._seq_list += [seq]
+                        self._seq_list.append(seq)
                     elif CHECKER_START in line:
                         self._handle_checker(seq, line, file)
                         line = file.readline()

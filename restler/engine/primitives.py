@@ -171,7 +171,7 @@ class CandidateValuesPool(object):
         @rtype : None
 
         """
-        if FUZZABLE_DATETIME in candidate_values:
+        if FUZZABLE_DATETIME in candidate_values and Settings().add_fuzzable_dates:
             candidate_values[FUZZABLE_DATETIME].values.append(self._future_date)
             candidate_values[FUZZABLE_DATETIME].values.append(self._past_date)
 
