@@ -4,6 +4,8 @@
     "enable"
   ],
   "restler_fuzzable_datetime": [ "2021-01-01", "2021-10-01" ],
+  "restler_fuzzable_date": [ "2022-01-01" ],
+  "restler_fuzzable_date_unquoted": [ "2023-01-01" ],
   "restler_fuzzable_int": [
     "0",
     "1"

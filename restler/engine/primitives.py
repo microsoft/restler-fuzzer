@@ -36,6 +36,7 @@ FUZZABLE_BOOL = "restler_fuzzable_bool"
 FUZZABLE_INT = "restler_fuzzable_int"
 FUZZABLE_NUMBER = "restler_fuzzable_number"
 FUZZABLE_DATETIME = "restler_fuzzable_datetime"
+FUZZABLE_DATE = "restler_fuzzable_date"
 FUZZABLE_OBJECT = "restler_fuzzable_object"
 FUZZABLE_MULTIPART_FORMDATA = "restler_multipart_formdata"
 CUSTOM_PAYLOAD = "restler_custom_payload"
@@ -117,6 +118,7 @@ class CandidateValuesPool(object):
             FUZZABLE_INT,
             FUZZABLE_NUMBER,
             FUZZABLE_DATETIME,
+            FUZZABLE_DATE,
             FUZZABLE_OBJECT,
             FUZZABLE_MULTIPART_FORMDATA,
             CUSTOM_PAYLOAD,
@@ -171,9 +173,15 @@ class CandidateValuesPool(object):
         @rtype : None
 
         """
-        if FUZZABLE_DATETIME in candidate_values and Settings().add_fuzzable_dates:
-            candidate_values[FUZZABLE_DATETIME].values.append(self._future_date)
-            candidate_values[FUZZABLE_DATETIME].values.append(self._past_date)
+        def add_dates(date_primitive):
+            candidate_values[date_primitive].values.append(self._future_date)
+            candidate_values[date_primitive].values.append(self._past_date)
+
+        if Settings().add_fuzzable_dates:
+            if FUZZABLE_DATETIME in candidate_values:
+                add_dates(FUZZABLE_DATETIME)
+            if FUZZABLE_DATE in candidate_values:
+                add_dates(FUZZABLE_DATE)
 
     def _set_custom_values(self, current_primitives, custom_mutations):
         """ Helper that sets the custom primitive values
@@ -318,7 +326,7 @@ class CandidateValuesPool(object):
         # example values
         if not fuzzable_values:
             fuzzable_values.append(default_value)
-        elif primitive_type == FUZZABLE_DATETIME and\
+        elif primitive_type in [FUZZABLE_DATE, FUZZABLE_DATETIME] and\
         len(fuzzable_values) == 2:
             # Special case for fuzzable_datetime because there will always be
             # two additional values for past/future in the list
@@ -614,7 +622,35 @@ def restler_fuzzable_datetime(*args, **kwargs) :
     @rtype : Tuple
 
     """
+    field_name = args[0]
+    quoted = False
+    if QUOTED_ARG in kwargs:
+        quoted = kwargs[QUOTED_ARG]
+    examples=None
+    if EXAMPLES_ARG in kwargs:
+        examples = kwargs[EXAMPLES_ARG]
+    param_name = None
+    if PARAM_NAME_ARG in kwargs:
+        param_name = kwargs[PARAM_NAME_ARG]
+    return sys._getframe().f_code.co_name, field_name, quoted, examples, param_name
 
+def restler_fuzzable_date(*args, **kwargs) :
+    """ date primitive
+
+    @param args: The argument with which the primitive is defined in the block
+                    of the request to which it belongs to. This is a date-time
+                    primitive and therefore the arguments will be added to the
+                    existing candidate values for date-time mutations.
+    @type  args: Tuple
+    @param kwargs: Optional keyword arguments.
+    @type  kwargs: Dict
+
+    @return: A tuple of the primitive's name and its default value or its tag
+                both passed as arguments via the restler grammar.
+    @rtype : Tuple
+
+    """
+    # datetime works the same as date
     field_name = args[0]
     quoted = False
     if QUOTED_ARG in kwargs:

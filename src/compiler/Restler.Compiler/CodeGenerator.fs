@@ -32,6 +32,7 @@ module Types =
         | Restler_static_string_jtoken_delim of string
         | Restler_fuzzable_string of RequestPrimitiveTypeData
         | Restler_fuzzable_datetime of RequestPrimitiveTypeData
+        | Restler_fuzzable_date of RequestPrimitiveTypeData
         | Restler_fuzzable_object of RequestPrimitiveTypeData
         | Restler_fuzzable_delim of RequestPrimitiveTypeData
         | Restler_fuzzable_uuid4 of RequestPrimitiveTypeData
@@ -70,6 +71,8 @@ let rec getRestlerPythonPayload (payload:FuzzingPayload) (isQuoted:bool) : Reque
             | Bool -> Restler_fuzzable_bool { defaultValue = v ; isQuoted = false ; exampleValue = exv ; trackedParameterName = parameterName }
             | PrimitiveType.DateTime ->
                 Restler_fuzzable_datetime { defaultValue = v ; isQuoted = isQuoted ; exampleValue = exv ; trackedParameterName = parameterName }
+            | PrimitiveType.Date ->
+                Restler_fuzzable_date { defaultValue = v ; isQuoted = isQuoted ; exampleValue = exv ; trackedParameterName = parameterName }
             | PrimitiveType.String ->
                 Restler_fuzzable_string { defaultValue = v ; isQuoted = isQuoted ; exampleValue = exv ; trackedParameterName = parameterName }
             | PrimitiveType.Object -> Restler_fuzzable_object { defaultValue = v ; isQuoted = false ; exampleValue = exv  ; trackedParameterName = parameterName }
@@ -299,6 +302,7 @@ let generatePythonParameter includeOptionalParameters parameterKind (requestPara
             | _ when isNullValue -> false
             | PrimitiveType.String
             | PrimitiveType.DateTime
+            | PrimitiveType.Date
             | PrimitiveType.Uuid ->
                 true
             | PrimitiveType.Enum (_, enumType, _, _) ->
@@ -1034,6 +1038,12 @@ let getRequests(requests:Request list) includeOptionalParameters =
                         (getTrackedParamPrimitiveParameter s.trackedParameterName)
             | Restler_fuzzable_datetime s ->
                 sprintf "primitives.restler_fuzzable_datetime(\"%s\", quoted=%s%s%s)"
+                        s.defaultValue
+                        (if s.isQuoted then "True" else "False")
+                        (getExamplePrimitiveParameter s.exampleValue)
+                        (getTrackedParamPrimitiveParameter s.trackedParameterName)
+            | Restler_fuzzable_date s ->
+                sprintf "primitives.restler_fuzzable_date(\"%s\", quoted=%s%s%s)"
                         s.defaultValue
                         (if s.isQuoted then "True" else "False")
                         (getExamplePrimitiveParameter s.exampleValue)
