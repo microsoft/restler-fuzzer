@@ -91,6 +91,9 @@ class HttpResponse(object):
 
         """
         headers_dict = {}
+        if self.headers is None:
+            return headers_dict
+
         for header in self.headers:
             payload_start_idx = header.index(":")
             try:
