@@ -138,7 +138,7 @@ def publish_engine_py(dirs):
     # Copy files to drop
     copy_python_files(dirs.repository_root_dir, dirs.engine_dest_dir)
 
-def publish_dotnet_apps(dirs, configuration):
+def publish_dotnet_apps(dirs, configuration, dotnet_package_source):
     """ Publishes the dotnet components (compiler, driver, and results analyzer)
 
     @param dirs: The global directories
@@ -160,7 +160,10 @@ def publish_dotnet_apps(dirs, configuration):
         proj_file_path = dotnetcore_projects[target_dir_name]
         print(f"Publishing project {proj_file_path} to output dir {proj_output_dir}")
 
-        output = subprocess.run(f"dotnet restore \"{proj_file_path}\" --use-lock-file --locked-mode --force", shell=True, stderr=subprocess.PIPE)
+        restore_args = f"dotnet restore \"{proj_file_path}\" --use-lock-file --locked-mode --force"
+        if dotnet_package_source is not None:
+            restore_args = f"{restore_args} -s {dotnet_package_source}"
+        output = subprocess.run(restore_args, shell=True, stderr=subprocess.PIPE)
         if output.stderr:
             print("Build failed!")
             print(str(output.stderr))
@@ -193,6 +196,9 @@ if __name__ == '__main__':
                         'compiler: compiler only\n'
                         '(Default: all)',
                         type=str, default='all', required=False)
+    parser.add_argument('--dotnet_package_source',
+                        help='Overrides the dotnet package source. (Default: none)',
+                        type=str, default=None, required=False)
 
     args = parser.parse_args()
 
@@ -203,10 +209,10 @@ if __name__ == '__main__':
 
     print("Generating a new RESTler binary drop...")
     if args.compile_type == 'all':
-        publish_dotnet_apps(dirs, args.configuration)
+        publish_dotnet_apps(dirs, args.configuration, args.dotnet_package_source)
         publish_engine_py(dirs)
     elif args.compile_type == 'compiler':
-        publish_dotnet_apps(dirs, args.configuration)
+        publish_dotnet_apps(dirs, args.configuration, args.dotnet_package_source)
     elif args.compile_type == 'engine':
         publish_engine_py(dirs)
     else:
