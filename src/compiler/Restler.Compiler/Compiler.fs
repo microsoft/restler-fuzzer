@@ -652,6 +652,7 @@ let generateRequestPrimitives (requestId:RequestId)
                                (host:string)
                                (resolveQueryDependencies:bool)
                                (resolveBodyDependencies:bool)
+                               (resolveHeaderDependencies:bool)
                                (dictionary:MutationsDictionary)
                                (requestMetadata:RequestMetadata) =
     let method = requestId.method
@@ -752,18 +753,31 @@ let generateRequestPrimitives (requestId:RequestId)
             |> List.map
                 (fun (payloadSource, requestHeaders) ->
                         let parameterList =
-                            // The grammar should always have examples, if they exist here,
-                            // which implies that 'useExamples' was specified by the user.
                             match requestHeaders with
                             | ParameterList parameterList ->
-                                parameterList
-                                // Filter out the 'Content-Length' parameter if it is specified in the spec.
-                                // This parameter must be computed by the engine, and should not be fuzzed.
-                                |> Seq.filter (fun rp -> rp.name <> "Content-Length")
-                                |> Seq.map (fun requestParameter ->
-                                                replaceCustomPayloads CustomPayloadType.Header headersSpecifiedAsCustomPayloads requestParameter
-                                                |> fst )
+                                if resolveHeaderDependencies then
+                                    parameterList
+                                    |> Seq.map (fun p ->
+                                                    let newPayload, _ =
+                                                        Restler.Dependencies.DependencyLookup.getDependencyPayload
+                                                                            dependencies
+                                                                            None
+                                                                            requestId
+                                                                            p
+                                                                            dictionary
+                                                    newPayload)
+                                else parameterList
                             | _ -> raise (UnsupportedType "Only a list of header parameters is supported.")
+
+
+                        let parameterList =
+                            parameterList
+                            // Filter out the 'Content-Length' parameter if it is specified in the spec.
+                            // This parameter must be computed by the engine, and should not be fuzzed.
+                            |> Seq.filter (fun rp -> rp.name <> "Content-Length")
+                            |> Seq.map (fun requestParameter ->
+                                            replaceCustomPayloads CustomPayloadType.Header headersSpecifiedAsCustomPayloads requestParameter
+                                            |> fst )
 
                         let specHeaderParameterNames =
                             parameterList
@@ -1190,6 +1204,7 @@ let generateRequestGrammar (swaggerDocs:Types.ApiSpecFuzzingConfig list)
                                             dictionary
                                             config.ResolveQueryDependencies
                                             config.ResolveBodyDependencies
+                                            config.ResolveHeaderDependencies
                                             config.AllowGetProducers
                                             config.DataFuzzing
                                             perResourceDictionaries
@@ -1225,6 +1240,7 @@ let generateRequestGrammar (swaggerDocs:Types.ApiSpecFuzzingConfig list)
                                 host
                                 config.ResolveQueryDependencies
                                 config.ResolveBodyDependencies
+                                config.ResolveHeaderDependencies
                                 currentDict
                                 rd.requestMetadata
                         ) newDictionary

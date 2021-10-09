@@ -112,6 +112,8 @@ type Config =
 
         ResolveBodyDependencies: bool
 
+        ResolveHeaderDependencies: bool
+
         UseRefreshableToken : bool option
 
         // When true, allow GET requests to be considered.
@@ -232,6 +234,7 @@ let SampleConfig =
         ExamplesDirectory = ""
         ResolveQueryDependencies = true
         ResolveBodyDependencies = false
+        ResolveHeaderDependencies = false
         ReadOnlyFuzz = false
         UseRefreshableToken = Some true
         AllowGetProducers = false
@@ -264,6 +267,7 @@ let DefaultConfig =
         ExamplesDirectory = ""
         ResolveQueryDependencies = true
         ResolveBodyDependencies = true
+        ResolveHeaderDependencies = false
         ReadOnlyFuzz = false
         UseRefreshableToken = Some true
         AllowGetProducers = false

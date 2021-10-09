@@ -1,0 +1,10 @@
+{
+  "x-restler-global-annotations": [
+    {
+      "producer_endpoint": "/service/user",
+      "producer_method": "POST",
+      "producer_resource_name": "user-id",
+      "consumer_param": "user-id"
+    }
+  ]
+}
