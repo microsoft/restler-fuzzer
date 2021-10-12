@@ -54,6 +54,8 @@
 
 * *ResolveQueryDependencies* has the same behavior as ResolveBodyDependencies, but for query parameters.
 
+* *ResolveHeaderDependencies* has the same behavior as ResolveBodyDependencies, but for header parameters.
+
 * *EngineSettingsFilePath* is the path to the RESTler engine settings file.  This argument is optional.  If specified, the contents of the engine settings may be updated during compilation, and the updated version is placed in the output directory.  This updated version should be used when fuzzing.
 
 * *DiscoverExamples* If true, any examples found in the Swagger specification are

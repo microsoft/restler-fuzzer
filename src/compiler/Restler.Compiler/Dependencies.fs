@@ -307,8 +307,7 @@ let findProducerWithResourceName
 
     let producerEndpoint, producerContainer =
         match consumer.parameterKind with
-        | ParameterKind.Header ->
-            raise (Exception("producer-consumer dependencies in headers are not supported."))
+        | ParameterKind.Header
         | ParameterKind.Body
         | ParameterKind.Query -> None, None
         | ParameterKind.Path ->
@@ -834,7 +833,7 @@ let getParameterDependencies parameterKind globalAnnotations
 
             match parameterKind with
             | ParameterKind.Header ->
-                raise (Exception("producer-consumer dependencies in headers are not supported."))
+                HeaderResource resourceName
             | ParameterKind.Path ->
 
                 let pathToParameter =
@@ -878,7 +877,8 @@ let getParameterDependencies parameterKind globalAnnotations
 
     match parameterKind with
     | ParameterKind.Header ->
-        raise (Exception("producer-consumer dependencies in headers are not supported."))
+        let c = getConsumer parameterName [] None
+        consumerList.Add(c)
     | ParameterKind.Path ->
         let c = getConsumer parameterName [] None
         consumerList.Add(c)
@@ -1014,6 +1014,7 @@ let extractDependencies (requestData:(RequestId*RequestData)[])
                          (customDictionary:MutationsDictionary)
                          (queryDependencies:bool)
                          (bodyDependencies:bool)
+                         (headerDependencies:bool)
                          (allowGetProducers:bool)
                          (dataFuzzing:bool)
                          (perResourceDictionaries:Map<string, string * MutationsDictionary>)
@@ -1064,6 +1065,33 @@ let extractDependencies (requestData:(RequestId*RequestData)[])
                         queryParametersList
                         |> Seq.map (fun queryParameters ->
                                         getParameterConsumers r ParameterKind.Query queryParameters queryDependencies)
+                        |> Seq.concat
+                    // There may be duplicate consumers since different payload examples may overlap in the properties they use.
+                    allConsumers
+                    |> Seq.distinctBy (fun c -> c.id.RequestId, c.id.ResourceName, c.id.AccessPathParts)
+                r, c)
+
+    logTimingInfo "Getting header consumers..."
+    let headerConsumers =
+        requestData
+        |> Array.Parallel.map
+            (fun (r, rd) ->
+                let c =
+                    let headerParametersList =
+                        if dataFuzzing then
+                            // IMPORTANT: when data fuzzing, the schema must be used when analyzing
+                            // producer-consumer dependencies, because this includes all of the
+                            // possible parameters that may be passed in the query.
+                            rd.requestParameters.header
+                            |> Seq.filter (fun (x,y) -> x = ParameterPayloadSource.Schema)
+                            |> Seq.map snd
+                        else
+                            // This list should only contain examples, or only the schema.
+                            rd.requestParameters.header |> Seq.map snd
+                    let allConsumers =
+                        headerParametersList
+                        |> Seq.map (fun headerParameters ->
+                                        getParameterConsumers r ParameterKind.Header headerParameters headerDependencies)
                         |> Seq.concat
                     // There may be duplicate consumers since different payload examples may overlap in the properties they use.
                     allConsumers
@@ -1188,7 +1216,8 @@ let extractDependencies (requestData:(RequestId*RequestData)[])
     logTimingInfo "Compute dependencies"
     let consumers = seq { yield pathConsumers
                           yield queryConsumers
-                          yield bodyConsumers }
+                          yield bodyConsumers
+                          yield headerConsumers }
                     |> Array.concat
 
     let dependencies = Dictionary<string, List<ProducerConsumerDependency>>()

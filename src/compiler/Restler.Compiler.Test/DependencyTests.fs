@@ -411,6 +411,43 @@ module Dependencies =
             let message = sprintf "Grammar (test with annotations) does not match baseline.  First difference: %A" grammarDiff
             Assert.True(grammarDiff.IsNone, message)
 
+        [<Fact>]
+        let ``headers in request and responses`` () =
+            let grammarOutputDirPath = ctx.testRootDirPath
+            let config = { Restler.Config.SampleConfig with
+                             IncludeOptionalParameters = true
+                             GrammarOutputDirectoryPath = Some grammarOutputDirPath
+                             ResolveBodyDependencies = true
+                             ResolveHeaderDependencies = true
+                             UseBodyExamples = Some true
+                             SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, @"swagger\dependencyTests\header_deps.json"))]
+                             CustomDictionaryFilePath = None
+                             AnnotationFilePath = None
+                             AllowGetProducers = true
+                         }
+            Restler.Workflow.generateRestlerGrammar None config
+
+            let actualGrammarFilePath = Path.Combine(grammarOutputDirPath,
+                                                     Restler.Workflow.Constants.DefaultRestlerGrammarFileName)
+            let expectedGrammarFilePath = Path.Combine(Environment.CurrentDirectory,
+                                                       @"baselines\dependencyTests\header_deps_grammar.py")
+
+            // This scenario should work with annotations only.
+            let configWithAnnotations = { config with
+                                            AnnotationFilePath = Some (Path.Combine(Environment.CurrentDirectory, @"swagger\dependencyTests\header_deps_annotations.json"))}
+            Restler.Workflow.generateRestlerGrammar None configWithAnnotations
+
+            let grammarDiff = getLineDifferences expectedGrammarFilePath actualGrammarFilePath
+            let message = sprintf "Grammar (test with annotations) does not match baseline.  First difference: %A" grammarDiff
+            Assert.True(grammarDiff.IsNone, message)
+
+            Restler.Workflow.generateRestlerGrammar None config
+            let grammarDiff = getLineDifferences expectedGrammarFilePath actualGrammarFilePath
+            let message = "Grammar (test without annotations) matches the baseline, this is not expected"
+            Assert.True(grammarDiff.IsSome, message)
+
+
+
 
         interface IClassFixture<Fixtures.TestSetupAndCleanup>
 
