@@ -27,9 +27,25 @@ module Telemetry =
         let restlerSettingsCacheDir =
             match Types.Platform.getOSPlatform() with
             | Types.Platform.Platform.Linux | Types.Platform.MacOS ->
-                Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + @"/.config/microsoft/restler"
+                let settingsCacheRootDir =
+                    let userProfileFolder = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)
+                    // App may be running in a container with non-existent user.
+                    // Fall back to the temp directory
+                    let tmpFolder = Path.GetTempPath()
+                    if String.IsNullOrWhiteSpace(userProfileFolder) then
+                        tmpFolder
+                    else
+                        let parts =
+                            userProfileFolder.Split([|'/'|])
+                            |> Array.filter (fun x -> not (String.IsNullOrWhiteSpace x))
+                        if parts.Length = 0 then
+                            tmpFolder
+                        else
+                            userProfileFolder
+                Path.Combine(settingsCacheRootDir, @".config/microsoft/restler")
             | Types.Platform.Platform.Windows ->
-                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + @"\Microsoft\Restler";
+                let localAppDataDirPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData)
+                Path.Combine(localAppDataDirPath, @"Microsoft\Restler")
         if not (Directory.Exists(restlerSettingsCacheDir)) then
             // Re-tries are needed in case several RESTler instances are started on a new machine
             let retryCount = 3
