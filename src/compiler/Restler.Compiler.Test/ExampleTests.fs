@@ -473,6 +473,8 @@ module Examples =
             Assert.True(grammar.Contains("primitives.restler_fuzzable_string(\"fuzzstring\", quoted=False, examples=[\"inline_example_value_laptop1\"]),"))
 
             Assert.True(grammar.Contains("primitives.restler_fuzzable_string(\"fuzzstring\", quoted=False, examples=[\"inline_ex_2\"]),"))
+            Assert.True(grammar.Contains("primitives.restler_fuzzable_string(\"fuzzstring\", quoted=False, examples=[None]),"))
+
             Assert.True(grammar.Contains("primitives.restler_fuzzable_number(\"1.23\", examples=[\"1.67\"]),"))
 
         interface IClassFixture<Fixtures.TestSetupAndCleanup>
