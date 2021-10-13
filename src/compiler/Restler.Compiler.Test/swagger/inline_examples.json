@@ -52,7 +52,7 @@
               "type": "number",
               "examples": {
                 "firstExample": "1.67",
-                  "secondExample": "999.99"
+                 "secondExample": "999.99"
                 }
               },
             {
@@ -63,7 +63,7 @@
               "items": {
                 "type": "string"
               },
-              "example": [ "inline_ex_1", "inline_ex_2" ],
+              "example": [ null, "inline_ex_1", "inline_ex_2" ],
               "style": "form",
               "explode": false
             },

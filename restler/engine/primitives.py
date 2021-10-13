@@ -318,7 +318,13 @@ class CandidateValuesPool(object):
         if examples:
             # Use the examples instead of default value
             # Quote the example values if needed
-            examples_quoted = [f'"{example_value}"' if quoted else example_value for example_value in examples]
+            examples_quoted=[]
+            for ex_value in examples:
+                if ex_value is None:
+                    ex_value = "null"
+                elif quoted:
+                    ex_value = f'"{ex_value}"'
+                examples_quoted.append(ex_value)
             fuzzable_values = examples_quoted + fuzzable_values
 
         # Only use the default value if no values are defined in

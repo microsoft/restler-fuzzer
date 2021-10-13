@@ -966,9 +966,12 @@ let getRequests(requests:Request list) includeOptionalParameters =
             match exv with
             | None -> ""
             | Some str ->
-                let exStr, exDelim = quoteStringForPythonGrammar str
-                let quotedStr = sprintf "%s%s%s" exDelim exStr exDelim
-                sprintf ", examples=[%s]" quotedStr
+                if isNull str then
+                    sprintf ", examples=[None]"
+                else
+                    let exStr, exDelim = quoteStringForPythonGrammar str
+                    let quotedStr = sprintf "%s%s%s" exDelim exStr exDelim
+                    sprintf ", examples=[%s]" quotedStr
 
         let getTrackedParamPrimitiveParameter paramName =
             match paramName with
