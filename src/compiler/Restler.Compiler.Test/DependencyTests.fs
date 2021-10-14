@@ -447,7 +447,37 @@ module Dependencies =
             Assert.True(grammarDiff.IsSome, message)
 
 
+        /// Test that with annotations there are new dependencies added in the grammar, both for requests without any dependencies
+        /// and with requests that already contain regular request-response dependencies
+        [<Fact>]
+        let ``ordering constraints`` () =
+            /// This test uses a baseline grammar.py to make sure variables appear in the correct locations.
+            let grammarOutputDirPath = ctx.testRootDirPath
+            let config = { Restler.Config.SampleConfig with
+                             IncludeOptionalParameters = true
+                             GrammarOutputDirectoryPath = Some grammarOutputDirPath
+                             ResolveBodyDependencies = true
+                             ResolveHeaderDependencies = true
+                             UseBodyExamples = Some true
+                             SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, @"swagger\dependencyTests\ordering_test.json"))]
+                             CustomDictionaryFilePath = None
+                             AnnotationFilePath = None
+                             AllowGetProducers = true
+                         }
+            Restler.Workflow.generateRestlerGrammar None config
 
+            let actualGrammarFilePath = Path.Combine(grammarOutputDirPath,
+                                                     Restler.Workflow.Constants.DefaultRestlerGrammarFileName)
+            let expectedGrammarFilePath = Path.Combine(Environment.CurrentDirectory,
+                                                       @"baselines\dependencyTests\ordering_test_grammar.py")
+
+            let configWithAnnotations = { config with
+                                            AnnotationFilePath = Some (Path.Combine(Environment.CurrentDirectory, @"swagger\dependencyTests\ordering_test_annotations.json"))}
+            Restler.Workflow.generateRestlerGrammar None configWithAnnotations
+
+            let grammarDiff = getLineDifferences expectedGrammarFilePath actualGrammarFilePath
+            let message = sprintf "Grammar (test with annotations) does not match baseline.  First difference: %A" grammarDiff
+            Assert.True(grammarDiff.IsNone, message)
 
         interface IClassFixture<Fixtures.TestSetupAndCleanup>
 

@@ -1,6 +1,11 @@
-# RESTler annotations in Swagger files
+# RESTler annotations
 
 RESTler allows the user to provide annotations with information about producer-consumer dependencies between requests.  This is helpful when RESTler cannot automatically infer such dependencies, which can happen for a variety of reasons (most often, because of very generic or inconsistent naming in the specification, or if the naming convention is not implemented in RESTler).
+
+## Annotation format
+
+Annotations are supported either globally (apply to all requests) or locally (apply only to a single request).  They may be specified inline in the Swagger specification (preferred if generated from the code, to evolve with the API) or outside in a separate file,
+which can be specified in the [Compiler config](CompilerConfig.md).  The latter is preferred when modifications to the Swagger/OpenAPI spec are not acceptable, or maintaining a separate file is easier in your specific workflow.
 
 ## Supported types of dependencies
 RESTler currently supports the following types of producer-consumer dependencies:
@@ -15,11 +20,10 @@ The annotation format for this annotation is the same as for annotations for pro
 3. Between two properties in the body.
 For example: "request ```PUT /A/{aId}``` has properties in the body that also need to refer to ```aId```, whose value is unique for each request invocation (via ```restler_custom_payload_uuid4_suffix```)
 
-Annotations are only supported for dependencies of type (1) and (2) above.
+4. Between two requests.  These ordering constraints may be specified as global annotations.
 
-## Annotation format
+Annotations are only supported for dependencies of type (1), (2) and (4) above.
 
-Annotations are supported either globally (apply to all requests) or locally (apply only to a single request).  They may be specified inline in the Swagger specification (preferred if generated from the code, to evolve with the API) or outside in a separate file (preferred when modifications to the Swagger/OpenAPI spec are not acceptable, or maintaining a separate file is easier in your specific workflow).
 
 ## Global annotations
 
@@ -108,4 +112,15 @@ In some cases, the resource names in the above may be ambiguous, e.g. because se
 }
 ```
 
+An ordering constraint may also be specified, which only includes the request type,
+without any resource names.  For example:
+
+```json
+{
+    "producer_endpoint": "/resource/{resourceId}/start",
+    "producer_method": "POST",
+    "consumer_endpoint": "/resource/{resourceId}/stop",
+    "consumer_method": "POST",
+}
+```
 

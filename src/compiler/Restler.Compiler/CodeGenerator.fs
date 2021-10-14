@@ -54,11 +54,16 @@ open Types
 
 module NameGenerators =
     let generateDynamicObjectVariableDefinition responseAccessPathParts (requestId:RequestId) =
-        let varName = (generateDynamicObjectVariableName requestId (Some responseAccessPathParts) "_")
+        let varName = (DynamicObjectNaming.generateDynamicObjectVariableName requestId (Some responseAccessPathParts) "_")
         sprintf "%s = dependencies.DynamicVariable(\"%s\")" varName varName
 
+    let generateDynamicObjectOrderingConstraintVariableDefinition (sourceRequestId:RequestId) (targetRequestId:RequestId) =
+        let varName = (DynamicObjectNaming.generateOrderingConstraintVariableName sourceRequestId targetRequestId "_")
+        sprintf "%s = dependencies.DynamicVariable(\"%s\")" varName varName
+
+
     let generateProducerEndpointResponseParserFunctionName (requestId:RequestId) =
-        sprintf "parse_%s" (generateDynamicObjectVariableName requestId None "")
+        sprintf "parse_%s" (DynamicObjectNaming.generateDynamicObjectVariableName requestId None "")
 
 // Gets the RESTler primitive that corresponds to the specified fuzzing payload
 let rec getRestlerPythonPayload (payload:FuzzingPayload) (isQuoted:bool) : RequestPrimitiveType list =
@@ -533,32 +538,79 @@ let generatePythonFromRequestElement includeOptionalParameters (requestId:Reques
             Restler_static_string_constant (sprintf "%s: %s%s" name content RETURN))
     | HttpVersion v->
         [Restler_static_string_constant (sprintf "%sHTTP/%s%s" SPACE v RETURN)]
-    | ResponseParser r ->
-        match r with
-        | None -> []
-        | Some responseParser ->
+    | RequestDependencyData rd ->
+        if rd.IsSome then
+            let responseParser = rd.Value.responseParser
             let generateWriterStatement var =
                sprintf "%s.writer()" var
-            let variablesReferencedInParser = responseParser.writerVariables @ responseParser.headerWriterVariables
+            let generateReaderStatement var =
+               sprintf "%s.reader()" var
+
+            let variablesReferencedInParser =
+                match responseParser with
+                | Some rp -> rp.writerVariables @ rp.headerWriterVariables
+                | None -> []
             let parserStatement =
                 match variablesReferencedInParser with
                 | [] -> ""
                 | writerVariable::rest ->
                    sprintf @"'parser': %s,"
                         (NameGenerators.generateProducerEndpointResponseParserFunctionName writerVariable.requestId)
-
             let postSend =
-                let writerVariablesList =
-                    variablesReferencedInParser @ responseParser.inputWriterVariables
+                let allWriterVariableStatements =
+                    let writerVariableStatements =
+                        variablesReferencedInParser @ rd.Value.inputWriterVariables
+                        |> List.map (fun producerWriter ->
+                                         generateWriterStatement (DynamicObjectNaming.generateDynamicObjectVariableName producerWriter.requestId (Some producerWriter.accessPathParts) "_"))
+
+                    let orderingConstraintVariableStatements =
+                        rd.Value.orderingConstraintWriterVariables
+                        |> List.map (fun constraintVariable ->
+                                           generateWriterStatement (DynamicObjectNaming.generateOrderingConstraintVariableName constraintVariable.sourceRequestId constraintVariable.targetRequestId "_"))
+
+                    writerVariableStatements @ orderingConstraintVariableStatements
+
+                let readerVariablesList =
+                    let allReaderVariableStatements =
+                        rd.Value.orderingConstraintReaderVariables
+                        |> List.map (fun constraintVariable ->
+                                           generateReaderStatement (DynamicObjectNaming.generateOrderingConstraintVariableName constraintVariable.sourceRequestId constraintVariable.targetRequestId "_"))
+
+                    allReaderVariableStatements
                     // TODO: generate this ID only once if possible.
-                    |> List.map (fun producerWriter ->
-                                      let stmt = generateWriterStatement (generateDynamicObjectVariableName producerWriter.requestId (Some producerWriter.accessPathParts) "_")
+                    |> List.map (fun stmt ->
                                       let indent = Seq.init 4 (fun _ -> TAB) |> String.concat ""
                                       sprintf "%s%s" indent stmt
                                       )
                     |> String.concat ",\n"
-                sprintf @"
-    {
+
+                let writerVariablesList =
+                    allWriterVariableStatements
+                    // TODO: generate this ID only once if possible.
+                    |> List.map (fun stmt ->
+                                      let indent = Seq.init 4 (fun _ -> TAB) |> String.concat ""
+                                      sprintf "%s%s" indent stmt
+                                      )
+                    |> String.concat ",\n"
+
+                let preSendElement =
+                    if readerVariablesList.Length > 0 then
+                        sprintf @"
+        'pre_send':
+        {
+            'dependencies':
+            [
+%s
+            ]
+        }
+"
+                            readerVariablesList
+                    else
+                        ""
+
+                let postSendElement =
+                    if writerVariablesList.Length > 0 then
+                        sprintf @"
         'post_send':
         {
             %s
@@ -567,11 +619,23 @@ let generatePythonFromRequestElement includeOptionalParameters (requestId:Reques
 %s
             ]
         }
+"
+                            parserStatement
+                            writerVariablesList
+                    else
+                        ""
+
+                sprintf @"
+    {
+%s
     }"
-                    parserStatement
-                    writerVariablesList
+                    ([ preSendElement ; postSendElement ]
+                     |> List.filter (fun x -> not (String.IsNullOrWhiteSpace x))
+                     |> String.concat ",\n")
 
             [Response_parser postSend]
+        else
+            []
     | Delimiter ->
         [Restler_static_string_constant RETURN]
 
@@ -668,7 +732,7 @@ let generatePythonFromRequest (request:Request) includeOptionalParameters mergeS
               | Some p -> Example p
               | None -> parameterListPayload)
         Delimiter
-        ResponseParser request.responseParser
+        RequestDependencyData request.dependencyData
     ]
 
     requestElements
@@ -774,6 +838,17 @@ let getDynamicObjectDefinitions (writerVariables:seq<DynamicObjectWriterVariable
     }
     |> Seq.toList
 
+let getOrderingConstraintDynamicObjectDefinitions (writerVariables:seq<OrderingConstraintVariable>) =
+    seq {
+        // First, define the dynamic variables initialized by the response parser
+        for writerVariable in writerVariables do
+            yield PythonGrammarElement.DynamicObjectDefinition
+                    (NameGenerators.generateDynamicObjectOrderingConstraintVariableDefinition writerVariable.sourceRequestId writerVariable.targetRequestId)
+    }
+    |> Seq.distinct
+    |> Seq.toList
+
+
 type ResponseVariableKind =
     | Body
     | Header
@@ -782,7 +857,8 @@ let getResponseParsers (requests: Request list) =
 
     let random = System.Random(0)
 
-    let responseParsers = requests |> Seq.choose (fun r -> r.responseParser)
+    let dependencyData = requests |> Seq.choose (fun r -> r.dependencyData)
+    let responseParsers = dependencyData |> Seq.choose (fun d -> d.responseParser)
 
     // First, define the dynamic variables initialized by the response parser
     let dynamicObjectDefinitionsFromBodyResponses =
@@ -792,7 +868,10 @@ let getResponseParsers (requests: Request list) =
         getDynamicObjectDefinitions (responseParsers |> Seq.map (fun r -> r.headerWriterVariables |> seq) |> Seq.concat)
 
     let dynamicObjectDefinitionsFromInputParameters =
-        getDynamicObjectDefinitions (responseParsers |> Seq.map (fun r -> r.inputWriterVariables |> seq) |> Seq.concat)
+        getDynamicObjectDefinitions (dependencyData |> Seq.map (fun d -> d.inputWriterVariables |> seq) |> Seq.concat)
+
+    let dynamicObjectDefinitionsFromOrderingConstraints =
+        getOrderingConstraintDynamicObjectDefinitions (dependencyData |> Seq.map (fun d -> d.orderingConstraintWriterVariables |> seq) |> Seq.concat)
 
     let formatParserFunction (parser:ResponseParser) =
         let functionName =
@@ -802,10 +881,10 @@ let getResponseParsers (requests: Request list) =
         // Go through the producer fields and parse them all out of the response
         // STOPPED HERE:
         // also do 'if true' for header parsing and body parsing where 'true' is if there are actually variables to parse out of there.
-        let getResponseParsingStatements writerVariables (variableKind:ResponseVariableKind) =
+        let getResponseParsingStatements (writerVariables:DynamicObjectWriterVariable list) (variableKind:ResponseVariableKind) =
             [
                 for w in writerVariables do
-                    let dynamicObjectVariableName = generateDynamicObjectVariableName w.requestId (Some w.accessPathParts) "_"
+                    let dynamicObjectVariableName = DynamicObjectNaming.generateDynamicObjectVariableName w.requestId (Some w.accessPathParts) "_"
                     let tempVariableName = sprintf "temp_%d" (random.Next(10000))
                     let emptyInitStatement = sprintf "%s = None" tempVariableName
                     let getPath (part:string) =
@@ -937,6 +1016,7 @@ def %s(data, **kwargs):
         yield! dynamicObjectDefinitionsFromBodyResponses
         yield! dynamicObjectDefinitionsFromHeaderResponses
         yield! dynamicObjectDefinitionsFromInputParameters
+        yield! dynamicObjectDefinitionsFromOrderingConstraints
         yield! (responseParsersWithParserFunction |> Seq.map (fun r -> formatParserFunction r) |> Seq.toList)
     ]
 
