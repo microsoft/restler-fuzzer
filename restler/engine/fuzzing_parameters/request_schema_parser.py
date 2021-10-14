@@ -177,6 +177,7 @@ def des_param_payload(param_payload_json, tag='', body_param=True):
         content_type = 'Unknown'
         content_value = 'Unknown'
         custom = False
+        custom_payload_type = None
         fuzzable = False
         is_dynamic_object = False
 
@@ -193,8 +194,9 @@ def des_param_payload(param_payload_json, tag='', body_param=True):
             is_dynamic_object = True
         elif 'Custom' in payload:
             custom = True
-            content_type = payload['Custom']['payloadType']
+            content_type = payload['Custom']['primitiveType']
             content_value = payload['Custom']['payloadValue']
+            custom_payload_type = payload['Custom']['payloadType']
 
             # TODO: these dynamic objects are not yet supported in the schema.
             # This dictionary is currently not used, and will be used once
@@ -229,7 +231,7 @@ def des_param_payload(param_payload_json, tag='', body_param=True):
             value = ParamBoolean(is_required=is_required, is_dynamic_object=is_dynamic_object)
         elif content_type == 'Object':
             value = ParamObjectLeaf(is_required=is_required, is_dynamic_object=is_dynamic_object)
-        elif content_type == 'UuidSuffix':
+        elif custom and custom_payload_type == 'UuidSuffix':
             value = ParamUuidSuffix(is_required=is_required)
             # Set as unknown for payload body fuzzing purposes.
             # This will be fuzzed as a string.
