@@ -263,6 +263,12 @@ class Request(object):
             var_name = self._get_var_name_from_definition_line(line)
             if var_name:
                 self._consumes.add(var_name)
+        # Also look for reader placeholders in the pre_send section
+        if bool(self.metadata) and 'pre_send' in self.metadata\
+        and 'dependencies' in self.metadata['pre_send']:
+            for reader_var in self.metadata['pre_send']['dependencies']:
+                var_name = reader_var.split(dependencies.RDELIM)[1]
+                self._consumes.add(var_name)
 
         # Look for writer placeholders
         if bool(self.metadata) and 'post_send' in self.metadata\
