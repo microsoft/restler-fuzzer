@@ -113,9 +113,11 @@
         ]
       ],
       "httpVersion": "1.1",
-      "responseParser": {
-        "writerVariables": [],
-        "headerWriterVariables": [],
+      "dependencyData": {
+        "responseParser": {
+          "writerVariables": [],
+          "headerWriterVariables": []
+        },
         "inputWriterVariables": [
           {
             "requestId": {
@@ -135,28 +137,10 @@
             "primitiveType": "String",
             "kind": "InputParameter"
           }
-        ]
+        ],
+        "orderingConstraintWriterVariables": [],
+        "orderingConstraintReaderVariables": []
       },
-      "inputDynamicObjectVariables": [
-        {
-          "requestId": {
-            "endpoint": "/{resourceName}/type/folder",
-            "xMsPath": {
-              "pathPart": "/{resourceName}",
-              "queryPart": "type=folder"
-            },
-            "method": "Put"
-          },
-          "accessPathParts": {
-            "path": [
-              "resourceName",
-              "path"
-            ]
-          },
-          "primitiveType": "String",
-          "kind": "InputParameter"
-        }
-      ],
       "requestMetadata": {
         "isLongRunningOperation": true
       }
@@ -274,9 +258,11 @@
         ]
       ],
       "httpVersion": "1.1",
-      "responseParser": {
-        "writerVariables": [],
-        "headerWriterVariables": [],
+      "dependencyData": {
+        "responseParser": {
+          "writerVariables": [],
+          "headerWriterVariables": []
+        },
         "inputWriterVariables": [
           {
             "requestId": {
@@ -296,28 +282,10 @@
             "primitiveType": "String",
             "kind": "InputParameter"
           }
-        ]
+        ],
+        "orderingConstraintWriterVariables": [],
+        "orderingConstraintReaderVariables": []
       },
-      "inputDynamicObjectVariables": [
-        {
-          "requestId": {
-            "endpoint": "/{resourceName}/type/file",
-            "xMsPath": {
-              "pathPart": "/{resourceName}",
-              "queryPart": "type=file"
-            },
-            "method": "Put"
-          },
-          "accessPathParts": {
-            "path": [
-              "resourceName",
-              "path"
-            ]
-          },
-          "primitiveType": "String",
-          "kind": "InputParameter"
-        }
-      ],
       "requestMetadata": {
         "isLongRunningOperation": true
       }
@@ -456,7 +424,6 @@
         ]
       ],
       "httpVersion": "1.1",
-      "inputDynamicObjectVariables": [],
       "requestMetadata": {
         "isLongRunningOperation": false
       }
@@ -554,7 +521,6 @@
         ]
       ],
       "httpVersion": "1.1",
-      "inputDynamicObjectVariables": [],
       "requestMetadata": {
         "isLongRunningOperation": false
       }
@@ -652,7 +618,6 @@
         ]
       ],
       "httpVersion": "1.1",
-      "inputDynamicObjectVariables": [],
       "requestMetadata": {
         "isLongRunningOperation": false
       }

@@ -19,10 +19,18 @@ type ExceptConsumerUserAnnotation =
 
 type ProducerConsumerUserAnnotation =
     {
+        // The endpoint and method of the producer
         producer_endpoint : string
         producer_method : string
-        producer_resource_name : string
-        consumer_param : string
+
+        // The producer resource name and consumer parameter
+        // These may be omitted in the case of an ordering constraint
+        // specification between methods
+        producer_resource_name : string option
+        consumer_param : string option
+
+        consumer_endpoint : string option
+        consumer_method : string option
         except : obj option
     }
 
@@ -35,40 +43,54 @@ let parseAnnotation (ann:JToken) =
         failwith (sprintf "Invalid producer annotation: %s (%s)" error annJson)
     | Choice1Of2 annotation ->
         let xMsPath = getXMsPath annotation.producer_endpoint
-        let endpoint =
+        let producer_endpoint =
             match xMsPath with
             | None -> annotation.producer_endpoint
             | Some xMsPath ->
                 xMsPath.getNormalizedEndpoint()
-        let producerId = {
-                            requestId =
-                                {
-                                    endpoint = endpoint
+        let producerRequestId = {
+                                    endpoint = producer_endpoint
                                     method = getOperationMethodFromString annotation.producer_method
                                     xMsPath = xMsPath
                                 }
-                            resourceName = annotation.producer_resource_name
-                            }
+        let consumerRequestId =
+            match annotation.consumer_endpoint with
+            | None -> None
+            | Some ace ->
+                if annotation.consumer_method.IsNone then
+                    failwith (sprintf "Invalid annotation: if consumer_endpoint is specified, consumer_method must be specified")
+                let xMsPath = getXMsPath ace
+                let consumer_endpoint =
+                    match xMsPath with
+                    | None -> ace
+                    | Some xMsPath ->
+                        xMsPath.getNormalizedEndpoint()
+                Some
+                    {
+                        endpoint = consumer_endpoint
+                        method = getOperationMethodFromString annotation.consumer_method.Value
+                        xMsPath = xMsPath
+                    }
+
         // Initialize the consumer parameter based on whether a path or name is specified.
         let consumerParameter =
-            match AccessPaths.tryGetAccessPathFromString annotation.consumer_param with
-            | Some p ->
-                ResourcePath p
-            | None ->
-                ResourceName annotation.consumer_param
-
-        let producerParameter, producerId =
-            match AccessPaths.tryGetAccessPathFromString producerId.resourceName with
-            | Some p ->
-                (ResourcePath p),
-                { producerId with resourceName =
-                                        match p.getNamePart() with
-                                        | None -> failwith (sprintf "Invalid producer annotation: %A "producerId)
-                                        | Some n -> n
-                                        }
-            | None ->
-                (ResourceName producerId.resourceName),
-                producerId
+            match annotation.consumer_param with
+            | None -> None
+            | Some acp ->
+                match AccessPaths.tryGetAccessPathFromString acp with
+                | Some p ->
+                    Some (ResourcePath p)
+                | None ->
+                    Some (ResourceName acp)
+        let producerParameter =
+            match annotation.producer_resource_name with
+            | None -> None
+            | Some app ->
+                match AccessPaths.tryGetAccessPathFromString app with
+                | Some p ->
+                    Some (ResourcePath p)
+                | None ->
+                    Some (ResourceName app)
 
         let getExceptProperty (o:JObject) (exceptConsumer:obj) =
             {
@@ -116,7 +138,8 @@ let parseAnnotation (ann:JToken) =
                                     xMsPath = xMsPath
                                 })
                 |> Some
-        Some {  ProducerConsumerAnnotation.producerId = producerId
+        Some {  ProducerConsumerAnnotation.producerId = producerRequestId
+                consumerId = consumerRequestId
                 consumerParameter = consumerParameter
                 producerParameter = producerParameter
                 exceptConsumerId = exceptConsumerId

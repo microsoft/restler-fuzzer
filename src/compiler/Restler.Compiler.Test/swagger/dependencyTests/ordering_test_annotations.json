@@ -1,0 +1,16 @@
+{
+  "x-restler-global-annotations": [
+    {
+      "producer_endpoint": "/services",
+      "producer_method": "GET",
+      "consumer_endpoint":  "/managementTools",
+      "consumer_method": "GET"
+    },
+    {
+      "producer_endpoint": "/managementTools",
+      "producer_method": "GET",
+      "consumer_endpoint":  "/products",
+      "consumer_method": "GET"
+    }
+  ]
+}

@@ -51,7 +51,6 @@ type UserSpecifiedRequestConfig =
     }
 
 let getWriterVariable (producer:Producer) (kind:DynamicObjectVariableKind) =
-
     match producer with
     | InputParameter (iop, _) ->
         {
@@ -80,13 +79,50 @@ let getWriterVariable (producer:Producer) (kind:DynamicObjectVariableKind) =
     | _ ->
         raise (invalidArg "producer" "only input parameter and response producers have an associated dynamic object")
 
-let getResponseParsers (dependencies:seq<ProducerConsumerDependency>) =
+let getResponseParsers (dependencies:seq<ProducerConsumerDependency>) (orderingConstraints:(RequestId * RequestId) list) =
     // Index the dependencies by request ID.
-    let parsers = new Dictionary<RequestId, ResponseParser>()
+    let parsers = new Dictionary<RequestId, RequestDependencyData>()
 
    // Generate the parser for all the consumer variables (Note this means we need both producer
-    // and consumer pairs.  A response parser is only generated if there is a consumer for one or more of the
-    // response properties.)
+   // and consumer pairs.  A response parser is only generated if there is a consumer for one or more of the
+   // response properties.)
+
+    /// Make sure the grammar will be stable by sorting the variables.
+    let getVariables variableMap variableKind =
+        match variableMap |> Map.tryFind variableKind with
+        | None -> []
+        | Some x ->
+            x |> Seq.toList
+              |> List.sortBy (fun (writerVariable:DynamicObjectWriterVariable) ->
+                                writerVariable.requestId.endpoint,
+                                writerVariable.requestId.method,
+                                writerVariable.accessPathParts.getJsonPointer().Value)
+
+    let getOrderingConstraintVariables constraints =
+        constraints
+        |> List.distinct
+        |> List.map (fun (source, target) ->
+                        { OrderingConstraintVariable.sourceRequestId = source
+                          targetRequestId = target })
+
+    // First, add all of the requests for which an ordering constraint exists
+    orderingConstraints
+    |> Seq.fold (fun reqs (source,target) -> [source ; target] @ reqs) []
+    |> Seq.distinct
+    |> Seq.iter (fun requestId ->
+                    let dependencyInfo =
+                        {
+                            responseParser = None
+                            inputWriterVariables = []
+
+                            orderingConstraintWriterVariables =
+                                orderingConstraints |> List.filter (fun (source,_) -> requestId = source)
+                                                    |> getOrderingConstraintVariables
+                            orderingConstraintReaderVariables =
+                                orderingConstraints |> List.filter (fun (_,target) -> requestId = target)
+                                                    |> getOrderingConstraintVariables
+                        }
+                    parsers.Add(requestId, dependencyInfo))
 
     dependencies
     |> Seq.filter (fun dep -> dep.producer.IsSome)
@@ -111,28 +147,40 @@ let getResponseParsers (dependencies:seq<ProducerConsumerDependency>) =
     |> Seq.groupBy (fun writerVariable -> writerVariable.requestId)
     |> Map.ofSeq
     |> Map.iter (fun requestId allWriterVariables ->
+                    let prevDependencyInfo =
+                        match parsers.TryGetValue(requestId) with
+                        | false, _ -> None
+                        | true, di -> Some di
+
                     let groupedWriterVariables = allWriterVariables |> Seq.groupBy (fun x -> x.kind)
                                                  |> Map.ofSeq
-                    let parser =
+
+                    let responseParser =
                         {
-                            writerVariables =
-                                match groupedWriterVariables |> Map.tryFind DynamicObjectVariableKind.BodyResponseProperty with
+                            writerVariables = getVariables groupedWriterVariables DynamicObjectVariableKind.BodyResponseProperty
+                            headerWriterVariables = getVariables groupedWriterVariables DynamicObjectVariableKind.Header
+                        }
+                    let dependencyInfo =
+                        {
+                            responseParser = Some responseParser
+                            inputWriterVariables = getVariables groupedWriterVariables DynamicObjectVariableKind.InputParameter
+                            orderingConstraintWriterVariables =
+                                match prevDependencyInfo with
+                                | Some d -> d.orderingConstraintWriterVariables
                                 | None -> []
-                                | Some x -> x |> Seq.toList
-                            inputWriterVariables =
-                                match groupedWriterVariables |> Map.tryFind DynamicObjectVariableKind.InputParameter with
+                            orderingConstraintReaderVariables =
+                                match prevDependencyInfo with
+                                | Some d -> d.orderingConstraintReaderVariables
                                 | None -> []
-                                | Some x -> x |> Seq.toList
-
-                            headerWriterVariables =
-                                match groupedWriterVariables |> Map.tryFind DynamicObjectVariableKind.Header with
-                                | None -> []
-                                | Some x -> x |> Seq.toList
-
                         }
 
-                    parsers.Add(requestId, parser))
+                    if prevDependencyInfo.IsSome then
+                        parsers.Remove(requestId) |> ignore
+
+                    parsers.Add(requestId, dependencyInfo))
     parsers
+    |> Seq.map (fun k -> (k.Key,k.Value))
+    |> Map.ofSeq
 
 module ResourceUriInferenceFromExample =
     let tryGetExamplePayload payload =
@@ -645,7 +693,7 @@ let private getInjectedCustomPayloadParameters (dictionary:MutationsDictionary) 
             |> Seq.toList
 
 let generateRequestPrimitives (requestId:RequestId)
-                               (responseParser:ResponseParser option)
+                               (dependencyData:RequestDependencyData option)
                                (requestParameters:RequestParameters)
                                (dependencies:Dictionary<string, List<ProducerConsumerDependency>>)
                                basePath
@@ -959,8 +1007,7 @@ let generateRequestPrimitives (requestId:RequestId)
         headers = headers
         token = TokenKind.Refreshable
         bodyParameters = bodyParameters
-        responseParser  = responseParser
-        inputDynamicObjectVariables = if responseParser.IsSome then responseParser.Value.inputWriterVariables else []
+        dependencyData = dependencyData
         requestMetadata = requestMetadata
     },
     newDictionary
@@ -1198,17 +1245,18 @@ let generateRequestGrammar (swaggerDocs:Types.ApiSpecFuzzingConfig list)
 
 
     logTimingInfo "Getting dependencies..."
-    let dependenciesIndex, newDictionary = Restler.Dependencies.extractDependencies
-                                            requestData
-                                            globalAnnotations
-                                            dictionary
-                                            config.ResolveQueryDependencies
-                                            config.ResolveBodyDependencies
-                                            config.ResolveHeaderDependencies
-                                            config.AllowGetProducers
-                                            config.DataFuzzing
-                                            perResourceDictionaries
-                                            config.ApiNamingConvention
+    let dependenciesIndex, orderingConstraints, newDictionary =
+        Restler.Dependencies.extractDependencies
+                requestData
+                globalAnnotations
+                dictionary
+                config.ResolveQueryDependencies
+                config.ResolveBodyDependencies
+                config.ResolveHeaderDependencies
+                config.AllowGetProducers
+                config.DataFuzzing
+                perResourceDictionaries
+                config.ApiNamingConvention
 
     logTimingInfo "Generating request primitives..."
 
@@ -1218,7 +1266,7 @@ let generateRequestGrammar (swaggerDocs:Types.ApiSpecFuzzingConfig list)
         |> Seq.concat
         |> Seq.toList
 
-    let responseParsers = getResponseParsers dependencies
+    let dependencyInfo = getResponseParsers dependencies orderingConstraints
 
     let basePath = swaggerDocs.[0].swaggerDoc.BasePath
     let host = swaggerDocs.[0].swaggerDoc.Host
@@ -1227,13 +1275,9 @@ let generateRequestGrammar (swaggerDocs:Types.ApiSpecFuzzingConfig list)
     let requests, newDictionary =
         requestData
         |> Seq.mapFold ( fun currentDict (requestId, rd) ->
-                            let responseParser =
-                                match responseParsers.TryGetValue(requestId) with
-                                | (true, v ) -> Some v
-                                | (false, _ ) -> None
                             generateRequestPrimitives
                                 requestId
-                                responseParser
+                                (dependencyInfo |> Map.tryFind requestId)
                                 rd.requestParameters
                                 dependenciesIndex
                                 basePath
@@ -1270,26 +1314,12 @@ let generateRequestGrammar (swaggerDocs:Types.ApiSpecFuzzingConfig list)
                         { ExamplePath.path = endpoint
                           ExamplePath.methods = methods |> Seq.map snd |> Seq.toList })
 
-    // Make sure the grammar will be stable by sorting elements as required before returning it.
     let requests =
         requests |> Seq.map (fun req ->
-                                    // Writer variables should be ordered by identifier name
-                                    let responseParser =
-                                        match req.responseParser with
-                                        | None -> None
-                                        | Some rp ->
-                                            Some ({ rp with writerVariables =
-                                                                rp.writerVariables
-                                                                |> List.sortBy (fun writerVariable ->
-                                                                                    writerVariable.requestId.endpoint,
-                                                                                    writerVariable.requestId.method,
-                                                                                    writerVariable.accessPathParts.getJsonPointer().Value) } )
-                                    let req =
-                                        match req.id.xMsPath with
-                                        | None -> req
-                                        | Some xMsPath -> XMsPaths.replaceWithOriginalPaths req
-                                    { req with responseParser = responseParser })
-                |> Seq.toList
+                                match req.id.xMsPath with
+                                | None -> req
+                                | Some xMsPath -> XMsPaths.replaceWithOriginalPaths req)
+                 |> Seq.toList
 
     { Requests = requests },
     dependencies,

@@ -81,8 +81,7 @@ module CodeGenerator =
                                ("Host", "fromSwagger")
                                ("Content-Type", "application/json")]
                     token = (TokenKind.Static "SpringfieldToken: 12345")
-                    responseParser = None
-                    inputDynamicObjectVariables = []
+                    dependencyData = None
                     requestMetadata = { isLongRunningOperation = false }
                 }
             let elements = Restler.CodeGenerator.Python.getRequests [request] true

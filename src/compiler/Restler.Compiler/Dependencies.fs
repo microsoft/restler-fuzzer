@@ -76,7 +76,7 @@ let addUuidSuffixEntryForConsumer (consumerResourceName:string) (dictionary:Muta
         if dictionary.restler_custom_payload_uuid4_suffix.Value.ContainsKey(consumerResourceName) then
             dictionary
         else
-            let prefixValue = generatePrefixForCustomUuidSuffixPayload consumerResourceName
+            let prefixValue = DynamicObjectNaming.generatePrefixForCustomUuidSuffixPayload consumerResourceName
             { dictionary with
                             restler_custom_payload_uuid4_suffix =
                                 Some (dictionary.restler_custom_payload_uuid4_suffix.Value.Add(consumerResourceName, prefixValue))
@@ -358,16 +358,26 @@ let findProducerWithResourceName
         match ann with
         | None -> dictionary, None
         | Some a ->
+            let annotationProducerResourceName =
+                match a.producerParameter with
+                | None -> None
+                | Some producerParameter ->
+                    match producerParameter with
+                    | ResourceName rn -> Some rn
+                    | ResourcePath rp -> rp.getNamePart()
             let responseProducers =
                 let responseProducersWithMatchingResourceIds =
                     // When the annotation has a path, the producer can be matched exactly
                     // TODO: an unnamed resource, such as an array element, cannot be currently assigned as a producer, because
                     // its name will be the array name.
-                    producers.getIndexedByEndpointProducers(a.producerId.resourceName,
-                                                            a.producerId.requestId.endpoint,
-                                                            [ OperationMethod.Put
-                                                              OperationMethod.Post
-                                                              OperationMethod.Get ])
+                    match annotationProducerResourceName with
+                    | None -> Seq.empty
+                    | Some name ->
+                        producers.getIndexedByEndpointProducers(name,
+                                                                a.producerId.endpoint,
+                                                                [ OperationMethod.Put
+                                                                  OperationMethod.Post
+                                                                  OperationMethod.Get ])
 
                 let annotationResponseProducer =
                     responseProducersWithMatchingResourceIds
@@ -375,12 +385,15 @@ let findProducerWithResourceName
                                             // Match on the path, if it exists,
                                             // otherwise match on the ID only
                                             match a.producerParameter with
-                                            | ResourceName _ ->
-                                                p.id.RequestId = a.producerId.requestId &&
-                                                p.id.ResourceName = a.producerId.resourceName
-                                            | ResourcePath annotationProducerResourcePath ->
-                                                p.id.RequestId = a.producerId.requestId &&
-                                                p.id.AccessPathParts = annotationProducerResourcePath
+                                            | None -> false
+                                            | Some producerParameter ->
+                                                match producerParameter with
+                                                | ResourceName rn ->
+                                                    p.id.RequestId = a.producerId &&
+                                                    p.id.ResourceName = rn
+                                                | ResourcePath annotationProducerResourcePath ->
+                                                    p.id.RequestId = a.producerId &&
+                                                    p.id.AccessPathParts = annotationProducerResourcePath
                                         )
                     // TODO: sorting can be removed now that an exact path is expected (see below), which
                     // means only one annotation should match.
@@ -398,7 +411,7 @@ let findProducerWithResourceName
                         if exceptConsumer |> List.contains consumer.id.RequestId then Seq.empty
                         else ResponseObject matchingProducer |> stn
 
-            let annotationProducerRequestId = a.producerId.requestId
+            let annotationProducerRequestId = a.producerId
 
             // Check for input only producers if there are no response producers
             let inputOnlyProducers =
@@ -414,7 +427,10 @@ let findProducerWithResourceName
                         // where A and B return different resources, and it is desirable to test
                         // both paths with GET /{product}.  Today, RESTler supports only testing one of
                         // these paths.
-                        producers.getInputOnlyProducers(a.producerId.resourceName)
+                        match annotationProducerResourceName with
+                        | None -> Seq.empty
+                        | Some annotationProducerResourceName ->
+                            producers.getInputOnlyProducers(annotationProducerResourceName)
 
                     let annotationProducer =
                         matchingInputOnlyProducers
@@ -422,12 +438,15 @@ let findProducerWithResourceName
                                                 // Match on the path, if it exists,
                                                 // otherwise match on the ID only
                                                 match a.producerParameter with
-                                                | ResourceName _ ->
-                                                    p.id.RequestId = annotationProducerRequestId &&
-                                                    p.id.ResourceName = a.producerId.resourceName
-                                                | ResourcePath annotationProducerResourcePath ->
-                                                    p.id.RequestId = annotationProducerRequestId &&
-                                                    p.id.AccessPathParts = annotationProducerResourcePath
+                                                | None -> false
+                                                | Some producerParameter ->
+                                                    match producerParameter with
+                                                    | ResourceName rn ->
+                                                        p.id.RequestId = a.producerId &&
+                                                        p.id.ResourceName = rn
+                                                    | ResourcePath annotationProducerResourcePath ->
+                                                        p.id.RequestId = a.producerId &&
+                                                        p.id.AccessPathParts = annotationProducerResourcePath
                                             )
                         |> Seq.tryHead
 
@@ -718,9 +737,12 @@ let findAnnotation globalAnnotations
     let annotationMatches consumerParameter resourceName resourceAccessPath exceptConsumers =
         let consumerParameterMatches =
             match consumerParameter with
-            | ResourceName rn -> rn = resourceName
-            | ResourcePath p ->
-                  resourceAccessPath = p
+            | None -> false
+            | Some consumerParameter ->
+                match consumerParameter with
+                | ResourceName rn -> rn = resourceName
+                | ResourcePath p ->
+                      resourceAccessPath = p
         let requestIdMatches =
             match exceptConsumers with
             | None -> true
@@ -938,13 +960,13 @@ let createInputOnlyProducerFromAnnotation (a:ProducerConsumerAnnotation)
                                           (queryConsumers:(RequestId * seq<Consumer>) [])
                                           (bodyConsumers:(RequestId * seq<Consumer>) []) =
     // Find the producer in the list of consumers
-    match a.producerParameter with
+    match a.producerParameter.Value with
     | ResourceName rn ->
-        if a.producerId.requestId.endpoint.Contains(sprintf "{%s}" rn) then
+        if a.producerId.endpoint.Contains(sprintf "{%s}" rn) then
             // Look for the corresponding path producer.
             // This is needed to determine its type.
             let pc = pathConsumers
-                     |> Array.tryFind (fun (reqId, s) -> reqId = a.producerId.requestId)
+                     |> Array.tryFind (fun (reqId, s) -> reqId = a.producerId)
 
             let pathConsumer =
                 match pc with
@@ -979,7 +1001,7 @@ let createInputOnlyProducerFromAnnotation (a:ProducerConsumerAnnotation)
             None
     | ResourcePath accessPath ->
         let bc = bodyConsumers
-                 |> Array.tryFind (fun (reqId, s) -> reqId = a.producerId.requestId)
+                 |> Array.tryFind (fun (reqId, s) -> reqId = a.producerId)
 
         let bodyConsumer =
             match bc with
@@ -995,7 +1017,7 @@ let createInputOnlyProducerFromAnnotation (a:ProducerConsumerAnnotation)
             // The consumer for the body parameter was not found.
             None
         | Some c ->
-            let resource = ApiResource(a.producerId.requestId,
+            let resource = ApiResource(a.producerId,
                                        c.id.ResourceReference,
                                        c.id.NamingConvention,
                                        c.id.PrimitiveType)
@@ -1019,7 +1041,7 @@ let extractDependencies (requestData:(RequestId*RequestData)[])
                          (dataFuzzing:bool)
                          (perResourceDictionaries:Map<string, string * MutationsDictionary>)
                          (namingConvention:NamingConvention option)
-                         : Dictionary<string, List<ProducerConsumerDependency>> * MutationsDictionary =
+                         : Dictionary<string, List<ProducerConsumerDependency>> * (RequestId * RequestId) list * MutationsDictionary =
 
     let getParameterConsumers requestId parameterKind (parameters:RequestParametersPayload) resolveDependencies =
         match parameters with
@@ -1193,10 +1215,11 @@ let extractDependencies (requestData:(RequestId*RequestData)[])
                 // Find the corresponding parameter and add it as a producer.
                 rd.localAnnotations
                 |> Seq.iter (fun a ->
-                                let ip = createInputOnlyProducerFromAnnotation a pathConsumers queryConsumers bodyConsumers
-                                if ip.IsSome then
-                                    let resourceName, producer = ip.Value
-                                    producers.addInputOnlyProducer(resourceName, producer)
+                                if a.producerParameter.IsSome then
+                                    let ip = createInputOnlyProducerFromAnnotation a pathConsumers queryConsumers bodyConsumers
+                                    if ip.IsSome then
+                                        let resourceName, producer = ip.Value
+                                        producers.addInputOnlyProducer(resourceName, producer)
                             )
                 )
 
@@ -1205,10 +1228,11 @@ let extractDependencies (requestData:(RequestId*RequestData)[])
     // Find the corresponding parameter and add it as a producer.
     globalAnnotations
     |> Seq.iter (fun a ->
-                    let ip = createInputOnlyProducerFromAnnotation a pathConsumers queryConsumers bodyConsumers
-                    if ip.IsSome then
-                        let resourceName, producer = ip.Value
-                        producers.addInputOnlyProducer(resourceName, producer)
+                    if a.producerParameter.IsSome then
+                        let ip = createInputOnlyProducerFromAnnotation a pathConsumers queryConsumers bodyConsumers
+                        if ip.IsSome then
+                            let resourceName, producer = ip.Value
+                            producers.addInputOnlyProducer(resourceName, producer)
                 )
 
     logTimingInfo "Done processing producers"
@@ -1324,7 +1348,7 @@ let extractDependencies (requestData:(RequestId*RequestData)[])
                                                 // override this one produced by the 'same body payload' heuristic.  Do not
                                                 // add the 'same body payload' dependencies in this case.
                                                 let consumerResourceName = rp.id.ResourceName
-                                                let prefixName = generateIdForCustomUuidSuffixPayload rp.id.ContainerName.Value consumerResourceName
+                                                let prefixName = DynamicObjectNaming.generateIdForCustomUuidSuffixPayload rp.id.ContainerName.Value consumerResourceName
 
                                                 let suffixProducer =
                                                     DictionaryPayload
@@ -1356,7 +1380,7 @@ let extractDependencies (requestData:(RequestId*RequestData)[])
                                                         if newDict.restler_custom_payload_uuid4_suffix.Value.ContainsKey(prefixName) then
                                                             Seq.empty
                                                         else
-                                                            let prefixValue = generatePrefixForCustomUuidSuffixPayload prefixName
+                                                            let prefixValue = DynamicObjectNaming.generatePrefixForCustomUuidSuffixPayload prefixName
                                                             (prefixName, prefixValue) |> stn
                                                     newUuidSuffx
                                                 | Some existingDep ->
@@ -1390,9 +1414,20 @@ let extractDependencies (requestData:(RequestId*RequestData)[])
                     Some newCustomPayloadUuidSuffix
         }
 
+    logTimingInfo "Getting ordering constraints..."
+    let orderingConstraints =
+        globalAnnotations
+        |> Seq.filter (fun a ->
+                        // The remaining ordering constraints are those where there is only a request ID specified both for the
+                        // producer and consumer.
+                            a.consumerId.IsSome && a.producerParameter.IsNone && a.consumerParameter.IsNone)
+        |> Seq.map (fun a -> a.producerId, a.consumerId.Value)
+        |> Seq.toList
+
     logTimingInfo "Dependency analysis completed."
 
     dependencies,
+    orderingConstraints,
     newDictionary
 
 
@@ -1436,13 +1471,17 @@ module DependencyLookup =
 
         match producer with
         | None -> defaultPayload
+        | Some (OrderingConstraintParameter orderingConstraintProducer) ->
+            //let variableName =
+            //    generateDynamicObjectVariableName orderingConstraintProducer.requestId (Some { AccessPath.path = [|"__restler_dependency_source__"|]} ) "_"
+            failwith ("Ordering constraint parameters should not be part of payloads")
         | Some (ResponseObject responseProducer) ->
             let variableName =
                 match responseProducer.id.ResourceReference with
                 | HeaderResource hr ->
-                    (generateDynamicObjectVariableName responseProducer.id.RequestId (Some { AccessPath.path = [| hr ; "header"|]} ) "_")
+                    (DynamicObjectNaming.generateDynamicObjectVariableName responseProducer.id.RequestId (Some { AccessPath.path = [| hr ; "header"|]} ) "_")
                 | _ ->
-                    generateDynamicObjectVariableName responseProducer.id.RequestId (Some responseProducer.id.AccessPathParts) "_"
+                    DynamicObjectNaming.generateDynamicObjectVariableName responseProducer.id.RequestId (Some responseProducer.id.AccessPathParts) "_"
             // Mark the type of the dynamic object to be the type of the input parameter if available
             let primitiveType =
                 match defaultPayload with
@@ -1454,7 +1493,7 @@ module DependencyLookup =
         | Some (InputParameter (inputParameterProducer, dictionaryPayload)) ->
 
             let accessPath = inputParameterProducer.getInputParameterAccessPath()
-            let variableName = generateDynamicObjectVariableName
+            let variableName = DynamicObjectNaming.generateDynamicObjectVariableName
                                     inputParameterProducer.id.RequestId
                                     (Some accessPath) "_"
             // Mark the type of the dynamic object to be the type of the input parameter if available
@@ -1500,7 +1539,7 @@ module DependencyLookup =
                 let payloadValue = sprintf "/%s/" (uriParts.[0..uriParts.Length-2] |> String.concat "/")
                 FuzzingPayload.Constant (PrimitiveType.String, payloadValue)
 
-            let namePrefix = generateIdForCustomUuidSuffixPayload containerName payloadPropertyProducer.id.ResourceName
+            let namePrefix = DynamicObjectNaming.generateIdForCustomUuidSuffixPayload containerName payloadPropertyProducer.id.ResourceName
             let namePayload = FuzzingPayload.Custom
                                     {
                                         payloadType = CustomPayloadType.UuidSuffix
@@ -1606,7 +1645,7 @@ module DependencyLookup =
                     if entries.ContainsKey(cp.payloadValue) then
                         entries
                     else
-                        let prefixValue = generatePrefixForCustomUuidSuffixPayload cp.payloadValue
+                        let prefixValue = DynamicObjectNaming.generatePrefixForCustomUuidSuffixPayload cp.payloadValue
                         entries.Add(cp.payloadValue, prefixValue)
                 | PayloadParts payloadList ->
                     payloadList
@@ -1709,14 +1748,20 @@ let writeDependencies dependenciesFilePath dependencies (unresolvedOnly:bool) =
                                 rp.id.RequestId.endpoint,
                                 getMethod rp.id,
                                 getParameter rp.id
+                            | Some (OrderingConstraintParameter ocp) ->
+                                ocp.requestId.endpoint,
+                                (ocp.requestId.method.ToString()),
+                                ""
                             | None -> "", "", ""
 
                         let annotation =
                             {
-                                producer_endpoint =   pe
+                                producer_endpoint = pe
                                 producer_method = pm
-                                producer_resource_name = pr
-                                consumer_param = consumerParameter
+                                producer_resource_name = Some pr
+                                consumer_param = Some consumerParameter
+                                consumer_endpoint = None
+                                consumer_method = None
                                 except = None
                             }
                         {|
