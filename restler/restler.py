@@ -517,8 +517,8 @@ if __name__ == '__main__':
 
     # Start fuzzing
     fuzz_thread = fuzzer.FuzzingThread(fuzzing_requests, checkers, args.fuzzing_jobs)
-    fuzz_thread.setName('Fuzzer')
-    fuzz_thread.setDaemon(True)
+    fuzz_thread.name = 'Fuzzer'
+    fuzz_thread.daemon = True
     fuzz_thread.start()
 
     gc_thread = None
@@ -526,8 +526,8 @@ if __name__ == '__main__':
     if args.garbage_collection_interval:
         print(f"Initializing: Garbage collection every {settings.garbage_collection_interval} seconds.")
         gc_thread = dependencies.GarbageCollectorThread(req_collection, monitor, settings.garbage_collection_interval)
-        gc_thread.setName('Garbage Collector')
-        gc_thread.setDaemon(True)
+        gc_thread.name = 'Garbage Collector'
+        gc_thread.daemon = True
         gc_thread.start()
 
     THREAD_JOIN_WAIT_TIME_SECONDS = 1
