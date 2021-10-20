@@ -279,7 +279,7 @@ class BodySchema():
 
         """
         for body_parameter in body_parameters:
-            if body_parameter[0] == 'Schema':
+            if body_parameter[0] in ['Schema', 'DictionaryCustomPayload']:
                 payload = des_body_param(body_parameter[1])
                 if payload:
                     self._schema = des_param_payload(payload)

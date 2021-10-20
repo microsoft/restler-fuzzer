@@ -176,7 +176,6 @@ def des_param_payload(param_payload_json, tag='', body_param=True):
 
         content_type = 'Unknown'
         content_value = 'Unknown'
-        custom = False
         custom_payload_type = None
         fuzzable = False
         is_dynamic_object = False
@@ -193,7 +192,6 @@ def des_param_payload(param_payload_json, tag='', body_param=True):
             content_value = payload['DynamicObject']['variableName']
             is_dynamic_object = True
         elif 'Custom' in payload:
-            custom = True
             content_type = payload['Custom']['primitiveType']
             content_value = payload['Custom']['payloadValue']
             custom_payload_type = payload['Custom']['payloadType']
@@ -210,9 +208,9 @@ def des_param_payload(param_payload_json, tag='', body_param=True):
         elif 'PayloadParts' in payload:
             definition = payload['PayloadParts'][-1]
             if 'Custom' in definition:
-                custom = True
-                content_type = definition['Custom']['payloadType']
+                content_type = definition['Custom']['primitiveType']
                 content_value = definition['Custom']['payloadValue']
+                custom_payload_type = definition['Custom']['payloadType']
 
         # create value w.r.t. the type
         value = None
@@ -220,9 +218,9 @@ def des_param_payload(param_payload_json, tag='', body_param=True):
             # If query parameter, assign as a value and not a string
             # because we don't want to wrap with quotes in the request
             if body_param:
-                value = ParamString(custom, is_required=is_required, is_dynamic_object=is_dynamic_object)
+                value = ParamString(custom_payload_type=custom_payload_type, is_required=is_required, is_dynamic_object=is_dynamic_object)
             else:
-                value = ParamValue(custom=custom, is_required=is_required, is_dynamic_object=is_dynamic_object)
+                value = ParamValue(custom_payload_type=custom_payload_type, is_required=is_required, is_dynamic_object=is_dynamic_object)
         elif content_type == 'Int':
             value = ParamNumber(is_required=is_required, is_dynamic_object=is_dynamic_object)
         elif content_type == 'Number':
@@ -231,7 +229,7 @@ def des_param_payload(param_payload_json, tag='', body_param=True):
             value = ParamBoolean(is_required=is_required, is_dynamic_object=is_dynamic_object)
         elif content_type == 'Object':
             value = ParamObjectLeaf(is_required=is_required, is_dynamic_object=is_dynamic_object)
-        elif custom and custom_payload_type == 'UuidSuffix':
+        elif custom_payload_type is not None and custom_payload_type == 'UuidSuffix':
             value = ParamUuidSuffix(is_required=is_required)
             # Set as unknown for payload body fuzzing purposes.
             # This will be fuzzed as a string.
