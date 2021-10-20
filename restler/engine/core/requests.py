@@ -984,13 +984,21 @@ class Request(object):
         # These special headers are not fuzzed, and should not be replaced
         skipped_headers_str = ["Accept", "Host", "Content-Type"]
         required_header_blocks = []
+        append_header = False
         for line in old_request.definition[header_start_index : header_end_index]:
             if line[0] == "restler_refreshable_authentication_token":
                 required_header_blocks.append(line)
                 continue
+            if append_header:
+                required_header_blocks.append(line)
+                if line[1].endswith("\r\n"):
+                    append_header = False
             for str in skipped_headers_str:
                 if line[1].startswith(str):
                     required_header_blocks.append(line)
+                    if not line[1].endswith("\r\n"):
+                        # Continue to append
+                        append_header = True
 
         # Make sure there is still a delimiter between headers and the remainder of the payload
         new_header_blocks.append(primitives.restler_static_string("\r\n"))

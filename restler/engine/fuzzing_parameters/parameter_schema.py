@@ -105,7 +105,7 @@ class QueryList(KeyValueParamList):
 
         """
         for query_parameter in query_parameters:
-            if query_parameter[0] == 'Schema':
+            if query_parameter[0] in ['Schema', 'DictionaryCustomPayload']:
                 # Set each query parameter of the query
                 query_param_list = des_query_param(query_parameter[1])
                 if query_param_list:
@@ -166,7 +166,7 @@ class HeaderList(KeyValueParamList):
 
         """
         for header_parameter in header_parameters:
-            if header_parameter[0] == 'Schema':
+            if header_parameter[0] in ['Schema', 'DictionaryCustomPayload']:
                 # Set each query parameter of the query
                 header_param_list = des_header_param(header_parameter[1])
                 if header_param_list:

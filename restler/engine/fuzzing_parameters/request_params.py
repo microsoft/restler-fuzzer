@@ -185,7 +185,7 @@ class ParamValue(ParamBase):
     """ Base class for value type parameters. Value can be Object, Array,
     String, Number, Boolean, ObjectLeaf, and Enum.
     """
-    def __init__(self, custom=False, is_required=True, is_dynamic_object=False):
+    def __init__(self, custom_payload_type=None, is_required=True, is_dynamic_object=False):
         """ Initialize a ParamValue.
 
         @return: None
@@ -194,7 +194,7 @@ class ParamValue(ParamBase):
         """
         ParamBase.__init__(self, is_required, is_dynamic_object)
         self._content = None
-        self._custom = custom
+        self._custom_payload_type = custom_payload_type
 
     def __eq__(self, other):
         """ Operator equals
@@ -260,8 +260,15 @@ class ParamValue(ParamBase):
         @rtype : List[str]
 
         """
-        if self._custom:
-            return[primitives.restler_custom_payload(self._content)]
+        if self._custom_payload_type is not None:
+            if self._custom_payload_type == "String":
+                return [primitives.restler_custom_payload(self._content)]
+            elif self._custom_payload_type == "Query":
+                return [primitives.restler_custom_payload(self._content)]
+            elif self._custom_payload_type == "Header":
+                return [primitives.restler_custom_payload_header(self._content)]
+            else:
+                raise Exception(f"Unknown custom payload type: {self._custom_payload_type}")
 
         content = self._content
         if self.is_dynamic_object:
@@ -671,7 +678,7 @@ class ParamArray(ParamBase):
 class ParamString(ParamValue):
     """ Class for string type parameters """
 
-    def __init__(self, custom=False, is_required=True, is_dynamic_object=False):
+    def __init__(self, custom_payload_type=None, is_required=True, is_dynamic_object=False):
         """ Initialize a string type parameter
 
         @param custom: Whether or not this is a custom payload
@@ -683,7 +690,7 @@ class ParamString(ParamValue):
         """
         ParamValue.__init__(self, is_required=is_required, is_dynamic_object=is_dynamic_object)
 
-        self._is_custom = custom
+        self._custom_payload_type=custom_payload_type
         self._unknown = False
 
     @property
@@ -704,9 +711,11 @@ class ParamString(ParamValue):
         @rtype : List[str]
 
         """
-        if self._is_custom:
-            return [primitives.restler_custom_payload(self._content, quoted=True)]
-
+        if self._custom_payload_type is not None:
+            if self._custom_payload_type == "String":
+                return [primitives.restler_custom_payload(self._content, quoted=True)]
+            else:
+                raise Exception(f"Unexpected custom payload type: {self._custom_payload_type}")
         if self.is_dynamic_object:
             content = dependencies.RDELIM + self._content + dependencies.RDELIM
         else:
