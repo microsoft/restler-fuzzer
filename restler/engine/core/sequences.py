@@ -380,12 +380,12 @@ class Sequence(object):
                 prev_producer_timing_delay = Settings().get_producer_timing_delay(prev_request.request_id)
 
                 prev_response = request_utilities.send_request_data(prev_rendered_data)
-                prev_response_to_parse, resource_error, async_waited = async_request_utilities.try_async_poll(
+                prev_responses_to_parse, resource_error, async_waited = async_request_utilities.try_async_poll(
                     prev_rendered_data, prev_response, prev_req_async_wait)
                 prev_parser_threw_exception = False
                 # Response may not exist if there was an error sending the request or a timeout
-                if prev_parser and prev_response_to_parse:
-                    prev_parser_threw_exception = not request_utilities.call_response_parser(prev_parser, prev_response_to_parse, prev_request)
+                if prev_parser and prev_responses_to_parse:
+                    prev_parser_threw_exception = not request_utilities.call_response_parser(prev_parser, None, request=prev_request, responses=prev_responses_to_parse)
                 prev_status_code = prev_response.status_code
 
                 # If the async logic waited for the resource, this wait already included the required
@@ -487,12 +487,12 @@ class Sequence(object):
             req_async_wait = Settings().get_max_async_resource_creation_time(request.request_id)
 
             response = request_utilities.send_request_data(rendered_data)
-            response_to_parse, resource_error, _ = async_request_utilities.try_async_poll(
+            responses_to_parse, resource_error, _ = async_request_utilities.try_async_poll(
                 rendered_data, response, req_async_wait)
             parser_exception_occurred = False
             # Response may not exist if there was an error sending the request or a timeout
-            if parser and response_to_parse:
-                parser_exception_occurred = not request_utilities.call_response_parser(parser, response_to_parse, request)
+            if parser and responses_to_parse:
+                parser_exception_occurred = not request_utilities.call_response_parser(parser, None, request=request, responses=responses_to_parse)
             status_code = response.status_code
             if not status_code:
                 return RenderedSequence(failure_info=FailureInformation.MISSING_STATUS_CODE)
@@ -652,10 +652,10 @@ class Sequence(object):
             """ Gets the token, sends the requst, performs async wait, parses response, returns status code """
             rendered_data = self.get_request_data_with_token(request_data.rendered_data)
             response = request_utilities.send_request_data(rendered_data)
-            response_to_parse, _, _ = async_request_utilities.try_async_poll(
+            responses_to_parse, _, _ = async_request_utilities.try_async_poll(
                 rendered_data, response, request_data.max_async_wait_time)
             if request_data.parser:
-                request_utilities.call_response_parser(request_data.parser, response_to_parse)
+                request_utilities.call_response_parser(request_data.parser, None, responses=responses_to_parse)
             return response.status_code
 
         # Send all but the last request in the sequence

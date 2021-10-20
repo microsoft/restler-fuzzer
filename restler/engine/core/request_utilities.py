@@ -244,7 +244,7 @@ def send_request_data(rendered_data):
 
         return response
 
-def call_response_parser(parser, response, request=None):
+def call_response_parser(parser, response, request=None, responses=None):
     """ Calls a specified parser on a response
 
     @param parser: The parser function to calls
@@ -253,6 +253,9 @@ def call_response_parser(parser, response, request=None):
     @type  response: HttpResponse
     @param request: The request whose parser is being called
     @type  request: Request (None ok)
+    @param responses: A list of responses
+                     This parameter is used if the response is not specified
+    @type  responses: List[HttpResponse]
 
     @return False if there was a parser exception
     @rtype  Boolean
@@ -260,27 +263,36 @@ def call_response_parser(parser, response, request=None):
     """
     from utils.logger import write_to_main
     # parse response and set dependent variables (for garbage collector)
-    try:
-        if parser:
-            # For backwards compatibility, check if the parser accepts named arguments.
-            # If not, this is an older grammar that only supports a json body as the argument
-            import inspect
-            args, varargs, varkw, defaults = inspect.getargspec(parser)
-            if varkw=='kwargs':
-                parser(response.json_body, headers=response.headers_dict)
-            else:
-                parser(response.json_body)
-            # Check request's producers to verify dynamic objects were set
-            if request:
-                for producer in request.produces:
-                    if dependencies.get_variable(producer) == 'None':
-                        err_str = f'Failed to parse {producer}; it is now set to None.'
-                        write_to_main(err_str)
-                        _RAW_LOGGING(err_str)
-    except (ResponseParsingException, AttributeError) as error:
-        _RAW_LOGGING(str(error))
-        return False
-    return True
+
+    if responses is None:
+        responses = []
+        responses.append(response)
+
+    for response in responses:
+        try:
+            if parser:
+                # For backwards compatibility, check if the parser accepts named arguments.
+                # If not, this is an older grammar that only supports a json body as the argument
+                import inspect
+                args, varargs, varkw, defaults = inspect.getargspec(parser)
+
+                if varkw=='kwargs':
+                    parser(response.json_body, headers=response.headers_dict)
+                else:
+                    parser(response.json_body)
+                # Print a diagnostic message if some dynamic objects were not set.
+                # The parser only fails if all of the objects were not set.
+                if request:
+                    for producer in request.produces:
+                        if dependencies.get_variable(producer) == 'None':
+                            err_str = f'Failed to parse {producer}; it is now set to None.'
+                            write_to_main(err_str)
+                            _RAW_LOGGING(err_str)
+                return True
+        except (ResponseParsingException, AttributeError) as error:
+            _RAW_LOGGING(str(error))
+
+    return False
 
 def get_hostname_from_line(line):
     """ Gets the hostname from a request definition's Host: line

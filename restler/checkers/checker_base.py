@@ -117,9 +117,9 @@ class CheckerBase:
         async_wait = Settings().get_max_async_resource_creation_time(request.request_id)
 
         if check_async:
-            response_to_parse, _, _ = async_request_utilities.try_async_poll(
+            responses_to_parse, _, _ = async_request_utilities.try_async_poll(
                 rendered_data, response, async_wait)
-        request_utilities.call_response_parser(parser, response_to_parse)
+        request_utilities.call_response_parser(parser, None, responses=responses_to_parse)
         seq.append_data_to_sent_list(rendered_data, parser, response, producer_timing_delay=0, max_async_wait_time=async_wait)
         return response, response_to_parse
 
