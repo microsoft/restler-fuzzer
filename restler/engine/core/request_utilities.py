@@ -99,7 +99,20 @@ def execute_token_refresh_cmd(cmd):
 def parse_authentication_tokens(cmd_result):
     """ Parses the output @param cmd_result from token scripts to refresh tokens.
 
-    @param cmd_result: The user-provided command to refresh the token.
+    Format:
+    {u'app1': {}, u'app2':{}}  // Metadata
+    ApiTokenTag: 9A            // Auth header for application 1
+    ApiTokenTag: ZQ            // Auth header for application 2
+
+    Format for multiple authenication headers per request:
+    {u'app1': {}, u'app2':{}}  // Metadata
+    ApiTokenTag: 9A            // Auth header for application 1
+    ApiTokenTag2: E8           // Auth header for application 1
+    ---                        // Delimiter
+    ApiTokenTag: ZQ            // Auth header for application 2
+    ApiTokenTag2: UI           // Auth header for application 2
+
+    @param cmd_result: The result of the user-provided command to refresh the token.
     @type  cmd_result: Str
 
     @return: Metadata, token values and shadow token values
