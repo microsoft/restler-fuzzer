@@ -234,9 +234,9 @@ def send_request_data(rendered_data):
             return HttpResponse()
 
         if status_code in RETRY_CODES:
-            time.sleep(RETRY_SLEEP_SEC)
             num_retries += 1
             if num_retries < MAX_RETRIES:
+                time.sleep(RETRY_SLEEP_SEC)
                 _RAW_LOGGING("Retrying request")
                 continue
             else:
