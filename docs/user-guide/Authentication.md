@@ -2,7 +2,7 @@
 
 RESTler supports token-based authentication.  
 
-The user must provide a separate program to generate tokens, which implements the authentication method required by the API.  This will be invoked in a separate process by RESTler to obtain and regularly refresh tokens.  When invoked, this program must print metadata about the tokens on the first line, followed by each token and the required token header on a separate line.  For example:
+The user must provide a separate program to generate tokens, which implements the authentication method required by the API.  This will be invoked in a separate process by RESTler to obtain and regularly refresh tokens.  When invoked, this program must print metadata about the tokens on the first line, followed by each token and the required token header on a separate line for each application.  For example:
 
 `>my_gettoken.exe <args to my_gettoken>`
 
@@ -12,6 +12,16 @@ ApiTokenTag: 9A
 ApiTokenTag: ZQ
 ```
 
+When multiple token headers are required for each request, they could be defined on multiple lines, separated with the delimiter `---` on a new line:
+
+```
+{u'app1': {}, u'app2':{}}
+ApiTokenTag: 9A
+ApiTokenTag2: 9B
+---
+ApiTokenTag: ZQ
+ApiTokenTag2: BZZ
+```
 
 RESTler will obtain new tokens by invoking the token generation script with the frequency specified in the *--token_refresh_interval* option.
 
