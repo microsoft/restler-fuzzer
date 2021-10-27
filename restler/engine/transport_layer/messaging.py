@@ -77,7 +77,7 @@ class HttpSock(object):
         method_name = message[0:end_of_method_idx]
         return method_name
 
-    def sendRecv(self, message, req_timeout_sec=600):
+    def sendRecv(self, message, req_timeout_sec):
         """ Sends a specified request to the server and waits for a response
 
         @param message: Message to be sent.

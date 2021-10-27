@@ -417,7 +417,7 @@ class GarbageCollectorThread(threading.Thread):
                         return
 
                     # Send the request and receive the response
-                    success, response = sock.sendRecv(fully_rendered_data)
+                    success, response = sock.sendRecv(fully_rendered_data, Settings().max_request_execution_time)
                     if success:
                         self.monitor.increment_requests_count('gc')
                     else:
