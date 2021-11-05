@@ -1,6 +1,6 @@
 # Authentication
 
-RESTler supports token-based and cert based authentication.
+RESTler supports token-based and certificate based authentication.
 
 **Token based authentication**
 
@@ -36,5 +36,4 @@ RESTler has logic to prevent token values from being written to the network logs
                 
 **Certificate based authentication**
                 
-Certificate and corresponding keys can be used as an authentication machanism. To use this add a key value pair in the settings.json file e.g. 
-                "client_certificate_key_path":"C:\\Users\\<folder></folder>\\privateKey.txt"
+Certificate and corresponding keys can be used as an authentication machanism. Path to the keyfile that is needed to load the certificate. To use this add a key value pair in the settings.json. See the SettingsFile.md for the settings that should be used to specify a certificate. If both the keyfile and certificate path are valid, RESTler will attempt to use it during the SSL handshake. 

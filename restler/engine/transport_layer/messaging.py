@@ -53,10 +53,10 @@ class HttpSock(object):
                     context = ssl._create_unverified_context()
                 else:
                     context = ssl.create_default_context()
-                if Settings().client_certificate_path and Settings().client_certificate_key_path:
+                if Settings().client_certificate_path:
                     context.load_cert_chain(
                         certfile = Settings().client_certificate_path,
-                        keyfile = Settings().client_certificate_key_path,
+                        keyfile = Settings().client_certificate_key_path if Settings().client_certificate_key_path else None,
                     )
                     context.check_hostname = False  
                 with socket.create_connection((target_ip, target_port or 443)) as sock:                  
@@ -80,7 +80,7 @@ class HttpSock(object):
         method_name = message[0:end_of_method_idx]
         return method_name
 
-    def sendRecv(self, message, req_timeout_sec=600):
+    def sendRecv(self, message, req_timeout_sec):
         """ Sends a specified request to the server and waits for a response
 
         @param message: Message to be sent.
