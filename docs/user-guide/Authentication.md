@@ -1,6 +1,8 @@
 # Authentication
 
-RESTler supports token-based authentication.  
+RESTler supports token-based and cert based authentication.
+
+**Token based authentication**
 
 The user must provide a separate program to generate tokens, which implements the authentication method required by the API.  This will be invoked in a separate process by RESTler to obtain and regularly refresh tokens.  When invoked, this program must print metadata about the tokens on the first line, followed by each token and the required token header on a separate line for each application.  For example:
 
@@ -31,3 +33,8 @@ Note: in the above example, there are two different applications.  This is only 
 **Token values in logs**
 
 RESTler has logic to prevent token values from being written to the network logs.  It is recommended to check the RESTler network logs and make sure that the token values are, indeed,  successfully omitted from the logs. 
+                
+**Certificate based authentication**
+                
+Certificate and corresponding keys can be used as an authentication machanism. To use this add a key value pair in the settings.json file e.g. 
+                "client_certificate_key_path":"C:\\Users\\<folder></folder>\\privateKey.txt"
