@@ -55,10 +55,13 @@ class HttpSock(object):
                     context = ssl.create_default_context()
                 if Settings().client_certificate_path:
                     context.load_cert_chain(
-                        certfile=Settings().client_certificate_path
+                        certfile = Settings().client_certificate_path,
+                        keyfile = Settings().client_certificate_key_path,
                     )
-                with socket.create_connection((target_ip, target_port or 443)) as sock:
+                      
+                with socket.create_connection((target_ip, target_port or 443)) as sock:                  
                     self._sock = context.wrap_socket(sock, server_hostname=host)
+
             else:
                 self._sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 self._sock.connect((target_ip, target_port or 80))
