@@ -1613,27 +1613,28 @@ module DependencyLookup =
 
         // First, check if the parameter itself has a dependency
         let (parameterName, properties) = requestParameter.name, requestParameter.payload
-        let defaultPayload =
+        let defaultPayload, isRequired, isReadOnly =
             // The type of the payload gets substituted into the producer, so this must match the earlier declared type.
             // TODO: check correctness for nested type (array vs. obj vs. property...)
             match requestParameter.payload with
             | Tree.LeafNode leafProperty ->
-                leafProperty.payload
+                leafProperty.payload, leafProperty.isRequired, leafProperty.isReadOnly
             | Tree.InternalNode (i, _) ->
-                match i.propertyType with
-                | NestedType.Object ->
-                    (Fuzzable (PrimitiveType.Object, "{}", None, None))
-                | NestedType.Array ->
-                    (Fuzzable (PrimitiveType.Object, "[]", None, None))
-                | NestedType.Property ->
-                    (Fuzzable (PrimitiveType.String, "", None, None))
-
+                let payload =
+                    match i.propertyType with
+                    | NestedType.Object ->
+                        (Fuzzable (PrimitiveType.Object, "{}", None, None))
+                    | NestedType.Array ->
+                        (Fuzzable (PrimitiveType.Object, "[]", None, None))
+                    | NestedType.Property ->
+                        (Fuzzable (PrimitiveType.String, "", None, None))
+                payload, i.isRequired, i.isReadOnly
         let dependencyPayload = getConsumerPayload dependencies pathPayload requestId parameterName EmptyAccessPath defaultPayload
 
         let payloadWithDependencies =
             if dependencyPayload <> defaultPayload then
                 Tree.LeafNode
-                        { name = "" ; payload = dependencyPayload ; isRequired = true ; isReadOnly = false }
+                        { name = "" ; payload = dependencyPayload ; isRequired = isRequired ; isReadOnly = isReadOnly }
             else
                 Tree.cataCtx visitLeaf visitInner PropertyAccessPaths.getInnerAccessPath [] properties
 
