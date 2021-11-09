@@ -58,7 +58,7 @@ class HttpSock(object):
                         certfile = Settings().client_certificate_path,
                         keyfile = Settings().client_certificate_key_path,
                     )
-                    context.check_hostname = False  
+                      
                 with socket.create_connection((target_ip, target_port or 443)) as sock:                  
                     self._sock = context.wrap_socket(sock, server_hostname=host)
 
