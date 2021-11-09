@@ -32,6 +32,11 @@ Path to your X.509 certificate file in PEM format.
 
 If provided and valid, RESTler will attempt to use it during the SSL handshake.
 
+### client_certificate_key_path: str (default None)
+Path to your key file in a txt file.
+
+If provided and valid, RESTler will attempt to use it during the SSL handshake.
+
 ### custom_bug_codes: list(str)
 List of status codes that will be flagged as bugs.
 
