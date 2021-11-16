@@ -28,6 +28,7 @@
   "max_sequence_length": 11,
   "no_ssl": true,
   "disable_cert_validation": true,
+  "disable_logging": true,
   "no_tokens_in_logs": true,
   "path_regex": "(\\w*)/ddosProtectionPlans(\\w*)",
   "ignore_decoding_failures": true,

@@ -183,6 +183,9 @@ Example: `disk|virtualNetwork`
 ### save_results_in_fixed_dirname: bool (default False)
 Save the results in a directory with a fixed name (skip the 'experiment\<pid\>' subdir).
 
+### disable_logging: bool (default False)
+Set to True to disable logging to the network logs and main.txt.
+
 ### request_throttle_ms: float (default None)
 The time, in milliseconds, to throttle each request being sent.
 This is here for special cases where the server will block requests from connections that arrive too quickly.

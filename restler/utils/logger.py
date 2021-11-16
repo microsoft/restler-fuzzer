@@ -16,6 +16,7 @@ from collections import namedtuple
 
 import engine.primitives as primitives
 import engine.dependencies as dependencies
+from restler_settings import Settings
 
 import utils.formatting as formatting
 
@@ -91,6 +92,9 @@ class NetworkLog(object):
         @rtype : None
 
         """
+        if Settings().disable_logging:
+            return
+
         if os.path.getsize(self._current_log_path) > NetworkLog._MaxLogSize:
             # Create a new log if the current log has grown beyond the max size
             self._current_log_num += 1
@@ -206,6 +210,9 @@ class SpecCoverageLog(object):
         @rtype : None
 
         """
+        if Settings().disable_logging:
+            return
+
         from engine.core.requests import FailureInformation
         if rendered_sequence:
             req=rendered_sequence.sequence.last_request
@@ -371,6 +378,8 @@ def write_to_main(data: str, print_to_console: bool=False):
     @return: None
 
     """
+    if Settings().disable_logging:
+        return
     try:
         main_lock.acquire()
         with open(MAIN_LOGS, "a+", encoding='utf-8') as f:
