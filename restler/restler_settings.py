@@ -441,6 +441,8 @@ class RestlerSettings(object):
         self._test_server = SettingsArg('test_server', str, DEFAULT_TEST_SERVER_ID, user_args)
         ## Stops fuzzing after given time (hours)
         self._time_budget = SettingsArg('time_budget', (int, float), TIME_BUDGET_DEFAULT, user_args, minval=0)
+        ## Disable the network logs and main.txt
+        self._disable_logging = SettingsArg('disable_logging', bool, False, user_args)
         ## Add current dates in addition to the ones specified in the dictionary
         self._add_fuzzable_dates = SettingsArg('add_fuzzable_dates', bool, False, user_args)
         ## The command to execute in order to refresh the authentication token
@@ -469,9 +471,13 @@ class RestlerSettings(object):
         return self
 
     @property
+    def disable_logging(self):
+        return self._disable_logging.val
+
+    @property
     def client_certificate_path(self):
         return self._client_certificate_path.val
-    
+
     @property
     def client_certificate_key_path(self):
         return self._client_certificate_key_path.val
