@@ -406,7 +406,8 @@ def render_with_cache(seq_collection, fuzzing_pool, checkers, generation, global
                     logger.write_to_main(f"{formatting.timestamp()}: Rendering INVALID")
 
                     logger.format_rendering_stats_definition(
-                        current_seq.last_request, GrammarRequestCollection().candidate_values_pool
+                        current_seq.last_request, GrammarRequestCollection().candidate_values_pool,
+                        log_all_fuzzable_values=True
                     )
 
                     # Request should not be rendered, stop searching for prefixes
@@ -457,7 +458,8 @@ def render_with_cache(seq_collection, fuzzing_pool, checkers, generation, global
                             print_rendering_to_main_txt(valid_rendering)
                             logger.write_to_main(f"{formatting.timestamp()}: Rendering VALID")
                             logger.format_rendering_stats_definition(
-                                valid_rendering.last_request, GrammarRequestCollection().candidate_values_pool
+                                valid_rendering.last_request, GrammarRequestCollection().candidate_values_pool,
+                                log_all_fuzzable_values=True
                             )
                     rendered_sequences.extend(valid_renderings)
                 else:
@@ -468,7 +470,8 @@ def render_with_cache(seq_collection, fuzzing_pool, checkers, generation, global
 
                     logger.write_to_main(f"{formatting.timestamp()}: Rendering INVALID")
                     logger.format_rendering_stats_definition(
-                        current_seq.last_request, GrammarRequestCollection().candidate_values_pool
+                        current_seq.last_request, GrammarRequestCollection().candidate_values_pool,
+                        log_all_fuzzable_values=True
                     )
 
                     break
