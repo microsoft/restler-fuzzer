@@ -20,7 +20,7 @@ class OptionValidationError(Exception):
     pass
 
 class ConnectionSettings(object):
-    def __init__(self, target_ip, target_port, use_ssl=True, include_user_agent=False, disable_cert_validation=False):
+    def __init__(self, target_ip, target_port, use_ssl=True, include_user_agent=False, disable_cert_validation=False, use_http2=False):
         """ Initializes an object that contains the connection settings for the socket
         @param target_ip: The ip of the target service.
         @type  target_ip: Str
@@ -42,6 +42,7 @@ class ConnectionSettings(object):
         self.use_ssl = use_ssl
         self.include_user_agent = include_user_agent
         self.disable_cert_validation = disable_cert_validation
+        self.use_http2 = use_http2
 
 class SettingsArg(object):
     """ Holds a setting's information """
@@ -462,6 +463,8 @@ class RestlerSettings(object):
         self._target_port = SettingsArg('target_port', int, None, user_args, minval=0, maxval=TARGET_PORT_MAX)
         ## Set to use test server/run in test mode
         self._use_test_socket = SettingsArg('use_test_socket', bool, False, user_args)
+        ## Use HTTP2/0 for server communication
+        self._use_http2 = SettingsArg('http2', bool, False, user_args)
         ## Set the test server identifier
         self._test_server = SettingsArg('test_server', str, DEFAULT_TEST_SERVER_ID, user_args)
         ## Stops fuzzing after given time (hours)
@@ -483,7 +486,8 @@ class RestlerSettings(object):
                                         self._target_port.val,
                                         not self._no_ssl.val,
                                         self._include_user_agent.val,
-                                        self._disable_cert_validation.val)
+                                        self._disable_cert_validation.val,
+                                        self._use_http2.val)
 
         # Set per resource arguments
         if 'per_resource_settings' in user_args:
@@ -666,6 +670,10 @@ class RestlerSettings(object):
     @property
     def use_test_socket(self):
         return self._use_test_socket.val
+
+    @property
+    def use_http2(self):
+        return self._use_http2.val
 
     @property
     def test_server(self):

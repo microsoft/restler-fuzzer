@@ -257,6 +257,9 @@ if __name__ == '__main__':
     parser.add_argument('--host',
                         help='Set to override Host in the grammar (default: do not override)',
                         type=str, default=None, required=False)
+    parser.add_argument('--http2',
+                        help='Use HTTP2/0 for server communication (BETA)',
+                        action='store_true')
     parser.add_argument('--no_ssl',
                         help='Set this flag if you do not want to use SSL validation for the socket',
                         action='store_true')
