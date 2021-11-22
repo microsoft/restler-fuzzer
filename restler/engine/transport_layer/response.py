@@ -45,7 +45,7 @@ class AbstractHttpResponse(object, metaclass=ABCMeta):
         pass
 
     @abstractproperty
-    def headers_list(self) -> Dict:
+    def headers_dict(self) -> Dict:
         pass
  
     @abstractmethod
@@ -94,7 +94,7 @@ class Http2Response(AbstractHttpResponse):
         return header_str 
 
     @property
-    def headers_list(self) -> Dict:
+    def headers_dict(self) -> Dict:
         h_dict = dict()
         for k, v  in self._response.headers.iter_raw():
             h_dict[k] = v
