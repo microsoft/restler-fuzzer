@@ -1,7 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-""" Transport layer fuctionality using python sockets. """
+""" Transport layer functionality using python sockets. """
 from __future__ import print_function
 from abc import ABCMeta, abstractmethod
 import ssl
@@ -67,8 +67,7 @@ class BaseSocket(object, metaclass=ABCMeta):
         self.connection_settings = connection_settings
 
         self.ignore_decoding_failures = Settings().ignore_decoding_failures
-        
-    
+
     @abstractmethod
     def __del__(self):
         pass
@@ -76,7 +75,6 @@ class BaseSocket(object, metaclass=ABCMeta):
     @abstractmethod
     def sendRecv(self, message: str, req_timeout_sec: int) -> Tuple[bool, str]:
         pass
-
 
     def _get_method_from_message(self, message):
         end_of_method_idx = message.find(" ")
@@ -94,8 +92,18 @@ class BaseSocket(object, metaclass=ABCMeta):
         segment_end_index = message[segment_start_index+1:].find(' ') + segment_start_index+1
         segment = message[segment_start_index+1:segment_end_index]
         return segment
+
+    def _get_headers_from_message(self, message) -> Dict:
+        # FIXME: ugly
+        header_index = message.find('\r\n')
+        payload_index = message.find(DELIM)
         
-        
+        headers = message[header_index+2:payload_index]
+        h = dict()
+        for line in headers.split('\r\n'):
+            k, v = line.split(':')
+            h[k.strip()] = v.strip()
+        return h
 
 
 class Http2Sock(BaseSocket):
@@ -117,7 +125,6 @@ class Http2Sock(BaseSocket):
             secure=self.connection_settings.use_ssl
         )
 
-
     def sendRecv(self, message: str, req_timeout_sec: int) -> Tuple[bool, str]:
         super().sendRecv(message, req_timeout_sec)
         method = self._get_method_from_message(message) 
@@ -130,7 +137,7 @@ class Http2Sock(BaseSocket):
             method, 
             url=uri_segment,
             body=bytes(message_body, UTF8),  #TODO: allow other encodings
-            #headers=self._get_header_from_message(message)  # TODO: implement header support
+            headers=self._get_headers_from_message(message)
         )
 
         response = self.client.get_response()
@@ -138,7 +145,6 @@ class Http2Sock(BaseSocket):
         res = Http2Response(response)
         
         return (True, res)
-
 
     def __del__(self):
         pass
