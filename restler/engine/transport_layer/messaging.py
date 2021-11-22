@@ -3,13 +3,13 @@
 
 """ Transport layer fuctionality using python sockets. """
 from __future__ import print_function
-from abc import ABC, ABCMeta, abstractmethod
+from abc import ABCMeta, abstractmethod
 import ssl
 import socket
 import time
 import threading
 from importlib import util
-from typing import Dict, Tuple
+from typing import Dict, Tuple, Union
 from hyper import HTTP20Connection
 
 
@@ -35,7 +35,7 @@ class HttpSock(object):
         else:
             self._subject = HttpRawSock(connection_settings)
 
-    def sendRecv(self, message: str, req_timeout_sec: int) -> Tuple[bool, str]:
+    def sendRecv(self, message: str, req_timeout_sec: int) -> Tuple[bool, Union[HttpResponse ,str]]:
         """ Sends a specified request to the server and waits for a response
 
         @param message: Message to be sent.
@@ -61,7 +61,7 @@ class BaseSocket(object, metaclass=ABCMeta):
         self.connection_settings = connection_settings
 
         host = Settings().host
-        self.target_ip = connection_settings.target_ip or self.host
+        self.target_ip = connection_settings.target_ip or host
         self.target_port = connection_settings.target_port or 433
 
         self.connection_settings = connection_settings
@@ -85,9 +85,8 @@ class BaseSocket(object, metaclass=ABCMeta):
 
     def _get_payload_from_message(self, message):
         # FIXME: really not a safe way of doing this...
-        body_separator = '\r\n\r\n'
-        payload_index = message.find(body_separator)
-        body = message[payload_index+len(body_separator):]
+        payload_index = message.find(DELIM)
+        body = message[payload_index+len(DELIM):]
         return body
 
     def _get_uri_segment_from_message(self, message):
@@ -130,16 +129,15 @@ class Http2Sock(BaseSocket):
         self.client.request(
             method, 
             url=uri_segment,
-            body=bytes(message_body, 'utf-8'),  #TODO: allow other encodings
-            #headers=  # TODO: implement header support
+            body=bytes(message_body, UTF8),  #TODO: allow other encodings
+            #headers=self._get_header_from_message(message)  # TODO: implement header support
         )
 
         response = self.client.get_response()
-        response_msg = response.read()
 
-        # TODO: make it compatible with subsequent RESTler components.
+        res = Http2Response(response)
         
-        return (True, response_msg)
+        return (True, res)
 
 
     def __del__(self):
