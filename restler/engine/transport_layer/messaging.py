@@ -58,8 +58,8 @@ class HttpSock(object):
                         certfile = Settings().client_certificate_path,
                         keyfile = Settings().client_certificate_key_path,
                     )
-                      
-                with socket.create_connection((target_ip, target_port or 443)) as sock:                  
+
+                with socket.create_connection((target_ip, target_port or 443)) as sock:
                     self._sock = context.wrap_socket(sock, server_hostname=host)
 
             else:
@@ -104,6 +104,7 @@ class HttpSock(object):
             RAW_LOGGING(f'Received: {response.to_str!r}\n')
             return (True, response)
         except TransportLayerException as error:
+            RAW_LOGGING(f"Error sending request: {error!s}")
             response = HttpResponse(str(error).strip('"\''))
             if 'timed out' in str(error):
                 response._status_code = TIMEOUT_CODE
