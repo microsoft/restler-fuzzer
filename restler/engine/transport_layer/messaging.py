@@ -104,7 +104,6 @@ class HttpSock(object):
             RAW_LOGGING(f'Received: {response.to_str!r}\n')
             return (True, response)
         except TransportLayerException as error:
-            RAW_LOGGING(f"Error sending request: {error!s}")
             response = HttpResponse(str(error).strip('"\''))
             if 'timed out' in str(error):
                 response._status_code = TIMEOUT_CODE
@@ -225,12 +224,12 @@ class HttpSock(object):
         # get the data of header (and maybe more)
         bytes_received = 0
         while DELIM not in data:
-            try:
-                self._sock.settimeout(req_timeout_sec)
-                buf = self._sock.recv(2**20)
-                bytes_received += len(buf)
-            except Exception as error:
-                raise TransportLayerException(f"Exception: {error!s}")
+            #try:
+            self._sock.settimeout(req_timeout_sec)
+            buf = self._sock.recv(2**20)
+            bytes_received += len(buf)
+            #except Exception as error:
+            #    raise TransportLayerException(f"Exception: {error!s}")
 
             if len(buf) == 0:
                 return data
@@ -248,11 +247,11 @@ class HttpSock(object):
             chuncked_encoding = True
         if chuncked_encoding:
             while True:
-                try:
-                    buf = self._sock.recv(2**20)
-                    bytes_received += len(buf)
-                except Exception as error:
-                    raise TransportLayerException(f"Exception: {error!s}")
+                #try:
+                buf = self._sock.recv(2**20)
+                bytes_received += len(buf)
+                #except Exception as error:
+                #    raise TransportLayerException(f"Exception: {error!s}")
 
                 if len(buf) == 0:
                     return data
@@ -281,10 +280,10 @@ class HttpSock(object):
 
         # get rest of socket data
         while bytes_remain > 0:
-            try:
-                buf = self._sock.recv(2**20)
-            except Exception as error:
-                raise TransportLayerException(f"Exception: {error!s}")
+            #try:
+            buf = self._sock.recv(2**20)
+            #except Exception as error:
+            #    raise TransportLayerException(f"Exception: {error!s}")
 
             if len(buf) == 0:
                 return data
@@ -304,4 +303,4 @@ class HttpSock(object):
         try:
             self._sock.close()
         except Exception as error:
-                raise TransportLayerException(f"Exception: {error!s}")
+            raise TransportLayerException(f"Exception closing socket: {error!s}")
