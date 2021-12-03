@@ -191,6 +191,48 @@ The time, in milliseconds, to throttle each request being sent.
 This is here for special cases where the server will block requests from connections that arrive too quickly.
 Using this setting is not recommended.
 
+### custom_retry_settings: dict (default empty)
+
+The settings for specifying custom status codes or status text on which to re-try the request.  These
+override the default values.
+
+__status_codes__
+
+A list of response status codes on which the request should be re-tried may be specified as follows
+(shown below with the default value):
+
+```json
+"custom_retry_settings": {
+     "status_codes": [
+         "429"
+     ]
+}
+```
+
+__response_text__
+
+A list of strings in the response on which the request should be re-tried may be specified as follows
+(shown below with the default value):
+
+```json
+"custom_retry_settings": {
+     "response_text": [
+         "AnotherOperationInProgress"
+     ]
+}
+```
+
+___interval_sec__
+
+The number of seconds to wait between retries (shown below with the default value).
+
+```json
+"custom_retry_settings": {
+     "interval_sec": 5
+}
+```
+
+
 ### target_ip: str (default None)
 The IP address of the target webserver.
 
