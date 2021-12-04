@@ -250,9 +250,17 @@ def send_request_data(rendered_data):
     # Set max retries and retry sleep time to be used in case
     # a status code from the retry list is encountered.
     MAX_RETRIES = 5
-    RETRY_SLEEP_SEC = 5
-    RETRY_CODES = ['409', '429']
+    custom_retry_codes = Settings().custom_retry_codes
+    custom_retry_text = Settings().custom_retry_text
+    custom_retry_interval_sec = Settings().custom_retry_interval_sec
 
+    RETRY_SLEEP_SEC = 5 if custom_retry_interval_sec is None else custom_retry_interval_sec
+    RETRY_CODES = ['429'] if custom_retry_codes is None else custom_retry_codes
+    # Note: the default text below is specific to Azure cloud services
+    # Because 409s were previously unconditionally re-tries, it is being added here
+    # as a constant for backwards compatibility.  In the future, this should move into
+    # a separate settings file.
+    RETRY_TEXT = ['AnotherOperationInProgress'] if custom_retry_text is None else custom_retry_text
     num_retries = 0
     while num_retries < MAX_RETRIES:
         try:
@@ -275,7 +283,14 @@ def send_request_data(rendered_data):
             _RAW_LOGGING(response.to_str)
             return HttpResponse()
 
-        if status_code in RETRY_CODES:
+        # Check whether a custom re-try text was provided.
+        response_contains_retry_text = False
+        for text in RETRY_TEXT:
+            if text in response.to_str:
+                response_contains_retry_text = True
+                break
+
+        if status_code in RETRY_CODES or response_contains_retry_text:
             num_retries += 1
             if num_retries < MAX_RETRIES:
                 time.sleep(RETRY_SLEEP_SEC)

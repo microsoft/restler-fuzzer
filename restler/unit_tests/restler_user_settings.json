@@ -33,6 +33,15 @@
   "path_regex": "(\\w*)/ddosProtectionPlans(\\w*)",
   "ignore_decoding_failures": true,
   "request_throttle_ms": 500,
+  "custom_retry_settings": {
+    "status_codes": [
+      "429"
+    ],
+    "response_text": [
+      "please re-try"
+    ],
+    "interval_sec": 5
+  },
   "target_ip": "100.100.100.100",
   "target_port": 500,
   "time_budget": 12,

@@ -425,6 +425,8 @@ class RestlerSettings(object):
         self._path_regex = SettingsArg('path_regex', str, None, user_args)
         ## Minimum time, in milliseconds, to wait between sending requests
         self._request_throttle_ms = SettingsArg('request_throttle_ms', (int, float), None, user_args, minval=0)
+        ## Settings for customizing re-try logic for requests
+        self._retry_args = SettingsArg('custom_retry_settings', dict, {}, user_args)
         ## Ignore data UTF decoding failures (see https://github.com/microsoft/restler-fuzzer/issues/164)
         self._ignore_decoding_failures = SettingsArg('ignore_decoding_failures', bool, False, user_args)
         ## Collection of endpoint specific producer timing delays - will be set with other per_resource settings
@@ -587,6 +589,25 @@ class RestlerSettings(object):
     @property
     def request_throttle_ms(self):
         return self._request_throttle_ms.val
+
+    @property
+    def custom_retry_codes(self):
+        if 'status_codes' in self._retry_args.val:
+            return self._retry_args.val['status_codes']
+        return None
+
+    @property
+    def custom_retry_text(self):
+        if 'response_text' in self._retry_args.val:
+            return self._retry_args.val['response_text']
+        return None
+
+    @property
+    def custom_retry_interval_sec(self):
+        if 'interval_sec' in self._retry_args.val:
+            return self._retry_args.val['interval_sec']
+        return None
+
 
     @property
     def ignore_decoding_failures(self):

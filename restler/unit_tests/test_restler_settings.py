@@ -507,3 +507,6 @@ class RestlerSettingsTest(unittest.TestCase):
         code5 = re.compile('500')
         self.assertEqual([code1, code2, code3], settings.custom_bug_codes)
         self.assertEqual([code4, code5], settings.custom_non_bug_codes)
+        self.assertEqual(settings.custom_retry_interval_sec, 5)
+        self.assertEqual(settings.custom_retry_codes, ["429"])
+        self.assertEqual(settings.custom_retry_text, ["please re-try"])
