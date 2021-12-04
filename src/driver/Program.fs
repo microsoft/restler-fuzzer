@@ -28,6 +28,7 @@ let usage() =
   restler --version
           [--disable_log_upload] [--logsUploadRootDirPath <log upload directory>]
           [--python_path <full path to python executable>]
+          [--workingDirPath <local logs directory (default: cwd)>]
           [ compile <compile options> |
             test <test options> |
             fuzz-lean <test options> |
@@ -126,7 +127,6 @@ module Compile =
         if not (File.Exists Paths.CompilerExePath) then
             Trace.failwith "Could not find path to compiler.  Please re-install RESTler or contact support."
 
-        let compilerConfigPath = workingDirectory ++ "config.json"
         // If a dictionary is not specified, generate a default one.
         let dictionaryFilePath =
             match config.CustomDictionaryFilePath with
@@ -146,6 +146,7 @@ module Compile =
             { config with
                 GrammarOutputDirectoryPath = Some compilerOutputDirPath
                 CustomDictionaryFilePath = dictionaryFilePath }
+        let compilerConfigPath = workingDirectory ++ "config.json"
         Microsoft.FSharpLu.Json.Compact.serializeToFile compilerConfigPath compilerConfig
 
         // Run compiler
@@ -567,6 +568,12 @@ let rec parseArgs (args:DriverArgs) = function
             Logging.logError <| sprintf "Directory %s does not exist." logsUploadDirPath
             usage()
         parseArgs { args with logsUploadRootDirectoryPath = Some logsUploadDirPath } rest
+    | "--workingDirPath"::workingDirPath::rest ->
+        if not (Directory.Exists workingDirPath) then
+            Logging.logError <| sprintf "Directory %s does not exist." workingDirPath
+            usage()
+        let workingDirAbsPath = Restler.Config.convertToAbsPath Environment.CurrentDirectory workingDirPath
+        parseArgs { args with workingDirectoryPath = workingDirAbsPath } rest
     | "--python_path"::pythonFilePath::rest ->
         if not (File.Exists pythonFilePath) then
             Logging.logError <| sprintf "The specified python path %s does not exist." pythonFilePath
