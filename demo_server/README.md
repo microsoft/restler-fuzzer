@@ -44,3 +44,6 @@ Swagger
 Start trying the endpoints from the swagger API at your browser and you will
 see logs coming in the terminal where the server is running. Moreover, you should
 see coverage information produced in demo_server/coverage_stats.txt.
+
+> Ensure your request `Host` header matches the value of `FLASK_SERVER_NAME` in
+`settings.py`, else each request will return an HTTP 404.
