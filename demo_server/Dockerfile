@@ -11,4 +11,6 @@ RUN pip install -r requirements.txt
 
 EXPOSE 8888
 
+ENV FLASK_RUN_HOST=0.0.0.0
+
 CMD ["python", "demo_server/app.py"]
