@@ -14,11 +14,12 @@ open Restler.Config
 module References =
     type ReferencesTests(ctx:Fixtures.TestSetupAndCleanup, output:Xunit.Abstractions.ITestOutputHelper) =
 
-        let testReferenceTypes specFileName =
+        let testReferenceTypes specFileName (expectedGrammarLines: string list) =
             let filePath = Path.Combine(Environment.CurrentDirectory, sprintf @"swagger\referencesTests\%s" specFileName)
+            let grammarOutputDirectoryPath = Some ctx.testRootDirPath
             let config = { Restler.Config.SampleConfig with
                              IncludeOptionalParameters = true
-                             GrammarOutputDirectoryPath = Some ctx.testRootDirPath
+                             GrammarOutputDirectoryPath = grammarOutputDirectoryPath
                              ResolveBodyDependencies = true
                              UseBodyExamples = Some false
                              SwaggerSpecFilePath = Some [filePath]
@@ -26,37 +27,38 @@ module References =
                          }
             Restler.Workflow.generateRestlerGrammar None config
 
-            // TODO: check that all 4 types are present.
-            Assert.True(true)
-            //let grammarFilePath = Path.Combine(defaultGrammarOutputDirectoryPath, "grammar.py")
-            //let grammar = File.ReadAllText(grammarFilePath)
+            let grammarFilePath = Path.Combine(grammarOutputDirectoryPath.Value, "grammar.py")
+            let grammarText = File.ReadAllText(grammarFilePath)
 
-            //// The grammar should not contain any fuzzable resources.
-            //Assert.False(grammar.Contains("fuzzable"))
+            for line in expectedGrammarLines do
+                Assert.True (grammarText.Contains(line))
 
         [<Fact>]
         let ``external refs multiple visits per file - first`` () =
             /// Tests the case where file2 is parsed, it has references to file1, then back to file2.
             /// Depending on the ordering, this was not handled correctly in NSwag (V10 and earlier).
             /// Both parsing first or second as the main Swagger file should work.
-            testReferenceTypes "first.json"
-
+            testReferenceTypes "first.json" []
 
         [<Fact>]
         let ``external refs multiple visits per file - second`` () =
             /// Tests the case where file2 is parsed, it has references to file1, then back to file2.
             /// Depending on the ordering, this was not handled correctly in NSwag (V10 and earlier).
             /// Both parsing first or second as the main Swagger file should work.
-            testReferenceTypes "second.json"
+            testReferenceTypes "second.json" []
 
 
         [<Fact>]
         let ``array circular reference test`` () =
-            testReferenceTypes "circular_array.json"
+            testReferenceTypes "circular_array.json" []
 
         [<Fact>]
         let ``cached circular references - infinite recursion regression test`` () =
-            testReferenceTypes "multiple_circular_paths.json"
+            testReferenceTypes "multiple_circular_paths.json" []
+
+        [<Fact>]
+        let ``cached circular references - missing properties regression test`` () =
+            testReferenceTypes "circular_path.json" ["_customer_post_properties_name.reader()"]
 
 
         interface IClassFixture<Fixtures.TestSetupAndCleanup>

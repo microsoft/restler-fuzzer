@@ -1,0 +1,106 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "version": "2021-01-01",
+        "title": "Spec with recursion. Note: the order of requests is important for this test."
+    },
+    "schemes": [
+        "https"
+    ],
+    "consumes": [
+        "application/json"
+    ],
+    "produces": [
+        "application/json"
+    ],
+    "paths": {
+        "/customer/{customerName}": {
+            "get": {
+                "parameters": [
+                    {
+                        "$ref": "#/parameters/nameParameter"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "schema": {
+                            "$ref": "#/definitions/Customer"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "parameters": [
+                    {
+                        "$ref": "#/parameters/nameParameter"
+                    },
+                    {
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                          "$ref": "#/definitions/Customer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "schema": {
+                            "$ref": "#/definitions/Customer"
+                        }
+                    }
+                }
+            }
+        },
+        "/customer": {
+            "post": {
+                "parameters": [
+                    {
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                          "$ref": "#/definitions/Customer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "schema": {
+                            "$ref": "#/definitions/Customer"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "Customer": {
+            "type": "object",
+            "properties": {
+                "properties": {
+                    "$ref": "#/definitions/CustomerProperties"
+                }
+            }
+        },
+        "CustomerProperties": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "related": {
+                    "$ref": "#/definitions/Customer"
+                }
+            }
+        }
+    },
+    "parameters": {
+        "nameParameter": {
+            "name": "customerName",
+            "in": "path",
+            "required": true,
+            "type": "string"
+        }
+    }
+}
