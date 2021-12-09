@@ -312,7 +312,8 @@ module private Parameters =
                                 else
                                     let parameterGrammarElement =
                                         generateGrammarElementForSchema declaredParameter.ActualSchema
-                                                                        (Some payloadValue, false) trackParameters
+                                                                        (Some payloadValue, false)
+                                                                        (trackParameters, None)
                                                                         (declaredParameter.IsRequired, (parameterIsReadOnly declaredParameter))
                                                                         []
                                                                         (SchemaCache())
@@ -484,7 +485,8 @@ module private Parameters =
     let private getParameters (parameterList:seq<OpenApiParameter>)
                               (exampleConfig:ExampleRequestPayload list option)
                               (dataFuzzing:bool)
-                              (trackParameters:bool) =
+                              (trackParameters:bool)
+                              (jsonPropertyMaxDepth:int option) =
 
         // When data fuzzing is specified, both the full schema and examples should be available for analysis.
         // Otherwise, use the first example if it exists, or the schema, and return a single schema.
@@ -512,7 +514,7 @@ module private Parameters =
                                     let parameterPayload = generateGrammarElementForSchema
                                                                 p.ActualSchema
                                                                 (specExampleValue, true)
-                                                                trackParameters
+                                                                (trackParameters, jsonPropertyMaxDepth)
                                                                 (p.IsRequired, (parameterIsReadOnly p))
                                                                 []
                                                                 (SchemaCache())
@@ -558,9 +560,10 @@ module private Parameters =
     let getAllParameters (swaggerMethodDefinition:OpenApiOperation)
                          (parameterKind:NSwag.OpenApiParameterKind)
                          exampleConfig dataFuzzing
-                         trackParameters =
+                         trackParameters
+                         jsonPropertyMaxDepth =
         let allParameters = getSpecParameters swaggerMethodDefinition parameterKind
-        getParameters allParameters exampleConfig dataFuzzing trackParameters
+        getParameters allParameters exampleConfig dataFuzzing trackParameters jsonPropertyMaxDepth
 
 /// Functionality related to x-ms-paths support.  For more information, see:
 /// https://github.com/stankovski/AutoRest/blob/master/Documentation/swagger-extensions.md#x-ms-paths
@@ -1091,6 +1094,7 @@ let generateRequestGrammar (swaggerDocs:Types.ApiSpecFuzzingConfig list)
                                 (if useQueryExamples then exampleConfig else None)
                                 config.DataFuzzing
                                 config.TrackFuzzedParameterNames
+                                config.JsonPropertyMaxDepth
 
                         let pathParameters =
                             let usePathExamples =
@@ -1112,6 +1116,7 @@ let generateRequestGrammar (swaggerDocs:Types.ApiSpecFuzzingConfig list)
                                         (if useHeaderExamples then exampleConfig else None)
                                         config.DataFuzzing
                                         config.TrackFuzzedParameterNames
+                                        config.JsonPropertyMaxDepth
                                 RequestParameters.query = allQueryParameters
                                 RequestParameters.body =
                                     let useBodyExamples =
@@ -1122,6 +1127,7 @@ let generateRequestGrammar (swaggerDocs:Types.ApiSpecFuzzingConfig list)
                                         (if useBodyExamples then exampleConfig else None)
                                         config.DataFuzzing
                                         config.TrackFuzzedParameterNames
+                                        config.JsonPropertyMaxDepth
                             }
 
                         let allResponses = seq {
@@ -1136,7 +1142,8 @@ let generateRequestGrammar (swaggerDocs:Types.ApiSpecFuzzingConfig list)
                                 let headerResponseSchema =
                                     r.Value.Headers
                                     |> Seq.map (fun h -> let headerSchema =
-                                                             generateGrammarElementForSchema h.Value (None, false) false
+                                                             generateGrammarElementForSchema h.Value (None, false)
+                                                                                             (false, config.JsonPropertyMaxDepth)
                                                                                              (true (*isRequired*), false (*isReadOnly*)) []
                                                                                              schemaCache
                                                                                              id
@@ -1146,7 +1153,8 @@ let generateRequestGrammar (swaggerDocs:Types.ApiSpecFuzzingConfig list)
                                 let bodyResponseSchema =
                                     if isNull r.Value.ActualResponse.Schema then None
                                     else
-                                        generateGrammarElementForSchema r.Value.ActualResponse.Schema (None, false) false
+                                        generateGrammarElementForSchema r.Value.ActualResponse.Schema (None, false)
+                                                                        (false, config.JsonPropertyMaxDepth)
                                                                         (true (*isRequired*), false (*isReadOnly*)) []
                                                                         schemaCache
                                                                         id

@@ -137,3 +137,6 @@ catch consistency bugs in the specification because producer-consumer dependenci
 * *TrackFuzzedParameterNames* False by default.  When true, every fuzzable primitive will
 include an additional parameter `param_name` which is the name of the property or
 parameter being fuzzed.  These will be used to capture fuzzed parameters in ```tracked_parameters``` in the spec coverage file.
+
+* *JsonPropertyMaxDepth* is the maximum depth for Json properties in the schema to test.
+Any properties exceeding this depth are removed.  There is no maximum by default.

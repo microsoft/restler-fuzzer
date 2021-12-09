@@ -131,6 +131,10 @@ type Config =
         // parameter names for all fuzzable values.  For example:
         // restler_fuzzable_string("1", param_name="num_items")
         TrackFuzzedParameterNames : bool
+
+        // The maximum depth for Json properties in the schema to test
+        // Any properties exceeding this depth are removed.
+        JsonPropertyMaxDepth : int option
     }
 
 let convertToAbsPath (currentDirPath:string) (filePath:string) =
@@ -242,6 +246,7 @@ let SampleConfig =
         DataFuzzing = true
         ApiNamingConvention = None
         TrackFuzzedParameterNames = false
+        JsonPropertyMaxDepth = None
     }
 
 /// The default config used for unit tests.  Most of these should also be the defaults for
@@ -275,4 +280,5 @@ let DefaultConfig =
         DataFuzzing = false
         ApiNamingConvention = None
         TrackFuzzedParameterNames = false
+        JsonPropertyMaxDepth = None
     }
