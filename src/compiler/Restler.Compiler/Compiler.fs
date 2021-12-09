@@ -315,6 +315,7 @@ module private Parameters =
                                                                         (Some payloadValue, false) trackParameters
                                                                         (declaredParameter.IsRequired, (parameterIsReadOnly declaredParameter))
                                                                         []
+                                                                        (SchemaCache())
                                                                         id
                                     Some { name = declaredParameter.Name
                                            payload = parameterGrammarElement
@@ -514,6 +515,7 @@ module private Parameters =
                                                                 trackParameters
                                                                 (p.IsRequired, (parameterIsReadOnly p))
                                                                 []
+                                                                (SchemaCache())
                                                                 id
 
                                     // Add the name to the parameter payload
@@ -1020,6 +1022,7 @@ let generateRequestGrammar (swaggerDocs:Types.ApiSpecFuzzingConfig list)
                            (userSpecifiedExamples:ExampleConfigFile list) =
 
     let getRequestData (swaggerDoc:OpenApiDocument) (xMsPathsMapping:Map<string,string> option) =
+        let schemaCache = SchemaCache()
         let requestDataSeq = seq {
             for path in swaggerDoc.Paths do
                 let ep = path.Key.TrimEnd([|'/'|])
@@ -1135,6 +1138,7 @@ let generateRequestGrammar (swaggerDocs:Types.ApiSpecFuzzingConfig list)
                                     |> Seq.map (fun h -> let headerSchema =
                                                              generateGrammarElementForSchema h.Value (None, false) false
                                                                                              (true (*isRequired*), false (*isReadOnly*)) []
+                                                                                             schemaCache
                                                                                              id
                                                          h.Key, headerSchema)
                                     |> Seq.toList
@@ -1144,6 +1148,7 @@ let generateRequestGrammar (swaggerDocs:Types.ApiSpecFuzzingConfig list)
                                     else
                                         generateGrammarElementForSchema r.Value.ActualResponse.Schema (None, false) false
                                                                         (true (*isRequired*), false (*isReadOnly*)) []
+                                                                        schemaCache
                                                                         id
                                         |> Some
                                 {| bodyResponse = bodyResponseSchema
