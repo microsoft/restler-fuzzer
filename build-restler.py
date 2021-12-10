@@ -116,10 +116,11 @@ def publish_engine_py(dirs):
     try:
         copy_python_files(dirs.repository_root_dir, dirs.engine_build_dir)
 
-        output = subprocess.run(f'{dirs.python_path} -m compileall {dirs.engine_build_dir}', shell=True, capture_output=True)
-        if output.stderr:
+        try:
+            output = subprocess.run(f'{dirs.python_path} -m compileall {dirs.engine_build_dir}', shell=True, capture_output=True, check=True)
+        except subprocess.CalledProcessError as e:
             print("Build failed!")
-            print(output.stderr)
+            print(e.stderr)
             sys.exit(-1)
 
         stdout = str(output.stdout)
@@ -163,15 +164,17 @@ def publish_dotnet_apps(dirs, configuration, dotnet_package_source):
         restore_args = f"dotnet restore \"{proj_file_path}\" --use-lock-file --locked-mode --force"
         if dotnet_package_source is not None:
             restore_args = f"{restore_args} -s {dotnet_package_source}"
-        output = subprocess.run(restore_args, shell=True, stderr=subprocess.PIPE)
-        if output.stderr:
+        try:
+            subprocess.run(restore_args, shell=True, stderr=subprocess.PIPE, check=True)
+        except subprocess.CalledProcessError as e:
             print("Build failed!")
-            print(str(output.stderr))
+            print(str(e.stderr))
             sys.exit(-1)
-        output = subprocess.run(f"dotnet publish \"{proj_file_path}\" --no-restore -o \"{proj_output_dir}\" -c {configuration} -f netcoreapp5.0", shell=True, stderr=subprocess.PIPE)
-        if output.stderr:
+        try:
+            subprocess.run(f"dotnet publish \"{proj_file_path}\" --no-restore -o \"{proj_output_dir}\" -c {configuration} -f netcoreapp5.0", shell=True, stderr=subprocess.PIPE, check=True)
+        except subprocess.CalledProcessError as e:
             print("Build failed!")
-            print(str(output.stderr))
+            print(str(e.stderr))
             sys.exit(-1)
 
 if __name__ == '__main__':
