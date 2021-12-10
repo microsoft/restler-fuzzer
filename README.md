@@ -38,6 +38,16 @@ RESTler was designed to run on 64-bit machines with Windows or Linux.  Experimen
 
 ### **Build instructions**
 
+#### Docker
+
+In the root of this repo, run
+
+```shell
+docker build -f docker/Dockerfile -t restler .
+```
+
+#### Local
+
 Prerequisites: Install [Python 3.8.2](https://www.python.org/downloads/) and
 [.NET 5.0](https://dotnet.microsoft.com/download/dotnet-core?utm_source=getdotnetcorecli&utm_medium=referral), for your appropriate OS.
 
