@@ -1138,22 +1138,32 @@ class PayloadBodyChecker(CheckerBase):
             # substitute if there is UUID suffix
             original_rendered_data = rendered_data
             uuid4_suffix_dict = self._get_custom_payload_uuid4_suffix()
+            # Bug: tries all the uuid suffixes in the dictionary
+            #  even though this payload may not contain most of them
             for uuid4_suffix in uuid4_suffix_dict:
                 suffix = uuid4_suffix_dict[uuid4_suffix]
                 len_suffix = len(suffix)
                 # need the query to partition path and body
                 try:
                     partition = rendered_data.index('?')
+                    # If the suffix is present in the path
+                    # Bug: the code below assumes the path ends with the suffix
+                    # and the suffix is unique, i.e. does not occur in the path.
+                    # this cannot be assumed, since the user can make the suffix any value
                     if suffix in rendered_data[:partition]:
                         new_val_start = rendered_data[:partition].index(suffix)
                         if new_val_start + len_suffix + 10 > partition:
                             self._log('unexpected uuid')
                             continue
-                        new_val = rendered_data[new_val_start:
-                                                new_val_start + len_suffix + 10]
+                        new_val = rendered_data[new_val_start:new_val_start + len_suffix + 10]
 
                         # find all occurence in the body
                         suffix_in_body = [
+                            # Bug: Finds all occurrences of *the value text string* of suffix in the
+                            # payload and does replacement
+                            # Instead, should search in the grammar for the 'restler_custom_payload_uuid_suffix' and
+                            # replace with new rendered value
+                            # For example, if "name" appears in a token, this will replace it.
                             m.start() for m in re.finditer(suffix, rendered_data)
                         ][1:]
                         for si in suffix_in_body:
