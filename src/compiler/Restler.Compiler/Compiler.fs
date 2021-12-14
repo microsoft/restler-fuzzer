@@ -565,6 +565,47 @@ module private Parameters =
         let allParameters = getSpecParameters swaggerMethodDefinition parameterKind
         getParameters allParameters exampleConfig dataFuzzing trackParameters jsonPropertyMaxDepth
 
+    let getBody (swaggerMethodDefinition:OpenApiOperation)
+                exampleConfig dataFuzzing
+                trackParameters
+                jsonPropertyMaxDepth =
+        let bodyName = "__body__"
+
+        let bodyName, bodySchema =
+            if not (isNull swaggerMethodDefinition.RequestBody) &&
+                not (isNull swaggerMethodDefinition.RequestBody.Content) then
+                let content =
+                    swaggerMethodDefinition.RequestBody.Content |> Seq.tryFind (fun x -> x.Key = "application/json")
+                // If the schema is null, issue a warning.
+                match content with
+                | Some c ->
+                    let bodyName =
+                        if not (String.IsNullOrEmpty(swaggerMethodDefinition.RequestBody.Name)) then
+                            swaggerMethodDefinition.RequestBody.Name
+                        else
+                            bodyName
+                    if isNull c.Value.Schema then
+                        printfn "Error: found body (%s) with null schema.  This may be due to an invalid OpenAPI spec." bodyName
+                        bodyName, None
+                    else
+                        bodyName, Some c.Value.Schema.ActualSchema
+                | None -> bodyName, None
+            else
+                let parameter = getSpecParameters swaggerMethodDefinition OpenApiParameterKind.Body |> Seq.tryHead
+                match parameter with
+                | None -> bodyName, None
+                | Some p -> p.Name, Some p.ActualSchema
+
+        if bodySchema.IsSome then
+            let openApiParameter = OpenApiParameter()
+            openApiParameter.Name <- bodyName
+            openApiParameter.Schema <- bodySchema.Value
+            openApiParameter.Kind <- OpenApiParameterKind.Body
+            getParameters (openApiParameter |> stn) exampleConfig dataFuzzing trackParameters jsonPropertyMaxDepth
+        else
+            // No body
+            getParameters Seq.empty exampleConfig dataFuzzing trackParameters jsonPropertyMaxDepth
+
 /// Functionality related to x-ms-paths support.  For more information, see:
 /// https://github.com/stankovski/AutoRest/blob/master/Documentation/swagger-extensions.md#x-ms-paths
 module private XMsPaths =
@@ -1103,6 +1144,16 @@ let generateRequestGrammar (swaggerDocs:Types.ApiSpecFuzzingConfig list)
                                     m.Value ep
                                     (if usePathExamples then exampleConfig else None)
                                     config.TrackFuzzedParameterNames
+                        let body =
+                            let useBodyExamples =
+                                config.UseBodyExamples |> Option.defaultValue false
+                            Parameters.getBody
+                                m.Value
+                                (if useBodyExamples then exampleConfig else None)
+                                config.DataFuzzing
+                                config.TrackFuzzedParameterNames
+                                config.JsonPropertyMaxDepth
+
                         let requestParameters =
                             {
                                 RequestParameters.path = pathParameters
@@ -1118,16 +1169,7 @@ let generateRequestGrammar (swaggerDocs:Types.ApiSpecFuzzingConfig list)
                                         config.TrackFuzzedParameterNames
                                         config.JsonPropertyMaxDepth
                                 RequestParameters.query = allQueryParameters
-                                RequestParameters.body =
-                                    let useBodyExamples =
-                                        config.UseBodyExamples |> Option.defaultValue false
-                                    Parameters.getAllParameters
-                                        m.Value
-                                        OpenApiParameterKind.Body
-                                        (if useBodyExamples then exampleConfig else None)
-                                        config.DataFuzzing
-                                        config.TrackFuzzedParameterNames
-                                        config.JsonPropertyMaxDepth
+                                RequestParameters.body = body
                             }
 
                         let allResponses = seq {

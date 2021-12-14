@@ -1,0 +1,389 @@
+{
+  "openapi" : "3.0.0",
+  "servers" : [ {
+    "url" : "http://localhost:4000/"
+  } ],
+  "security" : [ {
+    "bearerAuth" : [ ]
+  } ],
+  "paths" : {
+    "/bananas" : {
+      "get" : {
+        "operationId" : "listbananas",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "createdAtMin",
+          "schema" : {
+            "example" : "2021-06-30T18:54:00.089Z",
+            "format" : "date-time",
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "createdAtMax",
+          "schema" : {
+            "example" : "2021-06-30T18:54:00.089Z",
+            "format" : "date-time",
+            "type" : "string"
+          }
+        }, {
+          "description" : "which page",
+          "in" : "query",
+          "name" : "page",
+          "required" : false,
+          "schema" : {
+            "example" : 100,
+            "minimum" : 1,
+            "type" : "integer"
+          }
+        }, {
+          "description" : "how many results in one page",
+          "in" : "query",
+          "name" : "pageLength",
+          "required" : false,
+          "schema" : {
+            "minimum" : 1,
+            "type" : "integer"
+          }
+        }, {
+          "description" : "how many results are in the database",
+          "in" : "query",
+          "name" : "includeTotalCount",
+          "required" : false,
+          "schema" : {
+            "default" : true,
+            "type" : "boolean"
+          }
+        }, {
+          "description" : "field to sort by",
+          "in" : "query",
+          "name" : "sortBy",
+          "schema" : {
+            "example" : "createdAt",
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "ids",
+          "schema" : {
+            "format" : "uuid",
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "treeIds",
+          "schema" : {
+            "format" : "uuid",
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "ownerIds",
+          "schema" : {
+            "format" : "uuid",
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "beachIds",
+          "schema" : {
+            "format" : "uuid",
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/inline_response_200"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/inline_response_5XX"
+                }
+              }
+            },
+            "description" : "Unhandled server exception"
+          }
+        },
+        "summary" : "Lists banana",
+        "tags" : [ "banana" ]
+      },
+      "post" : {
+        "operationId" : "createbanana",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/bananaCreate"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "201" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/inline_response_201"
+                }
+              }
+            },
+            "description" : "Created"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/inline_response_400"
+                }
+              }
+            },
+            "description" : "Invalid request"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/inline_response_5XX"
+                }
+              }
+            },
+            "description" : "Unhandled server exception"
+          }
+        },
+        "summary" : "Create a banana",
+        "tags" : [ "banana" ]
+      }
+    },
+    "/bananas/{id}" : {
+      "delete" : {
+        "operationId" : "deletebanana",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "format" : "uuid",
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/inline_response_201"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "404" : {
+            "description" : "Not found"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/inline_response_5XX"
+                }
+              }
+            },
+            "description" : "Unhandled server exception"
+          }
+        },
+        "summary" : "Delete a banana",
+        "tags" : [ "banana" ]
+      },
+      "get" : {
+        "operationId" : "getbanana",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "format" : "uuid",
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/inline_response_201"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "404" : {
+            "description" : "Not found"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/inline_response_5XX"
+                }
+              }
+            },
+            "description" : "Unhandled server exception"
+          }
+        },
+        "tags" : [ "banana" ]
+      }
+    }
+  },
+  "components" : {
+    "requestBodies" : {
+      "createbanana" : {
+        "content" : {
+          "application/json" : {
+            "schema" : {
+              "$ref" : "#/components/schemas/bananaCreate"
+            }
+          }
+        },
+        "required" : true
+      }
+    },
+    "schemas" : {
+      "paging" : {
+        "properties" : {
+          "page" : {
+            "format" : "integer",
+            "readOnly" : true,
+            "type" : "number"
+          },
+          "pageLength" : {
+            "format" : "integer",
+            "readOnly" : true,
+            "type" : "number"
+          },
+          "totalCount" : {
+            "format" : "integer",
+            "readOnly" : true,
+            "type" : "number"
+          }
+        },
+        "type" : "object"
+      },
+      "banana" : {
+        "allOf" : [ {
+          "$ref" : "#/components/schemas/bananaReadOnlyProperties"
+        }, {
+          "$ref" : "#/components/schemas/postOnlyProperties"
+        } ]
+      },
+      "bananaReadOnlyProperties" : {
+        "properties" : {
+          "id" : {
+            "format" : "uuid",
+            "type" : "string"
+          },
+          "createdAt" : {
+            "format" : "date-time",
+            "type" : "string"
+          },
+          "updatedAt" : {
+            "format" : "date-time",
+            "type" : "string"
+          },
+          "snazzyId" : {
+            "format" : "uuid",
+            "type" : "string"
+          }
+        },
+        "type" : "object"
+      },
+      "postOnlyProperties" : {
+        "properties" : {
+          "treeId" : {
+            "format" : "uuid",
+            "type" : "string"
+          },
+          "beachId" : {
+            "format" : "uuid",
+            "type" : "string"
+          }
+        },
+        "type" : "object"
+      },
+      "bananaCreate" : {
+        "allOf" : [ {
+          "$ref" : "#/components/schemas/postOnlyProperties"
+        } ],
+        "required" : [ "treeId", "beachId" ],
+        "type" : "object"
+      },
+      "inline_response_200" : {
+        "properties" : {
+          "paging" : {
+            "$ref" : "#/components/schemas/paging"
+          },
+          "results" : {
+            "items" : {
+              "$ref" : "#/components/schemas/banana"
+            },
+            "type" : "array"
+          }
+        },
+        "type" : "object"
+      },
+      "inline_response_5XX" : {
+        "properties" : {
+          "message" : {
+            "example" : "An unhandled exception has occured. Ref #abc429df",
+            "type" : "string"
+          }
+        },
+        "required" : [ "message" ],
+        "type" : "object"
+      },
+      "inline_response_201" : {
+        "properties" : {
+          "results" : {
+            "$ref" : "#/components/schemas/banana"
+          }
+        },
+        "type" : "object"
+      },
+      "inline_response_400_issues" : {
+        "properties" : {
+          "errors" : {
+            "items" : {
+              "type" : "string"
+            },
+            "type" : "array"
+          }
+        },
+        "type" : "object"
+      },
+      "inline_response_400" : {
+        "properties" : {
+          "issues" : {
+            "$ref" : "#/components/schemas/inline_response_400_issues"
+          }
+        },
+        "required" : [ "issues" ],
+        "type" : "object"
+      }
+    },
+    "securitySchemes" : {
+      "bearerAuth" : {
+        "bearerFormat" : "JWT",
+        "scheme" : "bearer",
+        "type" : "http"
+      }
+    }
+  }
+}
