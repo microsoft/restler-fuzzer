@@ -25,6 +25,8 @@ If you use RESTler in your research, please cite the (default) ICSE'2019 paper (
 
 RESTler was created at Microsoft Research and is still under active development.
 
+For an overview and demo on how to get started, see [Webinar - Fuzzing to Improve the Security and Reliability of Cloud Services](https://www.youtube.com/watch?v=FYmiPoRwEbE).
+
 ![RESTler architecture](./docs/user-guide/RESTler-arch.png)
 
 ## Build Status
