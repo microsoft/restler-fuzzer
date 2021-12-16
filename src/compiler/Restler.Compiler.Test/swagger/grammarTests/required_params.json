@@ -1,0 +1,119 @@
+{
+  "basePath": "/api",
+  "consumes": [
+    "application/json"
+  ],
+  "host": "localhost:8888",
+  "info": {
+    "description": "A simple swagger spec that uses required and optional parameters",
+    "title": "Parameters example spec",
+    "version": "1.0"
+  },
+  "definitions": {
+    "ExampleObject": {
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "id": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "id"
+      ]
+    },
+    "ExampleBody": {
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "tags": {
+          "type": "object"
+        },
+        "example_array": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ExampleObject"
+          }
+        }
+      },
+      "required": [
+        "example_array",
+        "name"
+      ]
+    },
+    "ExampleBody2": {
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "tags": {
+          "type": "object"
+        }
+      }
+    }
+  },
+  "paths": {
+    "/customers": {
+      "put": {
+        "parameters": [
+          {
+            "name": "put_body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/ExampleBody2"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "404": {
+            "description": "Server not found."
+          }
+        }
+      },
+        "post": {
+          "parameters": [
+            {
+              "in": "header",
+              "name": "array_header_param",
+              "required": false,
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            {
+              "in": "query",
+              "name": "array_query_param",
+              "required": false,
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "body",
+              "in": "body",
+              "schema": {
+                "$ref": "#/definitions/ExampleBody"
+              }
+            }
+          ],
+          "examples": {},
+          "responses": {
+            "200": {
+              "description": "Success"
+            },
+            "404": {
+              "description": "Server not found."
+            }
+          }
+        }
+      }
+    },
+  "swagger": "2.0"
+}

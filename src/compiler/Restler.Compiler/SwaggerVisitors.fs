@@ -410,7 +410,7 @@ module SwaggerVisitors =
                     let innerProperty = { InnerProperty.name = propertyName
                                           payload = None
                                           propertyType = Property
-                                          isRequired = true
+                                          isRequired = property.IsRequired
                                           isReadOnly = (propertyIsReadOnly property) }
                     InternalNode (innerProperty, stn tree)
                     |> cont
@@ -419,7 +419,7 @@ module SwaggerVisitors =
                 let innerArrayProperty =
                     {   InnerProperty.name = propertyName
                         payload = None; propertyType = Array
-                        isRequired = true
+                        isRequired = property.IsRequired
                         isReadOnly = (propertyIsReadOnly property) }
 
                 let arrayWithElements =
@@ -459,7 +459,7 @@ module SwaggerVisitors =
                             let innerProperty = { InnerProperty.name = propertyName
                                                   payload = None
                                                   propertyType = Property // indicates presence of nested properties
-                                                  isRequired = true
+                                                  isRequired = property.IsRequired
                                                   isReadOnly = (propertyIsReadOnly property) }
                             InternalNode (innerProperty, stn tree)
                             |> cont
@@ -557,8 +557,8 @@ module SwaggerVisitors =
                         {
                             LeafProperty.name = ""
                             payload = payload.Value
-                            isRequired = true
-                            isReadOnly = false }
+                            isRequired = isRequired
+                            isReadOnly = isReadOnly }
 
                     LeafNode leafProperty
             if foundCycle then
@@ -740,8 +740,8 @@ module SwaggerVisitors =
                         let grammarElement =
                             LeafNode ({ LeafProperty.name = ""
                                         payload = leafPayload
-                                        isRequired = true
-                                        isReadOnly = false })
+                                        isRequired = isRequired
+                                        isReadOnly = isReadOnly })
 
                         schemaCache.add schema parents grammarElement exampleValue.IsSome
                         grammarElement |> cont
@@ -757,8 +757,8 @@ module SwaggerVisitors =
                             let innerProperty = { InnerProperty.name = ""
                                                   payload = None
                                                   propertyType = propertyType
-                                                  isRequired = true
-                                                  isReadOnly = false }
+                                                  isRequired = isRequired
+                                                  isReadOnly = isReadOnly }
                             InternalNode (innerProperty, Seq.empty)
                         schemaCache.add schema parents grammarElement exampleValue.IsSome
                         grammarElement |> cont
@@ -767,8 +767,8 @@ module SwaggerVisitors =
                     let innerProperty = { InnerProperty.name = ""
                                           payload = None
                                           propertyType = if schema.IsArray then Array else Object
-                                          isRequired = true
-                                          isReadOnly = false }
+                                          isRequired = isRequired
+                                          isReadOnly = isReadOnly }
                     // At the time this schema is added to the cache, the internalNodes above have not been traversed.
                     // Make sure they have been traversed first, for cycle detection.
                     let internalNodes = internalNodes |> Seq.toList
