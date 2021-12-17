@@ -140,3 +140,5 @@ parameter being fuzzed.  These will be used to capture fuzzed parameters in ```t
 
 * *JsonPropertyMaxDepth* is the maximum depth for Json properties in the schema to test.
 Any properties exceeding this depth are removed.  There is no maximum by default.
+
+* *IncludeOptionalParameters* True by default.  When false, RESTler will only pass required parameters when trying to successfully exercise each request.  The full schema including optional parameters is always included in the json grammar, so optional parameters will still be fuzzed by the payload body checker and available to test with ```test_combinations_settings``` when this option is set to false.

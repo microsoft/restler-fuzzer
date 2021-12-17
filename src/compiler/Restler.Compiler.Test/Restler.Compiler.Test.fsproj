@@ -15,6 +15,7 @@
     <Compile Include="ExampleTests.fs" />
     <Compile Include="ReferencesTests.fs" />
     <Compile Include="SchemaTests.fs" />
+    <Compile Include="JsonGrammarTests.fs" />
     <Compile Include="RealWorldTests.fs" />
     <Content Include="packages.lock.json" />
     <Content Include="swagger\example_config_file.json">
@@ -27,6 +28,15 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="baselines\schemaTests\xMsPaths_grammar.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="baselines\grammarTests\required_params_grammar.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="baselines\grammarTests\required_params_grammar.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="baselines\grammarTests\required_params_grammar_requiredOnly.py">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="baselines\dictionaryTests\quoted_primitives_grammar.py">
@@ -123,6 +133,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="swagger\schemaTests\xMsPaths.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="swagger\grammarTests\required_params.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="swagger\schemaTests\global_path_parameters.json">

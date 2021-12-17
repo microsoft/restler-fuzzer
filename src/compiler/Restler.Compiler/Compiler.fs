@@ -306,8 +306,8 @@ module private Parameters =
                                     Some { name = declaredParameter.Name
                                            payload = LeafNode { LeafProperty.name = ""
                                                                 payload = payload
-                                                                isReadOnly = false
-                                                                isRequired = true }
+                                                                isReadOnly = (parameterIsReadOnly declaredParameter)
+                                                                isRequired = declaredParameter.IsRequired }
                                            serialization = None }
                                 else
                                     let parameterGrammarElement =
@@ -601,6 +601,7 @@ module private Parameters =
             openApiParameter.Name <- bodyName
             openApiParameter.Schema <- bodySchema.Value
             openApiParameter.Kind <- OpenApiParameterKind.Body
+            openApiParameter.IsRequired <- true
             getParameters (openApiParameter |> stn) exampleConfig dataFuzzing trackParameters jsonPropertyMaxDepth
         else
             // No body
