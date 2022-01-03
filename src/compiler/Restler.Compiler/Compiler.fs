@@ -301,7 +301,8 @@ module private Parameters =
                                                 PrimitiveType.Object
                                             | _ ->
                                                 PrimitiveType.String
-                                        Constant (primitiveType, payloadValue.ToString(Newtonsoft.Json.Formatting.None))
+                                        let formattedPayloadValue = GenerateGrammarElements.formatJTokenProperty primitiveType payloadValue
+                                        Constant (primitiveType, formattedPayloadValue)
 
                                     Some { name = declaredParameter.Name
                                            payload = LeafNode { LeafProperty.name = ""
@@ -324,37 +325,7 @@ module private Parameters =
                 )
             |> Seq.toList
 
-        let exampleParametersNotFromSpec =
-            if examplePayload.exactCopy then
-                examplePayload.parameterExamples
-                |> List.filter (fun exampleParameter ->
-                                    exampleParameter.parameterName <> bodyName &&
-                                    parameterList |> Seq.tryFind (fun dp -> dp.Name = exampleParameter.parameterName) = None)
-                |> List.map (fun p ->
-
-                                    printfn "Warning: example parameter not found in spec: %s" p.parameterName
-                                    let payload =
-                                        match p.payload with
-                                        | PayloadFormat.JToken payloadValue ->
-                                            let primitiveType =
-                                                match payloadValue.Type with
-                                                | JTokenType.Array
-                                                | JTokenType.Object ->
-                                                    PrimitiveType.Object
-                                                | _ ->
-                                                    PrimitiveType.String
-                                            Constant (primitiveType, payloadValue.ToString(Newtonsoft.Json.Formatting.None))
-
-                                    { name = p.parameterName
-                                      payload = LeafNode { LeafProperty.name = ""
-                                                           payload = payload
-                                                           isReadOnly = false
-                                                           isRequired = true }
-                                      serialization = None })
-            else
-                // Only use the spec examples
-                []
-        exampleParametersFromSpec @ exampleParametersNotFromSpec
+        exampleParametersFromSpec
 
     // Gets the first example found from the open API parameter:
     // The priority is:

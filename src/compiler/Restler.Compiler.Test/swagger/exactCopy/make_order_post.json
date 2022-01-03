@@ -1,0 +1,23 @@
+{
+  "parameters": {
+    "storeId": "23456",
+    "arrayQueryParameter": [],
+    "arrayQueryParameter2": [ "a", "b", "c" ],
+    "arrayQueryParameter3": [ "ddd", "eee", "fff" ],
+    "api-version": "2020-02-02",
+    "expiration": 10,
+    "orderDetails": {
+      "storeId": "98765",
+      "rush": "True",
+      "bagType": "paperplain",
+      "item_descriptions": [
+      ],
+      "item_feedback": [
+        "great",
+        "awesome"
+      ]
+    }
+  },
+  "responses": {
+  }
+}

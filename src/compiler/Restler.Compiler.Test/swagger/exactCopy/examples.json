@@ -1,0 +1,9 @@
+{
+    "paths": {
+        "/stores/{storeId}/order": {
+            "post": {
+                "0": ".\\make_order_post.json"
+            }
+        }
+    }
+}
