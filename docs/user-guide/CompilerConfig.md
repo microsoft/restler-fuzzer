@@ -98,10 +98,7 @@ The currently supported settings are:
 ```
 
 - ```filePath``` is the path to the file containing metadata about example parameter payloads
-- ```exactCopy``` specifies whether the example values should be merged with the schema and dictionary
-(for example, this will discard parameters that are not present in the spec), or
-used exactly as specified (for example, this will not substitute any values from the dictionary).
-```exactCopy``` is ```false``` by default.
+- ```exactCopy``` specifies whether the example values should be merged with the schema and dictionary.  ```exactCopy``` is ```false``` by default.  When set to ```true```, constants from the example will be taken and override any other possible value (for example, custom payloads from the dictionary will not be used).  Note: parameters that are not in the specification but appear in the example are ignored.
 
 * *UseAllExamplePayloads* When set to ```true```, all available example payloads are used (currently, both
 the ones referenced in the specification and the ones

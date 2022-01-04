@@ -1,0 +1,165 @@
+{
+  "basePath": "/api",
+  "consumes": [
+    "application/json"
+  ],
+  "host": "localhost:8888",
+  "info": {
+    "description": "A simple swagger spec that uses examples",
+    "title": "Parameter examples",
+    "version": "1.0"
+  },
+  "definitions": {
+    "Order": {
+        "properties": {
+            "id": {
+                "description": "The unique identifier of an order",
+                "type": "integer"
+            },
+            "eta": {
+                "description": "The date the order will be ready",
+                "type": "string"
+            },
+          "status": {
+            "description": "The order status",
+            "type": "string"
+          },
+          "order_items": {
+            "type": "array",
+            "items": {
+              "type":  "string"
+            }
+          }
+        }
+    },
+    "GroceryList": {
+      "properties": {
+        "storeId": {
+          "description": "The unique identifier of the store",
+          "type": "integer"
+        },
+        "rush": {
+          "description": "Is it a rush order",
+          "type": "boolean"
+        },
+        "bagType": {
+          "description": "The type of bags to use",
+          "type": "string"
+        },
+        "item_descriptions": {
+          "description": "The type of bags to use",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "item_feedback": {
+          "description": "The type of bags to use",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+
+        "useDoubleBags": {
+          "description": "Whether to use double bags",
+          "type": "boolean"
+        },
+        "bannedBrands": {
+          "description": "do not use these brands",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "GroceryListItem": {
+        "properties": {
+            "name": {
+                "description": "The name of the item",
+                "type": "string"
+            },
+            "code": {
+                "description": "The code of the item",
+                "type": "integer"
+            },
+            "storeId": {
+                "description": "The unique identifier of the store",
+                "type": "integer"
+            },
+            "expirationMaxDate": {
+                "description": "The maximum date that this item should expire",
+                "type": "string"
+            }
+        }
+    }
+},
+
+  "paths": {
+    "/stores/{storeId}/order": {
+      "post": {
+        "operationId": "make_an_order",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "storeId",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "in": "query",
+            "name": "api-version",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "query",
+            "name": "expiration",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "in": "query",
+            "name": "arrayQueryParameter",
+            "required": true,
+            "type": "array",
+            "items": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          {
+            "in": "query",
+            "name": "arrayQueryParameter2",
+            "required": true,
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "orderDetails",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/GroceryList"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Order"
+            }
+          },
+          "404": {
+            "description": "Store not found."
+          }
+        }
+      }
+    }
+  },
+  "swagger": "2.0"
+}
