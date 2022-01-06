@@ -1,0 +1,31 @@
+﻿{
+  "swagger": "2.0",
+  "info": {
+    "title": "$ref escape characters test case",
+    "version": "1"
+  },
+  "paths": {
+    "/escape": {
+      "post": {
+        "operationId": "post_escape",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions~1Escape~0Characters"
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "Escape~Characters": {
+      "properties": {
+        "escape_characters": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

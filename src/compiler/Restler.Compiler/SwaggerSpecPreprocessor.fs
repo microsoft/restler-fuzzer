@@ -183,11 +183,13 @@ let rec private inlineFileRefs2
         else
             foundObj.Properties() |> Seq.map (fun p -> p)
 
+    let inline replaceSwaggerEscapeCharacters (path:string) =
+        path.Replace("~0", "~").Replace("~1", "/")
 
     properties
     |> Seq.map (fun x ->
                         if x.Name = "$ref" then
-                            let refLocation = x.Value.ToString()
+                            let refLocation = replaceSwaggerEscapeCharacters (x.Value.ToString())
                             match getDefinitionRef refLocation with
                             | LocalDefinitionRef definitionRef ->
                                 match refResolution with
@@ -225,7 +227,12 @@ let rec private inlineFileRefs2
 
                                         let o = new JObject()
                                         newChildProperties
-                                        |> Seq.iter (fun p -> o.Add(p.Name, p.Value))
+                                        |> Seq.iter (fun p -> 
+                                            if p.Name = "$ref" then
+                                                o.Add(JProperty(p.Name, replaceSwaggerEscapeCharacters (p.Value.ToString())))
+                                            else
+                                                o.Add(p.Name, p.Value)
+                                            )
                                         JProperty(x.Name, o)
                                     | JTokenType.Array ->
                                         // Inline each of the array elements

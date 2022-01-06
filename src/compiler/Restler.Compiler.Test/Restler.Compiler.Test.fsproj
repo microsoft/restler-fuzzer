@@ -139,6 +139,9 @@
     <Content Include="swagger\dictionaryTests\dict.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="swagger\schemaTests\swagger_escape_characters.json">
+	  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	</Content>
     <Content Include="swagger\schemaTests\requiredHeader.yml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

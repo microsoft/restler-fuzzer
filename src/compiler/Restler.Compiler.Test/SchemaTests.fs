@@ -85,6 +85,21 @@ module ApiSpecSchema =
             Assert.True(grammar.Contains("restler_custom_payload_uuid4_suffix(\"customerId\")"))
 
         [<Fact>]
+        let ``swagger escape characters is parsed successfully`` () =
+            let specFilePath = Path.Combine(Environment.CurrentDirectory, @"swagger\schemaTests\swagger_escape_characters.json")
+            let config = { Restler.Config.SampleConfig with
+                             IncludeOptionalParameters = true
+                             GrammarOutputDirectoryPath = Some ctx.testRootDirPath
+                             ResolveBodyDependencies = true
+                             ResolveQueryDependencies = true
+                             SwaggerSpecFilePath = Some [specFilePath]
+                         }
+            Restler.Workflow.generateRestlerGrammar None config
+            let grammarOutputFilePath = config.GrammarOutputDirectoryPath.Value ++ Restler.Workflow.Constants.DefaultRestlerGrammarFileName
+            let grammar = File.ReadAllText(grammarOutputFilePath)
+            Assert.True(grammar.Contains("\"escape\""))
+
+        [<Fact>]
         let ``openapi3 requestBody`` () =
             let specFilePath = Path.Combine(Environment.CurrentDirectory, @"swagger\schemaTests\openapi3_requestbody.json")
             let config = { Restler.Config.SampleConfig with
