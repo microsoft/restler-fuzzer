@@ -192,7 +192,7 @@ def resolve_dynamic_primitives(values, candidate_values_pool):
         # Look for function pointers assigned to dynamic primitives
         if isinstance(values[i], tuple)\
         and values[i][0] == primitives.restler_fuzzable_uuid4:
-            val = uuid.uuid4().hex
+            val = f'{uuid.uuid4()}'
             quoted = values[i][1]
             if quoted:
                 values[i] = f'"{val}"'
