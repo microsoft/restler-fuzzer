@@ -1,5 +1,5 @@
 ﻿{
-  "openapi": "3.0.0",
+  "swagger": "2.0",
   "info": {
     "title": "$ref escape characters test case",
     "version": "1"
@@ -51,30 +51,17 @@
         }
       }
     },
-
-    "/escape4": {
-      "get": {
-        "parameters": [
-          {
-            "in": "query",
-            "name": "query_param",
-            "type": "string"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success"
-          }
-        }
-
-      }
-    },
     "/escape3": {
       "post": {
         "operationId": "post_escape3",
         "parameters": [
           {
-            "$ref": "#/paths/~1escape4/get/parameters/0"
+            "name": "body",
+            "required": true,
+            "in": "body",
+            "schema": {
+              "$ref": "#/paths/~1escape4/get/parameters/0/schema"
+            }
           }
         ],
         "responses": {
@@ -83,8 +70,21 @@
           }
         }
       }
+    },
+
+  "/escape4": {
+    "get": {
+      "parameters": [
+        {
+          "in": "body",
+          "schema": {
+            "$ref": "#/definitions/param_body_schema"
+          }
+        }
+      ]
     }
-  },
+  }
+},
   "definitions": {
     "Escape~Characters": {
       "properties": {
@@ -107,5 +107,7 @@
         }
       }
     }
+
+
   }
 }

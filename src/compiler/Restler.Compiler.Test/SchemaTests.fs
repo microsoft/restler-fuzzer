@@ -98,6 +98,9 @@ module ApiSpecSchema =
             let grammarOutputFilePath = config.GrammarOutputDirectoryPath.Value ++ Restler.Workflow.Constants.DefaultRestlerGrammarFileName
             let grammar = File.ReadAllText(grammarOutputFilePath)
             Assert.True(grammar.Contains("\"escape\""))
+            Assert.True(grammar.Contains("\"escape_characters1\""))
+            Assert.True(grammar.Contains("\"escape_characters2\""))
+            Assert.True(grammar.Contains("\"query_param=\""))
 
         [<Fact>]
         let ``openapi3 requestBody`` () =
