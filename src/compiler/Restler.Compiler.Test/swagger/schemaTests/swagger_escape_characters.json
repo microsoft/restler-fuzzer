@@ -1,0 +1,111 @@
+﻿{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "$ref escape characters test case",
+    "version": "1"
+  },
+  "paths": {
+    "/escape": {
+      "post": {
+        "operationId": "post_escape",
+        "parameters": [
+          {
+            "name": "body",
+            "required": true,
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions~1Escape~0Characters"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions~1Escape~0Characters"
+            }
+          }
+        }
+      }
+    },
+    "/escape2": {
+      "post": {
+        "operationId": "post_escape2",
+        "parameters": [
+          {
+            "name": "body",
+            "required": true,
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/~01EscapeCharacters"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/~01EscapeCharacters"
+            }
+          }
+        }
+      }
+    },
+
+    "/escape4": {
+      "get": {
+        "parameters": [
+          {
+            "in": "query",
+            "name": "query_param",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+
+      }
+    },
+    "/escape3": {
+      "post": {
+        "operationId": "post_escape3",
+        "parameters": [
+          {
+            "$ref": "#/paths/~1escape4/get/parameters/0"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "Escape~Characters": {
+      "properties": {
+        "escape_characters1": {
+          "type": "string"
+        }
+      }
+    },
+    "~1EscapeCharacters": {
+      "properties": {
+        "escape_characters2": {
+          "type": "string"
+        }
+      }
+    },
+    "param_body_schema": {
+      "properties": {
+        "escape_characters3": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

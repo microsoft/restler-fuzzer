@@ -37,6 +37,12 @@ module JsonParse =
         else
             None
 
+    let getArrayItem (a:JArray) (idx:int) =
+        if a.Count > idx then
+            a.[idx] |> Some
+        else
+            None
+
     let addProperty (obj:JObject) (propertyName:string) (newValue:JToken) =
         if not (obj.ContainsKey(propertyName)) then
             obj.Add(propertyName, JObject())

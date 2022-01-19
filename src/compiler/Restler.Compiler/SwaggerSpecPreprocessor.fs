@@ -74,29 +74,52 @@ module SpecCache =
             jsonSpecs.Add(normalizedPath, spec)
         jsonSpecs.[normalizedPath]
 
+module EscapeCharacters =
+    open System.Text.RegularExpressions
+    let inline replaceSwaggerEscapeCharacters (path:string) =
+        path.Replace("~1", "/")
+            .Replace("~0", "~")
+
+    let inline containsSwaggerEscapeCharacters (path:string) =
+        ["~1" ; "~0"] |> Seq.exists (fun x -> path.Contains(x))
+
+    let refRegex = Regex("(?<![/])/")
+
+    let getRefParts refPath =
+        let r = replaceSwaggerEscapeCharacters refPath
+        refRegex.Split(r) |> Array.skip 1
+
 /// Find the object at 'refPath' in the specified file.
 let getObjInFile filePath (refPath:string) (jsonSpecs:Dictionary<string, JObject>) =
     if not (File.Exists(filePath)) then
         raise (FileNotFoundException(sprintf "Referenced file %s does not exist" filePath))
     let jsonSpec = SpecCache.findSpec filePath jsonSpecs
 
-    let refPathForSelectToken = refPath.Replace("/", ".")
-
     let tok =
-        if refPathForSelectToken.Contains("[") then
-            let parts = refPathForSelectToken.Split(".", System.StringSplitOptions.RemoveEmptyEntries)
-            let selectedObject =
+        if refPath.Contains("[") || EscapeCharacters.containsSwaggerEscapeCharacters refPath then
+            let parts = EscapeCharacters.getRefParts refPath
+
+            let selectedObjectOrArray =
                 parts
-                |> Array.fold (fun (spec:JObject) (part:string) ->
-                                    let propertyValue = Restler.Utilities.JsonParse.getProperty spec part
+                |> Array.fold (fun (spec:JToken) (part:string) ->
+
+                                    let propertyValue =
+                                        match spec.Type with
+                                        | JTokenType.Object ->
+                                            Restler.Utilities.JsonParse.getProperty (spec :?> JObject) part
+                                        | JTokenType.Array ->
+                                            Restler.Utilities.JsonParse.getArrayItem (spec :?> JArray) (System.Int32.Parse(part))
+                                        | _ ->
+                                            raise (invalidOp "Only an object or array is expected here")
                                     match propertyValue with
-                                    | Some tok when tok.Type = JTokenType.Object ->
-                                        tok :?> JObject
-                                    | _ ->
-                                        raise (invalidOp "Only an object is expected here")
-                               ) jsonSpec
-            selectedObject :> JToken
+                                    | Some p -> p
+                                    | None ->
+                                        raise(invalidOp (sprintf "Reference path %A not found" refPath))
+
+                               ) (jsonSpec :> JToken)
+            selectedObjectOrArray
         else
+            let refPathForSelectToken = refPath.Replace("/", ".")
             jsonSpec.SelectToken(refPathForSelectToken)
     if isNull tok then
         raise (invalidOp(sprintf "Referenced property %s does not exist in file %s" refPath filePath))
@@ -192,8 +215,13 @@ let rec private inlineFileRefs2
                             | LocalDefinitionRef definitionRef ->
                                 match refResolution with
                                 | RefResolution.FileRefs ->
-                                    // IF this is a local definition in the top-level Swagger, keep as is.
-                                    x |> stn
+                                     // IF this is a local definition in the top-level Swagger, keep as is,
+                                     // except inline any refs where escaping characters is required.
+                                     // This is a workaround for failing reference resolutions in NJsonSchema.
+                                    if EscapeCharacters.containsSwaggerEscapeCharacters refLocation then
+                                        resolveRefs normalizedDocumentFilePath definitionRef jsonSpecs refStack x.Name
+                                    else
+                                        x |> stn
                                 | RefResolution.AllRefs ->
                                     resolveRefs normalizedDocumentFilePath definitionRef jsonSpecs refStack x.Name
                             | FileRef fileRef ->
@@ -225,7 +253,9 @@ let rec private inlineFileRefs2
 
                                         let o = new JObject()
                                         newChildProperties
-                                        |> Seq.iter (fun p -> o.Add(p.Name, p.Value))
+                                        |> Seq.iter (fun p ->
+                                            o.Add(p.Name, p.Value)
+                                        )
                                         JProperty(x.Name, o)
                                     | JTokenType.Array ->
                                         // Inline each of the array elements
