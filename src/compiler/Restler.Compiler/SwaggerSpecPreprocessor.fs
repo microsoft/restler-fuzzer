@@ -85,6 +85,9 @@ module EscapeCharacters =
 
     let refRegex = Regex("(?<![/])/")
 
+    let getRefParts refPath =
+        let r = replaceSwaggerEscapeCharacters refPath
+        refRegex.Split(r) |> Array.skip 1
 
 /// Find the object at 'refPath' in the specified file.
 let getObjInFile filePath (refPath:string) (jsonSpecs:Dictionary<string, JObject>) =
@@ -92,12 +95,9 @@ let getObjInFile filePath (refPath:string) (jsonSpecs:Dictionary<string, JObject
         raise (FileNotFoundException(sprintf "Referenced file %s does not exist" filePath))
     let jsonSpec = SpecCache.findSpec filePath jsonSpecs
 
-
     let tok =
         if refPath.Contains("[") || EscapeCharacters.containsSwaggerEscapeCharacters refPath then
-            let refPath = EscapeCharacters.replaceSwaggerEscapeCharacters refPath
-
-            let parts = EscapeCharacters.refRegex.Split(refPath) |> Array.skip 1
+            let parts = EscapeCharacters.getRefParts refPath
 
             let selectedObjectOrArray =
                 parts
