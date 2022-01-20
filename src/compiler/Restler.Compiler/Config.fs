@@ -206,6 +206,14 @@ let convertRelativeToAbsPaths configFilePath config =
         | Some p -> Some (convertToAbsPath configFileDirPath p)
         | None -> None
 
+    let exampleConfigFiles =
+        match config.ExampleConfigFiles with
+        | Some ec ->
+            Some (ec |> List.map (fun ecf ->
+                                    { ecf with
+                                         filePath = convertToAbsPath configFileDirPath ecf.filePath }))
+        | None -> None
+
     { config with
         SwaggerSpecFilePath = swaggerSpecFilePath
         CustomDictionaryFilePath = customDictionaryFilePath
@@ -214,6 +222,7 @@ let convertRelativeToAbsPaths configFilePath config =
         SwaggerSpecConfig = apiSpecs
         AnnotationFilePath = annotationsFilePath
         ExampleConfigFilePath = exampleConfigFilePath
+        ExampleConfigFiles = exampleConfigFiles
     }
 
 
