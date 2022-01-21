@@ -70,8 +70,8 @@
                   "LeafNode": {
                     "name": "",
                     "payload": {
-                      "Fuzzable": [
-                        {
+                      "Fuzzable": {
+                        "primitiveType": {
                           "Enum": [
                             "api-version",
                             "String",
@@ -81,10 +81,8 @@
                             null
                           ]
                         },
-                        "2020-03-01",
-                        null,
-                        null
-                      ]
+                        "defaultValue": "2020-03-01"
+                      }
                     },
                     "isRequired": true,
                     "isReadOnly": false
@@ -215,8 +213,8 @@
                   "LeafNode": {
                     "name": "",
                     "payload": {
-                      "Fuzzable": [
-                        {
+                      "Fuzzable": {
+                        "primitiveType": {
                           "Enum": [
                             "api-version",
                             "String",
@@ -226,10 +224,8 @@
                             null
                           ]
                         },
-                        "2020-03-01",
-                        null,
-                        null
-                      ]
+                        "defaultValue": "2020-03-01"
+                      }
                     },
                     "isRequired": true,
                     "isReadOnly": false
@@ -381,8 +377,8 @@
                   "LeafNode": {
                     "name": "",
                     "payload": {
-                      "Fuzzable": [
-                        {
+                      "Fuzzable": {
+                        "primitiveType": {
                           "Enum": [
                             "api-version",
                             "String",
@@ -392,10 +388,8 @@
                             null
                           ]
                         },
-                        "2020-03-01",
-                        null,
-                        null
-                      ]
+                        "defaultValue": "2020-03-01"
+                      }
                     },
                     "isRequired": true,
                     "isReadOnly": false
@@ -443,12 +437,10 @@
           }
         },
         {
-          "Fuzzable": [
-            "String",
-            "fuzzstring",
-            null,
-            null
-          ]
+          "Fuzzable": {
+            "primitiveType": "String",
+            "defaultValue": "fuzzstring"
+          }
         }
       ],
       "queryParameters": [
@@ -478,8 +470,8 @@
                   "LeafNode": {
                     "name": "",
                     "payload": {
-                      "Fuzzable": [
-                        {
+                      "Fuzzable": {
+                        "primitiveType": {
                           "Enum": [
                             "api-version",
                             "String",
@@ -489,10 +481,8 @@
                             null
                           ]
                         },
-                        "2020-03-01",
-                        null,
-                        null
-                      ]
+                        "defaultValue": "2020-03-01"
+                      }
                     },
                     "isRequired": true,
                     "isReadOnly": false
@@ -540,12 +530,10 @@
           }
         },
         {
-          "Fuzzable": [
-            "String",
-            "fuzzstring",
-            null,
-            null
-          ]
+          "Fuzzable": {
+            "primitiveType": "String",
+            "defaultValue": "fuzzstring"
+          }
         }
       ],
       "queryParameters": [
@@ -575,8 +563,8 @@
                   "LeafNode": {
                     "name": "",
                     "payload": {
-                      "Fuzzable": [
-                        {
+                      "Fuzzable": {
+                        "primitiveType": {
                           "Enum": [
                             "api-version",
                             "String",
@@ -586,10 +574,8 @@
                             null
                           ]
                         },
-                        "2020-03-01",
-                        null,
-                        null
-                      ]
+                        "defaultValue": "2020-03-01"
+                      }
                     },
                     "isRequired": true,
                     "isReadOnly": false

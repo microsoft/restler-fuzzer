@@ -1,0 +1,9 @@
+{
+  "restler_custom_payload": {
+    "sig": [ "12345" ],
+    "tag": ["important"]
+  },
+  "restler_custom_payload_query": {
+    "hash": [ "56789" ]
+  }
+}

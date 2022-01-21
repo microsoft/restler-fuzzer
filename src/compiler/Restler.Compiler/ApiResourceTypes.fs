@@ -372,7 +372,10 @@ type Producer =
     /// Currently, only assigning such values from the dictionary is supported.
     /// The dictionary payload is an option type because it is only present when
     /// the initial payload is being generated.
-    | InputParameter of InputOnlyProducer * DictionaryPayload option
+    /// (producer, dictionary payload, isWriter)
+    /// When 'isWriter' is true, this is a writer variable that should be generated
+    /// with the original payload.
+    | InputParameter of InputOnlyProducer * DictionaryPayload option * bool
 
     | OrderingConstraintParameter of OrderingConstraintProducer
 
