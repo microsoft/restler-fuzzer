@@ -43,12 +43,10 @@
                         "LeafNode": {
                           "name": "name",
                           "payload": {
-                            "Fuzzable": [
-                              "String",
-                              "fuzzstring",
-                              null,
-                              null
-                            ]
+                            "Fuzzable": {
+                              "primitiveType": "String",
+                              "defaultValue": "fuzzstring"
+                            }
                           },
                           "isRequired": false,
                           "isReadOnly": false
@@ -58,12 +56,10 @@
                         "LeafNode": {
                           "name": "tags",
                           "payload": {
-                            "Fuzzable": [
-                              "Object",
-                              "{ \"fuzz\": false }",
-                              null,
-                              null
-                            ]
+                            "Fuzzable": {
+                              "primitiveType": "Object",
+                              "defaultValue": "{ \"fuzz\": false }"
+                            }
                           },
                           "isRequired": false,
                           "isReadOnly": false
@@ -159,12 +155,10 @@
                         "LeafNode": {
                           "name": "",
                           "payload": {
-                            "Fuzzable": [
-                              "String",
-                              "fuzzstring",
-                              null,
-                              null
-                            ]
+                            "Fuzzable": {
+                              "primitiveType": "String",
+                              "defaultValue": "fuzzstring"
+                            }
                           },
                           "isRequired": false,
                           "isReadOnly": false
@@ -198,12 +192,10 @@
                         "LeafNode": {
                           "name": "name",
                           "payload": {
-                            "Fuzzable": [
-                              "String",
-                              "fuzzstring",
-                              null,
-                              null
-                            ]
+                            "Fuzzable": {
+                              "primitiveType": "String",
+                              "defaultValue": "fuzzstring"
+                            }
                           },
                           "isRequired": true,
                           "isReadOnly": false
@@ -213,12 +205,10 @@
                         "LeafNode": {
                           "name": "tags",
                           "payload": {
-                            "Fuzzable": [
-                              "Object",
-                              "{ \"fuzz\": false }",
-                              null,
-                              null
-                            ]
+                            "Fuzzable": {
+                              "primitiveType": "Object",
+                              "defaultValue": "{ \"fuzz\": false }"
+                            }
                           },
                           "isRequired": false,
                           "isReadOnly": false
@@ -246,12 +236,10 @@
                                     "LeafNode": {
                                       "name": "name",
                                       "payload": {
-                                        "Fuzzable": [
-                                          "String",
-                                          "fuzzstring",
-                                          null,
-                                          null
-                                        ]
+                                        "Fuzzable": {
+                                          "primitiveType": "String",
+                                          "defaultValue": "fuzzstring"
+                                        }
                                       },
                                       "isRequired": false,
                                       "isReadOnly": false
@@ -261,12 +249,10 @@
                                     "LeafNode": {
                                       "name": "id",
                                       "payload": {
-                                        "Fuzzable": [
-                                          "Number",
-                                          "1.23",
-                                          null,
-                                          null
-                                        ]
+                                        "Fuzzable": {
+                                          "primitiveType": "Number",
+                                          "defaultValue": "1.23"
+                                        }
                                       },
                                       "isRequired": true,
                                       "isReadOnly": false
@@ -306,12 +292,10 @@
                         "LeafNode": {
                           "name": "",
                           "payload": {
-                            "Fuzzable": [
-                              "String",
-                              "fuzzstring",
-                              null,
-                              null
-                            ]
+                            "Fuzzable": {
+                              "primitiveType": "String",
+                              "defaultValue": "fuzzstring"
+                            }
                           },
                           "isRequired": false,
                           "isReadOnly": false

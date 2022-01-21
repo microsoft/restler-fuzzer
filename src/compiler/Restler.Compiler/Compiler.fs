@@ -52,7 +52,7 @@ type UserSpecifiedRequestConfig =
 
 let getWriterVariable (producer:Producer) (kind:DynamicObjectVariableKind) =
     match producer with
-    | InputParameter (iop, _) ->
+    | InputParameter (iop, _, _) ->
         {
             requestId = iop.id.RequestId
             accessPathParts = iop.getInputParameterAccessPath()
@@ -133,7 +133,7 @@ let getResponseParsers (dependencies:seq<ProducerConsumerDependency>) (orderingC
                             match ro.id.ResourceReference with
                             | HeaderResource _ -> Some DynamicObjectVariableKind.Header
                             | _ -> Some DynamicObjectVariableKind.BodyResponseProperty
-                        | InputParameter (_, _) ->
+                        | InputParameter (_, _,_) ->
                             Some DynamicObjectVariableKind.InputParameter
                         | _ -> None
                     match writerVariableKind with
@@ -496,11 +496,16 @@ module private Parameters =
                                         match parameterPayload with
                                         | LeafNode leafProperty ->
                                             let leafNodePayload =
+
                                                 match leafProperty.payload with
-                                                | Fuzzable (Enum(propertyName, propertyType, values, defaultValue), x, y, z) ->
-                                                    Fuzzable (Enum(p.Name, propertyType, values, defaultValue), x, y, z)
-                                                | Fuzzable (a, b, c, _) ->
-                                                    Fuzzable (a, b, c, if trackParameters then Some p.Name else None)
+                                                | Fuzzable fp ->
+                                                    match fp.primitiveType with
+                                                    | Enum(propertyName, propertyType, values, defaultValue) ->
+                                                        let primitiveType = PrimitiveType.Enum(p.Name, propertyType, values, defaultValue)
+                                                        Fuzzable { fp with primitiveType = primitiveType }
+                                                    | _ ->
+                                                        Fuzzable {fp with
+                                                                    parameterName = if trackParameters then Some p.Name else None }
                                                 | _ -> leafProperty.payload
                                             LeafNode { leafProperty with payload = leafNodePayload }
                                         | InternalNode (internalNode, children) ->

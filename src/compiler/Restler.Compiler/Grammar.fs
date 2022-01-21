@@ -166,6 +166,26 @@ type CustomPayload =
         dynamicObject: DynamicObject option
     }
 
+type FuzzablePayload =
+    {
+        /// The primitive type of the payload, as declared in the specification
+        primitiveType : PrimitiveType
+
+        /// The default value of the payload
+        defaultValue : string
+
+        /// The example value specified in the spec, if any
+        exampleValue : string option
+
+        /// The parameter name, if available.
+        parameterName : string option
+
+        /// The associated dynamic object, whose value should be
+        /// assigned to the value generated from this payload.
+        /// For example, an input value from a request body property.
+        dynamicObject: DynamicObject option
+    }
+
 /// The payload for a property specified in as a request parameter
 type FuzzingPayload =
     /// Example: (Int "1")
@@ -173,7 +193,7 @@ type FuzzingPayload =
 
     /// (data type, default value, example value, parameter name)
     /// Example: (Int "1", "2")
-    | Fuzzable of PrimitiveType * string * string option * string option
+    | Fuzzable of FuzzablePayload
 
     /// The custom payload, as specified in the fuzzing dictionary
     | Custom of CustomPayload

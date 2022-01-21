@@ -463,27 +463,16 @@ let findProducerWithResourceName
                 else
                     Seq.empty
 
-            // If the consumer is exactly the same as the producer, then check if
-            // a custom payload is defined in the dictionary.  If so, return the empty seq
-            // (the custom payload will be picked up later), and if not create a custom UUID suffix
             let dictionary, inputOnlyProducer =
                 match inputOnlyProducers |> Seq.tryHead with
                 | None -> dictionary, None
                 | Some iop ->
                     if annotationProducerRequestId = consumer.id.RequestId then
-                        // This is when the value is written
-                        if dictionary.restler_custom_payload.Value.ContainsKey(consumerResourceName) then
-                            dictionary, None // TODO: support custom payloads
-                        else
-                            let dictionary, suffixProducer = addUuidSuffixEntryForConsumer consumerResourceName dictionary consumer.id
-                            match suffixProducer with
-                            | Some (DictionaryPayload dp) ->
-                                dictionary, Some (InputParameter(iop, Some dp))
-                            | _ ->
-                                raise (invalidOp("a suffix entry must be a dictionary payload"))
+                        // This is the writer.  This will be handled later.
+                        dictionary, None
                     else
                         // Read the value - no associated dictionary payload
-                        dictionary, Some (InputParameter(iop, None))
+                        dictionary, Some (InputParameter(iop, None, false))
 
             let annotationProducer =
                 [ responseProducers
@@ -522,6 +511,56 @@ let findProducerWithResourceName
             globalDictionaryMatches
         ]
         |> Seq.concat
+
+
+    // Check if this consumer is a writer for an input-only producer.
+    // If yes, this information must be added to the dictionary matches (if any).
+    let dictionary, inputProducerMatches =
+        match annotationProducer with
+        | Some _ -> dictionary, Seq.empty
+        | None ->
+            // Find the input-only producer corresponding to this consumer
+            let matchingInputOnlyProducers =
+                producers.getInputOnlyProducers(consumer.id.ResourceName)
+            let inputOnlyProducers =
+                matchingInputOnlyProducers
+                |> Seq.filter (fun p ->
+                                    p.id.RequestId = consumer.id.RequestId &&
+                                    p.id.ResourceReference = consumer.id.ResourceReference)
+
+            match inputOnlyProducers |> Seq.tryHead with
+            | Some iop ->
+                match [ dictionaryMatches ; uuidSuffixDictionaryMatches ] |> Seq.concat |> Seq.tryHead with
+                | Some p ->
+                    // Add the dictionary payload
+                    let dictionaryPayload =
+                        match p with
+                        | DictionaryPayload dp -> dp
+                        | _ -> raise (invalidArg "dictionaryMatches" "A dictionary payload was expected.")
+                    dictionary, InputParameter(iop, Some dictionaryPayload, true) |> stn
+                | None ->
+                    // By default, create a custom_payload_uuid_suffix, so a different ID will be
+                    // generated each time the value is written.
+                    // TODO: This logic will only work for string types (e.g. names).  It does not currently work for other types that
+                    // need a unique value assigned (e.g. GUIDs and integers).
+                    // Once a type is introduced for unique GUIDs and integers, this logic should be modified to create an
+                    // appropriate dictionary entry that will direct RESTler to automatically generate unique values.
+                    //
+                    // If a dictionary payload is not returned below, a fuzzable payload will be generated as usual, and the
+                    // fuzzed value will be asssigned to the producer (writer variable).
+                    match consumer.id.PrimitiveType with
+                    | PrimitiveType.String ->
+                        let dictionary, suffixProducer =
+                            addUuidSuffixEntryForConsumer consumerResourceName dictionary consumer.id
+                        match suffixProducer with
+                        | Some (DictionaryPayload dp) ->
+                            dictionary, InputParameter(iop, Some dp, true) |> stn
+                        | _ ->
+                            raise (invalidOp("a suffix entry must be a dictionary payload"))
+                    | _ ->
+                        dictionary, InputParameter(iop, None, true) |> stn
+            | None ->
+                dictionary, Seq.empty
 
     // Here the producers just match on the resource name.  If the container also matches,
     // it will match fully.
@@ -618,6 +657,7 @@ let findProducerWithResourceName
         else
             dictionary,
             [   if annotationProducer.IsSome then stn annotationProducer.Value else Seq.empty
+                inputProducerMatches
                 dictionaryMatches
                 uuidSuffixDictionaryMatches
                 inferredExactMatches
@@ -783,7 +823,7 @@ let findAnnotation globalAnnotations
 let getPayloadPrimitiveType (payload:FuzzingPayload) =
     match payload with
     | Constant (t,_) -> t
-    | Fuzzable (t,_,_,_) -> t
+    | Fuzzable fp -> fp.primitiveType
     | Custom cp -> cp.primitiveType
     | DynamicObject d -> d.primitiveType
     | PayloadParts _ ->
@@ -884,7 +924,7 @@ let getParameterDependencies parameterKind globalAnnotations
             let resourceAccessPath = PropertyAccessPaths.getLeafAccessPath parentAccessPath p
             let primitiveType =
                 match p.payload with
-                | FuzzingPayload.Fuzzable (pt, _, _,_) -> Some pt
+                | FuzzingPayload.Fuzzable fp -> Some fp.primitiveType
                 | FuzzingPayload.Constant (pt, _) -> Some pt
                 | FuzzingPayload.Custom c -> Some c.primitiveType
                 | _ -> None
@@ -958,47 +998,52 @@ let createHeaderResponseProducer (requestId:RequestId) (headerParameterName:stri
 let createInputOnlyProducerFromAnnotation (a:ProducerConsumerAnnotation)
                                           (pathConsumers:(RequestId * seq<Consumer>) [])
                                           (queryConsumers:(RequestId * seq<Consumer>) [])
-                                          (bodyConsumers:(RequestId * seq<Consumer>) []) =
+                                          (bodyConsumers:(RequestId * seq<Consumer>) [])
+                                          (headerConsumers:(RequestId * seq<Consumer>) [])=
+
+    let findConsumer (candidateConsumers:(RequestId * seq<Consumer>) []) resourceName =
+        let c = candidateConsumers
+                |> Array.tryFind (fun (reqId, _) -> reqId = a.producerId)
+
+        match c with
+        | None ->
+            // The consumer for the parameter was not found.
+            None
+        | Some (req, consumers) ->
+            consumers
+            |> Seq.tryFind (fun c -> c.id.ResourceName = resourceName)
+
     // Find the producer in the list of consumers
     match a.producerParameter.Value with
     | ResourceName rn ->
-        if a.producerId.endpoint.Contains(sprintf "{%s}" rn) then
-            // Look for the corresponding path producer.
-            // This is needed to determine its type.
-            let pc = pathConsumers
-                     |> Array.tryFind (fun (reqId, s) -> reqId = a.producerId)
+        let parameterKind, consumer =
+            if a.producerId.endpoint.Contains(sprintf "{%s}" rn) then
+                let pathConsumer = findConsumer pathConsumers rn
+                ParameterKind.Path, pathConsumer
+            else
+                // Check if this parameter name exists in the query or header.
+                let queryConsumer = findConsumer queryConsumers rn
+                if queryConsumer.IsSome then
+                    ParameterKind.Query, queryConsumer
+                else
+                    ParameterKind.Header, findConsumer headerConsumers rn
 
-            let pathConsumer =
-                match pc with
-                | None ->
-                    // The consumer for the path parameter was not found.
-                    None
-                | Some (req, consumers) ->
-                    consumers
-                    |> Seq.tryFind (fun c -> c.id.ResourceName = rn)
+        match consumer with
+        | None -> None
+        | Some c ->
+            // 'c' is the consumer that is the input producer.
+            // Its value will be written to a writer variable.
+            let resource = ApiResource(c.id.RequestId,
+                                       c.id.ResourceReference,
+                                       c.id.NamingConvention,
+                                       c.id.PrimitiveType)
+            let inputOnlyProducer =
+                {
+                    InputOnlyProducer.id = resource
+                    parameterKind = parameterKind
+                }
+            Some (rn, inputOnlyProducer)
 
-            match pathConsumer with
-            | None ->
-                // The consumer for the path parameter was not found.
-                None
-            | Some c ->
-                let resource = ApiResource(c.id.RequestId,
-                                           c.id.ResourceReference,
-                                           c.id.NamingConvention,
-                                           c.id.PrimitiveType)
-                let inputOnlyProducer =
-                    {
-                        InputOnlyProducer.id = resource
-                        parameterKind = ParameterKind.Path
-                    }
-                Some (rn, inputOnlyProducer)
-        else
-            // TODO: add query and header support
-            // Note: here, it is ambiguous whether this resource refers to a
-            // query or body resource without specifying the path.  For a producer
-            // id, it should be required to specify a path to a body parameter.
-            printfn "Warning: Query parameter input producers are not currently supported (parameter %s not found in path)." rn
-            None
     | ResourcePath accessPath ->
         let bc = bodyConsumers
                  |> Array.tryFind (fun (reqId, s) -> reqId = a.producerId)
@@ -1026,6 +1071,9 @@ let createInputOnlyProducerFromAnnotation (a:ProducerConsumerAnnotation)
                     InputOnlyProducer.id = resource
                     parameterKind = ParameterKind.Body
                 }
+
+            // The producer needs to be found both for the consumer parameter (reader)
+            // and for the producer parameter itself (writer)
             Some (c.id.ResourceName, inputOnlyProducer)
 
 
@@ -1216,10 +1264,11 @@ let extractDependencies (requestData:(RequestId*RequestData)[])
                 rd.localAnnotations
                 |> Seq.iter (fun a ->
                                 if a.producerParameter.IsSome then
-                                    let ip = createInputOnlyProducerFromAnnotation a pathConsumers queryConsumers bodyConsumers
+                                    let ip = createInputOnlyProducerFromAnnotation a pathConsumers queryConsumers bodyConsumers headerConsumers
                                     if ip.IsSome then
                                         let resourceName, producer = ip.Value
                                         producers.addInputOnlyProducer(resourceName, producer)
+
                             )
                 )
 
@@ -1229,7 +1278,7 @@ let extractDependencies (requestData:(RequestId*RequestData)[])
     globalAnnotations
     |> Seq.iter (fun a ->
                     if a.producerParameter.IsSome then
-                        let ip = createInputOnlyProducerFromAnnotation a pathConsumers queryConsumers bodyConsumers
+                        let ip = createInputOnlyProducerFromAnnotation a pathConsumers queryConsumers bodyConsumers headerConsumers
                         if ip.IsSome then
                             let resourceName, producer = ip.Value
                             producers.addInputOnlyProducer(resourceName, producer)
@@ -1485,12 +1534,12 @@ module DependencyLookup =
             // Mark the type of the dynamic object to be the type of the input parameter if available
             let primitiveType =
                 match defaultPayload with
-                | FuzzingPayload.Fuzzable (primitiveType, _, _, _) -> primitiveType
+                | FuzzingPayload.Fuzzable fp -> fp.primitiveType
                 | _ ->
                     printfn "Warning: primitive type not available for %A [resource: %s]" requestId consumerResourceName
                     responseProducer.id.PrimitiveType
             DynamicObject { primitiveType = primitiveType; variableName = variableName; isWriter = false }
-        | Some (InputParameter (inputParameterProducer, dictionaryPayload)) ->
+        | Some (InputParameter (inputParameterProducer, dictionaryPayload, isWriter)) ->
 
             let accessPath = inputParameterProducer.getInputParameterAccessPath()
             let variableName = DynamicObjectNaming.generateDynamicObjectVariableName
@@ -1499,14 +1548,24 @@ module DependencyLookup =
             // Mark the type of the dynamic object to be the type of the input parameter if available
             let primitiveType =
                 match defaultPayload with
-                | FuzzingPayload.Fuzzable (primitiveType, _, _, _) -> primitiveType
+                | FuzzingPayload.Fuzzable fp -> fp.primitiveType
                 | _ ->
                     printfn "Warning: primitive type not available for %A [resource: %s]" requestId consumerResourceName
                     inputParameterProducer.id.PrimitiveType
             let dynamicObject =
                 { primitiveType = primitiveType; variableName = variableName; isWriter = false }
             match dictionaryPayload with
-            | None -> DynamicObject dynamicObject
+            | None ->
+                if isWriter then
+                    match defaultPayload with
+                    | Fuzzable fp ->
+                        Fuzzable { fp with dynamicObject = Some dynamicObject }
+                    | Custom cp ->
+                        Custom { cp with dynamicObject = Some dynamicObject }
+                    | _ ->
+                        failwith "Input producers are not supported for this payload type."
+                else
+                    DynamicObject dynamicObject
             | Some dp ->
                 Custom { payloadType = dp.payloadType
                          primitiveType = dp.primitiveType
@@ -1596,7 +1655,11 @@ module DependencyLookup =
                 else
                     let defaultPayload =
                         match p.payload with
-                        | None -> Fuzzable (PrimitiveType.String, "", None, None)
+                        | None -> Fuzzable { primitiveType = PrimitiveType.String
+                                             defaultValue = ""
+                                             exampleValue = None
+                                             parameterName = None
+                                             dynamicObject = None }
                         | Some p -> p
                     let propertyAccessPath =
                         { path = PropertyAccessPaths.getInnerAccessPath resourceAccessPath p
@@ -1620,14 +1683,24 @@ module DependencyLookup =
             | Tree.LeafNode leafProperty ->
                 leafProperty.payload, leafProperty.isRequired, leafProperty.isReadOnly
             | Tree.InternalNode (i, _) ->
+                let defaultFuzzablePayload =
+                    { primitiveType = PrimitiveType.String
+                      defaultValue = ""
+                      exampleValue = None
+                      parameterName = None
+                      dynamicObject = None }
                 let payload =
                     match i.propertyType with
                     | NestedType.Object ->
-                        (Fuzzable (PrimitiveType.Object, "{}", None, None))
+                        Fuzzable {defaultFuzzablePayload with
+                                        primitiveType = PrimitiveType.Object
+                                        defaultValue = "{}" }
                     | NestedType.Array ->
-                        (Fuzzable (PrimitiveType.Object, "[]", None, None))
+                        Fuzzable {defaultFuzzablePayload with
+                                        primitiveType = PrimitiveType.Object
+                                        defaultValue = "[]" }
                     | NestedType.Property ->
-                        (Fuzzable (PrimitiveType.String, "", None, None))
+                        Fuzzable defaultFuzzablePayload
                 payload, i.isRequired, i.isReadOnly
         let dependencyPayload = getConsumerPayload dependencies pathPayload requestId parameterName EmptyAccessPath defaultPayload
 
@@ -1728,7 +1801,7 @@ let writeDependencies dependenciesFilePath dependencies (unresolvedOnly:bool) =
                                 rp.id.RequestId.endpoint,
                                 getMethod rp.id,
                                 getParameter rp.id
-                            | Some (InputParameter (ip, dp)) ->  // TODO: what to serialize?
+                            | Some (InputParameter (ip, dp, _)) ->  // TODO: what to serialize?
                                 ip.id.RequestId.endpoint,
                                 getMethod ip.id,
                                 getParameter ip.id

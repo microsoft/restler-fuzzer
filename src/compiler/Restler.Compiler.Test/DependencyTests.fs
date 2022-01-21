@@ -324,7 +324,7 @@ module Dependencies =
                              ResolveBodyDependencies = true
                              UseBodyExamples = Some true
                              SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, @"swagger\dependencyTests\input_producer_spec.json"))]
-                             CustomDictionaryFilePath = None
+                             CustomDictionaryFilePath = Some (Path.Combine(Environment.CurrentDirectory, @"swagger\dependencyTests\input_producer_dict.json"))
                              AnnotationFilePath = Some (Path.Combine(Environment.CurrentDirectory, @"swagger\dependencyTests\input_producer_annotations.json"))
                              AllowGetProducers = true
                          }
@@ -336,6 +336,20 @@ module Dependencies =
 
             Assert.True(grammar.Contains("""restler_custom_payload_uuid4_suffix("fileId", writer=_file__fileId__post_fileId_path.writer())"""))
             Assert.True(grammar.Contains("""restler_static_string(_file__fileId__post_fileId_path.reader(), quoted=False)"""))
+
+            // Validate (tag, label) annotation.  tag - body producer (jsonpath), label: path parameter.
+            Assert.True(grammar.Contains("""primitives.restler_custom_payload("tag", quoted=True, writer=_archive_post_tag.writer())"""))
+            Assert.True(grammar.Contains("""restler_static_string(_archive_post_tag.reader(), quoted=True)"""))
+
+            // Validate (name, name) annotation.  name - body producer (POST) and consumer (PUT).
+            Assert.True(grammar.Contains("""primitives.restler_fuzzable_object("{ \"fuzz\": false }", writer=_archive_post_name.writer())"""))
+            Assert.True(grammar.Contains("""primitives.restler_static_string(_archive_post_name.reader(), quoted=False)"""))
+
+            // Validate (hash, sig) annotation.  hash - header producer (POST), sig - header consumer (PUT)
+            Assert.True(grammar.Contains("""primitives.restler_custom_payload_query("hash", writer=_archive_post_hash_query.writer())"""))
+            Assert.True(grammar.Contains("""primitives.restler_static_string(_archive_post_hash_query.reader(), quoted=False)"""))
+
+
 
 
         /// Test that the entire body should be able to be replaced with a custom payload

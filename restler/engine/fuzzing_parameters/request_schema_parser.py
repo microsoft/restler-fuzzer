@@ -181,8 +181,8 @@ def des_param_payload(param_payload_json, tag='', body_param=True):
         is_dynamic_object = False
 
         if 'Fuzzable' in payload:
-            content_type = payload['Fuzzable'][0]
-            content_value = payload['Fuzzable'][1]
+            content_type = payload['Fuzzable']['primitiveType']
+            content_value = payload['Fuzzable']['defaultValue']
             fuzzable = True
         elif 'Constant' in payload:
             content_type = payload['Constant'][0]
