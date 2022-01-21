@@ -102,6 +102,11 @@ Example: `management.web.com`
 
 (Note: do NOT include https:// or slashes here!)
 
+### basepath: string (default None)
+Set to override the basepath that is specified in the grammar.
+
+Example: `/api/v2`
+
 ### include_user_agent: bool (default True)
 Set to false to disable sending user agent with requests
 

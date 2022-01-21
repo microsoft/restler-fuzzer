@@ -6,13 +6,8 @@
         "method": "Put"
       },
       "method": "Put",
+      "basePath": "/api",
       "path": [
-        {
-          "Constant": [
-            "String",
-            "api"
-          ]
-        },
         {
           "Constant": [
             "String",
@@ -135,13 +130,8 @@
         "method": "Post"
       },
       "method": "Post",
+      "basePath": "/api",
       "path": [
-        {
-          "Constant": [
-            "String",
-            "api"
-          ]
-        },
         {
           "Constant": [
             "String",

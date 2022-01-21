@@ -568,6 +568,22 @@ class Request(object):
                 pass
         return -1
 
+    def get_basepath_index(self):
+        """ Gets the index of the basepath custom payload line, if it exists in the grammar.
+
+        @return: The index of the basepath parameter or -1 if not found
+        @rtype : Int
+
+        """
+        for i, line in enumerate(self._definition):
+            try:
+                if line[0] == "restler_basepath":
+                    return i
+            except:
+                # ignore line parsing exceptions
+                pass
+        return -1
+
     def update_host(self):
         """ Updates the Host field for every request with the one specified in Settings
 
@@ -585,6 +601,24 @@ class Request(object):
             if header_idx < 0:
                 raise InvalidGrammarException
             self._definition.insert(header_idx, new_host_line)
+
+    def update_basepath(self):
+        """ Updates the basepath custom payload for every request with the one specified in Settings
+
+        @return: None
+        @rtype : None
+
+        """
+        basepath_idx = self.get_basepath_index()
+        if basepath_idx >= 0:
+            basepath = self._definition[basepath_idx][1]
+            if Settings().basepath is not None:
+                basepath = Settings().basepath
+            self._definition[basepath_idx] = primitives.restler_static_string(basepath)
+        else:
+            # No basepath custom payload in the grammar - this is possible for older grammar versions.
+            # Do nothing
+            pass
 
     def header_start_index(self):
         """ Gets the index of the first header line in the definition
@@ -1297,6 +1331,17 @@ class RequestCollection(object):
         """
         for req in self._requests:
             req.update_host()
+
+
+    def update_basepaths(self):
+        """ Updates the basepaths in each request of the grammar file
+
+        @return: None
+        @rtype : None
+
+        """
+        for req in self._requests:
+            req.update_basepath()
 
     def get_host_from_grammar(self):
         """ Gets the hostname from the grammar

@@ -47,6 +47,7 @@ module Types =
         /// (Payload name, dynamic object writer name)
         | Restler_custom_payload_uuid4_suffix of string * string option
         | Restler_refreshable_authentication_token of string
+        | Restler_basepath of string
         | Shadow_values of string
         | Response_parser of string
 
@@ -430,6 +431,8 @@ let generatePythonFromRequestElement includeOptionalParameters (requestId:Reques
     match e with
     | Method m ->
         [Restler_static_string_constant (sprintf "%s%s" (m.ToString().ToUpper()) SPACE)]
+    | RequestElement.BasePath bp ->
+        [ Restler_basepath bp ]
     | RequestElement.Path parts ->
         let queryStartIndex =
             match requestId.xMsPath with
@@ -715,6 +718,7 @@ let generatePythonFromRequest (request:Request) includeOptionalParameters mergeS
 
     let requestElements = [
         Method request.method
+        BasePath request.basePath
         Path request.path
         QueryParameters (getParameterListPayload request.queryParameters)
         HttpVersion request.httpVersion
@@ -1167,6 +1171,8 @@ let getRequests(requests:Request list) includeOptionalParameters =
                 sprintf "primitives.restler_custom_payload_query(\"%s\")" q
             | Restler_refreshable_authentication_token tok ->
                 sprintf "primitives.restler_refreshable_authentication_token(\"%s\")" tok
+            | Restler_basepath bp ->
+                sprintf "primitives.restler_basepath(\"%s\")" bp
             | Response_parser s -> s
             | p ->
                 raise (UnsupportedType (sprintf "Primitive not yet implemented: %A" p))

@@ -9,8 +9,7 @@ req_collection = requests.RequestCollection([])
 # Endpoint: /customers, method: Put
 request = requests.Request([
     primitives.restler_static_string("PUT "),
-    primitives.restler_static_string("/"),
-    primitives.restler_static_string("api"),
+    primitives.restler_basepath("/api"),
     primitives.restler_static_string("/"),
     primitives.restler_static_string("customers"),
     primitives.restler_static_string(" HTTP/1.1\r\n"),
@@ -33,8 +32,7 @@ req_collection.add_request(request)
 # Endpoint: /customers, method: Post
 request = requests.Request([
     primitives.restler_static_string("POST "),
-    primitives.restler_static_string("/"),
-    primitives.restler_static_string("api"),
+    primitives.restler_basepath("/api"),
     primitives.restler_static_string("/"),
     primitives.restler_static_string("customers"),
     primitives.restler_static_string(" HTTP/1.1\r\n"),

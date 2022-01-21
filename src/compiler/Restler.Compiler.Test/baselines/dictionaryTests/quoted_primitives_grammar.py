@@ -49,8 +49,7 @@ req_collection = requests.RequestCollection([])
 # Endpoint: /stores, method: Post
 request = requests.Request([
     primitives.restler_static_string("POST "),
-    primitives.restler_static_string("/"),
-    primitives.restler_static_string("api"),
+    primitives.restler_basepath("/api"),
     primitives.restler_static_string("/"),
     primitives.restler_static_string("stores"),
     primitives.restler_static_string(" HTTP/1.1\r\n"),
@@ -60,6 +59,7 @@ request = requests.Request([
     primitives.restler_static_string("\r\n"),
     
     {
+
         'post_send':
         {
             'parser': parse_storespost,
@@ -68,6 +68,7 @@ request = requests.Request([
                 _stores_post_id.writer()
             ]
         }
+
     },
 
 ],
@@ -78,8 +79,7 @@ req_collection.add_request(request)
 # Endpoint: /stores/{storeId}, method: Put
 request = requests.Request([
     primitives.restler_static_string("PUT "),
-    primitives.restler_static_string("/"),
-    primitives.restler_static_string("api"),
+    primitives.restler_basepath("/api"),
     primitives.restler_static_string("/"),
     primitives.restler_static_string("stores"),
     primitives.restler_static_string("/"),
@@ -120,8 +120,7 @@ req_collection.add_request(request)
 # Endpoint: /stores/{storeId}/order, method: Post
 request = requests.Request([
     primitives.restler_static_string("POST "),
-    primitives.restler_static_string("/"),
-    primitives.restler_static_string("api"),
+    primitives.restler_basepath("/api"),
     primitives.restler_static_string("/"),
     primitives.restler_static_string("stores"),
     primitives.restler_static_string("/"),

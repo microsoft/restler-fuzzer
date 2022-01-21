@@ -13,8 +13,7 @@ req_collection = requests.RequestCollection([])
 # Endpoint: /products, method: Get
 request = requests.Request([
     primitives.restler_static_string("GET "),
-    primitives.restler_static_string("/"),
-    primitives.restler_static_string("api"),
+    primitives.restler_basepath("/api"),
     primitives.restler_static_string("/"),
     primitives.restler_static_string("products"),
     primitives.restler_static_string(" HTTP/1.1\r\n"),
@@ -22,7 +21,7 @@ request = requests.Request([
     primitives.restler_static_string("Host: localhost:8888\r\n"),
     primitives.restler_refreshable_authentication_token("authentication_token_tag"),
     primitives.restler_static_string("\r\n"),
-    
+
     {
 
         'pre_send':
@@ -43,8 +42,7 @@ req_collection.add_request(request)
 # Endpoint: /services, method: Get
 request = requests.Request([
     primitives.restler_static_string("GET "),
-    primitives.restler_static_string("/"),
-    primitives.restler_static_string("api"),
+    primitives.restler_basepath("/api"),
     primitives.restler_static_string("/"),
     primitives.restler_static_string("services"),
     primitives.restler_static_string(" HTTP/1.1\r\n"),
@@ -52,12 +50,12 @@ request = requests.Request([
     primitives.restler_static_string("Host: localhost:8888\r\n"),
     primitives.restler_refreshable_authentication_token("authentication_token_tag"),
     primitives.restler_static_string("\r\n"),
-    
+
     {
 
         'post_send':
         {
-            
+
             'dependencies':
             [
                 __ordering____services_managementTools.writer()
@@ -74,8 +72,7 @@ req_collection.add_request(request)
 # Endpoint: /managementTools, method: Get
 request = requests.Request([
     primitives.restler_static_string("GET "),
-    primitives.restler_static_string("/"),
-    primitives.restler_static_string("api"),
+    primitives.restler_basepath("/api"),
     primitives.restler_static_string("/"),
     primitives.restler_static_string("managementTools"),
     primitives.restler_static_string(" HTTP/1.1\r\n"),
@@ -83,7 +80,7 @@ request = requests.Request([
     primitives.restler_static_string("Host: localhost:8888\r\n"),
     primitives.restler_refreshable_authentication_token("authentication_token_tag"),
     primitives.restler_static_string("\r\n"),
-    
+
     {
 
         'pre_send':
@@ -97,7 +94,7 @@ request = requests.Request([
 
         'post_send':
         {
-            
+
             'dependencies':
             [
                 __ordering____managementTools_products.writer()

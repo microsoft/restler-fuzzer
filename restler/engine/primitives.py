@@ -44,6 +44,7 @@ CUSTOM_PAYLOAD_HEADER = "restler_custom_payload_header"
 CUSTOM_PAYLOAD_QUERY = "restler_custom_payload_query"
 CUSTOM_PAYLOAD_UUID4_SUFFIX = "restler_custom_payload_uuid4_suffix"
 REFRESHABLE_AUTHENTICATION_TOKEN = "restler_refreshable_authentication_token"
+BASEPATH = "restler_basepath"
 SHADOW_VALUES = "shadow_values"
 
 # Optional argument passed to grammar function definition functions
@@ -126,6 +127,7 @@ class CandidateValuesPool(object):
             CUSTOM_PAYLOAD_QUERY,
             CUSTOM_PAYLOAD_UUID4_SUFFIX,
             REFRESHABLE_AUTHENTICATION_TOKEN,
+            BASEPATH,
             SHADOW_VALUES
         ]
         self.supported_primitive_dict_types = [
@@ -847,3 +849,25 @@ def restler_refreshable_authentication_token(*args, **kwargs):
     examples = None
     param_name = None
     return sys._getframe().f_code.co_name, field_name, quoted, examples, param_name
+
+def restler_basepath(*args, **kwargs):
+    """ The basepath.
+
+    @param args: The argument with which the primitive is defined in the block
+                    of the request to which it belongs to. This is a custom
+                    payload which means that the user should have provided its
+                    exact value (to be rendered with).
+    @type  args: Tuple
+    @param kwargs: Optional keyword arguments.
+    @type  kwargs: Dict
+
+    @return: A tuple of the primitive's name and its default value or its tag
+                both passed as arguments via the restler grammar.
+    @rtype : Tuple
+
+    """
+    basepath_value = args[0]
+    quoted = False
+    examples = None
+    param_name = None
+    return sys._getframe().f_code.co_name, basepath_value, quoted, examples, param_name

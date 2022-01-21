@@ -714,7 +714,7 @@ let generateRequestPrimitives (requestId:RequestId)
                                (dependencyData:RequestDependencyData option)
                                (requestParameters:RequestParameters)
                                (dependencies:Dictionary<string, List<ProducerConsumerDependency>>)
-                               basePath
+                               (basePath:string)
                                (host:string)
                                (resolveQueryDependencies:bool)
                                (resolveBodyDependencies:bool)
@@ -742,9 +742,11 @@ let generateRequestPrimitives (requestId:RequestId)
             |> Map.ofSeq
         | _ -> raise (UnsupportedType "Only a list of query parameters is supported.")
 
+
     let path =
-        (basePath + requestId.endpoint).Split([|'/'|], StringSplitOptions.RemoveEmptyEntries)
-        |> Array.choose (fun p ->
+        let pathParts =
+            requestId.endpoint.Split([|'/'|], StringSplitOptions.RemoveEmptyEntries)
+            |> Array.choose (fun p ->
                             if Parameters.isPathParameter p then
                                 let consumerResourceName = Parameters.getPathParameterName p
                                 let declaredParameter =
@@ -775,7 +777,8 @@ let generateRequestPrimitives (requestId:RequestId)
                             else
                                 Some (Constant (PrimitiveType.String, p))
                       )
-        |> Array.toList
+            |> Array.toList
+        pathParts
 
     let replaceCustomPayloads customPayloadType customPayloadParameterNames (requestParameter:RequestParameter) =
         if customPayloadParameterNames |> Seq.contains requestParameter.name then
@@ -1016,6 +1019,7 @@ let generateRequestPrimitives (requestId:RequestId)
     {
         id = requestId
         Request.method = method
+        Request.basePath = basePath
         Request.path = path
         queryParameters = requestQueryParameters
         headerParameters = requestHeaderParameters @
