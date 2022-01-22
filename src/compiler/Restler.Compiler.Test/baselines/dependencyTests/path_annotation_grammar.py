@@ -36,7 +36,7 @@ def parse_storespost(data, **kwargs):
 
         try:
             temp_7262 = str(data["delivery"]["metadata"])
-            
+
         except Exception as error:
             # This is not an error, since some properties are not always returned
             pass
@@ -44,7 +44,7 @@ def parse_storespost(data, **kwargs):
 
         try:
             temp_8173 = str(data["id"])
-            
+
         except Exception as error:
             # This is not an error, since some properties are not always returned
             pass
@@ -52,7 +52,7 @@ def parse_storespost(data, **kwargs):
 
         try:
             temp_7680 = str(data["metadata"])
-            
+
         except Exception as error:
             # This is not an error, since some properties are not always returned
             pass
@@ -75,8 +75,7 @@ req_collection = requests.RequestCollection([])
 # Endpoint: /stores, method: Post
 request = requests.Request([
     primitives.restler_static_string("POST "),
-    primitives.restler_static_string("/"),
-    primitives.restler_static_string("api"),
+    primitives.restler_basepath("/api"),
     primitives.restler_static_string("/"),
     primitives.restler_static_string("stores"),
     primitives.restler_static_string(" HTTP/1.1\r\n"),
@@ -84,7 +83,7 @@ request = requests.Request([
     primitives.restler_static_string("Host: localhost:8888\r\n"),
     primitives.restler_refreshable_authentication_token("authentication_token_tag"),
     primitives.restler_static_string("\r\n"),
-    
+
     {
         'post_send':
         {
@@ -106,8 +105,7 @@ req_collection.add_request(request)
 # Endpoint: /stores/{storeId}/order, method: Post
 request = requests.Request([
     primitives.restler_static_string("POST "),
-    primitives.restler_static_string("/"),
-    primitives.restler_static_string("api"),
+    primitives.restler_basepath("/api"),
     primitives.restler_static_string("/"),
     primitives.restler_static_string("stores"),
     primitives.restler_static_string("/"),

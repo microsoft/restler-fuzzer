@@ -31,13 +31,13 @@ def parse_serviceuserpost(data, **kwargs):
 
         try:
             temp_7262 = str(headers["userId"])
-            
+
         except Exception as error:
             # This is not an error, since some properties are not always returned
             pass
 
         pass
-        
+
     # If no dynamic objects were extracted, throw.
     if not (temp_7262):
         raise ResponseParsingException("Error: all of the expected dynamic objects were not present in the response.")
@@ -50,8 +50,7 @@ req_collection = requests.RequestCollection([])
 # Endpoint: /service/user, method: Post
 request = requests.Request([
     primitives.restler_static_string("POST "),
-    primitives.restler_static_string("/"),
-    primitives.restler_static_string("api"),
+    primitives.restler_basepath("/api"),
     primitives.restler_static_string("/"),
     primitives.restler_static_string("service"),
     primitives.restler_static_string("/"),
@@ -61,7 +60,7 @@ request = requests.Request([
     primitives.restler_static_string("Host: localhost:8888\r\n"),
     primitives.restler_refreshable_authentication_token("authentication_token_tag"),
     primitives.restler_static_string("\r\n"),
-    
+
     {
         'post_send':
         {
@@ -81,8 +80,7 @@ req_collection.add_request(request)
 # Endpoint: /service/user/{userId}, method: Get
 request = requests.Request([
     primitives.restler_static_string("GET "),
-    primitives.restler_static_string("/"),
-    primitives.restler_static_string("api"),
+    primitives.restler_basepath("/api"),
     primitives.restler_static_string("/"),
     primitives.restler_static_string("service"),
     primitives.restler_static_string("/"),
@@ -103,8 +101,7 @@ req_collection.add_request(request)
 # Endpoint: /service/user/{userId}, method: Put
 request = requests.Request([
     primitives.restler_static_string("PUT "),
-    primitives.restler_static_string("/"),
-    primitives.restler_static_string("api"),
+    primitives.restler_basepath("/api"),
     primitives.restler_static_string("/"),
     primitives.restler_static_string("service"),
     primitives.restler_static_string("/"),
@@ -125,8 +122,7 @@ req_collection.add_request(request)
 # Endpoint: /service/user/{userId}, method: Delete
 request = requests.Request([
     primitives.restler_static_string("DELETE "),
-    primitives.restler_static_string("/"),
-    primitives.restler_static_string("api"),
+    primitives.restler_basepath("/api"),
     primitives.restler_static_string("/"),
     primitives.restler_static_string("service"),
     primitives.restler_static_string("/"),

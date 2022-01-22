@@ -379,6 +379,7 @@ type RequestDependencyData =
 /// The parts of a request
 type RequestElement =
     | Method of OperationMethod
+    | BasePath of string
     | Path of FuzzingPayload list
     | QueryParameters of RequestParametersPayload
     | HeaderParameters of RequestParametersPayload
@@ -409,6 +410,9 @@ type Request =
 
         /// The request method, e.g. GET
         method : OperationMethod
+
+        /// The basepath, or an empty string if not specified.
+        basePath : string
 
         path : FuzzingPayload list
 

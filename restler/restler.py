@@ -461,6 +461,11 @@ if __name__ == '__main__':
             )
             sys.exit(-1)
 
+    try:
+        req_collection.update_basepaths()
+    except requests.InvalidGrammarException:
+        sys.exit(-1)
+
     # Filter and get the requests to be used for fuzzing
     fuzzing_requests = preprocessing.create_fuzzing_req_collection(args.path_regex)
 

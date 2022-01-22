@@ -13,6 +13,7 @@ req_collection = requests.RequestCollection([])
 # Endpoint: /{resourceName}?type=folder, method: Put
 request = requests.Request([
     primitives.restler_static_string("PUT "),
+    primitives.restler_basepath(""),
     primitives.restler_static_string("/"),
     primitives.restler_custom_payload_uuid4_suffix("resourceName", writer=__resourceName__type_folder_put_resourceName_path.writer()),
     primitives.restler_static_string("?"),
@@ -25,11 +26,11 @@ request = requests.Request([
     primitives.restler_static_string("\r\n"),
     primitives.restler_refreshable_authentication_token("authentication_token_tag"),
     primitives.restler_static_string("\r\n"),
-    
+
     {
         'post_send':
         {
-            
+
             'dependencies':
             [
                 __resourceName__type_folder_put_resourceName_path.writer()
@@ -45,6 +46,7 @@ req_collection.add_request(request)
 # Endpoint: /{resourceName}?type=file, method: Put
 request = requests.Request([
     primitives.restler_static_string("PUT "),
+    primitives.restler_basepath(""),
     primitives.restler_static_string("/"),
     primitives.restler_custom_payload_uuid4_suffix("resourceName", writer=__resourceName__type_file_put_resourceName_path.writer()),
     primitives.restler_static_string("?"),
@@ -57,11 +59,11 @@ request = requests.Request([
     primitives.restler_static_string("\r\n"),
     primitives.restler_refreshable_authentication_token("authentication_token_tag"),
     primitives.restler_static_string("\r\n"),
-    
+
     {
         'post_send':
         {
-            
+
             'dependencies':
             [
                 __resourceName__type_file_put_resourceName_path.writer()
@@ -77,6 +79,7 @@ req_collection.add_request(request)
 # Endpoint: /{resourceName}?type=file&operation={operationId}, method: Get
 request = requests.Request([
     primitives.restler_static_string("GET "),
+    primitives.restler_basepath(""),
     primitives.restler_static_string("/"),
     primitives.restler_static_string(__resourceName__type_file_put_resourceName_path.reader(), quoted=False),
     primitives.restler_static_string("?"),
@@ -102,6 +105,7 @@ req_collection.add_request(request)
 # Endpoint: /{resourceName}/{itemName}, method: Get
 request = requests.Request([
     primitives.restler_static_string("GET "),
+    primitives.restler_basepath(""),
     primitives.restler_static_string("/"),
     primitives.restler_static_string(__resourceName__type_file_put_resourceName_path.reader(), quoted=False),
     primitives.restler_static_string("/"),
@@ -123,6 +127,7 @@ req_collection.add_request(request)
 # Endpoint: /{resourceName}/{itemName}, method: Delete
 request = requests.Request([
     primitives.restler_static_string("DELETE "),
+    primitives.restler_basepath(""),
     primitives.restler_static_string("/"),
     primitives.restler_static_string(__resourceName__type_file_put_resourceName_path.reader(), quoted=False),
     primitives.restler_static_string("/"),

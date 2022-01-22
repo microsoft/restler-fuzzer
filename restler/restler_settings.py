@@ -399,6 +399,8 @@ class RestlerSettings(object):
         self._grammar_schema = SettingsArg('grammar_schema', str, None, user_args)
         ## Set to override the Host that's specified in the grammar
         self._host = SettingsArg('host', str, None, user_args)
+        ## Set to override the basepath that's specified in the grammar
+        self._basepath = SettingsArg('basepath', str, None, user_args)
         ##  Ignore request dependencies
         self._ignore_dependencies = SettingsArg('ignore_dependencies', bool, False, user_args)
         ## Ignore server-side feedback
@@ -531,6 +533,10 @@ class RestlerSettings(object):
     @property
     def host(self):
         return self._host.val
+
+    @property
+    def basepath(self):
+        return self._basepath.val
 
     @property
     def ignore_dependencies(self):
