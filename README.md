@@ -43,7 +43,7 @@ RESTler was designed to run on 64-bit machines with Windows or Linux.  Experimen
 In the root of this repo, run
 
 ```shell
-docker build -f docker/Dockerfile -t restler .
+docker build -t restler .
 ```
 
 #### Local
