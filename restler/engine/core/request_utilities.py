@@ -166,6 +166,7 @@ def replace_auth_token(data, replace_str):
             data = data.replace(latest_shadow_token_value.strip('\r\n'), replace_str)
     return data
 
+
 def resolve_dynamic_primitives(values, candidate_values_pool):
     """ Dynamic primitives (i.e., uuid4) must be filled with a new value
         each time the request is rendered.
@@ -194,10 +195,17 @@ def resolve_dynamic_primitives(values, candidate_values_pool):
         and values[i][0] == primitives.restler_fuzzable_uuid4:
             val = f'{uuid.uuid4()}'
             quoted = values[i][1]
+            writer_variable = values[i][2]
+
             if quoted:
                 values[i] = f'"{val}"'
             else:
                 values[i] = val
+            ## Check if a writer is present.  If so, assign the value generated above
+            ## to the dynamic object variable.
+            if writer_variable is not None:
+                dependencies.set_variable(writer_variable, values[i])
+
         elif isinstance(values[i], tuple)\
         and values[i][0] == primitives.CUSTOM_PAYLOAD_UUID4_SUFFIX:
             current_uuid_type_name = values[i][1]
@@ -213,11 +221,11 @@ def resolve_dynamic_primitives(values, candidate_values_pool):
                 values[i] = f'"{current_uuid_suffixes[current_uuid_type_name]}"'
             else:
                 values[i] = current_uuid_suffixes[current_uuid_type_name]
-            # Check if a writer is present.  If so, assign the value generated above
-            # to the dynamic object variable.
+
+            ## Check if a writer is present.  If so, assign the value generated above
+            ## to the dynamic object variable.
             if writer_variable is not None:
                 dependencies.set_variable(writer_variable, values[i])
-
         elif isinstance(values[i], types.FunctionType)\
         and values[i] == primitives.restler_refreshable_authentication_token:
             token_dict = candidate_values_pool.get_candidate_values(

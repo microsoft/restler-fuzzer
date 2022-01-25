@@ -1,0 +1,14 @@
+{
+    "restler_custom_payload_uuid4_suffix": {
+        "cityName": "Seattle"
+    },
+    "restler_custom_payload": {
+        "cityName": "Seattle"
+    },
+    "restler_custom_payload_query": {
+        "cityName": "Seattle"
+    },
+    "restler_custom_payload_header": {
+        "cityName": "Seattle"
+    }
+}
