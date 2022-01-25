@@ -404,7 +404,8 @@ def restler_static_string(*args, **kwargs):
         quoted = kwargs[QUOTED_ARG]
     examples = None
     param_name = None
-    return sys._getframe().f_code.co_name, field_name, quoted, examples, param_name
+    writer_variable = None
+    return sys._getframe().f_code.co_name, field_name, quoted, examples, param_name, writer_variable
 
 
 def restler_fuzzable_string(*args, **kwargs):
@@ -433,7 +434,10 @@ def restler_fuzzable_string(*args, **kwargs):
     param_name = None
     if PARAM_NAME_ARG in kwargs:
         param_name = kwargs[PARAM_NAME_ARG]
-    return sys._getframe().f_code.co_name, field_name, quoted, examples, param_name
+    writer_variable = None
+    if WRITER_VARIABLE_ARG in kwargs:
+        writer_variable = kwargs[WRITER_VARIABLE_ARG]
+    return sys._getframe().f_code.co_name, field_name, quoted, examples, param_name, writer_variable
 
 def restler_fuzzable_int(*args, **kwargs):
     """ Integer primitive.
@@ -461,7 +465,11 @@ def restler_fuzzable_int(*args, **kwargs):
     param_name = None
     if PARAM_NAME_ARG in kwargs:
         param_name = kwargs[PARAM_NAME_ARG]
-    return sys._getframe().f_code.co_name, field_name, quoted, examples, param_name
+
+    writer_variable = None
+    if WRITER_VARIABLE_ARG in kwargs:
+        writer_variable = kwargs[WRITER_VARIABLE_ARG]
+    return sys._getframe().f_code.co_name, field_name, quoted, examples, param_name, writer_variable
 
 
 def restler_fuzzable_bool(*args, **kwargs):
@@ -490,7 +498,10 @@ def restler_fuzzable_bool(*args, **kwargs):
     param_name = None
     if PARAM_NAME_ARG in kwargs:
         param_name = kwargs[PARAM_NAME_ARG]
-    return sys._getframe().f_code.co_name, field_name, quoted, examples, param_name
+    writer_variable = None
+    if WRITER_VARIABLE_ARG in kwargs:
+        writer_variable = kwargs[WRITER_VARIABLE_ARG]
+    return sys._getframe().f_code.co_name, field_name, quoted, examples, param_name, writer_variable
 
 
 def restler_fuzzable_number(*args, **kwargs):
@@ -519,7 +530,10 @@ def restler_fuzzable_number(*args, **kwargs):
     param_name = None
     if PARAM_NAME_ARG in kwargs:
         param_name = kwargs[PARAM_NAME_ARG]
-    return sys._getframe().f_code.co_name, field_name, quoted, examples, param_name
+    writer_variable = None
+    if WRITER_VARIABLE_ARG in kwargs:
+        writer_variable = kwargs[WRITER_VARIABLE_ARG]
+    return sys._getframe().f_code.co_name, field_name, quoted, examples, param_name, writer_variable
 
 
 def restler_fuzzable_delim(*args, **kwargs):
@@ -548,7 +562,8 @@ def restler_fuzzable_delim(*args, **kwargs):
     param_name = None
     if PARAM_NAME_ARG in kwargs:
         param_name = kwargs[PARAM_NAME_ARG]
-    return sys._getframe().f_code.co_name, field_name, quoted, examples, param_name
+    writer_variable = None
+    return sys._getframe().f_code.co_name, field_name, quoted, examples, param_name, writer_variable
 
 
 def restler_fuzzable_group(*args, **kwargs):
@@ -582,7 +597,10 @@ def restler_fuzzable_group(*args, **kwargs):
     if EXAMPLES_ARG in kwargs:
         examples = kwargs[EXAMPLES_ARG]
     param_name = None
-    return sys._getframe().f_code.co_name, field_name, enum_vals, quoted, examples, param_name
+    writer_variable = None
+    if WRITER_VARIABLE_ARG in kwargs:
+        writer_variable = kwargs[WRITER_VARIABLE_ARG]
+    return sys._getframe().f_code.co_name, field_name, enum_vals, quoted, examples, param_name, writer_variable
 
 
 def restler_fuzzable_uuid4(*args, **kwargs):
@@ -611,7 +629,10 @@ def restler_fuzzable_uuid4(*args, **kwargs):
     param_name = None
     if PARAM_NAME_ARG in kwargs:
         param_name = kwargs[PARAM_NAME_ARG]
-    return sys._getframe().f_code.co_name, field_name, quoted, examples, param_name
+    writer_variable = None
+    if WRITER_VARIABLE_ARG in kwargs:
+        writer_variable = kwargs[WRITER_VARIABLE_ARG]
+    return sys._getframe().f_code.co_name, field_name, quoted, examples, param_name, writer_variable
 
 
 def restler_fuzzable_datetime(*args, **kwargs) :
@@ -640,7 +661,10 @@ def restler_fuzzable_datetime(*args, **kwargs) :
     param_name = None
     if PARAM_NAME_ARG in kwargs:
         param_name = kwargs[PARAM_NAME_ARG]
-    return sys._getframe().f_code.co_name, field_name, quoted, examples, param_name
+    writer_variable = None
+    if WRITER_VARIABLE_ARG in kwargs:
+        writer_variable = kwargs[WRITER_VARIABLE_ARG]
+    return sys._getframe().f_code.co_name, field_name, quoted, examples, param_name, writer_variable
 
 def restler_fuzzable_date(*args, **kwargs) :
     """ date primitive
@@ -669,7 +693,10 @@ def restler_fuzzable_date(*args, **kwargs) :
     param_name = None
     if PARAM_NAME_ARG in kwargs:
         param_name = kwargs[PARAM_NAME_ARG]
-    return sys._getframe().f_code.co_name, field_name, quoted, examples, param_name
+    writer_variable = None
+    if WRITER_VARIABLE_ARG in kwargs:
+        writer_variable = kwargs[WRITER_VARIABLE_ARG]
+    return sys._getframe().f_code.co_name, field_name, quoted, examples, param_name, writer_variable
 
 def restler_fuzzable_object(*args, **kwargs) :
     """ object primitive ({})
@@ -697,7 +724,10 @@ def restler_fuzzable_object(*args, **kwargs) :
     param_name = None
     if PARAM_NAME_ARG in kwargs:
         param_name = kwargs[PARAM_NAME_ARG]
-    return sys._getframe().f_code.co_name, field_name, quoted, examples, param_name
+    writer_variable = None
+    if WRITER_VARIABLE_ARG in kwargs:
+        writer_variable = kwargs[WRITER_VARIABLE_ARG]
+    return sys._getframe().f_code.co_name, field_name, quoted, examples, param_name, writer_variable
 
 def restler_multipart_formdata(*args, **kwargs):
     """ Multipart/formdata primitive
@@ -722,7 +752,8 @@ def restler_multipart_formdata(*args, **kwargs):
         quoted = kwargs[QUOTED_ARG]
     examples = None
     param_name = None
-    return sys._getframe().f_code.co_name, field_name, quoted, examples, param_name
+    writer_variable = None
+    return sys._getframe().f_code.co_name, field_name, quoted, examples, param_name, writer_variable
 
 
 def restler_custom_payload(*args, **kwargs):
@@ -747,7 +778,10 @@ def restler_custom_payload(*args, **kwargs):
         quoted = kwargs[QUOTED_ARG]
     examples = None
     param_name = None
-    return sys._getframe().f_code.co_name, field_name, quoted, examples, param_name
+    writer_variable = None
+    if WRITER_VARIABLE_ARG in kwargs:
+        writer_variable = kwargs[WRITER_VARIABLE_ARG]
+    return sys._getframe().f_code.co_name, field_name, quoted, examples, param_name, writer_variable
 
 
 def restler_custom_payload_header(*args, **kwargs):
@@ -772,7 +806,10 @@ def restler_custom_payload_header(*args, **kwargs):
         quoted = kwargs[QUOTED_ARG]
     examples = None
     param_name = None
-    return sys._getframe().f_code.co_name, field_name, quoted, examples, param_name
+    writer_variable = None
+    if WRITER_VARIABLE_ARG in kwargs:
+        writer_variable = kwargs[WRITER_VARIABLE_ARG]
+    return sys._getframe().f_code.co_name, field_name, quoted, examples, param_name, writer_variable
 
 
 def restler_custom_payload_query(*args, **kwargs):
@@ -797,7 +834,10 @@ def restler_custom_payload_query(*args, **kwargs):
         quoted = kwargs[QUOTED_ARG]
     examples = None
     param_name = None
-    return sys._getframe().f_code.co_name, field_name, quoted, examples, param_name
+    writer_variable = None
+    if WRITER_VARIABLE_ARG in kwargs:
+        writer_variable = kwargs[WRITER_VARIABLE_ARG]
+    return sys._getframe().f_code.co_name, field_name, quoted, examples, param_name, writer_variable
 
 def restler_custom_payload_uuid4_suffix(*args, **kwargs):
     """ Custom payload primitive with uuid suffix.
@@ -848,7 +888,8 @@ def restler_refreshable_authentication_token(*args, **kwargs):
         quoted = kwargs[QUOTED_ARG]
     examples = None
     param_name = None
-    return sys._getframe().f_code.co_name, field_name, quoted, examples, param_name
+    writer_variable = None
+    return sys._getframe().f_code.co_name, field_name, quoted, examples, param_name, writer_variable
 
 def restler_basepath(*args, **kwargs):
     """ The basepath.
@@ -870,4 +911,5 @@ def restler_basepath(*args, **kwargs):
     quoted = False
     examples = None
     param_name = None
-    return sys._getframe().f_code.co_name, basepath_value, quoted, examples, param_name
+    writer_variable = None
+    return sys._getframe().f_code.co_name, basepath_value, quoted, examples, param_name, writer_variable
