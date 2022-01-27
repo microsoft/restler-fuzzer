@@ -61,6 +61,15 @@ class FunctionalityTests(unittest.TestCase):
         """
         return glob.glob(os.path.join(dir, 'logs', f'network.{log_type}.*.1.txt'))[0]
 
+    def run_restler_engine(self, args):
+        result = subprocess.run(args, capture_output=True)
+        if result.stderr:
+            self.fail(result.stderr)
+        try:
+            result.check_returncode()
+        except subprocess.CalledProcessError:
+            self.fail(f"Restler returned non-zero exit code: {result.returncode} {result.stdout}")
+
     def run_abc_smoke_test(self, test_file_dir, grammar_file_name, fuzzing_mode):
         grammar_file_path = os.path.join(test_file_dir, grammar_file_name)
         dict_file_path = os.path.join(test_file_dir, "abc_dict.json")
@@ -69,14 +78,7 @@ class FunctionalityTests(unittest.TestCase):
         '--restler_grammar', f'{grammar_file_path}',
         '--custom_mutations', f'{dict_file_path}'
         ]
-
-        result = subprocess.run(args, capture_output=True)
-        if result.stderr:
-            self.fail(result.stderr)
-        try:
-            result.check_returncode()
-        except subprocess.CalledProcessError:
-            self.fail(f"Restler returned non-zero exit code: {result.returncode} {result.stdout}")
+        self.run_restler_engine(args)
 
     def tearDown(self):
         try:
@@ -228,6 +230,90 @@ class FunctionalityTests(unittest.TestCase):
             self.assertTrue(len(get_request.body) == 30)
         except TestFailedException:
             self.fail("Smoke test failed: Test mode.")
+
+    def test_dynamic_obj_writer_in_primitives(self):
+        """ This checks that a dynamic object writer is correctly used for every supported primitive type.
+
+        The structure of the test is as follows:
+
+        - 'test_dynamic_obj_writer.py' is a grammar that contains a PUT request for /city/{cityName},
+           and a GET request for /city/{cityName}.
+        - The test loops over all the primitives to test, and replaces the line in the grammar that
+          specifies the value of the 'cityName' path parameter.  For example,
+                restler_custom_payload_uuid4_suffix("cityName", writer=x.writer()) ->
+                restler_fuzzable_string("my_cityName", writer=x.writer())
+        - For each primitive, test runs the RESTler smoke test and confirms that:
+           1. All of the requests succeeded (this confirms that the dynamc object was assigned and used in the GET.
+           2. The expected value was used in the path of the GET request (this can be confirmed using speccov.json)
+
+        """
+
+        # First, test the basic setup is working
+        test_file_dir = Test_File_Directory
+        fuzzing_mode = "directed-smoke-test"
+        grammar_file_name = "test_dynamic_obj_writer.py"
+        grammar_file_path = os.path.join(test_file_dir, grammar_file_name)
+        new_grammar_file_path = os.path.join(test_file_dir, f"temp_{grammar_file_name}")
+
+        test_strings = [
+            # custom payloads
+            "\tprimitives.restler_custom_payload(\"cityName\", writer=_city_put_name.writer()),\n",
+            "\tprimitives.restler_custom_payload_header(\"cityName\", writer=_city_put_name.writer()),\n",
+            "\tprimitives.restler_custom_payload_query(\"cityName\", writer=_city_put_name.writer()),\n",
+            ## fuzzable payloads
+            "\tprimitives.restler_fuzzable_string(\"Seattle\", writer=_city_put_name.writer()),\n",
+            "\tprimitives.restler_fuzzable_bool(\"Seattle\", writer=_city_put_name.writer()),\n",
+            "\tprimitives.restler_fuzzable_date(\"Seattle\", writer=_city_put_name.writer()),\n",
+            "\tprimitives.restler_fuzzable_datetime(\"Seattle\", writer=_city_put_name.writer()),\n",
+            "\tprimitives.restler_fuzzable_int(\"Seattle\", writer=_city_put_name.writer()),\n",
+            "\tprimitives.restler_fuzzable_number(\"Seattle\", writer=_city_put_name.writer()),\n",
+            "\tprimitives.restler_fuzzable_object(\"Seattle\", writer=_city_put_name.writer()),\n",
+            "\tprimitives.restler_fuzzable_group(\"enum_name\", [\"Seattle\"], writer=_city_put_name.writer()),\n",
+            "\tprimitives.restler_fuzzable_uuid4(\"Seattle\", writer=_city_put_name.writer()),\n",
+        ]
+
+        for test_string in test_strings:
+            with open(grammar_file_path, 'r') as grammar_file:
+                with open(new_grammar_file_path, 'w') as new_grammar_file:
+                    grammar_lines = grammar_file.readlines()
+                    grammar_lines[22] = test_string
+                    new_grammar_file.writelines(grammar_lines)
+            dict_file_path = os.path.join(test_file_dir, "dynamic_obj_dict.json")
+            args = Common_Settings + [
+            '--fuzzing_mode', f"{fuzzing_mode}",
+            '--restler_grammar', f'{new_grammar_file_path}',
+            '--custom_mutations', f'{dict_file_path}'
+            ]
+
+            self.run_restler_engine(args)
+            experiments_dir = self.get_experiments_dir()
+
+            testing_summary_file_path = os.path.join(experiments_dir, "logs", "testing_summary.json")
+
+            try:
+                with open(testing_summary_file_path, 'r') as file:
+                    testing_summary = json.loads(file.read())
+                    total_requests_sent = testing_summary["total_requests_sent"]["main_driver"]
+                    num_fully_valid = testing_summary["num_fully_valid"]
+                    self.assertEqual(num_fully_valid, 2, test_string)
+                    self.assertEqual(total_requests_sent, 3)
+
+                test_network_logs = FuzzingLogParser(self.get_network_log_path(experiments_dir, logger.LOG_TYPE_TESTING))
+                # There are two test cases (sequences) expected, one for each request.
+                tested_requests = test_network_logs._seq_list[1].requests
+
+                self.assertEqual(len(tested_requests), 2)
+                # The custom payload value is 'Seattle'.
+                if 'restler_fuzzable_uuid4' not in test_string:
+                    self.assertTrue('Seattle' in tested_requests[1].endpoint)
+
+            except TestFailedException:
+                self.fail("Smoke test failed: Fuzzing")
+            finally:
+                if os.path.exists(experiments_dir):
+                    shutil.rmtree(experiments_dir)
+                if os.path.exists(new_grammar_file_path):
+                    os.remove(new_grammar_file_path)
 
 
     def test_smoke_test(self):

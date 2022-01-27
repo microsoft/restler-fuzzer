@@ -676,6 +676,7 @@ class Request(object):
     def init_fuzzable_values(self, req_definition, candidate_values_pool, preprocessing=False):
 
         fuzzable = []
+        writer_variables=[]
         # The following list will contain name-value pairs of properties whose combinations
         # are tracked for coverage reporting purposes.
         # First, in the loop below, the index of the property in the values list will be added.
@@ -685,11 +686,14 @@ class Request(object):
 
         for request_block in req_definition:
             primitive_type = request_block[0]
+            writer_variable = None
+
             if primitive_type == primitives.FUZZABLE_GROUP:
                 field_name = request_block[1]
                 default_val = request_block[2]
                 quoted = request_block[3]
                 examples = request_block[4]
+                writer_variable = request_block[6]
             elif primitive_type in [ primitives.CUSTOM_PAYLOAD,
                                      primitives.CUSTOM_PAYLOAD_HEADER,
                                      primitives.CUSTOM_PAYLOAD_QUERY,
@@ -697,19 +701,21 @@ class Request(object):
                 field_name = request_block[1]
                 quoted = request_block[2]
                 examples = request_block[3]
+                writer_variable = request_block[5]
             else:
                 default_val = request_block[1]
                 quoted = request_block[2]
                 examples = request_block[3]
                 field_name = request_block[4]
+                writer_variable = request_block[5]
 
             values = []
             # Handling dynamic primitives that need fresh rendering every time
             if primitive_type == primitives.FUZZABLE_UUID4:
                 if quoted:
-                    values = [(primitives.restler_fuzzable_uuid4, True)]
+                    values = [(primitives.restler_fuzzable_uuid4, True, writer_variable)]
                 else:
-                    values = [(primitives.restler_fuzzable_uuid4, False)]
+                    values = [(primitives.restler_fuzzable_uuid4, False, writer_variable)]
             # Handle enums that have a list of values instead of one default val
             elif primitive_type == primitives.FUZZABLE_GROUP:
                 if quoted:
@@ -752,6 +758,7 @@ class Request(object):
                     _raise_dict_err(primitive_type, field_name)
                 except Exception as err:
                     _handle_exception(primitive_type, field_name, err)
+
             # Handle custom (user defined) static payload on header or query
             elif (primitive_type == primitives.CUSTOM_PAYLOAD_HEADER or\
                   primitive_type == primitives.CUSTOM_PAYLOAD_QUERY):
@@ -767,6 +774,7 @@ class Request(object):
                     _raise_dict_err(primitive_type, field_name)
                 except Exception as err:
                     _handle_exception(primitive_type, field_name, err)
+
             # Handle custom (user defined) static payload with uuid4 suffix
             elif primitive_type == primitives.CUSTOM_PAYLOAD_UUID4_SUFFIX:
                 try:
@@ -812,8 +820,9 @@ class Request(object):
                     tracked_parameters[field_name].append(param_idx)
 
             fuzzable.append(values)
+            writer_variables.append(writer_variable)
 
-        return fuzzable, tracked_parameters
+        return fuzzable, writer_variables, tracked_parameters
 
     def render_iter(self, candidate_values_pool, skip=0, preprocessing=False):
         """ This is the core method that renders values combinations in a
@@ -878,7 +887,7 @@ class Request(object):
             and 'parser' in self.metadata['post_send']:
                 parser = self.metadata['post_send']['parser']
 
-            fuzzable, tracked_parameters = self.init_fuzzable_values(req.definition, candidate_values_pool, preprocessing)
+            fuzzable, writer_variables, tracked_parameters = self.init_fuzzable_values(req.definition, candidate_values_pool, preprocessing)
 
             # lazy generation of pool for candidate values
             combinations_pool = itertools.product(*fuzzable)
@@ -902,6 +911,9 @@ class Request(object):
             for ind, values in enumerate(combinations_pool):
                 values = list(values)
                 values = request_utilities.resolve_dynamic_primitives(values, candidate_values_pool)
+                for val_idx, val in enumerate(values):
+                    if writer_variables[val_idx] is not None:
+                        dependencies.set_variable(writer_variables[val_idx], val)
 
                 tracked_parameter_values = {}
                 for (k, idx_list) in tracked_parameters.items():
