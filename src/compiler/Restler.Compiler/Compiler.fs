@@ -424,11 +424,22 @@ module private Parameters =
                                        | Some parameter ->
                                             let serialization = getParameterSerialization parameter
                                             let schema = parameter.ActualSchema
-                                           // Check for path examples in the Swagger specification
-                                           // External path examples are not currently supported
-                                            match exampleConfig with
-                                            | None
-                                            | Some [] ->
+                                            // Check for path examples in the Swagger specification
+                                            // External path examples are not currently supported
+
+                                            let parameterValueFromExample =
+                                               match exampleConfig with
+                                               | None
+                                               | Some [] ->
+                                                    None
+                                               | Some (firstExample::remainingExamples) ->
+                                                    // Use the first example specified to determine the parameter value.
+                                                    getParametersFromExample firstExample (parameter |> stn) trackParameters
+                                                    |> Seq.tryHead
+
+                                            if parameterValueFromExample.IsSome then
+                                                parameterValueFromExample
+                                            else
                                                 let leafProperty =
                                                      if schema.IsArray then
                                                          raise (Exception("Arrays in path examples are not supported yet."))
@@ -445,11 +456,6 @@ module private Parameters =
                                                 Some { name = parameterName
                                                        payload = LeafNode leafProperty
                                                        serialization = serialization }
-                                            | Some (firstExample::remainingExamples) ->
-                                                // Use the first example specified to determine the parameter value.
-                                                getParametersFromExample firstExample (parameter |> stn) trackParameters
-                                                |> Seq.head
-                                                |> Some
                             )
         ParameterList parameterList
 
