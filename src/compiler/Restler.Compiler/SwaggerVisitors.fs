@@ -119,7 +119,16 @@ module SchemaUtilities =
 
     let getFuzzableValueForObjectType (objectType:NJsonSchema.JsonObjectType) (format:string) (exampleValue: string option) (propertyName: string option)
                                       (trackParameters:bool) =
-        Fuzzable (getGrammarPrimitiveTypeWithDefaultValue objectType format exampleValue propertyName trackParameters)
+        let primitiveType, defaultValue, exampleValue, propertyName =
+            getGrammarPrimitiveTypeWithDefaultValue objectType format exampleValue propertyName trackParameters
+        Fuzzable
+            {
+                primitiveType = primitiveType
+                defaultValue = defaultValue
+                exampleValue = exampleValue
+                parameterName = propertyName
+                dynamicObject = None
+            }
 
     /// Get a boolean property from 'ExtensionData', if it exists.
     let getExtensionDataBooleanPropertyValue (extensionData:System.Collections.Generic.IDictionary<string, obj>) (extensionDataKeyName:string) =
@@ -224,7 +233,14 @@ module SwaggerVisitors =
                             match enumValues with
                             | [] -> "null"
                             | h::rest -> h
-                        Fuzzable (PrimitiveType.Enum (propertyName, grammarPrimitiveType, enumValues, defaultValue), defaultFuzzableEnumValue, exv, None)
+                        Fuzzable
+                            {
+                                primitiveType = PrimitiveType.Enum (propertyName, grammarPrimitiveType, enumValues, defaultValue)
+                                defaultValue = defaultFuzzableEnumValue
+                                exampleValue = exv
+                                parameterName = None
+                                dynamicObject = None
+                            }
                 | NJsonSchema.JsonObjectType.Object
                 | NJsonSchema.JsonObjectType.None ->
                     // Example of JsonObjectType.None: "content": {} without a type specified in Swagger.
@@ -232,7 +248,14 @@ module SwaggerVisitors =
                     getFuzzableValueForObjectType NJsonSchema.JsonObjectType.Object propertySchema.Format exampleValue (Some propertyName) trackParameters
                 | NJsonSchema.JsonObjectType.File ->
                     // Fuzz it as a string.
-                    Fuzzable (PrimitiveType.String, "file object", None, if trackParameters then Some propertyName else None)
+                    Fuzzable
+                        {
+                            primitiveType = PrimitiveType.String
+                            defaultValue = "file object"
+                            exampleValue = None
+                            parameterName = if trackParameters then Some propertyName else None
+                            dynamicObject = None
+                        }
                 | nst ->
                     raise (UnsupportedType (sprintf "Unsupported type formatting: %A" nst))
         { LeafProperty.name = propertyName; payload = payload ;isRequired = isRequired ; isReadOnly = isReadOnly }
@@ -255,8 +278,8 @@ module SwaggerVisitors =
             | LeafNode leafProperty ->
                 let payload = leafProperty.payload
                 match payload with
-                | Fuzzable(a, b, c, _) ->
-                    let payload = Fuzzable (a, b, c, Some paramName)
+                | Fuzzable fp ->
+                    let payload = Fuzzable { fp with parameterName = Some paramName }
                     LeafNode { leafProperty with LeafProperty.payload = payload }
                 | x -> tree
             | InternalNode (_,_) -> tree
@@ -383,15 +406,15 @@ module SwaggerVisitors =
                     | Some v ->
                         let examplePropertyPayload =
                             match fuzzablePropertyPayload.payload with
-                            | Fuzzable (primitiveType, defaultValue, _, propertyName) ->
-                                let payloadValue = GenerateGrammarElements.formatJTokenProperty primitiveType v
+                            | Fuzzable fp ->
+                                let payloadValue = GenerateGrammarElements.formatJTokenProperty fp.primitiveType v
                                 // Replace the default payload with the example payload, preserving type information.
                                 // 'generateFuzzablePayload' is specified a schema example is found for the parent
                                 // object (e.g. an array).
                                 if generateFuzzablePayload then
-                                    Fuzzable (primitiveType, defaultValue, Some payloadValue, propertyName)
+                                    Fuzzable { fp with exampleValue = Some payloadValue }
                                 else
-                                    Constant (primitiveType, payloadValue)
+                                    Constant (fp.primitiveType, payloadValue)
                             | _ -> raise (invalidOp(sprintf "invalid payload %A, expected fuzzable" fuzzablePropertyPayload))
 
                         { fuzzablePropertyPayload with payload = examplePropertyPayload }
@@ -507,7 +530,14 @@ module SwaggerVisitors =
                 match s.Type with
                 | JsonObjectType.Object ->
                     // Do not insert a default fuzzable property for objects
-                    Fuzzable (PrimitiveType.Object, "{ }", None, None)
+                    Fuzzable
+                        {
+                            primitiveType = PrimitiveType.Object
+                            defaultValue = "{ }"
+                            exampleValue = None
+                            parameterName = None
+                            dynamicObject = None
+                        }
                 | _ ->
                     getFuzzableValueForObjectType s.Item.Type s.Format None None trackParameters
 
@@ -523,7 +553,15 @@ module SwaggerVisitors =
                     else
                         Some (getValueForObjectType schema.Item)
                 | JsonObjectType.None ->
-                    Some (Fuzzable (PrimitiveType.Object, "{ }", None, None))
+                    let fp =
+                        {
+                            primitiveType = PrimitiveType.Object
+                            defaultValue = "{ }"
+                            exampleValue = None
+                            parameterName = None
+                            dynamicObject = None
+                        }
+                    Some (Fuzzable fp)
                 | _ ->
                     Some (getValueForObjectType schema)
 
@@ -733,7 +771,14 @@ module SwaggerVisitors =
                         let leafPayload =
                             let exampleValue = GenerateGrammarElements.formatJTokenProperty primitiveType v
                             if generateFuzzablePayloadsForExamples then
-                                FuzzingPayload.Fuzzable (primitiveType, defaultValue, Some exampleValue, None)
+                                FuzzingPayload.Fuzzable
+                                    {
+                                        primitiveType = primitiveType
+                                        defaultValue = defaultValue
+                                        exampleValue = Some exampleValue
+                                        parameterName = None
+                                        dynamicObject = None
+                                    }
                             else
                                 FuzzingPayload.Constant (primitiveType, exampleValue)
 

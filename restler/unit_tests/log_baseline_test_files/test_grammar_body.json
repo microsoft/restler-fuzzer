@@ -114,10 +114,10 @@
                                       "LeafNode": {
                                         "name": "population",
                                         "payload": {
-                                          "Fuzzable": [
-                                            "Int",
-                                            "1000"
-                                          ]
+                                          "Fuzzable": {
+                                            "primitiveType": "Int",
+                                            "defaultValue": "1000"
+                                          }
                                         },
                                         "isRequired": false,
                                         "isReadOnly": false
@@ -140,10 +140,10 @@
                                       "LeafNode": {
                                         "name": "strtest",
                                         "payload": {
-                                          "Fuzzable": [
-                                            "String",
-                                            "true"
-                                          ]
+                                          "Fuzzable": {
+                                            "primitiveType": "String",
+                                            "defaultValue": "true"
+                                          }
                                         },
                                         "isRequired": true,
                                         "isReadOnly": false
@@ -171,10 +171,10 @@
                                                   "LeafNode": {
                                                     "name": "subtest",
                                                     "payload": {
-                                                      "Fuzzable": [
-                                                        "Bool",
-                                                        "true"
-                                                      ]
+                                                      "Fuzzable": {
+                                                        "primitiveType": "Bool",
+                                                        "defaultValue": "true"
+                                                      }
                                                     },
                                                     "isRequired": false,
                                                     "isReadOnly": false
@@ -265,8 +265,10 @@
                     "LeafNode": {
                       "name": "",
                       "payload": {
-                        "Fuzzable": [
-                          {
+
+                        "Fuzzable": {
+                          "primitiveType":
+                           {
                             "Enum": [
                               "group",
                               "String",
@@ -278,8 +280,8 @@
                               null
                             ]
                           },
-                          "A"
-                        ]
+                          "defaultValue": "A"
+                        }
                       }
                     }
                   }
@@ -508,7 +510,8 @@
                                   "LeafNode": {
                                     "name": "group",
                                     "payload": {
-                                      "Fuzzable": [
+                                      "Fuzzable": {
+                                        "primitiveType":
                                         {
                                           "Enum": [
                                             "group",
@@ -521,8 +524,8 @@
                                             null
                                           ]
                                         },
-                                        "A"
-                                      ]
+                                        "defaultValue": "A"
+                                      }
                                     }
                                   }
                                 }

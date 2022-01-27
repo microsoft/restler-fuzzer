@@ -24,28 +24,31 @@ module Types =
             trackedParameterName: string option
         }
 
+    type DynamicObjectWriter =
+        | DynamicObjectWriter of string
+
     /// RESTler grammar built-in types
     /// IMPORTANT ! All primitives must be supported in restler/engine/primitives.py
     type RequestPrimitiveType =
         | Restler_static_string_constant of string
         | Restler_static_string_variable of string * bool
         | Restler_static_string_jtoken_delim of string
-        | Restler_fuzzable_string of RequestPrimitiveTypeData
-        | Restler_fuzzable_datetime of RequestPrimitiveTypeData
-        | Restler_fuzzable_date of RequestPrimitiveTypeData
-        | Restler_fuzzable_object of RequestPrimitiveTypeData
+        | Restler_fuzzable_string of RequestPrimitiveTypeData * DynamicObjectWriter option
+        | Restler_fuzzable_datetime of RequestPrimitiveTypeData * DynamicObjectWriter option
+        | Restler_fuzzable_date of RequestPrimitiveTypeData * DynamicObjectWriter option
+        | Restler_fuzzable_object of RequestPrimitiveTypeData * DynamicObjectWriter option
         | Restler_fuzzable_delim of RequestPrimitiveTypeData
-        | Restler_fuzzable_uuid4 of RequestPrimitiveTypeData
-        | Restler_fuzzable_group of RequestPrimitiveTypeData
-        | Restler_fuzzable_bool of RequestPrimitiveTypeData
-        | Restler_fuzzable_int of RequestPrimitiveTypeData
-        | Restler_fuzzable_number of RequestPrimitiveTypeData
+        | Restler_fuzzable_uuid4 of RequestPrimitiveTypeData * DynamicObjectWriter option
+        | Restler_fuzzable_group of RequestPrimitiveTypeData * DynamicObjectWriter option
+        | Restler_fuzzable_bool of RequestPrimitiveTypeData * DynamicObjectWriter option
+        | Restler_fuzzable_int of RequestPrimitiveTypeData * DynamicObjectWriter option
+        | Restler_fuzzable_number of RequestPrimitiveTypeData * DynamicObjectWriter option
         | Restler_multipart_formdata of string
-        | Restler_custom_payload of RequestPrimitiveTypeData
-        | Restler_custom_payload_header of string
-        | Restler_custom_payload_query of string
+        | Restler_custom_payload of RequestPrimitiveTypeData * DynamicObjectWriter option
+        | Restler_custom_payload_header of string * DynamicObjectWriter option
+        | Restler_custom_payload_query of string * DynamicObjectWriter option
         /// (Payload name, dynamic object writer name)
-        | Restler_custom_payload_uuid4_suffix of string * string option
+        | Restler_custom_payload_uuid4_suffix of string * DynamicObjectWriter option
         | Restler_refreshable_authentication_token of string
         | Restler_basepath of string
         | Shadow_values of string
@@ -72,20 +75,27 @@ let rec getRestlerPythonPayload (payload:FuzzingPayload) (isQuoted:bool) : Reque
         match p with
         | Constant (t,v) ->
             Restler_static_string_constant v
-        | Fuzzable (t,v,exv,parameterName) ->
-            match t with
-            | Bool -> Restler_fuzzable_bool { defaultValue = v ; isQuoted = false ; exampleValue = exv ; trackedParameterName = parameterName }
+        | Fuzzable fp ->
+            let v = fp.defaultValue
+            let exv = fp.exampleValue
+            let parameterName = fp.parameterName
+            let dynamicObject = if fp.dynamicObject.IsSome then Some (DynamicObjectWriter fp.dynamicObject.Value.variableName) else None
+            match fp.primitiveType with
+            | Bool ->
+                Restler_fuzzable_bool ({ defaultValue = v ; isQuoted = false ; exampleValue = exv ; trackedParameterName = parameterName }, dynamicObject)
             | PrimitiveType.DateTime ->
-                Restler_fuzzable_datetime { defaultValue = v ; isQuoted = isQuoted ; exampleValue = exv ; trackedParameterName = parameterName }
+                Restler_fuzzable_datetime ({ defaultValue = v ; isQuoted = isQuoted ; exampleValue = exv ; trackedParameterName = parameterName }, dynamicObject)
             | PrimitiveType.Date ->
-                Restler_fuzzable_date { defaultValue = v ; isQuoted = isQuoted ; exampleValue = exv ; trackedParameterName = parameterName }
+                Restler_fuzzable_date ({ defaultValue = v ; isQuoted = isQuoted ; exampleValue = exv ; trackedParameterName = parameterName }, dynamicObject)
+
             | PrimitiveType.String ->
-                Restler_fuzzable_string { defaultValue = v ; isQuoted = isQuoted ; exampleValue = exv ; trackedParameterName = parameterName }
-            | PrimitiveType.Object -> Restler_fuzzable_object { defaultValue = v ; isQuoted = false ; exampleValue = exv  ; trackedParameterName = parameterName }
-            | Int -> Restler_fuzzable_int { defaultValue = v ; isQuoted = false; exampleValue = exv ; trackedParameterName = parameterName }
-            | Number -> Restler_fuzzable_number { defaultValue = v ; isQuoted = false ; exampleValue = exv  ; trackedParameterName = parameterName }
+                Restler_fuzzable_string ({ defaultValue = v ; isQuoted = isQuoted ; exampleValue = exv ; trackedParameterName = parameterName }, dynamicObject)
+            | PrimitiveType.Object -> Restler_fuzzable_object ({ defaultValue = v ; isQuoted = false ; exampleValue = exv  ; trackedParameterName = parameterName  }, dynamicObject)
+            | Int -> Restler_fuzzable_int ({ defaultValue = v ; isQuoted = false; exampleValue = exv ; trackedParameterName = parameterName }, dynamicObject)
+
+            | Number -> Restler_fuzzable_number ({ defaultValue = v ; isQuoted = false ; exampleValue = exv  ; trackedParameterName = parameterName }, dynamicObject)
             | Uuid ->
-                Restler_fuzzable_uuid4 { defaultValue = v ; isQuoted = isQuoted ; exampleValue = exv ; trackedParameterName = parameterName }
+                Restler_fuzzable_uuid4 ({ defaultValue = v ; isQuoted = isQuoted ; exampleValue = exv ; trackedParameterName = parameterName }, dynamicObject)
             | PrimitiveType.Enum (enumPropertyName, _, enumeration, defaultValue) ->
                 let defaultStr =
                     match defaultValue with
@@ -97,18 +107,19 @@ let rec getRestlerPythonPayload (payload:FuzzingPayload) (isQuoted:bool) : Reque
                              (enumeration |> List.map (fun s -> sprintf "'%s'" s) |> String.concat ",")
                              defaultStr
                     )
-                Restler_fuzzable_group
-                    { defaultValue = groupValue ; isQuoted = isQuoted ; exampleValue = exv ; trackedParameterName = parameterName }
+                Restler_fuzzable_group (
+                    { defaultValue = groupValue ; isQuoted = isQuoted ; exampleValue = exv ; trackedParameterName = parameterName }, dynamicObject)
         | Custom c ->
+            let dynamicObject = if c.dynamicObject.IsSome then Some (DynamicObjectWriter c.dynamicObject.Value.variableName) else None
             match c.payloadType with
             | CustomPayloadType.String ->
-                Restler_custom_payload { defaultValue = c.payloadValue ; isQuoted = isQuoted ; exampleValue = None ; trackedParameterName = None }
+                Restler_custom_payload ({ defaultValue = c.payloadValue ; isQuoted = isQuoted ; exampleValue = None ; trackedParameterName = None }, dynamicObject)
             | CustomPayloadType.UuidSuffix ->
-                Restler_custom_payload_uuid4_suffix (c.payloadValue, if c.dynamicObject.IsSome then Some c.dynamicObject.Value.variableName else None)
+                Restler_custom_payload_uuid4_suffix (c.payloadValue, dynamicObject)
             | CustomPayloadType.Header ->
-                Restler_custom_payload_header c.payloadValue  // TODO: need test
+                Restler_custom_payload_header (c.payloadValue, dynamicObject)
             | CustomPayloadType.Query ->
-                Restler_custom_payload_query c.payloadValue  // TODO: need test
+                Restler_custom_payload_query (c.payloadValue, dynamicObject)
         | DynamicObject dv ->
             Restler_static_string_variable (sprintf "%s.reader()" dv.variableName, isQuoted)
         | PayloadParts p ->
@@ -350,10 +361,10 @@ let generatePythonParameter includeOptionalParameters parameterKind (requestPara
                 | FuzzingPayload.Constant (primitiveType, v) ->
                     isPrimitiveTypeQuoted primitiveType (isNull v),
                     false, false
-                | FuzzingPayload.Fuzzable (primitiveType, _, _,_) ->
+                | FuzzingPayload.Fuzzable fp ->
                     // Note: this is a current RESTler limitation -
                     // fuzzable values may not be set to null without changing the grammar.
-                    isPrimitiveTypeQuoted primitiveType false,
+                    isPrimitiveTypeQuoted fp.primitiveType false,
                     true, false
                 | FuzzingPayload.DynamicObject dv ->
                     isPrimitiveTypeQuoted dv.primitiveType false,
@@ -1065,6 +1076,12 @@ let getRequests(requests:Request list) includeOptionalParameters =
                 let quotedStr = sprintf "%s%s%s" exDelim exStr exDelim
                 sprintf ", param_name=%s" quotedStr
 
+        let formatDynamicObjectVariable (dynamicObject:DynamicObjectWriter option) =
+            match dynamicObject with
+            | None -> ""
+            | Some (DynamicObjectWriter v) ->
+                sprintf ", writer=%s.writer()" v
+
         let str =
             match p with
             | Restler_static_string_jtoken_delim s ->
@@ -1088,7 +1105,7 @@ let getRequests(requests:Request list) includeOptionalParameters =
                 sprintf "primitives.restler_static_string(%s, quoted=%s)"
                         s
                         (if isQuoted then "True" else "False")
-            | Restler_fuzzable_string s ->
+            | Restler_fuzzable_string (s, dynamicObject) ->
                 if String.IsNullOrEmpty s.defaultValue then
                     printfn "ERROR: fuzzable strings should not be empty.  Skipping."
                     ""
@@ -1103,39 +1120,44 @@ let getRequests(requests:Request list) includeOptionalParameters =
                              (if s.isQuoted then "True" else "False")
                              exampleParameter
                              trackedParamName
-            | Restler_fuzzable_group s ->
+            | Restler_fuzzable_group (s, dynamicObject) ->
                 sprintf "primitives.restler_fuzzable_group(%s,quoted=%s%s)"
                         s.defaultValue
                         (if s.isQuoted then "True" else "False")
                         (getExamplePrimitiveParameter s.exampleValue)
-            | Restler_fuzzable_int s ->
-                sprintf "primitives.restler_fuzzable_int(\"%s\"%s%s)"
+            | Restler_fuzzable_int (s, dynamicObject) ->
+                sprintf "primitives.restler_fuzzable_int(\"%s\"%s%s%s)"
                         s.defaultValue
                         (getExamplePrimitiveParameter s.exampleValue)
                         (getTrackedParamPrimitiveParameter s.trackedParameterName)
-            | Restler_fuzzable_number s ->
-                sprintf "primitives.restler_fuzzable_number(\"%s\"%s%s)"
+                        (formatDynamicObjectVariable dynamicObject)
+            | Restler_fuzzable_number (s, dynamicObject) ->
+                sprintf "primitives.restler_fuzzable_number(\"%s\"%s%s%s)"
                         s.defaultValue
                         (getExamplePrimitiveParameter s.exampleValue)
                         (getTrackedParamPrimitiveParameter s.trackedParameterName)
-            | Restler_fuzzable_bool s ->
-                sprintf "primitives.restler_fuzzable_bool(\"%s\"%s%s)"
+                        (formatDynamicObjectVariable dynamicObject)
+            | Restler_fuzzable_bool (s, dynamicObject) ->
+                sprintf "primitives.restler_fuzzable_bool(\"%s\"%s%s%s)"
                         s.defaultValue
                         (getExamplePrimitiveParameter s.exampleValue)
                         (getTrackedParamPrimitiveParameter s.trackedParameterName)
-            | Restler_fuzzable_datetime s ->
-                sprintf "primitives.restler_fuzzable_datetime(\"%s\", quoted=%s%s%s)"
-                        s.defaultValue
-                        (if s.isQuoted then "True" else "False")
-                        (getExamplePrimitiveParameter s.exampleValue)
-                        (getTrackedParamPrimitiveParameter s.trackedParameterName)
-            | Restler_fuzzable_date s ->
-                sprintf "primitives.restler_fuzzable_date(\"%s\", quoted=%s%s%s)"
+                        (formatDynamicObjectVariable dynamicObject)
+            | Restler_fuzzable_datetime (s, dynamicObject) ->
+                sprintf "primitives.restler_fuzzable_datetime(\"%s\", quoted=%s%s%s%s)"
                         s.defaultValue
                         (if s.isQuoted then "True" else "False")
                         (getExamplePrimitiveParameter s.exampleValue)
                         (getTrackedParamPrimitiveParameter s.trackedParameterName)
-            | Restler_fuzzable_object s ->
+                        (formatDynamicObjectVariable dynamicObject)
+            | Restler_fuzzable_date (s, dynamicObject) ->
+                sprintf "primitives.restler_fuzzable_date(\"%s\", quoted=%s%s%s%s)"
+                        s.defaultValue
+                        (if s.isQuoted then "True" else "False")
+                        (getExamplePrimitiveParameter s.exampleValue)
+                        (getTrackedParamPrimitiveParameter s.trackedParameterName)
+                        (formatDynamicObjectVariable dynamicObject)
+            | Restler_fuzzable_object (s, dynamicObject) ->
                 if String.IsNullOrEmpty s.defaultValue then
                     printfn "ERROR: fuzzable objects should not be empty.  Skipping."
                     ""
@@ -1144,31 +1166,35 @@ let getRequests(requests:Request list) includeOptionalParameters =
                     let quotedDefaultString =
                         sprintf "%s%s%s" delim str delim
                     let exampleParameter = getExamplePrimitiveParameter s.exampleValue
-                    sprintf "primitives.restler_fuzzable_object(%s%s%s)"
+                    sprintf "primitives.restler_fuzzable_object(%s%s%s%s)"
                             quotedDefaultString
                             exampleParameter
                             (getTrackedParamPrimitiveParameter s.trackedParameterName)
-            | Restler_fuzzable_uuid4 s ->
-                sprintf "primitives.restler_fuzzable_uuid4(\"%s\", quoted=%s%s%s)"
+                            (formatDynamicObjectVariable dynamicObject)
+            | Restler_fuzzable_uuid4 (s, dynamicObject) ->
+                sprintf "primitives.restler_fuzzable_uuid4(\"%s\", quoted=%s%s%s%s)"
                         s.defaultValue
                         (if s.isQuoted then "True" else "False")
                         (getExamplePrimitiveParameter s.exampleValue)
                         (getTrackedParamPrimitiveParameter s.trackedParameterName)
-            | Restler_custom_payload p ->
-                sprintf "primitives.restler_custom_payload(\"%s\", quoted=%s)"
+                        (formatDynamicObjectVariable dynamicObject)
+            | Restler_custom_payload (p, dynamicObject) ->
+                sprintf "primitives.restler_custom_payload(\"%s\", quoted=%s%s)"
                         p.defaultValue
                         (if p.isQuoted then "True" else "False")
-            | Restler_custom_payload_uuid4_suffix (p, variableName) ->
-                let variableNamePart =
-                    match variableName with
-                    | None -> ""
-                    | Some vn ->
-                        sprintf ", writer=%s.writer()" vn
-                sprintf "primitives.restler_custom_payload_uuid4_suffix(\"%s\"%s)" p variableNamePart
-            | Restler_custom_payload_header p ->
-                sprintf "primitives.restler_custom_payload_header(\"%s\")" p
-            | Restler_custom_payload_query q ->
-                sprintf "primitives.restler_custom_payload_query(\"%s\")" q
+                        (formatDynamicObjectVariable dynamicObject)
+            | Restler_custom_payload_uuid4_suffix (p, dynamicObject) ->
+                sprintf "primitives.restler_custom_payload_uuid4_suffix(\"%s\"%s)"
+                        p
+                        (formatDynamicObjectVariable dynamicObject)
+            | Restler_custom_payload_header (p, dynamicObject) ->
+                sprintf "primitives.restler_custom_payload_header(\"%s\"%s)"
+                        p
+                        (formatDynamicObjectVariable dynamicObject)
+            | Restler_custom_payload_query (q, dynamicObject) ->
+                sprintf "primitives.restler_custom_payload_query(\"%s\"%s)"
+                        q
+                        (formatDynamicObjectVariable dynamicObject)
             | Restler_refreshable_authentication_token tok ->
                 sprintf "primitives.restler_refreshable_authentication_token(\"%s\")" tok
             | Restler_basepath bp ->

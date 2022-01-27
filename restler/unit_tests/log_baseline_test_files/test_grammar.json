@@ -136,12 +136,11 @@
                             "LeafNode": {
                               "name": "population",
                               "payload": {
-                                "Fuzzable": [
-                                  "Int",
-                                  "1000",
-                                  null,
-                                  "population"
-                                ]
+                                "Fuzzable": {
+                                  "primitiveType": "Int",
+                                  "defaultValue": "1000",
+                                  "parameterName": "population"
+                                }
                               },
                               "isRequired": false,
                               "isReadOnly": false
@@ -164,10 +163,11 @@
                             "LeafNode": {
                               "name": "strtest",
                               "payload": {
-                                "Fuzzable": [
-                                  "String",
-                                  "true"
-                                ]
+                                "Fuzzable": {
+                                  "primitiveType": "String",
+                                  "defaultValue": "true",
+                                  "parameterName": "population"
+                                }
                               },
                               "isRequired": true,
                               "isReadOnly": false
@@ -247,8 +247,8 @@
                     "LeafNode": {
                       "name": "",
                       "payload": {
-                        "Fuzzable": [
-                          {
+                        "Fuzzable": {
+                          "primitiveType": {
                             "Enum": [
                               "group",
                               "String",
@@ -260,8 +260,8 @@
                               null
                             ]
                           },
-                          "A"
-                        ]
+                          "defaultValue": "A"
+                        }
                       }
                     }
                   }
@@ -482,8 +482,8 @@
                             "LeafNode": {
                               "name": "group",
                               "payload": {
-                                "Fuzzable": [
-                                  {
+                                "Fuzzable": {
+                                  "primitiveType": {
                                     "Enum": [
                                       "group",
                                       "String",
@@ -495,8 +495,8 @@
                                       null
                                     ]
                                   },
-                                  "A"
-                                ]
+                                  "defaultValue": "A"
+                                }
                               }
                             }
                           }
@@ -1524,11 +1524,11 @@
                             "LeafNode": {
                               "name": "testbool",
                               "payload": {
-                                "Fuzzable": [
-                                  "Bool",
-                                  "testval",
-                                  false
-                                ]
+                                "Fuzzable": {
+                                  "primitiveType": "Bool",
+                                  "defaultValue": "testval",
+                                  "exampleValue": "false"
+                                }
                               },
                               "isRequired": true,
                               "isReadOnly": false
@@ -2150,10 +2150,10 @@
                     "LeafNode": {
                       "name": "",
                       "payload": {
-                        "Fuzzable": [
-                          "DateTime",
-                          "2020-1-1"
-                        ]
+                        "Fuzzable": {
+                          "primitiveType": "DateTime",
+                          "defaultValue": "2020-1-1"
+                        }
                       },
                       "isRequired": true,
                       "isReadOnly": false
@@ -2185,10 +2185,10 @@
                             "LeafNode": {
                               "name": "datetest",
                               "payload": {
-                                "Fuzzable": [
-                                  "DateTime",
-                                  "2020-1-1"
-                                ]
+                                "Fuzzable": {
+                                  "primitiveType": "DateTime",
+                                  "defaultValue": "2020-1-1"
+                                }
                               },
                               "isRequired": false,
                               "isReadOnly": false
