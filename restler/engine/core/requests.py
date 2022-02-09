@@ -674,6 +674,14 @@ class Request(object):
             yield self
 
     def init_fuzzable_values(self, req_definition, candidate_values_pool, preprocessing=False):
+        def _raise_dict_err(type, tag):
+            logger.write_to_main(
+                f"Error for request {self.method} {self.endpoint_no_dynamic_objects}.\n"
+                f"{type} exception: {tag} not found.\n"
+                "Make sure you are using the dictionary created during compilation.",
+                print_to_console=True
+            )
+            raise InvalidDictionaryException
 
         fuzzable = []
         writer_variables=[]
@@ -848,15 +856,6 @@ class Request(object):
         @rtype : (Str, Function Pointer, List[Str])
 
         """
-        def _raise_dict_err(type, tag):
-            logger.write_to_main(
-                f"Error for request {self.method} {self.endpoint_no_dynamic_objects}.\n"
-                f"{type} exception: {tag} not found.\n"
-                "Make sure you are using the dictionary created during compilation.",
-                print_to_console=True
-            )
-            raise InvalidDictionaryException
-
         def _handle_exception(type, tag, err):
             logger.write_to_main(
                 f"Exception when rendering request {self.method} {self.endpoint_no_dynamic_objects}.\n"
