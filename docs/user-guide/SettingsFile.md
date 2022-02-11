@@ -91,6 +91,11 @@ that is applied after any request that is marked as a producer.
 This wait time will occur for every request in a sequence except the last request.
 The per-resource producer timing delay (below) will override this value.
 
+### reconnect_on_every_request: bool (default False)
+By default, RESTler re-uses the same connection across different requests,
+re-creating it only on error.  Set to True to create a new connection for
+every request sent.
+
 ### grammar_schema: string (default None)
 The path to the grammar.json file for the API in test.
 This is required when using the examples and payload body checkers.
@@ -227,7 +232,7 @@ A list of strings in the response on which the request should be re-tried may be
 }
 ```
 
-___interval_sec__
+__interval_sec__
 
 The number of seconds to wait between retries (shown below with the default value).
 
