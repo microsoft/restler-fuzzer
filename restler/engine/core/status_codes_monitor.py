@@ -179,7 +179,7 @@ class StatusCodesMonitor(object):
             lock.acquire()
 
         seq_length = sequence.length
-        self._requests_count['main_driver'] += seq_length
+        self._requests_count['main_driver'] += sequence.executed_requests_count
         seq_definition = sequence.definition
         seq_hash = sequence.hex_definition
 

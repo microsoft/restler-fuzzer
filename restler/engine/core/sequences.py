@@ -9,6 +9,7 @@ import copy
 import time
 import json
 import datetime
+from enum import Enum
 
 import engine.core.async_request_utilities as async_request_utilities
 import engine.core.request_utilities as request_utilities
@@ -63,6 +64,11 @@ class RenderedSequence(object):
         self.final_request_response = final_request_response
         self.final_response_datetime = response_datetime
 
+class RenderedPrefixStatus(Enum):
+    NONE = 1
+    VALID = 2
+    INVALID = 3
+
 class Sequence(object):
     """ Implements basic sequence logic.  """
     def __init__(self, requests=None):
@@ -84,13 +90,25 @@ class Sequence(object):
         # A list of all requests in this sequence that were sent;
         # as the exact data that was rendered and set to the server
         self._sent_request_data_list = []
+        # Indicates whether the prefix of this sequence has been rendered.
+        # If so, the dynamic objects created in the prefix have been saved, and
+        # must be freed when the sequence has finished rendering.
+        self.rendered_prefix_status = RenderedPrefixStatus.NONE
+
+        # Indicates that this sequence should only render its prefix once.
+        self.create_prefix_once = False
+        # If a cached sequence prefix is present, indicates that this sequence
+        # should re-render it after a valid sequence rendering.
+        self.re_render_prefix_on_success = None
+
+        self.executed_requests_count = 0
 
     def __iter__(self):
         """ Iterate over Sequences objects. """
         return iter(self.requests)
 
     def __add__(self, other):
-        """ Add two sequnces
+        """ Add two sequences
 
         @return: None
         @rtype : None
@@ -289,7 +307,7 @@ class Sequence(object):
 
     def render(self, candidate_values_pool, lock, preprocessing=False, postprocessing=False):
         """ Core routine that performs the rendering of restler sequences. In
-        principal all requests of a sequence are being constantly rendered with
+        principle, all requests of a sequence are being constantly rendered with
         a specific values combination @param request._current_combination_id
         which we know in the past led to a valid rendering and only the last
         request of the sequence is being rendered iteratively with all feasible
@@ -315,53 +333,34 @@ class Sequence(object):
         @rtype : RenderedSequence
         """
         # Try rendering  all primitive type value combinations for last request
-        request = self.last_request
 
-        # for clarity reasons, don't log requests whose render iterator is over
-        if request._current_combination_id <\
-                request.num_combinations(candidate_values_pool):
-            CUSTOM_LOGGING(self, candidate_values_pool)
+        def render_prefix():
+            """
+            Renders the last known valid combination of the prefix of this sequence.
+            Depending on user settings, this may either be re-rendered for every
+            sequence or only once prior to rendering all of the request combinations
+            for the last request.
 
-        self._sent_request_data_list = []
+            """
+            if self.create_prefix_once and self.rendered_prefix_status == RenderedPrefixStatus.VALID:
+                return None, None
 
-        datetime_format = "%Y-%m-%d %H:%M:%S"
-        response_datetime_str = None
-        timestamp_micro = None
-        for rendered_data, parser, tracked_parameters in\
-                request.render_iter(candidate_values_pool,
-                                    skip=request._current_combination_id,
-                                    preprocessing=preprocessing):
-            # Hold the lock (because other workers may be rendering the same
-            # request) and check whether the current rendering is known from the
-            # past to lead to invalid status codes. If so, skip the current
-            # rendering.
-            if lock is not None:
-                lock.acquire()
-            should_skip = Monitor().is_invalid_rendering(request)
-            if lock is not None:
-                lock.release()
+            last_req = self.requests[-1]
 
-            # Skip the loop and don't forget to increase the counter.
-            if should_skip:
-                RAW_LOGGING("Skipping rendering: {}".\
-                            format(request._current_combination_id))
-                request._current_combination_id += 1
-                continue
+            self.create_prefix_once, self.re_render_prefix_on_success = Settings().get_cached_prefix_request_settings(last_req.endpoint, last_req.method)
 
             # Clean up internal state
             self.status_codes = []
             dependencies.reset_tlb()
+            dependencies.clear_saved_local_dyn_objects()
+            dependencies.start_saving_local_dyn_objects()
 
             sequence_failed = False
-            request._tracked_parameters = {}
-            request.update_tracked_parameters(tracked_parameters)
 
-            # Step A: Static template rendering
-            # Render last known valid combination of primitive type values
-            # for every request until the last
             current_request = None
             prev_request = None
             prev_response = None
+            response_datetime_str = None
             for i in range(len(self.requests) - 1):
                 last_tested_request_idx = i
                 prev_request = self.requests[i]
@@ -447,10 +446,7 @@ class Sequence(object):
                                                                 prev_response.has_valid_code(),
                                                                 False))
 
-
-            # Render candidate value combinations seeking for valid error codes
-            request._current_combination_id += 1
-
+            self.rendered_prefix_status = RenderedPrefixStatus.INVALID if sequence_failed else RenderedPrefixStatus.VALID
             if sequence_failed:
                 self.status_codes.append(
                     status_codes_monitor.RequestExecutionStatus(
@@ -462,6 +458,63 @@ class Sequence(object):
                     )
                 )
                 Monitor().update_status_codes_monitor(self, self.status_codes, lock)
+
+            self.executed_requests_count = len(self.requests) - 1
+            return prev_response, response_datetime_str
+
+        request = self.last_request
+
+        # for clarity reasons, don't log requests whose render iterator is over
+        if request._current_combination_id <\
+                request.num_combinations(candidate_values_pool):
+            CUSTOM_LOGGING(self, candidate_values_pool)
+
+        self._sent_request_data_list = []
+
+        datetime_format = "%Y-%m-%d %H:%M:%S"
+        response_datetime_str = None
+        timestamp_micro = None
+        for rendered_data, parser, tracked_parameters in\
+                request.render_iter(candidate_values_pool,
+                                    skip=request._current_combination_id,
+                                    preprocessing=preprocessing):
+            # Hold the lock (because other workers may be rendering the same
+            # request) and check whether the current rendering is known from the
+            # past to lead to invalid status codes. If so, skip the current
+            # rendering.
+            if lock is not None:
+                lock.acquire()
+            should_skip = Monitor().is_invalid_rendering(request)
+            if lock is not None:
+                lock.release()
+
+            # Skip the loop and don't forget to increase the counter.
+            if should_skip:
+                RAW_LOGGING("Skipping rendering: {}".\
+                            format(request._current_combination_id))
+                request._current_combination_id += 1
+                continue
+
+            request._tracked_parameters = {}
+            request.update_tracked_parameters(tracked_parameters)
+
+            # Step A: Static template rendering
+            # Render last known valid combination of primitive type values
+            # for every request until the last
+            try:
+                self.executed_requests_count = 0
+                prev_response, response_datetime_str = render_prefix()
+            finally:
+                dependencies.stop_saving_local_dyn_objects()
+
+            # Render candidate value combinations seeking for valid error codes
+            request._current_combination_id += 1
+
+            if self.rendered_prefix_status == RenderedPrefixStatus.INVALID:
+                # A failure to re-render a previously successful sequence prefix may be a
+                # transient issue.  Reset the prefix state so it is re-rendered again
+                # for the next combination.
+                self.rendered_prefix_status = RenderedPrefixStatus.NONE
 
                 if lock is not None:
                     lock.acquire()
@@ -479,7 +532,7 @@ class Sequence(object):
                                         response_datetime=response_datetime_str)
 
             # Step B: Dynamic template rendering
-            # substitute reference placeholders with ressoved values
+            # substitute reference placeholders with resolved values
             # for the last request
             if not Settings().ignore_dependencies:
                 rendered_data = self.resolve_dependencies(rendered_data)
@@ -498,6 +551,7 @@ class Sequence(object):
                 return RenderedSequence(failure_info=FailureInformation.MISSING_STATUS_CODE)
 
             self.append_data_to_sent_list(rendered_data, parser, response, max_async_wait_time=req_async_wait)
+            self.executed_requests_count = self.executed_requests_count + 1
 
             rendering_is_valid = not parser_exception_occurred\
                 and not resource_error\
@@ -538,10 +592,17 @@ class Sequence(object):
             # to including the shared client monitor, which we update in the
             # above code block holding the lock, but then we release the
             # lock and one thread can be updating while another is copying.
-            # This is a typlical nasty read after write syncronization bug.
+            # This is a typical nasty read after write syncronization bug.
             duplicate = copy.deepcopy(self)
             if lock is not None:
                 lock.release()
+
+            # Free the dynamic objects from a saved prefix sequence if the request succeeded and
+            # the prefix should be re-rendered for the next combination.
+            if self.rendered_prefix_status is not None:
+                if rendering_is_valid and self.re_render_prefix_on_success == True:
+                    self.rendered_prefix_status = None
+                    dependencies.stop_saving_local_dyn_objects(reset=True)
 
             # return a rendered clone if response indicates a valid status code
             if rendering_is_valid or Settings().ignore_feedback:
@@ -560,6 +621,10 @@ class Sequence(object):
                                         final_request_response=response,
                                         response_datetime=response_datetime_str)
 
+        # Since all of the renderings have been tested, clear the rendered prefix status
+        # and release local dynamic objects, since they are no longer needed.
+        self.rendered_prefix_status = RenderedPrefixStatus.NONE
+        dependencies.clear_saved_local_dyn_objects()
         return RenderedSequence(None)
 
     def append_data_to_sent_list(self, rendered_data, parser, response, producer_timing_delay=0, max_async_wait_time=0):

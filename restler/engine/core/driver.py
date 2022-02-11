@@ -282,6 +282,8 @@ def render_one(seq_to_render, ith, checkers, generation, global_lock):
         print("Unsupported fuzzing_mode:", Settings().fuzzing_mode)
         assert False
 
+    # Release any saved dynamic objects
+    dependencies.clear_saved_local_dyn_objects()
     return valid_renderings
 
 def render_parallel(seq_collection, fuzzing_pool, checkers, generation, global_lock):
@@ -701,6 +703,7 @@ def generate_sequences(fuzzing_requests, checkers, fuzzing_jobs=1):
                 logger.write_to_main("Timed out...")
                 timeout_reached = True
                 seq_collection_exhausted = True
+
                 # Increase fuzzing generation after timeout because the code
                 # that does it would have never been reached. This is done so
                 # the previous generation's test summary is logged correctly.

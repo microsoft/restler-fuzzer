@@ -70,14 +70,19 @@ class FunctionalityTests(unittest.TestCase):
         except subprocess.CalledProcessError:
             self.fail(f"Restler returned non-zero exit code: {result.returncode} {result.stdout}")
 
-    def run_abc_smoke_test(self, test_file_dir, grammar_file_name, fuzzing_mode):
+    def run_abc_smoke_test(self, test_file_dir, grammar_file_name, fuzzing_mode, settings_file=None, dictionary_file_name=None):
         grammar_file_path = os.path.join(test_file_dir, grammar_file_name)
-        dict_file_path = os.path.join(test_file_dir, "abc_dict.json")
+        if dictionary_file_name is None:
+            dictionary_file_name = "abc_dict.json"
+        dict_file_path = os.path.join(test_file_dir, dictionary_file_name)
         args = Common_Settings + [
         '--fuzzing_mode', f"{fuzzing_mode}",
         '--restler_grammar', f'{grammar_file_path}',
         '--custom_mutations', f'{dict_file_path}'
         ]
+        if settings_file:
+            settings_file_path = os.path.join(test_file_dir, settings_file)
+            args = args + ['--settings', f'{settings_file_path}']
         self.run_restler_engine(args)
 
     def tearDown(self):
@@ -145,6 +150,66 @@ class FunctionalityTests(unittest.TestCase):
         except TestFailedException:
             self.fail("Smoke test failed: Fuzzing")
 
+
+    def test_abc_minimal_smoke_test_prefix_cache(self):
+        """ This checks that the directed smoke test executes the expected
+        sequences in Test mode with test-all-combinations and when caching prefix sequences for several
+        request types via the engine settings.
+
+        Let 5 requests A, B, C, D, E where:
+        - A and B have no pre-requisites
+        - C and D both depend on A and B (they are identical)
+        - E depends on D
+
+        In the current implementation, all sequences for A, B, C, D will be
+        rendered "from scratch", but the sequence for E will reuse the 'D' prefix (as confirmed by a separate test above).
+
+        This test introduces 2 combinations for C, D, and E, and confirms that for the second combination,
+        no requests are re-rendered for C and D (GET requests), but the combination is re-rendered for the PUT
+        (as specified in the settings file).
+
+
+        """
+        self.run_abc_smoke_test(Test_File_Directory, "abc_test_grammar_combinations.py", "test-all-combinations")
+        experiments_dir = self.get_experiments_dir()
+
+        ## Make sure all requests were successfully rendered.  This is because the comparisons below do not
+        ## take status codes into account
+
+        ## Make sure the right number of requests was sent.
+        testing_summary_file_path = os.path.join(experiments_dir, "logs", "testing_summary.json")
+
+        try:
+            with open(testing_summary_file_path, 'r') as file:
+                testing_summary = json.loads(file.read())
+                total_requests_sent = testing_summary["total_requests_sent"]["main_driver"]
+                num_fully_valid = testing_summary["num_fully_valid"]
+                self.assertEqual(num_fully_valid, 5)
+                self.assertLessEqual(total_requests_sent, 22)
+
+            default_parser = FuzzingLogParser(os.path.join(Test_File_Directory, "abc_smoke_test_testing_log_all_combinations.txt"))
+            test_parser = FuzzingLogParser(self.get_network_log_path(experiments_dir, logger.LOG_TYPE_TESTING))
+            self.assertTrue(default_parser.diff_log(test_parser))
+        except TestFailedException:
+            self.fail("Smoke test failed: Fuzzing")
+
+        # Now run the same test with the additional settings file.
+        self.run_abc_smoke_test(Test_File_Directory, "abc_test_grammar_combinations.py", "test-all-combinations",
+                                settings_file="abc_smoke_test_settings_prefix_cache.json")
+        experiments_dir = self.get_experiments_dir()
+        testing_summary_file_path = os.path.join(experiments_dir, "logs", "testing_summary.json")
+        try:
+            with open(testing_summary_file_path, 'r') as file:
+                testing_summary = json.loads(file.read())
+                total_requests_sent = testing_summary["total_requests_sent"]["main_driver"]
+                num_fully_valid = testing_summary["num_fully_valid"]
+                self.assertEqual(num_fully_valid, 5)
+                self.assertLessEqual(total_requests_sent, 20)
+
+        except TestFailedException:
+            self.fail("Smoke test failed: Fuzzing")
+
+
     def test_ab_all_combinations_with_sequence_failure(self):
         """ This checks that sequence failures are correctly reported in the
         spec coverage file for a minimal grammar.
@@ -161,7 +226,7 @@ class FunctionalityTests(unittest.TestCase):
 
         The test checks that the sequence failure sample requests are correct.
         """
-        self.run_abc_smoke_test(Test_File_Directory, "ab_flaky_b_grammar.py", "test-all-combinations")
+        self.run_abc_smoke_test(Test_File_Directory, "ab_flaky_b_grammar.py", "test-all-combinations", settings_file="always_render_full_seq_settings.json")
         experiments_dir = self.get_experiments_dir()
 
         # Make sure all requests were successfully rendered.  This is because the comparisons below do not
