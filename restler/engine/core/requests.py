@@ -684,6 +684,8 @@ class Request(object):
             raise InvalidDictionaryException
 
         fuzzable = []
+        # The following list will contain tuples of (writer_variable, is_quoted)
+        # for each value that should be written to a corresponding writer variable.
         writer_variables=[]
         # The following list will contain name-value pairs of properties whose combinations
         # are tracked for coverage reporting purposes.
@@ -701,7 +703,7 @@ class Request(object):
                 default_val = request_block[2]
                 quoted = request_block[3]
                 examples = request_block[4]
-                writer_variable = request_block[6]
+                writer_variable = (request_block[6], quoted)
             elif primitive_type in [ primitives.CUSTOM_PAYLOAD,
                                      primitives.CUSTOM_PAYLOAD_HEADER,
                                      primitives.CUSTOM_PAYLOAD_QUERY,
@@ -709,13 +711,13 @@ class Request(object):
                 field_name = request_block[1]
                 quoted = request_block[2]
                 examples = request_block[3]
-                writer_variable = request_block[5]
+                writer_variable = (request_block[5], quoted)
             else:
                 default_val = request_block[1]
                 quoted = request_block[2]
                 examples = request_block[3]
                 field_name = request_block[4]
-                writer_variable = request_block[5]
+                writer_variable = (request_block[5], quoted)
 
             values = []
             # Handling dynamic primitives that need fresh rendering every time
@@ -912,7 +914,12 @@ class Request(object):
                 values = request_utilities.resolve_dynamic_primitives(values, candidate_values_pool)
                 for val_idx, val in enumerate(values):
                     if writer_variables[val_idx] is not None:
-                        dependencies.set_variable(writer_variables[val_idx], val)
+                        # Save the unquoted value.
+                        # It will be quoted again at the time it is used, if needed
+                        (writer_variable, writer_is_quoted) = writer_variables[val_idx]
+                        if writer_is_quoted:
+                            val = val[1:-1]
+                        dependencies.set_variable(writer_variable, val)
 
                 tracked_parameter_values = {}
                 for (k, idx_list) in tracked_parameters.items():
