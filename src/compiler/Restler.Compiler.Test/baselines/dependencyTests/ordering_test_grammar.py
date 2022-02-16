@@ -18,7 +18,7 @@ request = requests.Request([
     primitives.restler_static_string("products"),
     primitives.restler_static_string(" HTTP/1.1\r\n"),
     primitives.restler_static_string("Accept: application/json\r\n"),
-    primitives.restler_static_string("Host: localhost:8888\r\n"),
+    primitives.restler_static_string("Host: localhost:8878\r\n"),
     primitives.restler_refreshable_authentication_token("authentication_token_tag"),
     primitives.restler_static_string("\r\n"),
 
@@ -47,7 +47,7 @@ request = requests.Request([
     primitives.restler_static_string("services"),
     primitives.restler_static_string(" HTTP/1.1\r\n"),
     primitives.restler_static_string("Accept: application/json\r\n"),
-    primitives.restler_static_string("Host: localhost:8888\r\n"),
+    primitives.restler_static_string("Host: localhost:8878\r\n"),
     primitives.restler_refreshable_authentication_token("authentication_token_tag"),
     primitives.restler_static_string("\r\n"),
 
@@ -77,7 +77,7 @@ request = requests.Request([
     primitives.restler_static_string("managementTools"),
     primitives.restler_static_string(" HTTP/1.1\r\n"),
     primitives.restler_static_string("Accept: application/json\r\n"),
-    primitives.restler_static_string("Host: localhost:8888\r\n"),
+    primitives.restler_static_string("Host: localhost:8878\r\n"),
     primitives.restler_refreshable_authentication_token("authentication_token_tag"),
     primitives.restler_static_string("\r\n"),
 

@@ -57,7 +57,7 @@ request = requests.Request([
     primitives.restler_static_string("user"),
     primitives.restler_static_string(" HTTP/1.1\r\n"),
     primitives.restler_static_string("Accept: application/json\r\n"),
-    primitives.restler_static_string("Host: localhost:8888\r\n"),
+    primitives.restler_static_string("Host: localhost:8878\r\n"),
     primitives.restler_refreshable_authentication_token("authentication_token_tag"),
     primitives.restler_static_string("\r\n"),
 
@@ -89,7 +89,7 @@ request = requests.Request([
     primitives.restler_static_string(_service_user_post_userId_header.reader(), quoted=False),
     primitives.restler_static_string(" HTTP/1.1\r\n"),
     primitives.restler_static_string("Accept: application/json\r\n"),
-    primitives.restler_static_string("Host: localhost:8888\r\n"),
+    primitives.restler_static_string("Host: localhost:8878\r\n"),
     primitives.restler_refreshable_authentication_token("authentication_token_tag"),
     primitives.restler_static_string("\r\n"),
 
@@ -110,7 +110,7 @@ request = requests.Request([
     primitives.restler_static_string(_service_user_post_userId_header.reader(), quoted=False),
     primitives.restler_static_string(" HTTP/1.1\r\n"),
     primitives.restler_static_string("Accept: application/json\r\n"),
-    primitives.restler_static_string("Host: localhost:8888\r\n"),
+    primitives.restler_static_string("Host: localhost:8878\r\n"),
     primitives.restler_refreshable_authentication_token("authentication_token_tag"),
     primitives.restler_static_string("\r\n"),
 
@@ -131,7 +131,7 @@ request = requests.Request([
     primitives.restler_static_string(_service_user_post_userId_header.reader(), quoted=False),
     primitives.restler_static_string(" HTTP/1.1\r\n"),
     primitives.restler_static_string("Accept: application/json\r\n"),
-    primitives.restler_static_string("Host: localhost:8888\r\n"),
+    primitives.restler_static_string("Host: localhost:8878\r\n"),
     primitives.restler_refreshable_authentication_token("authentication_token_tag"),
     primitives.restler_static_string("\r\n"),
 

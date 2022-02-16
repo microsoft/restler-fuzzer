@@ -179,7 +179,7 @@
 
 
   },
-  "host": "localhost:8888",
+  "host": "localhost:8878",
   "info": {
     "description": "",
     "title": "Based on ApplicationGateway.json",

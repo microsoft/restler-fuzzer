@@ -5,7 +5,7 @@
     "version": "1"
   },
 
-  "host": "localhost:8888",
+  "host": "localhost:8878",
   "paths": {
     "/customer/{customerId}": {
       "put": {
