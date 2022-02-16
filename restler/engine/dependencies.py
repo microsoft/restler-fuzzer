@@ -18,6 +18,11 @@ threadLocal = threading.local()
 # Keep TLS tlb to enforce mutual exclusion when using >1 fuzzing jobs.
 threadLocal.tlb = {}
 tlb = threadLocal.tlb
+# The 'local_dyn_objects_cache' tracks dynamic objects that are created while
+# rendering the sequence prefix and must not be deleted until the prefix is no longer in use.
+threadLocal.local_dyn_objects_cache = {}
+local_dyn_objects_cache = threadLocal.local_dyn_objects_cache
+gc_paused = False
 
 # Keep a global registry for garbage collection (deletion) of dynamic objects.
 dyn_objects_cache = {}
@@ -109,6 +114,15 @@ def get_variable(type):
 
     return encoded_value
 
+def __add_variable_to_dyn_cache(type, value, obj_cache, cache_lock):
+    # Keep track of all dynamic objects ever created.
+    if cache_lock is not None:
+        cache_lock.acquire()
+    if type not in obj_cache:
+        obj_cache[type] = []
+    obj_cache[type].append(value)
+    if cache_lock is not None:
+        cache_lock.release()
 
 def set_variable(type, value):
     """ Setter for dynamic variable (a.k.a. dependency).
@@ -128,15 +142,10 @@ def set_variable(type, value):
     tlb[type] = value
     # thread_id = threading.current_thread().ident
     # print("Setting: {} / Value: {} ({})".format(type, value, thread_id))
-
-    # Keep track of all dynamic objects ever created.
-    if dyn_objects_cache_lock is not None:
-        dyn_objects_cache_lock.acquire()
-    if type not in dyn_objects_cache:
-        dyn_objects_cache[type] = []
-    dyn_objects_cache[type].append(value)
-    if dyn_objects_cache_lock is not None:
-        dyn_objects_cache_lock.release()
+    if gc_paused:
+        __add_variable_to_dyn_cache(type, value, local_dyn_objects_cache, None)
+    else:
+        __add_variable_to_dyn_cache(type, value, dyn_objects_cache, dyn_objects_cache_lock)
 
 def set_variable_no_gc(type, value):
     """ Setter for dynamic variable that should never be garbage collected.
@@ -161,6 +170,50 @@ def reset_tlb():
     """
     for k in tlb:
         tlb[k] = None
+
+def clear_saved_local_dyn_objects():
+    """ Moves all of the saved objects from the saved objects cache to the regular tlb, so
+    they can be deleted.
+    """
+    if gc_paused:
+        raise Exception("Error: cannot clear saved dynamic objects while they are being saved.")
+
+    if dyn_objects_cache_lock is not None:
+        dyn_objects_cache_lock.acquire()
+    for type in local_dyn_objects_cache:
+        if type not in dyn_objects_cache:
+            dyn_objects_cache[type] = []
+        dyn_objects_cache[type] = dyn_objects_cache[type] + local_dyn_objects_cache[type]
+    if dyn_objects_cache_lock is not None:
+        dyn_objects_cache_lock.release()
+
+    local_dyn_objects_cache.clear()
+
+
+def start_saving_local_dyn_objects():
+    """ Instead of adding saved dynamic objects to the regular tlb, add it to the saved tlb.
+    This will save them until explicitly released.
+    """
+    global gc_paused
+    if gc_paused:
+        raise Exception("Error: the GC is already paused.")
+
+    gc_paused = True
+
+def stop_saving_local_dyn_objects(reset=False):
+    """ Set the state so that any future objects that are created are
+    added to the regular TLB and will be garbage collected automatically.
+
+    @param reset: If 'True', also release the saved objects.
+    @type reset: Bool
+
+    @return: None
+    @rtype : None
+    """
+    global gc_paused
+    gc_paused = False
+    if reset:
+        clear_saved_local_dyn_objects()
 
 def set_saved_dynamic_objects():
     """ Saves the current dynamic objects cache to a separate
