@@ -913,10 +913,10 @@ class Request(object):
                 values = list(values)
                 values = request_utilities.resolve_dynamic_primitives(values, candidate_values_pool)
                 for val_idx, val in enumerate(values):
-                    if writer_variables[val_idx] is not None:
+                    (writer_variable, writer_is_quoted) = writer_variables[val_idx]
+                    if writer_variable is not None:
                         # Save the unquoted value.
                         # It will be quoted again at the time it is used, if needed
-                        (writer_variable, writer_is_quoted) = writer_variables[val_idx]
                         if writer_is_quoted:
                             val = val[1:-1]
                         dependencies.set_variable(writer_variable, val)
