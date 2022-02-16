@@ -1,0 +1,7 @@
+# comments for macos
+# compile
+dotnet ./restler_bin/restler/Restler.dll compile --api_spec ./demo_server/swagger.json
+# test
+dotnet ./restler_bin/restler/Restler.dll test --grammar_file ./Compile/grammar.py --dictionary_file ./Compile/dict.json --settings ./Compile/engine_settings.json --no_ssl
+# fuzz
+dotnet ./restler_bin/restler/Restler.dll fuzz --grammar_file ./Compile/grammar.py --dictionary_file ./Compile/dict.json --settings ./Compile/engine_settings.json --no_ssl
