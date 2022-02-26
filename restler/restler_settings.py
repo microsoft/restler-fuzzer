@@ -415,6 +415,8 @@ class RestlerSettings(object):
         self._basepath = SettingsArg('basepath', str, None, user_args)
         ##  Ignore request dependencies
         self._ignore_dependencies = SettingsArg('ignore_dependencies', bool, False, user_args)
+        ##  Re-create the connection for every request sent.
+        self._reconnect_on_every_request = SettingsArg('reconnect_on_every_request', bool, False, user_args)
         ## Ignore server-side feedback
         self._ignore_feedback = SettingsArg('ignore_feedback', bool, False, user_args)
         ## Include user agent in requests sent
@@ -589,6 +591,10 @@ class RestlerSettings(object):
     @property
     def max_request_execution_time(self):
         return self._max_request_execution_time.val
+
+    @property
+    def reconnect_on_every_request(self):
+        return self._reconnect_on_every_request.val
 
     @property
     def max_sequence_length(self):

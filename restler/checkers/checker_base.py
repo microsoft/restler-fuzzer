@@ -1,6 +1,8 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+import threading
+
 from abc import ABCMeta, abstractmethod
 from checkers.checker_log import CheckerLog
 
@@ -15,6 +17,8 @@ from engine.errors import TransportLayerException
 from engine.core.fuzzing_monitor import Monitor
 
 from utils.logger import raw_network_logging as RAW_LOGGING
+
+threadLocal = threading.local()
 
 class CheckerBase:
     __metaclass__ = ABCMeta
@@ -74,18 +78,21 @@ class CheckerBase:
         @return: The response from the server
         @rtype : HttpResponse
         """
-        try:
-            sock = messaging.HttpSock(self._connection_settings)
-        except TransportLayerException as error:
-            RAW_LOGGING(f"{error!s}")
-            # connection failed
-            return HttpResponse()
+        from engine.transport_layer.messaging import HttpSock
 
-        success, response = sock.sendRecv(
-            rendered_data, req_timeout_sec=Settings().max_request_execution_time
+        try:
+            checkers_sock = threadLocal.checkers_sock
+        except AttributeError:
+            # Socket not yet initialized.
+            threadLocal.checkers_sock = HttpSock(Settings().connection_settings)
+            checkers_sock = threadLocal.checkers_sock
+
+        response = request_utilities.send_request_data(
+            rendered_data, req_timeout_sec=Settings().max_request_execution_time,
+            reconnect=Settings().reconnect_on_every_request,
+            http_sock=checkers_sock
         )
-        if not success:
-            RAW_LOGGING(response.to_str)
+
         Monitor().increment_requests_count(self.__class__.__name__)
         return response
 

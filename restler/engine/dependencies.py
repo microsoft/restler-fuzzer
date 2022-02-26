@@ -10,9 +10,9 @@ import sys
 import json
 import multiprocessing
 from multiprocessing.dummy import Pool as ThreadPool
+
 import utils.formatting as formatting
 from restler_settings import Settings
-
 
 threadLocal = threading.local()
 # Keep TLS tlb to enforce mutual exclusion when using >1 fuzzing jobs.
@@ -435,8 +435,18 @@ class GarbageCollectorThread(threading.Thread):
 
         from engine.errors import TransportLayerException
         from engine.transport_layer import messaging
+        from engine.transport_layer.messaging import HttpSock
         from utils.logger import raw_network_logging as RAW_LOGGING
         from utils.logger import garbage_collector_logging as CUSTOM_LOGGING
+        from engine.core import request_utilities
+
+        try:
+            gc_sock = threadLocal.gc_sock
+        except AttributeError:
+            # Socket not yet initialized.
+            threadLocal.gc_sock = HttpSock(Settings().connection_settings)
+            gc_sock = threadLocal.gc_sock
+
         # For each object in the overflowing area, whose destructor is
         # available, render the corresponding request, send the request,
         # and then check the status code. If the resource has been determined
@@ -462,19 +472,18 @@ class GarbageCollectorThread(threading.Thread):
                 fully_rendered_data = fully_rendered_data.replace(RDELIM + type + RDELIM, value)
 
                 if fully_rendered_data:
-                    try:
-                        # Establish connection to the server
-                        sock = messaging.HttpSock(Settings().connection_settings)
-                    except TransportLayerException as error:
-                        RAW_LOGGING(f"{error!s}")
-                        return
-
                     # Send the request and receive the response
-                    success, response = sock.sendRecv(fully_rendered_data, Settings().max_request_execution_time)
+
+                    response = request_utilities.send_request_data(
+                        fully_rendered_data, req_timeout_sec=Settings().max_request_execution_time,
+                        reconnect=Settings().reconnect_on_every_request,
+                        http_sock=gc_sock)
+
+                    success = response.status_code is not None
                     if success:
                         self.monitor.increment_requests_count('gc')
                     else:
-                        RAW_LOGGING(response.to_str)
+                        RAW_LOGGING(f"GC request failed: {response.to_str}")
 
                     # Check to see if the DELETE operation is complete
                     try:

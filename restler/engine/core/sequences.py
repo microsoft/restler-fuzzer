@@ -462,6 +462,20 @@ class Sequence(object):
             self.executed_requests_count = len(self.requests) - 1
             return prev_response, response_datetime_str
 
+
+        def copy_self():
+            if lock is not None:
+                lock.acquire()
+            # Deep  copying here will try copying anything the class has access
+            # to including the shared client monitor, which we update in the
+            # above code block holding the lock, but then we release the
+            # lock and one thread can be updating while another is copying.
+            # This is a typlical nasty read after write syncronization bug.
+            duplicate = copy.deepcopy(self)
+            if lock is not None:
+                lock.release()
+            return duplicate
+
         request = self.last_request
 
         # for clarity reasons, don't log requests whose render iterator is over
@@ -516,17 +530,7 @@ class Sequence(object):
                 # for the next combination.
                 self.rendered_prefix_status = RenderedPrefixStatus.NONE
 
-                if lock is not None:
-                    lock.acquire()
-                # Deep  copying here will try copying anything the class has access
-                # to including the shared client monitor, which we update in the
-                # above code block holding the lock, but then we release the
-                # lock and one thread can be updating while another is copying.
-                # This is a typlical nasty read after write syncronization bug.
-                duplicate = copy.deepcopy(self)
-                if lock is not None:
-                    lock.release()
-
+                duplicate = copy_self()
                 return RenderedSequence(duplicate, valid=False, failure_info=FailureInformation.SEQUENCE,
                                         final_request_response=prev_response,
                                         response_datetime=response_datetime_str)
@@ -547,11 +551,16 @@ class Sequence(object):
             if parser and responses_to_parse:
                 parser_exception_occurred = not request_utilities.call_response_parser(parser, None, request=request, responses=responses_to_parse)
             status_code = response.status_code
-            if not status_code:
-                return RenderedSequence(failure_info=FailureInformation.MISSING_STATUS_CODE)
 
             self.append_data_to_sent_list(rendered_data, parser, response, max_async_wait_time=req_async_wait)
             self.executed_requests_count = self.executed_requests_count + 1
+
+            if not status_code:
+                duplicate = copy_self()
+                return RenderedSequence(duplicate, valid=False,
+                                        failure_info=FailureInformation.MISSING_STATUS_CODE,
+                                        final_request_response=response)
+
 
             rendering_is_valid = not parser_exception_occurred\
                 and not resource_error\

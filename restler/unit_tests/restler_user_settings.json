@@ -21,6 +21,7 @@
   "fuzzing_jobs": 2,
   "fuzzing_mode": "directed-smoke-test",
   "garbage_collection_interval": 30,
+  "reconnect_on_every_request": false,
   "ignore_dependencies": true,
   "ignore_feedback": true,
   "include_user_agent": true,

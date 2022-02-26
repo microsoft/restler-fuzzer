@@ -20,9 +20,38 @@ if util.find_spec("test_servers"):
 DELIM = "\r\n\r\n"
 UTF8 = 'utf-8'
 
+
 class HttpSock(object):
     __last_request_sent_time = time.time()
     __request_sem = threading.Semaphore()
+
+    def set_up_connection(self):
+        try:
+            host = Settings().host
+            target_ip = self.connection_settings.target_ip or host
+            target_port = self.connection_settings.target_port
+            if Settings().use_test_socket:
+                self._sock = TestSocket(Settings().test_server)
+            elif self.connection_settings.use_ssl:
+                if self.connection_settings.disable_cert_validation:
+                    context = ssl._create_unverified_context()
+                else:
+                    context = ssl.create_default_context()
+                if Settings().client_certificate_path:
+                    context.load_cert_chain(
+                        certfile = Settings().client_certificate_path,
+                        keyfile = Settings().client_certificate_key_path,
+                    )
+
+                with socket.create_connection((target_ip, target_port or 443)) as sock:
+                    self._sock = context.wrap_socket(sock, server_hostname=host)
+
+            else:
+                self._sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                self._sock.connect((target_ip, target_port or 80))
+        except Exception as error:
+            raise TransportLayerException(f"Exception Creating Socket: {error!s}")
+
 
     def __init__(self, connection_settings):
         """ Initializes a socket object using low-level python socket objects.
@@ -40,33 +69,8 @@ class HttpSock(object):
         self.connection_settings = connection_settings
 
         self.ignore_decoding_failures = Settings().ignore_decoding_failures
-
-        try:
-            self._sock = None
-            host = Settings().host
-            target_ip = self.connection_settings.target_ip or host
-            target_port = self.connection_settings.target_port
-            if Settings().use_test_socket:
-                self._sock = TestSocket(Settings().test_server)
-            elif self.connection_settings.use_ssl:
-                if self.connection_settings.disable_cert_validation:
-                    context = ssl._create_unverified_context()
-                else:
-                    context = ssl.create_default_context()
-                if Settings().client_certificate_path:
-                    context.load_cert_chain(
-                        certfile = Settings().client_certificate_path,
-                        keyfile = Settings().client_certificate_key_path,
-                    )
-                      
-                with socket.create_connection((target_ip, target_port or 443)) as sock:                  
-                    self._sock = context.wrap_socket(sock, server_hostname=host)
-
-            else:
-                self._sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                self._sock.connect((target_ip, target_port or 80))
-        except Exception as error:
-            raise TransportLayerException(f"Exception Creating Socket: {error!s}")
+        self._connected = False
+        self._sock = None
 
     def __del__(self):
         """ Destructor - Closes socket
@@ -80,7 +84,7 @@ class HttpSock(object):
         method_name = message[0:end_of_method_idx]
         return method_name
 
-    def sendRecv(self, message, req_timeout_sec):
+    def sendRecv(self, message, req_timeout_sec, reconnect=False):
         """ Sends a specified request to the server and waits for a response
 
         @param message: Message to be sent.
@@ -94,14 +98,28 @@ class HttpSock(object):
         @rtype : Tuple (Bool, String)
 
         """
+
         try:
+            if reconnect or not self._connected:
+                if reconnect:
+                    self._closeSocket()
+                self.set_up_connection()
+                self._connected = True
+
             self._sendRequest(message)
             if not Settings().use_test_socket:
                 http_method_name = self._get_method_from_message(message)
-                response = HttpResponse(self._recvResponse(req_timeout_sec, http_method_name))
+                received_response = self._recvResponse(req_timeout_sec, http_method_name)
+                if not received_response and not reconnect:
+                    # Re-connect and try again, since this may be due to the connection being closed.
+                    RAW_LOGGING("Empty response received.  Re-creating connection and re-trying.")
+                    return self.sendRecv(message, req_timeout_sec, reconnect=True)
+
+                response = HttpResponse(received_response)
             else:
                 response = self._sock.recv()
             RAW_LOGGING(f'Received: {response.to_str!r}\n')
+
             return (True, response)
         except TransportLayerException as error:
             response = HttpResponse(str(error).strip('"\''))
@@ -110,10 +128,16 @@ class HttpSock(object):
                 RAW_LOGGING(f"Reached max req_timeout_sec of {req_timeout_sec}.")
             elif self._contains_connection_closed(str(error)):
                 response._status_code = CONNECTION_CLOSED_CODE
-                RAW_LOGGING(f"{error!s}")
+                RAW_LOGGING(f"Connection error: {error!s}")
+                if not reconnect:
+                    RAW_LOGGING("Re-creating connection and re-trying.")
+                    return self.sendRecv(message, req_timeout_sec, reconnect=True)
+            else:
+                RAW_LOGGING(f"Unknown error: {error!s}")
+                if not reconnect:
+                    RAW_LOGGING("Re-creating connection and re-trying.")
+                    return self.sendRecv(message, req_timeout_sec, reconnect=True)
             return (False, response)
-        finally:
-            self._closeSocket()
 
     def _contains_connection_closed(self, error_str):
         """ Returns whether or not the error string contains a connection closed error
@@ -129,7 +153,14 @@ class HttpSock(object):
         # is being run from a Windows system.
         # Errno 104 occurs when the server terminates the connection and RESTler
         # is being run from a Linux system.
-        return '[WinError 10054]' in error_str or '[Errno 104]' in error_str
+        connection_closed_strings = [
+                # Windows
+                '[WinError 10054]',
+                '[WinError 10053]',
+                # Linux
+                '[Errno 104]'
+            ]
+        return any(filter(lambda x : x in error_str, connection_closed_strings))
 
     def _sendRequest(self, message):
         """ Sends message via current instance of socket object.
