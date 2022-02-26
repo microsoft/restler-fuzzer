@@ -62,7 +62,7 @@ def import_grammar(path):
         shutil.copyfile(path, target_path)
     except shutil.Error:
         pass
-
+    print("request collection",req_collection)
     return req_collection
 
 def get_checker_list(req_collection, fuzzing_requests, enable_list, disable_list, set_enable_first, custom_checkers, enable_default_checkers=True):
