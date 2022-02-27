@@ -60,5 +60,5 @@ def main():
     log.info('>>>>> Starting development server at http://{}/api/ <<<<<'.format(app.config['SERVER_NAME']))
     app.run(threaded=True, use_reloader=False, debug=settings.FLASK_DEBUG, host=os.getenv("FLASK_RUN_HOST", "localhost"))
 
-if __name__ == "__main__":
-    main()
+# if __name__ == "__main__":
+#     main()
