@@ -321,7 +321,7 @@ module private Parameters =
                                 else
                                     let parameterGrammarElement =
                                         generateGrammarElementForSchema declaredParameter.ActualSchema
-                                                                        (Some payloadValue, false)
+                                                                        (Some payloadValue, true)
                                                                         (trackParameters, None)
                                                                         (declaredParameter.IsRequired, (parameterIsReadOnly declaredParameter))
                                                                         []

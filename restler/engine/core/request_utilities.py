@@ -185,6 +185,7 @@ def resolve_dynamic_primitives(values, candidate_values_pool):
     @return: List of string of primitive type payloads for which any dynamic
                 primitive (e.g., uuid4) with be substituted with a fresh and
                 unique value.
+            Note: this function will also update the values in place as a side effect.
     @rtype : List
 
     """
