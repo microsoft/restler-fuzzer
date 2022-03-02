@@ -1,6 +1,6 @@
 from logging import warning
 from flask import Flask, request, g
-from app import app,main
+from app import app, main
 import warnings
 
 warning_map = {
@@ -22,20 +22,20 @@ with warnings.catch_warnings(record=True) as w:
 
     @app.before_request
     def before_req():
-        print('request intercepted before processing')
-        print(request)
+        # print('request intercepted before processing')
+        # print(request)
 
         # clear warnings before processing requests
         w.clear()
 
     @app.after_request
     def after_req(response):
-        print('response intercepted after processing')
-        print(response)
+        # print('response intercepted after processing')
+        # print(response)
 
         # We can access captured warnings in w
-        print('When processing the reqeust, the following warnings were observed')
-        print(w)
+        # print('When processing the reqeust, the following warnings were observed')
+        # print(w)
 
         if len(w) > 0:
             # Only return the first warning...
@@ -43,8 +43,8 @@ with warnings.catch_warnings(record=True) as w:
             status_code = warning_map.get(warning_category, warning_map["Warning"])
             response.status_code = status_code
 
-        print('response after warning check')
-        print(response)
+        # print('response after warning check')
+        # print(response)
         # clear warnings after response
         w.clear()
         return response
