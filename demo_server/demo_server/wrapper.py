@@ -1,3 +1,4 @@
+from logging import warning
 from flask import Flask, request, g
 from app import app,main
 import warnings
@@ -26,10 +27,6 @@ with warnings.catch_warnings(record=True) as w:
 
         # clear warnings before processing requests
         w.clear()
-
-        # warning injected for testing
-        warnings.warn("devil hides in the detail: deprecated", DeprecationWarning)
-
 
     @app.after_request
     def after_req(response):

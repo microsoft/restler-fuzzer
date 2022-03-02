@@ -11,6 +11,7 @@ from demo_server.api.blog.serializers import blog_post, blog_post_public,\
 from demo_server.api.blog.parsers import pagination_arguments
 from demo_server.api.restplus import api
 from demo_server.database.models import Post
+import warnings 
 
 log = logging.getLogger(__name__)
 
@@ -31,7 +32,7 @@ class PostsCollection(Resource):
         per_page = args.get('per_page', 1)
         posts_query = Post.query
         posts_page = posts_query.paginate(page, per_page)
-
+        warnings.warn("test warning",DeprecationWarning)
         return posts_page
 
     @api.expect(blog_post_public)
