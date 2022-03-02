@@ -6,7 +6,6 @@ from restler_settings import Settings
 
 DELIM = "\r\n\r\n"
 VALID_CODES = {'200', '201', '202', '204', '304', '290', '291', '292', '293', '294', '295', '296', '297', '298', '299' }
-# VALID_CODES = {'200', '201', '202', '204', '304'}
 TIMEOUT_CODE = '599'
 CONNECTION_CLOSED_CODE = '598'
 RESTLER_BUG_CODES = [TIMEOUT_CODE, CONNECTION_CLOSED_CODE]
