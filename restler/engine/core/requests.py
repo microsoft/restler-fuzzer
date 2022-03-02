@@ -788,14 +788,15 @@ class Request(object):
             }
             yield self.get_parameters_from_schema(param_schema_combinations)
 
-    def init_fuzzable_values(self, req_definition, candidate_values_pool, preprocessing=False):
+    def init_fuzzable_values(self, req_definition, candidate_values_pool, preprocessing=False, log_dict_err_to_main=True):
         def _raise_dict_err(type, tag):
-            logger.write_to_main(
-                f"Error for request {self.method} {self.endpoint_no_dynamic_objects}.\n"
-                f"{type} exception: {tag} not found.\n"
-                "Make sure you are using the dictionary created during compilation.",
-                print_to_console=True
-            )
+            if log_dict_err_to_main:
+                logger.write_to_main(
+                    f"Error for request {self.method} {self.endpoint_no_dynamic_objects}.\n"
+                    f"{type} exception: {tag} not found.\n"
+                    "Make sure you are using the dictionary created during compilation.",
+                    print_to_console=True
+                )
             raise InvalidDictionaryException
 
         fuzzable = []
@@ -918,7 +919,7 @@ class Request(object):
                 random.shuffle(values)
 
             if len(values) == 0:
-                _raise_dict_err(primitive_type, current_fuzzable_tag)
+                _raise_dict_err(primitive_type, "empty value list")
 
             # When testing all combinations, update tracked parameters.
             if Settings().fuzzing_mode == 'test-all-combinations':
@@ -936,7 +937,22 @@ class Request(object):
 
         return fuzzable, writer_variables, tracked_parameters
 
-    def render_iter(self, candidate_values_pool, skip=0, preprocessing=False, prev_rendered_values=None):
+    @staticmethod
+    def init_value_generators(fuzzable_request_blocks, fuzzable, value_gen_tracker):
+        value_generators = {}
+        for idx in fuzzable_request_blocks:
+            if fuzzable[idx] \
+            and isinstance(fuzzable[idx][0], tuple)\
+            and primitives.is_value_generator(fuzzable[idx][0][0]):
+                value_gen_wrapper = fuzzable[idx][0][0]
+                value_generator = value_gen_wrapper(value_gen_tracker, idx)
+                # Replace the wrapper with the generator in the tuple.
+                tmp_list = list(fuzzable[idx][0])
+                tmp_list[0] = value_generator
+                value_generators[idx] = tuple(tmp_list)
+        return value_generators
+
+    def render_iter(self, candidate_values_pool, skip=0, preprocessing=False, prev_rendered_values=None, value_list=False):
         """ This is the core method that renders values combinations in a
         request template. It basically is a generator which lazily iterates over
         a pool of possible combination of values that fit the template of the
@@ -955,6 +971,12 @@ class Request(object):
         @type skip: Int
         @param preprocessing: Set to True if this rendering is happening during preprocessing
         @type  preprocessing: Bool
+        @param prev_rendered_values: Set to True if this rendering is happening during preprocessing
+        @type  prev_rendered_values: Dict[Int, Str]
+        @param value_list: Set to True to return the list of elements of the rendered request
+                           corresponding to the request definition.  If False,
+                           the rendered request is returned as a string.
+        @type  value_list: Bool
 
         @return: (rendered request's payload, response's parser function, request's tracked parameter values)
         @rtype : (Str, Function Pointer, List[Str])
@@ -969,19 +991,6 @@ class Request(object):
             )
             raise InvalidDictionaryException
 
-        def init_value_generators(fuzzable_request_blocks, fuzzable, value_gen_tracker):
-            value_generators = {}
-            for idx in fuzzable_request_blocks:
-                if fuzzable[idx] \
-                and isinstance(fuzzable[idx][0], tuple)\
-                and primitives.is_value_generator(fuzzable[idx][0][0]):
-                    value_gen_wrapper = fuzzable[idx][0][0]
-                    value_generator = value_gen_wrapper(value_gen_tracker, idx)
-                    # Replace the wrapper with the generator in the tuple.
-                    tmp_list = list(fuzzable[idx][0])
-                    tmp_list[0] = value_generator
-                    value_generators[idx] = tuple(tmp_list)
-            return value_generators
 
         if not candidate_values_pool:
             print("Candidate values pool empty")
@@ -1023,8 +1032,8 @@ class Request(object):
             # be cached and re-used.
             value_gen_tracker = self._rendered_values_cache.value_gen_tracker
             if schema_idx not in self._rendered_values_cache._value_generators:
-                value_generators = init_value_generators(fuzzable_request_blocks, fuzzable,
-                                                         value_gen_tracker)
+                value_generators = Request.init_value_generators(fuzzable_request_blocks, fuzzable,
+                                                                 value_gen_tracker)
                 self._rendered_values_cache.value_generators[schema_idx] = value_generators
             value_generators = self._rendered_values_cache.value_generators[schema_idx]
 
@@ -1105,7 +1114,10 @@ class Request(object):
                 if cached_values:
                     self._rendered_values_cache.add_fuzzable_values(next_combination, cached_values)
 
-                rendered_data = "".join(values)
+                if value_list:
+                    rendered_data = values
+                else:
+                    rendered_data = "".join(values)
                 yield rendered_data, parser, tracked_parameter_values
 
                 next_combination = next_combination + 1

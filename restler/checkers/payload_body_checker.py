@@ -397,7 +397,6 @@ class PayloadBodyChecker(CheckerBase):
         # As a workaround, if the candidate values are not provided in a static list,
         # return an empty list.
         if not isinstance(string_group, list):
-            print("ignoring value generator...")
             string_group = []
         ignore = set(string_group)
         return ignore
@@ -905,7 +904,7 @@ class PayloadBodyChecker(CheckerBase):
         @rtype : None
 
         """
-        # Copied from InvalidDynamicObjectChecker
+        # Copied from CheckerBase
         RAW_LOGGING("Re-rendering and sending start of sequence")
         new_seq = sequences.Sequence([])
         for request in self._sequence.requests[:-1]:

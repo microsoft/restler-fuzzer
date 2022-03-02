@@ -468,6 +468,7 @@ class FunctionalityTests(unittest.TestCase):
             '--fuzzing_mode', 'directed-smoke-test',
             '--restler_grammar', f'{os.path.join(Test_File_Directory, "test_grammar_bugs.py")}',
             '--enable_checkers', '*',
+            '--disable_checkers', 'invalidvalue',
             '--settings', f'{settings_file_path}'
         ]
 
@@ -551,7 +552,7 @@ class FunctionalityTests(unittest.TestCase):
             '--restler_grammar',f'{os.path.join(Test_File_Directory, "test_grammar.py")}',
             '--time_budget', f'{Fuzz_Time}',
             '--enable_checkers', '*',
-            '--disable_checkers', 'namespacerule',
+            '--disable_checkers', 'namespacerule', 'invalidvalue',
             '--settings', f'{settings_file_path}'
         ]
 
