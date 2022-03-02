@@ -406,7 +406,6 @@ value_generators = {
 ```
 
 
-
 ## Example Settings File Format
 ```json
 {

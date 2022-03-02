@@ -663,7 +663,7 @@ module SwaggerVisitors =
                                 |> Seq.map (fun example ->
                                                 generateGrammarElementForSchema
                                                     schema.Item.ActualSchema
-                                                    (Some example, false)
+                                                    (Some example, true)
                                                     (trackParameters, jsonPropertyMaxDepth)
                                                     (isRequired, isReadOnly)
                                                     (schema::parents)
@@ -675,7 +675,7 @@ module SwaggerVisitors =
 
             let allOfParameterSchemas =
                 schema.AllOf
-                |> Seq.map (fun ao -> ao, generateGrammarElementForSchema ao.ActualSchema (exampleValue, false) (trackParameters, jsonPropertyMaxDepth) (isRequired, isReadOnly) (schema::parents) schemaCache id)
+                |> Seq.map (fun ao -> ao, generateGrammarElementForSchema ao.ActualSchema (exampleValue, true) (trackParameters, jsonPropertyMaxDepth) (isRequired, isReadOnly) (schema::parents) schemaCache id)
                 |> Seq.cache
 
             // For AnyOf, take the first schema.
@@ -683,7 +683,7 @@ module SwaggerVisitors =
             let anyOfParameterSchema =
                 schema.AnyOf
                 |> Seq.truncate 1
-                |> Seq.map (fun ao -> ao, generateGrammarElementForSchema ao.ActualSchema (exampleValue, false) (trackParameters, jsonPropertyMaxDepth) (isRequired, isReadOnly) (schema::parents) schemaCache id)
+                |> Seq.map (fun ao -> ao, generateGrammarElementForSchema ao.ActualSchema (exampleValue, true) (trackParameters, jsonPropertyMaxDepth) (isRequired, isReadOnly) (schema::parents) schemaCache id)
                 |> Seq.cache
 
             let getSchemaAndProperties schemas =

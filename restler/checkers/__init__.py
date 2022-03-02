@@ -11,3 +11,4 @@ from checkers.namespace_rule_checker import *
 from checkers.invalid_dynamic_object_checker import *
 from checkers.payload_body_checker import *
 from checkers.examples_checker import *
+from checkers.invalid_value_checker import *

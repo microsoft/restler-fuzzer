@@ -890,13 +890,13 @@ class PayloadBodyChecker(CheckerBase):
             response and response.has_valid_code()
 
     def _execute_start_of_sequence(self):
-        """ Send all requests in the sequence up until the last request
+        """ Send all requests in the sequence up until the last request.
 
         @return: None
         @rtype : None
 
         """
-        # Copied from InvalidDynamicObjectChecker
+        # Copied from CheckerBase
         RAW_LOGGING("Re-rendering and sending start of sequence")
         new_seq = sequences.Sequence([])
         for request in self._sequence.requests[:-1]:

@@ -78,24 +78,6 @@ class InvalidDynamicObjectChecker(CheckerBase):
                 self._print_suspect_sequence(new_seq, response)
 
 
-    def _execute_start_of_sequence(self):
-        """ Send all requests in the sequence up until the last request
-
-        @return: Sequence of n predecessor requests send to server
-        @rtype : Sequence
-
-        """
-        RAW_LOGGING("Re-rendering and sending start of sequence")
-        new_seq = sequences.Sequence([])
-        for request in self._sequence.requests[:-1]:
-            new_seq = new_seq + sequences.Sequence(request)
-            response, _ = self._render_and_send_data(new_seq, request)
-            # Check to make sure a bug wasn't uncovered while executing the sequence
-            if response and response.has_bug_code():
-                self._print_suspect_sequence(new_seq, response)
-                BugBuckets.Instance().update_bug_buckets(new_seq, response.status_code, origin=self.__class__.__name__)
-
-        return new_seq
 
     def _prepare_invalid_requests(self, data):
         """ Prepares requests with invalid dynamic objects.

@@ -91,6 +91,10 @@
       "size_dep_budget": false,
       "use_feedback": true,
       "recipe_file": "C:\\restler\\restlerpayloadbody\\recipe_custom.json"
+    },
+    "invalidvalue": {
+      "custom_dictionary": "C:\\restler\\invalidvalue\\dict.json",
+      "max_combinations": 100
     }
   },
   "custom_bug_codes": [

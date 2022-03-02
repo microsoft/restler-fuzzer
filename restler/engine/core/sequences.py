@@ -288,22 +288,33 @@ class Sequence(object):
     def resolve_dependencies(self, data):
         """ Renders dependent variables.
 
-        @param data: The rendered payload with dependency placeholders.
-        @type data: String
+        @param data: The rendered payload (or list of rendered payload elements)
+                     corresponding to the request definition,
+                     with dependency placeholders.
+        @type data: Str or List[Str]
 
-        @return: The rendered payload with dependency placeholders substituted
+        @return: The rendered payload (or list of elements) with dependency placeholders substituted
                     by the respective values parsed from the appropriate
                     responses.
         @rtype : String
 
         """
-        data = str(data).split(dependencies.RDELIM)
-        for i in range(1, len(data), 2):
-            var_name = data[i]
-            data[i] = dependencies.get_variable(var_name)
-            if data[i] == 'None':
-                RAW_LOGGING(f'Dynamic object {var_name} is set to None!')
-        return "".join(data)
+        if isinstance(data, list):
+            for idx, val in enumerate(data):
+                if dependencies.RDELIM in data:
+                    var_name = data.remove(dependencies.RDELIM)
+                    data[idx] = dependencies.get_variable(var_name)
+                    if data[idx] == 'None':
+                        RAW_LOGGING(f'Dynamic object {var_name} is set to None!')
+            return data
+        else:
+            data = str(data).split(dependencies.RDELIM)
+            for i in range(1, len(data), 2):
+                var_name = data[i]
+                data[i] = dependencies.get_variable(var_name)
+                if data[i] == 'None':
+                    RAW_LOGGING(f'Dynamic object {var_name} is set to None!')
+            return "".join(data)
 
     def render(self, candidate_values_pool, lock, preprocessing=False, postprocessing=False):
         """ Core routine that performs the rendering of restler sequences. In

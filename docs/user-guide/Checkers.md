@@ -48,7 +48,7 @@ The two following options can (optionally) be specified in the settings file:
 
 If *trigger_on_dynamic_objects* is true, then the namespacerule checker performs all its checks as usual. (Default: true)
 
-*trigger_objects* is a list of strings. If this list is non-empty, any request containing any of these strings will be replayed using the attacker credentials. This way, the user can direct this checker to try attacker credentials for any request containing specific trigger_object strings (and regardless of whether the request consumes a resource, etc.). In the example above, any request which includes either the string "tenantID" or "userID" anywhere in its rendering (e.g., in its path, or body, or header, etc.) will be replayed with the attacker credentials. 
+*trigger_objects* is a list of strings. If this list is non-empty, any request containing any of these strings will be replayed using the attacker credentials. This way, the user can direct this checker to try attacker credentials for any request containing specific trigger_object strings (and regardless of whether the request consumes a resource, etc.). In the example above, any request which includes either the string "tenantID" or "userID" anywhere in its rendering (e.g., in its path, or body, or header, etc.) will be replayed with the attacker credentials.
 
 Both options are independent of each other and can be used simultaneously.
 
@@ -151,3 +151,33 @@ you can simply add a list of custom checkers to the settings file,
 like in the example below (these custom checkers will run __after__ any other enabled checkers):
 
 `"custom_checkers": ["<path_to_checker>", "<path_to_checker2>"]`
+
+# Experimental Checkers
+
+The checkers below are a work in progress, and may go through significant changes or be removed in the future.
+
+## InvalidValuesChecker
+For every request, this checker will fuzz invalid parameters for each
+primitive type specified in a custom dictionary that contains specific invalid values.
+
+Using this checker is preferable to using the main dictionary to separately specify invalid values,
+because it tests each parameter individually, while the main RESTler fuzzing loop tests all combinations
+of the values specified in the global mutations dictionary.
+
+The following settings are available for this checker:
+```json
+    "checkers": {
+        "invalidvalue": {
+            "custom_dictionary": "C:\\restler\\invalidvalue\\dict.json",
+            "max_combinations": 100
+        }
+    }
+```
+__custom_dictionary__: Required.  Specifies the path to the custom dictionary of invalid values.
+
+__max_combinations__: Optional (default 100).  Specifies the maximum number of invalid combinations to test for each parameter.
+
+
+All 5xx errors are reported as bugs.
+
+

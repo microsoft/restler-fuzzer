@@ -5,11 +5,12 @@ import threading
 
 from abc import ABCMeta, abstractmethod
 from checkers.checker_log import CheckerLog
-
 import engine.core.async_request_utilities as async_request_utilities
 import engine.core.request_utilities as request_utilities
+import engine.core.sequences as sequences
 import engine.transport_layer.messaging as messaging
 from engine.transport_layer.response import *
+from engine.bug_bucketing import BugBuckets
 
 from restler_settings import Settings
 from engine.errors import ResponseParsingException
@@ -209,3 +210,24 @@ class CheckerBase:
             self._checker_log.checker_print(f"\nSuspect sequence: {status_code}")
         for req in seq:
             self._checker_log.checker_print(f"{req.method} {req.endpoint}")
+
+    def _execute_start_of_sequence(self):
+        """ Send all requests in the sequence up until the last request
+
+        @return: Sequence of n predecessor requests send to server
+        @rtype : Sequence
+
+        """
+        if len(self._sequence.requests) > 1:
+            RAW_LOGGING("Re-rendering and sending start of sequence")
+        new_seq = sequences.Sequence([])
+        for request in self._sequence.requests[:-1]:
+            new_seq = new_seq + sequences.Sequence(request)
+            response, _ = self._render_and_send_data(new_seq, request)
+            # Check to make sure a bug wasn't uncovered while executing the sequence
+            if response and response.has_bug_code():
+                self._print_suspect_sequence(new_seq, response)
+                BugBuckets.Instance().update_bug_buckets(new_seq, response.status_code, origin=self.__class__.__name__)
+
+        return new_seq
+
