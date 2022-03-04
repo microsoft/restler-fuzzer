@@ -198,7 +198,7 @@ def resolve_dynamic_primitives(values, candidate_values_pool):
         and values[i][0] == primitives.restler_fuzzable_uuid4:
             val = f'{uuid.uuid4()}'
             quoted = values[i][1]
-            writer_variable = values[i][2]
+            (writer_variable, is_quoted) = values[i][2]
 
             if quoted:
                 values[i] = f'"{val}"'
@@ -226,6 +226,24 @@ def resolve_dynamic_primitives(values, candidate_values_pool):
                 values[i] = current_uuid_suffixes[current_uuid_type_name]
             # Check if a writer is present.  If so, assign the value generated above
             # to the dynamic object variable.
+            if writer_variable is not None:
+                dependencies.set_variable(writer_variable, values[i])
+
+        elif isinstance(values[i], tuple)\
+        and isinstance(values[i][0], types.GeneratorType):
+            # Handle the case of a custom value generator.
+            # The value needs to be quoted, and if a writer variable is present, it needs to be
+            # set (similar to restler_fuzzable_uuid4)
+            value_generator = values[i][0]
+            val = str(next(value_generator))
+            quoted = values[i][1]
+            (writer_variable, is_quoted) = values[i][2]
+            if quoted:
+                values[i] = f'"{val}"'
+            else:
+                values[i] = val
+            ## Check if a writer is present.  If so, assign the value generated above
+            ## to the dynamic object variable.
             if writer_variable is not None:
                 dependencies.set_variable(writer_variable, values[i])
 

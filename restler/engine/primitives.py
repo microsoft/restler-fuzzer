@@ -4,11 +4,14 @@
 """  Primitive types supported by restler. """
 from __future__ import print_function
 import sys
+import os
 import time
 import datetime
 import uuid
-
+import itertools
+import types
 from restler_settings import Settings
+import utils.import_utilities as import_utilities
 
 class CandidateValueException(Exception):
     pass
@@ -63,6 +66,15 @@ PARAM_NAME_ARG = 'param_name'
 # which indicates that the value assigned to the primitive should also be assigned to the
 # writer variable (dynamic object) specified.
 WRITER_VARIABLE_ARG = 'writer'
+# Name of the function that wraps all value generators
+
+
+def is_value_generator(candidate_values):
+    """ Returns whether the argument is a value generator
+    """
+    VALUE_GENERATOR_WRAPPER_FUNC_NAME = "value_generator_wrapper"
+    return isinstance(candidate_values, types.FunctionType) and\
+            candidate_values.__name__ == VALUE_GENERATOR_WRAPPER_FUNC_NAME
 
 class CandidateValues(object):
     def __init__(self):
@@ -98,6 +110,13 @@ class CandidateValues(object):
         return final_values
 
 class CandidateValuesPool(object):
+
+    @staticmethod
+    def is_custom_fuzzable(primitive_type_name):
+        if primitive_type_name in [FUZZABLE_UUID4, FUZZABLE_MULTIPART_FORMDATA, CUSTOM_PAYLOAD_UUID4_SUFFIX]:
+            # Dynamic generators for these primitives are currently not supported.
+            return False
+        return "_fuzzable_" in primitive_type_name or "_custom_" in primitive_type_name
 
     def __init__(self):
         """ Initializes all request primitive types supported by restler.
@@ -147,6 +166,7 @@ class CandidateValuesPool(object):
 
         self._create_fuzzable_dates()
         self._dates_added = False
+        self._value_generators = None
 
     def _create_fuzzable_dates(self):
         """ Creates dates for future and past, which can be added to a list
@@ -239,7 +259,7 @@ class CandidateValuesPool(object):
 
         return current_primitives
 
-    def get_candidate_values(self, primitive_name, request_id=None, tag=None, quoted=False):
+    def get_candidate_values(self, primitive_name, request_id=None, tag=None, quoted=False, examples=None):
         """ Return feasible values for a given primitive.
 
         @param primitive_name: The primitive whose feasible values we wish to fetch.
@@ -267,9 +287,42 @@ class CandidateValuesPool(object):
                 retval = candidate_vals.get_flattened_and_quoted_values(quoted)
             return retval
 
+        def get_custom_value_generator(value_generator, examples=examples):
+            def value_generator_wrapper(done_tracker, generator_idx):
+                iter = value_generator(examples=examples)
+                count = 0
+                while True:
+                    try:
+                        yield next(iter)
+                        count = count + 1
+                    except StopIteration:
+                        done_tracker[generator_idx] = True
+                        # If the count is zero, no values were provided, so exit
+                        if count == 0:
+                            raise
+                        # Reset the iterator
+                        iter = value_generator(examples=examples)
+
+            return value_generator_wrapper
+
         candidate_values = self.candidate_values
         if request_id and request_id in self.per_endpoint_candidate_values:
             candidate_values = self.per_endpoint_candidate_values[request_id]
+
+        # Check if there is a value generator for this primitive name and tag.
+        # Note: per-endpoint value generators are not yet implemented
+        if self._value_generators:
+            candidate_value_gen = None
+            if primitive_name in self._value_generators:
+                if tag:
+                    if tag in self._value_generators[primitive_name]:
+                        candidate_value_gen = self._value_generators[primitive_name][tag]
+                else:
+                    candidate_value_gen = self._value_generators[primitive_name]
+
+            # If there is a value generator, return it.
+            if candidate_value_gen:
+                return get_custom_value_generator(candidate_value_gen, examples=examples)
 
         if primitive_name not in candidate_values:
             print ("\n\n\n\t *** Can't get unsupported primitive: {}\n\n\n".\
@@ -305,14 +358,20 @@ class CandidateValuesPool(object):
         @type  request_id: Int
         @param quoted: If True, quote the strings in the quoted list before returning
         @type  quoted: Bool
+        @param examples: The available examples for the primitive.
+        @type  examples: List[str]
 
         @return: List of fuzzable values
         @rtype : List[str]
 
         """
-        fuzzable_values = list(
-            self.get_candidate_values(primitive_type, request_id, quoted=quoted)
-        )
+        candidate_values = self.get_candidate_values(primitive_type, request_id,
+                                                     quoted=quoted, examples=examples)
+        # If the values are dynamically generated, return the generator
+        if is_value_generator(candidate_values):
+            return candidate_values
+
+        fuzzable_values = list(candidate_values)
 
         if quoted:
             default_value = f'"{default_value}"'
@@ -348,6 +407,11 @@ class CandidateValuesPool(object):
         [unique_fuzzable_values.append(x) for x in fuzzable_values if x not in unique_fuzzable_values]
 
         return unique_fuzzable_values
+
+    def set_value_generators(self, file_path):
+        """ Imports the value generators from the specified module file path.
+        """
+        self._value_generators = import_utilities.import_attr(file_path, "value_generators")
 
     def set_candidate_values(self, custom_values, per_endpoint_custom_mutations=None):
         """ Overrides default primitive type values with user-provided ones.

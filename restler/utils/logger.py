@@ -10,6 +10,7 @@ import threading
 import time
 import statistics
 import json
+import types
 from collections import OrderedDict
 from shutil import copyfile
 from collections import namedtuple
@@ -854,17 +855,10 @@ def format_request_block(request_id, request_block, candidate_values_pool):
     elif primitive == "restler_multipart_formdata":
         values = ['_OMITTED_BINARY_DATA_']
         default_val = '_OMITTED_BINARY_DATA_'
-    # Handle custom payload header and query
-    elif (primitive == "restler_custom_payload_header" or\
-          primitive == "restler_custom_payload_query"):
-        current_fuzzable_tag = field_name
-        values = candidate_values_pool.get_candidate_values(primitive, request_id=request_id, tag=current_fuzzable_tag, quoted=quoted)
-        if not isinstance(values, list):
-            values = [values]
-        if len(values) == 1:
-            default_val = values[0]
     # Handle custom payload
-    elif primitive == "restler_custom_payload":
+    elif primitive == "restler_custom_payload" or\
+         primitive == "restler_custom_payload_header" or\
+         primitive == "restler_custom_payload_query":
         current_fuzzable_tag = field_name
         values = candidate_values_pool.get_candidate_values(primitive, request_id=request_id, tag=current_fuzzable_tag, quoted=quoted)
         if not isinstance(values, list):
@@ -879,6 +873,8 @@ def format_request_block(request_id, request_block, candidate_values_pool):
     # Handle all the rest
     else:
         values = candidate_values_pool.get_fuzzable_values(primitive, default_val, request_id, quoted=quoted, examples=examples)
+        if primitives.is_value_generator(values):
+            values = [values]
     return primitive, values, default_val
 
 

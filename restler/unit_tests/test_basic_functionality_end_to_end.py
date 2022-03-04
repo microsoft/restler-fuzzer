@@ -680,3 +680,42 @@ class FunctionalityTests(unittest.TestCase):
             self.assertTrue(default_parser.diff_log(test_parser))
         except TestFailedException:
             self.fail("Payload body failed: Garbage Collector")
+
+    def test_value_generators(self):
+        """ This test checks that dynamic value generation works as expected for one use case, which is
+        expected to be typical: a request has some values that are statically generated, and some that are
+        dynamically generated.  Other tests that test the fine-grained behavior of value generation are
+        covered in 'test_value_generators.py'.
+        """
+        # Read the settings file and modify the path to be an absolute path
+        value_generator_file_name = "custom_value_gen.py"
+        settings_file_name = "value_gen_settings.json"
+        settings_file_path = os.path.join(Test_File_Directory, settings_file_name)
+        settings = json.load(open(settings_file_path, encoding='utf-8'))
+        settings["custom_value_generators"] = os.path.join(Test_File_Directory, value_generator_file_name)
+        json.dump(settings, open(settings_file_path, "w", encoding='utf-8'))
+        self.run_abc_smoke_test(Test_File_Directory, "value_gen_test_grammar.py", "test-all-combinations",
+                                settings_file="value_gen_settings.json",
+                                dictionary_file_name="value_gen_dict.json")
+
+        experiments_dir = self.get_experiments_dir()
+
+        # Make sure the expected number of requests was sent, and the logs match.
+        # Note: all of the Gen-2 requests are expected to fail,
+        # since the grammar contains requests that are not implemented in
+        # the test server.  The responses from the server are not important for this test.
+        testing_summary_file_path = os.path.join(experiments_dir, "logs", "testing_summary.json")
+
+        try:
+            with open(testing_summary_file_path, 'r') as file:
+                testing_summary = json.loads(file.read())
+                total_requests_sent = testing_summary["total_requests_sent"]["main_driver"]
+                total_object_creations = testing_summary["total_object_creations"]
+                self.assertLessEqual(total_requests_sent, 78)  # 6 gen1 + 6 [gen1] * (2 * 6) gen2
+                self.assertLessEqual(total_object_creations, 42)
+
+            default_parser = FuzzingLogParser(os.path.join(Test_File_Directory, "value_gen_testing_log.txt"))
+            test_parser = FuzzingLogParser(self.get_network_log_path(experiments_dir, logger.LOG_TYPE_TESTING))
+            self.assertTrue(default_parser.diff_log(test_parser))
+        except TestFailedException:
+            self.fail("Smoke test failed: Fuzzing")

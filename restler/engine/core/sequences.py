@@ -366,7 +366,7 @@ class Sequence(object):
                 prev_request = self.requests[i]
                 prev_rendered_data, prev_parser, tracked_parameters =\
                     prev_request.render_current(candidate_values_pool,
-                    preprocessing=preprocessing)
+                    preprocessing=preprocessing, use_last_cached_rendering=True)
 
                 request.update_tracked_parameters(tracked_parameters)
 

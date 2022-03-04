@@ -464,6 +464,13 @@ type GrammarDefinition =
 module DynamicObjectNaming =
     let ReplaceTargets = [|"/"; "."; "__"; "{"; "}"; "$"; "-" |]
 
+    /// Returns the string with all characters that are invalid in
+    /// a Python function replaced with 'delimiter'
+    let generatePythonFunctionNameFromString (str:string) delimiter =
+        str.Split(ReplaceTargets, System.StringSplitOptions.None)
+        |> seq
+        |> String.concat delimiter
+
     let generateOrderingConstraintVariableName (sourceRequestId:RequestId) (targetRequestId:RequestId) delimiter =
 
         let sourceEndpointParts = sourceRequestId.endpoint.Split(ReplaceTargets, System.StringSplitOptions.None)

@@ -14,8 +14,6 @@ import sys
 import signal
 import time
 import json
-import importlib
-import importlib.util
 import shutil
 import argparse
 import checkers
@@ -30,6 +28,7 @@ import engine.core.preprocessing as preprocessing
 import engine.core.postprocessing as postprocessing
 import engine.core.driver as driver
 import engine.core.fuzzer as fuzzer
+import utils.import_utilities as import_utilities
 import engine.core.fuzzing_monitor as fuzzing_monitor
 import engine.core.requests as requests
 from engine.errors import InvalidDictionaryException
@@ -49,14 +48,10 @@ def import_grammar(path):
     @rtype: RequestCollection class object.
 
     """
+    req_collection = import_utilities.import_attr(path, "req_collection")
+
     grammar_name = os.path.basename(path).replace(".py", "")
     grammar_file = f'restler_grammar_{grammar_name}_{os.getpid()}.py'
-
-    # import req_collection from given grammar
-    sys.path.append(os.path.dirname(path))
-    grammar = importlib.import_module(grammar_name)
-    req_collection = getattr(grammar, "req_collection")
-    # copy grammar inside experiment's folder (for debugging purposes mainly)
     try:
         target_path = os.path.join(logger.EXPERIMENT_DIR, grammar_file)
         shutil.copyfile(path, target_path)
@@ -116,9 +111,7 @@ def get_checker_list(req_collection, fuzzing_requests, enable_list, disable_list
     # Add any custom checkers
     for custom_checker_file_path in custom_checkers:
         try:
-            spec = importlib.util.spec_from_file_location('custom_checkers', custom_checker_file_path)
-            checker = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(checker)
+            utils.import_utilities.load_module('custom_checkers', custom_checker_file_path)
             logger.write_to_main(f"Loaded custom checker from {custom_checker_file_path}", print_to_console=True)
         except Exception as err:
             logger.write_to_main(f"Failed to load custom checker {custom_checker_file_path}: {err!s}", print_to_console=True)
@@ -343,6 +336,15 @@ if __name__ == '__main__':
                 print(f"Cannot import custom mutations: {error!s}")
                 sys.exit(-1)
 
+        if settings.custom_value_generators_file_path:
+            if not settings.custom_value_generators_file_path.endswith(".py"):
+                print(f"Custom value generators must be provided in a Python file.")
+                sys.exit(-1)
+
+            if not os.path.exists(settings.custom_value_generators_file_path):
+                print(f"Invalid custom value generators file specified: {settings.custom_value_generators_file_path}")
+                sys.exit(-1)
+
     if settings.save_results_in_fixed_dirname:
         logger.save_results_in_fixed_dirname()
 
@@ -403,9 +405,8 @@ if __name__ == '__main__':
             except Exception as error:
                 print(f"Cannot import custom mutations: {error!s}")
                 sys.exit(-1)
-
     try:
-        req_collection.set_custom_mutations(custom_mutations, per_endpoint_custom_mutations)
+        req_collection.set_custom_mutations(custom_mutations, per_endpoint_custom_mutations, settings.custom_value_generators_file_path)
     except UnsupportedPrimitiveException as primitive:
         logger.write_to_main("Error in mutations dictionary.\n"
                             f"Unsupported primitive type defined: {primitive!s}",

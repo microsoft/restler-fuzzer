@@ -1,0 +1,15 @@
+{
+  "restler_fuzzable_string": [
+    "fuzzstring"
+  ],
+  "restler_fuzzable_int": [
+    "1"
+  ],
+  "restler_fuzzable_number": [
+    "1.1", "2.2", "3.3"
+  ],
+  "restler_custom_payload": {
+    "type": [ "int" ],
+    "result": [ "pass", "fail" ]
+  }
+}

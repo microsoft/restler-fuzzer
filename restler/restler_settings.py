@@ -441,6 +441,8 @@ class RestlerSettings(object):
         self._save_results_in_fixed_dirname = SettingsArg('save_results_in_fixed_dirname', bool, False, user_args)
         ## Limit restler grammars only to endpoints whose paths contain a given substring
         self._path_regex = SettingsArg('path_regex', str, None, user_args)
+        ## Custom value generator module file path
+        self._custom_value_generators_file_path = SettingsArg('custom_value_generators', str, None, user_args)
         ## Minimum time, in milliseconds, to wait between sending requests
         self._request_throttle_ms = SettingsArg('request_throttle_ms', (int, float), None, user_args, minval=0)
         ## Settings for customizing re-try logic for requests
@@ -611,6 +613,10 @@ class RestlerSettings(object):
     @property
     def path_regex(self):
         return self._path_regex.val
+
+    @property
+    def custom_value_generators_file_path(self):
+        return self._custom_value_generators_file_path.val
 
     @property
     def request_throttle_ms(self):

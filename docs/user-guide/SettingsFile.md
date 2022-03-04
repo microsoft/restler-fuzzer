@@ -377,6 +377,36 @@ For instance, any custom payloads
 or fuzzable values for this endpoint will be taken from the specified custom dictionary
 instead of the default dictionary.
 
+### custom_value_generators: string (default None)
+If this setting is set to a valid path with a ```.py``` extension,
+RESTler will try to import the contents of this
+file as a Python module, and will search for a dictionary named ```value_generators```.
+This dictionary must have the same structure as the mutations dictionary,
+but each entry may be initialized with a generator function (example shown below).
+A dynamic value generator overrides the corresponding entry in the custom dictionary, if
+it exists.  For example, if a ```restler_custom_payload``` for ```ip_address``` specifies
+one value in the dictionary, and has a custom value generator, values will be
+dynamically generated up to ```max_combinations``` or until the
+generator has no more values.
+
+Below is an example of a valid Python dictionary that specifies a value generator.
+Note: a template file containing placeholder custom value generators for all of the
+dictionary entries, including custom payloads, is automatically generated
+during compilation and placed into the 'Compile' directory.
+
+```python
+def generate_strings(**kwargs):
+    while True:
+        yield "fuzz"
+        yield str(random.randint(-10, 10))
+
+value_generators = {
+	"restler_fuzzable_string": generate_strings
+}
+```
+
+
+
 ## Example Settings File Format
 ```json
 {
