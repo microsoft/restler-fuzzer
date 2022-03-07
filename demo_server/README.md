@@ -29,6 +29,10 @@ Start demo server at one teminal
 --------------------------------
 `python demo_server/app.py`
 
+Start demo server which captures warnings at one teminal
+--------------------------------
+`python demo_server/wrapper.py`
+
 - Make sure you execute all the above from the base directory of demo_server
     (the same directory where this README lives in.)
 
