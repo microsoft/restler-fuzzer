@@ -1,10 +1,13 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+from logging import warning
 from demo_server.database.models import Post, Category, db
 from flask import abort
 from flask import request
+import pandas as pd
 import json
+import warnings
 
 def get_query():
     # Gets the query string from the request
@@ -34,13 +37,26 @@ def get_post(postId):
     # PLANTED_BUG -
     # Intentionally ignore unexpected query, so the invalid dynamic
     # object checker throws a bug due to '200' response.
-
+    # PLANTED_BUG for demo purpose
+    check_use_exist_posts()
     post = Post.query.filter(Post.id == postId).one_or_none()
     return post or abort(404)
+
+def check_use_exist_posts():
+    exist_posts = Post.query.limit(5).all()
+    df = pd.DataFrame()
+    rows = []
+    for post in exist_posts:
+        rows.append([post.id,post.body])
+    rows.append(['7',"hello"]) 
+    df = pd.DataFrame(rows,columns=['id','body'])
+    df[df['body'] == 'la']['id'] = 10
+    return
 
 def create_blog_post():
     body = request.json.get('body')
     post = Post(body)
+
     db.session.add(post)
     db.session.commit()
     return post

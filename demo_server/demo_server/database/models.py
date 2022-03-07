@@ -8,7 +8,9 @@ import os,binascii
 
 from datetime import datetime
 from flask_sqlalchemy import SQLAlchemy
-
+import pandas as pd
+from demo_server import settings
+from settings import SQLALCHEMY_DATABASE_URI
 db = SQLAlchemy()
 
 
@@ -16,7 +18,7 @@ class Post(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     body = db.Column(db.Text)
     checksum = db.Column(db.Text)
-
+    
     def __init__(self, body):
         self.body = body
         self.checksum =  binascii.b2a_hex(os.urandom(100))[:5]

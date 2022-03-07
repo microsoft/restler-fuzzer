@@ -15,6 +15,7 @@ import logging.config
 import json
 from flask import Flask, Blueprint
 from demo_server import settings
+from settings import SQLALCHEMY_DATABASE_URI
 from demo_server.database.models import db
 from demo_server.api.blog.endpoints.posts import ns as blog_posts_namespace
 # from demo_server.api.blog.endpoints.categories import ns\
@@ -40,7 +41,6 @@ def configure_app(flask_app):
     flask_app.config['RESTPLUS_MASK_SWAGGER'] = settings.RESTPLUS_MASK_SWAGGER
     flask_app.config['ERROR_404_HELP'] = settings.RESTPLUS_ERROR_404_HELP
 
-
 def initialize_app(flask_app):
     configure_app(flask_app)
 
@@ -49,9 +49,7 @@ def initialize_app(flask_app):
     api.add_namespace(blog_posts_namespace)
     # api.add_namespace(blog_categories_namespace)
     flask_app.register_blueprint(blueprint)
-
     db.init_app(flask_app)
-
 
 def main():
     initialize_app(app)
