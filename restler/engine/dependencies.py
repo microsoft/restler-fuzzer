@@ -10,14 +10,19 @@ import sys
 import json
 import multiprocessing
 from multiprocessing.dummy import Pool as ThreadPool
+
 import utils.formatting as formatting
 from restler_settings import Settings
-
 
 threadLocal = threading.local()
 # Keep TLS tlb to enforce mutual exclusion when using >1 fuzzing jobs.
 threadLocal.tlb = {}
 tlb = threadLocal.tlb
+# The 'local_dyn_objects_cache' tracks dynamic objects that are created while
+# rendering the sequence prefix and must not be deleted until the prefix is no longer in use.
+threadLocal.local_dyn_objects_cache = {}
+local_dyn_objects_cache = threadLocal.local_dyn_objects_cache
+gc_paused = False
 
 # Keep a global registry for garbage collection (deletion) of dynamic objects.
 dyn_objects_cache = {}
@@ -109,6 +114,15 @@ def get_variable(type):
 
     return encoded_value
 
+def __add_variable_to_dyn_cache(type, value, obj_cache, cache_lock):
+    # Keep track of all dynamic objects ever created.
+    if cache_lock is not None:
+        cache_lock.acquire()
+    if type not in obj_cache:
+        obj_cache[type] = []
+    obj_cache[type].append(value)
+    if cache_lock is not None:
+        cache_lock.release()
 
 def set_variable(type, value):
     """ Setter for dynamic variable (a.k.a. dependency).
@@ -128,15 +142,10 @@ def set_variable(type, value):
     tlb[type] = value
     # thread_id = threading.current_thread().ident
     # print("Setting: {} / Value: {} ({})".format(type, value, thread_id))
-
-    # Keep track of all dynamic objects ever created.
-    if dyn_objects_cache_lock is not None:
-        dyn_objects_cache_lock.acquire()
-    if type not in dyn_objects_cache:
-        dyn_objects_cache[type] = []
-    dyn_objects_cache[type].append(value)
-    if dyn_objects_cache_lock is not None:
-        dyn_objects_cache_lock.release()
+    if gc_paused:
+        __add_variable_to_dyn_cache(type, value, local_dyn_objects_cache, None)
+    else:
+        __add_variable_to_dyn_cache(type, value, dyn_objects_cache, dyn_objects_cache_lock)
 
 def set_variable_no_gc(type, value):
     """ Setter for dynamic variable that should never be garbage collected.
@@ -161,6 +170,50 @@ def reset_tlb():
     """
     for k in tlb:
         tlb[k] = None
+
+def clear_saved_local_dyn_objects():
+    """ Moves all of the saved objects from the saved objects cache to the regular tlb, so
+    they can be deleted.
+    """
+    if gc_paused:
+        raise Exception("Error: cannot clear saved dynamic objects while they are being saved.")
+
+    if dyn_objects_cache_lock is not None:
+        dyn_objects_cache_lock.acquire()
+    for type in local_dyn_objects_cache:
+        if type not in dyn_objects_cache:
+            dyn_objects_cache[type] = []
+        dyn_objects_cache[type] = dyn_objects_cache[type] + local_dyn_objects_cache[type]
+    if dyn_objects_cache_lock is not None:
+        dyn_objects_cache_lock.release()
+
+    local_dyn_objects_cache.clear()
+
+
+def start_saving_local_dyn_objects():
+    """ Instead of adding saved dynamic objects to the regular tlb, add it to the saved tlb.
+    This will save them until explicitly released.
+    """
+    global gc_paused
+    if gc_paused:
+        raise Exception("Error: the GC is already paused.")
+
+    gc_paused = True
+
+def stop_saving_local_dyn_objects(reset=False):
+    """ Set the state so that any future objects that are created are
+    added to the regular TLB and will be garbage collected automatically.
+
+    @param reset: If 'True', also release the saved objects.
+    @type reset: Bool
+
+    @return: None
+    @rtype : None
+    """
+    global gc_paused
+    gc_paused = False
+    if reset:
+        clear_saved_local_dyn_objects()
 
 def set_saved_dynamic_objects():
     """ Saves the current dynamic objects cache to a separate
@@ -382,8 +435,18 @@ class GarbageCollectorThread(threading.Thread):
 
         from engine.errors import TransportLayerException
         from engine.transport_layer import messaging
+        from engine.transport_layer.messaging import HttpSock
         from utils.logger import raw_network_logging as RAW_LOGGING
         from utils.logger import garbage_collector_logging as CUSTOM_LOGGING
+        from engine.core import request_utilities
+
+        try:
+            gc_sock = threadLocal.gc_sock
+        except AttributeError:
+            # Socket not yet initialized.
+            threadLocal.gc_sock = HttpSock(Settings().connection_settings)
+            gc_sock = threadLocal.gc_sock
+
         # For each object in the overflowing area, whose destructor is
         # available, render the corresponding request, send the request,
         # and then check the status code. If the resource has been determined
@@ -409,19 +472,18 @@ class GarbageCollectorThread(threading.Thread):
                 fully_rendered_data = fully_rendered_data.replace(RDELIM + type + RDELIM, value)
 
                 if fully_rendered_data:
-                    try:
-                        # Establish connection to the server
-                        sock = messaging.HttpSock(Settings().connection_settings)
-                    except TransportLayerException as error:
-                        RAW_LOGGING(f"{error!s}")
-                        return
-
                     # Send the request and receive the response
-                    success, response = sock.sendRecv(fully_rendered_data, Settings().max_request_execution_time)
+
+                    response = request_utilities.send_request_data(
+                        fully_rendered_data, req_timeout_sec=Settings().max_request_execution_time,
+                        reconnect=Settings().reconnect_on_every_request,
+                        http_sock=gc_sock)
+
+                    success = response.status_code is not None
                     if success:
                         self.monitor.increment_requests_count('gc')
                     else:
-                        RAW_LOGGING(response.to_str)
+                        RAW_LOGGING(f"GC request failed: {response.to_str}")
 
                     # Check to see if the DELETE operation is complete
                     try:

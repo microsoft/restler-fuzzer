@@ -305,6 +305,18 @@ MAX_SEQUENCE_LENGTH_DEFAULT = 100
 TARGET_PORT_MAX = (1<<16)-1
 TIME_BUDGET_DEFAULT = 24.0*30 # ~1 month
 
+SEQ_RENDERING_SETTINGS_DEFAULT = {
+    # While fuzzing HEAD and GET request combinations, only render the prefix once.
+    "create_prefix_once": [
+        {
+            "methods": ["GET", "HEAD"],
+            "endpoints": "*",
+            "reset_after_success": False
+        }
+    ]
+}
+
+
 DEFAULT_TEST_SERVER_ID = 'unit_test'
 DEFAULT_VERSION = '0.0.0'
 
@@ -403,6 +415,8 @@ class RestlerSettings(object):
         self._basepath = SettingsArg('basepath', str, None, user_args)
         ##  Ignore request dependencies
         self._ignore_dependencies = SettingsArg('ignore_dependencies', bool, False, user_args)
+        ##  Re-create the connection for every request sent.
+        self._reconnect_on_every_request = SettingsArg('reconnect_on_every_request', bool, False, user_args)
         ## Ignore server-side feedback
         self._ignore_feedback = SettingsArg('ignore_feedback', bool, False, user_args)
         ## Include user agent in requests sent
@@ -413,6 +427,8 @@ class RestlerSettings(object):
         self._max_combinations = SettingsArg('max_combinations', int, MAX_COMBINATIONS_DEFAULT, user_args, minval=0)
         ## Settings for advanced combinations testing, such as testing multiple schema combinations
         self._combinations_args = SettingsArg('test_combinations_settings', dict, {}, user_args)
+        ## Settings for caching the sequence prefixes when rendering request combinations
+        self._seq_rendering_settings = SettingsArg('sequence_exploration_settings', dict, {}, user_args)
         ## Maximum time to wait for a response after sending a request (seconds)
         self._max_request_execution_time = SettingsArg('max_request_execution_time', (int, float), MAX_REQUEST_EXECUTION_TIME_DEFAULT, user_args, minval=0, min_exactok=False, maxval=MAX_REQUEST_EXECUTION_TIME_MAX)
         ## Maximum length of any sequence
@@ -577,6 +593,10 @@ class RestlerSettings(object):
         return self._max_request_execution_time.val
 
     @property
+    def reconnect_on_every_request(self):
+        return self._reconnect_on_every_request.val
+
+    @property
     def max_sequence_length(self):
         return self._max_sequence_length.val
 
@@ -613,7 +633,6 @@ class RestlerSettings(object):
         if 'interval_sec' in self._retry_args.val:
             return self._retry_args.val['interval_sec']
         return None
-
 
     @property
     def ignore_decoding_failures(self):
@@ -654,6 +673,31 @@ class RestlerSettings(object):
     @property
     def wait_for_async_resource_creation(self):
         return self._wait_for_async_resource_creation.val
+
+    def get_cached_prefix_request_settings(self, endpoint, method):
+        def get_settings():
+            if 'create_prefix_once' in self._seq_rendering_settings.val:
+                return self._seq_rendering_settings.val['create_prefix_once']
+            return SEQ_RENDERING_SETTINGS_DEFAULT['create_prefix_once']
+
+        prefix_cache_settings = get_settings()
+
+        # Find the settings matching the request endpoint, then check whether they include the request method.
+        endpoint_settings = list(filter(lambda x : 'endpoints' in x and \
+                                                    (x['endpoints'] == "*" or endpoint in x['endpoints']),
+                                    prefix_cache_settings))
+        req_settings = list(filter(lambda x : 'methods' in x and \
+                                                    (x['methods'] == "*" or method.upper() in x['methods']),
+                                    endpoint_settings))
+
+        create_prefix_once = False
+        re_render_prefix_on_success = None
+        if len(req_settings) > 0:
+            create_prefix_once = True
+            re_render_prefix_on_success = False
+            if 'reset_after_success' in req_settings[0]:
+                re_render_prefix_on_success = req_settings[0]['reset_after_success']
+        return create_prefix_once, re_render_prefix_on_success
 
     def _set_per_resource_args(self, args: dict):
         """ Sets the per-resource settings

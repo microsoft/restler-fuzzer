@@ -9,6 +9,7 @@ import sys
 import ast
 import uuid
 import types
+import threading
 
 from engine.errors import ResponseParsingException
 from engine.errors import TransportLayerException
@@ -27,6 +28,8 @@ NO_SHADOW_TOKEN_SPECIFIED = 'NO-SHADOW-TOKEN-SPECIFIED'
 latest_shadow_token_value = NO_SHADOW_TOKEN_SPECIFIED
 
 HOST_PREFIX = 'Host: '
+
+threadLocal = threading.local()
 
 class EmptyTokenException(Exception):
     pass
@@ -244,7 +247,7 @@ def resolve_dynamic_primitives(values, candidate_values_pool):
 
     return values
 
-def send_request_data(rendered_data):
+def send_request_data(rendered_data, req_timeout_sec=None, reconnect=None, http_sock=None):
     """ Helper that sends a request's rendered data to the server
     and parses its response.
 
@@ -270,25 +273,31 @@ def send_request_data(rendered_data):
     # a separate settings file.
     RETRY_TEXT = ['AnotherOperationInProgress'] if custom_retry_text is None else custom_retry_text
     num_retries = 0
-    while num_retries < MAX_RETRIES:
-        try:
-            # Establish connection to server
-            sock = HttpSock(Settings().connection_settings)
-        except TransportLayerException as error:
-            _RAW_LOGGING(str(error))
-            return HttpResponse()
 
+    try:
+        main_sock = threadLocal.main_sock
+    except AttributeError:
+        # Socket not yet initialized.
+        threadLocal.main_sock = HttpSock(Settings().connection_settings)
+        main_sock = threadLocal.main_sock
+
+    while num_retries < MAX_RETRIES:
         # Send the request and receive the response
-        success, response = sock.sendRecv(rendered_data,
-            Settings().max_request_execution_time)
+        reconnect = Settings().reconnect_on_every_request if reconnect is None else reconnect
+        # The connection may have been closed as part of throttling, so re-connect when re-trying.
+        if num_retries > 0:
+            reconnect = True
+        req_timeout_sec = Settings().max_request_execution_time if req_timeout_sec is None else req_timeout_sec
+        success, response = main_sock.sendRecv(rendered_data,
+            req_timeout_sec, reconnect=reconnect)
 
         status_code = response.status_code
 
         if status_code and status_code in RESTLER_BUG_CODES:
             return response
 
-        if not success or not status_code:
-            _RAW_LOGGING(response.to_str)
+        if not success or (status_code is None):
+            _RAW_LOGGING(f"Failed to receive response.  Success: {success}, status: {status_code}, Response: {response.to_str}")
             return HttpResponse()
 
         # Check whether a custom re-try text was provided.

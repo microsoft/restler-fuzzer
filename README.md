@@ -86,6 +86,9 @@ See [Testing](./docs/user-guide/Testing.md). To use custom test engine settings,
 **Warning:** This type of fuzzing is more aggressive and may create outages in the service under test if the service is poorly implemented (e.g., fuzzing might create resource leaks, perf degradation, backend corruptions, etc.).
 See [Fuzzing](./docs/user-guide/Fuzzing.md).
 
+### With warning messages
+If you are fuzzing a Flask server and want to have warnings included, use `demo_server/demo_server/wrapper.py` to start the demo server instead of just using `demo_server/demo_server/app.py`.
+
 ## Quick Start
 
 For a quick intro with simple examples, see this [Tutorial](./docs/user-guide/TutorialDemoServer.md).

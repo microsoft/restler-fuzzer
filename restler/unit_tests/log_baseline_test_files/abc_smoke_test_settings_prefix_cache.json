@@ -1,0 +1,16 @@
+{
+  "sequence_exploration_settings": {
+    "create_prefix_once": [
+      {
+        "methods": [ "GET", "HEAD" ],
+        "endpoints": "*",
+        "reset_after_success": false
+      },
+      {
+        "methods": [ "PUT" ],
+        "endpoints": "*",
+        "reset_after_success": false
+      }
+    ]
+  }
+}
