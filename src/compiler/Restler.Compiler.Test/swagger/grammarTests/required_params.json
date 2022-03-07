@@ -3,7 +3,7 @@
   "consumes": [
     "application/json"
   ],
-  "host": "localhost:8888",
+  "host": "localhost:8878",
   "info": {
     "description": "A simple swagger spec that uses required and optional parameters",
     "title": "Parameters example spec",

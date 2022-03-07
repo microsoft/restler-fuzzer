@@ -34,6 +34,7 @@ with warnings.catch_warnings(record=True) as w:
     @app.after_request
     def after_req(response):
         print('response intercepted after processing')
+        print(response)
 
         # We can access captured warnings in w
         print('When processing the reqeust, the following warnings were observed')

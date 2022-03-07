@@ -94,7 +94,7 @@ During each Test run a `speccov.json` file will be created in the logs directory
             "request_uri": "/api/blog/posts/5872",
             "request_headers": [
                 "Accept: application/json",
-                "Host: localhost:8888",
+                "Host: localhost:8878",
                 "Content-Type: application/json"
             ],
             "request_body": "{\n    \"id\":\"5872\",\n    \"checksum\":\"fuzzstring\",\n    \"body\":\"first blog\"}\r\n",

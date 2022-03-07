@@ -2,7 +2,7 @@
 # Licensed under the MIT License.
 
 # Flask settings
-FLASK_SERVER_NAME = 'localhost:8888'
+FLASK_SERVER_NAME = 'localhost:8878'
 FLASK_DEBUG = True  # Do not use debug mode in production
 
 # Flask-Restplus settings

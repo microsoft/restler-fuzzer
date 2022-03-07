@@ -39,12 +39,12 @@ so that the sequence can be replayed exactly as it was executed before.
 Below is an example of the requests and responses from a replay log sequence.
 
 ```
--> POST /api/blog/posts HTTP/1.1\r\nAccept: application/json\r\nHost: localhost:8888\r\nContent-Type: application/json\r\n\r\n{\n    "id":0,\n    "body":"fuzzstring"}\r\n
+-> POST /api/blog/posts HTTP/1.1\r\nAccept: application/json\r\nHost: localhost:8878\r\nContent-Type: application/json\r\n\r\n{\n    "id":0,\n    "body":"fuzzstring"}\r\n
 ! producer_timing_delay 0
 ! max_async_wait_time 0
 PREVIOUS RESPONSE: 'HTTP/1.1 201 CREATED\r\nContent-Type: application/json\r\nContent-Length: 45\r\nServer: Werkzeug/0.16.0 Python/3.8.2\r\nDate: Thu, 01 Oct 2020 22:00:27 GMT\r\n\r\n{\n    "id": 5875,\n    "body": "fuzzstring"\n}\n'
 
--> PUT /api/blog/posts/5875 HTTP/1.1\r\nAccept: application/json\r\nHost: localhost:8888\r\nContent-Type: application/json\r\n\r\n{"body":"fuzzstring"}
+-> PUT /api/blog/posts/5875 HTTP/1.1\r\nAccept: application/json\r\nHost: localhost:8878\r\nContent-Type: application/json\r\n\r\n{"body":"fuzzstring"}
 ! producer_timing_delay 0
 ! max_async_wait_time 0
 PREVIOUS RESPONSE: 'HTTP/1.1 500 INTERNAL SERVER ERROR\r\nContent-Type: application/json\r\nContent-Length: 176\r\nServer: Werkzeug/0.16.0 Python/3.8.2\r\nDate: Thu, 01 Oct 2020 22:00:28 GMT\r\n\r\n{\n    "message": "The server encountered an internal error and was unable to complete your request. Either the server is overloaded or there is an error in the application."\n}\n'
