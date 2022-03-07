@@ -9,7 +9,7 @@ WORKDIR /app
 
 RUN pip install -r requirements.txt
 
-EXPOSE 8878
+EXPOSE 8888
 
 ENV FLASK_RUN_HOST=0.0.0.0
 
