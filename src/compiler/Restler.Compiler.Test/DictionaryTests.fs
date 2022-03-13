@@ -144,4 +144,28 @@ module Dictionary =
             Assert.True(grammar.Contains("""primitives.restler_static_string("application/json"),"""))
             Assert.True(grammar.Contains("""primitives.restler_custom_payload("/stores/{storeId}/order/post/Content-Type", quoted=False),"""))
 
+        [<Fact>]
+        /// Baseline test for the dynamic value generators template
+        let ``generated custom value generator template is correct`` () =
+            let grammarOutputDirPath = ctx.testRootDirPath
+            let config = { Restler.Config.SampleConfig with
+                             IncludeOptionalParameters = true
+                             GrammarOutputDirectoryPath = Some grammarOutputDirPath
+                             ResolveBodyDependencies = true
+                             ResolveQueryDependencies = true
+                             UseBodyExamples = Some false
+                             UseQueryExamples = Some false
+                             SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, @"swagger\dictionaryTests\customPayloadSwagger.json"))]
+                             CustomDictionaryFilePath = Some (Path.Combine(Environment.CurrentDirectory, @"swagger\dictionaryTests\customPayloadDict.json"))
+                         }
+            Restler.Workflow.generateRestlerGrammar None config
+
+            let expectedValueGenTemplatePath = Path.Combine(Environment.CurrentDirectory,
+                                                            @"baselines\dictionaryTests\customPayloadDict_ValueGeneratorTemplate.py")
+            let actualValueGenTemplatePath = Path.Combine(grammarOutputDirPath,
+                                                          Restler.Workflow.Constants.CustomValueGeneratorTemplateFileName)
+            let valueGenDiff = getLineDifferences expectedValueGenTemplatePath actualValueGenTemplatePath
+            let message = sprintf "Template value generator does not match baseline.  First difference: %A" valueGenDiff
+            Assert.True(valueGenDiff.IsNone, message)
+
         interface IClassFixture<Fixtures.TestSetupAndCleanup>

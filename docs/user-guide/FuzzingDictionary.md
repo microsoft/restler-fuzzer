@@ -122,3 +122,9 @@ Note: to specify a double-quote " in a string in a fuzzing dictionary, use `\"`
 #### **Per resource dictionaries**
 
 Usually, it is sufficient to specify a dictionary for the entire API under test, or one dictionary per API specification when several API specifications are tested together.  However, there may be cases when a specific endpoint requires a different custom payload from the rest of the APIs.  An example of this is when a service uses different API versions for different endpoints in the same API: the ```api-version``` parameter needs to be one of several values, but for specific endpoints, so it cannot be specified in one *restler_custom_payload*.  Such cases are handled with a per-resource dictionary for individual endpoints, which takes precedence over the global dictionary.  See [SettingsFile](SettingsFile.md) for how to configure a per-resource dictionary.
+
+#### **Dynamically generating values**
+RESTler also supports dynamically generating values for most of the data types above.  Each primitive or custom
+payload may have a corresponding dynamic value generator.  For more details on how to provide
+dynamically generated values to RESTler,
+see the ```custom_value_generators``` setting in the [SettingsFile](SettingsFile.md)

@@ -6,6 +6,7 @@ module Restler.CodeGenerator.Python
 open System
 open Restler.Grammar
 open Restler.Utilities.Operators
+open Newtonsoft.Json.Linq
 
 [<Literal>]
 let TAB = @"    "
@@ -1288,3 +1289,115 @@ let generateCode (grammar:GrammarDefinition) includeOptionalParameters (write : 
         else
             write(element + "\n")
     )
+
+/// Takes the mutations dictionary json, and generates a value generator python template file
+/// The contents of the file are as follows:
+/// <import statements and constants>
+/// <sample value generator function for restler_fuzzable_string> - referenced and will be
+///  used if the template is specified in the engine settings.
+/// <template functions for every dictionary entry> - all unused.
+/// <For each key in the dictionary:
+///    dictionary entry for the value generator, initialized to 'None'>
+let generateCustomValueGenTemplate dictionaryText =
+    // Go through the json properties and modify all leaf values to None, then
+    // add the sample function for fuzzable string.
+    let imports = ["typing"; "random"; "time"; "string"; "itertools"]
+    let constants = """
+EXAMPLE_ARG = "examples"
+"""
+
+    let dictionaryJson = JObject.Parse(dictionaryText)
+    // Go through all the properties.  For any fuzzable primitive or custom payloads, create
+    // a function and add this to the new object.
+    let dictionaryLines = System.Collections.Generic.List<string>()
+    let functionNames = System.Collections.Generic.List<string>()
+
+    dictionaryLines.Add("value_generators = {")
+    dictionaryJson.Properties()
+    |> Seq.iter (fun p ->
+                    if p.Name.Contains("_fuzzable_") then
+                        let functionName = sprintf "gen_%s" p.Name
+                        let referencedFunction = if p.Name = "restler_fuzzable_string" then functionName else "None"
+                        dictionaryLines.Add(sprintf "\t\"%s\": %s," p.Name referencedFunction)
+                        functionNames.Add(functionName)
+                    else if p.Name.Contains("_custom_payload") && not (p.Name.Contains("suffix")) then
+                        dictionaryLines.Add(sprintf "\t\"%s\": {" p.Name)
+                        let customPayloads = p.Value.Value<JObject>()
+                        for cp in customPayloads.Properties() do
+                            let functionName =
+                                let filteredName = DynamicObjectNaming.generatePythonFunctionNameFromString cp.Name "_"
+                                sprintf "gen_%s_%s" p.Name filteredName
+                            dictionaryLines.Add(sprintf "\t\t\"%s\": %s," cp.Name "None")
+                            functionNames.Add(functionName)
+
+                        dictionaryLines.Add("\t},")
+                )
+    dictionaryLines.Add("}")
+    let dictionaryText = dictionaryLines |> seq |> String.concat "\n"
+
+    // Add sample function for fuzzable string.
+    functionNames.Remove("gen_restler_fuzzable_string") |> ignore
+    let sampleFunction = """
+def gen_restler_fuzzable_string(**kwargs):
+    example_values=None
+    if EXAMPLE_ARG in kwargs:
+        example_values = kwargs[EXAMPLE_ARG]
+
+    if example_values:
+        for exv in example_values:
+            yield exv
+        example_values = itertools.cycle(example_values)
+
+    i = 0
+    while True:
+        i = i + 1
+        size = random.randint(i, i + 10)
+        if example_values:
+            ex = next(example_values)
+            ex_k = random.randint(1, len(ex) - 1)
+            new_values=''.join(random.choices(ex, k=ex_k))
+            yield ex[:ex_k] + new_values + ex[ex_k:]
+
+        yield ''.join(random.choices(string.ascii_letters + string.digits, k=size))
+        yield ''.join(random.choices(string.printable, k=size)).replace("\r\n", "")
+
+def placeholder_value_generator():
+    while True:
+        yield str(random.randint(-10, 10))
+        yield ''.join(random.choices(string.ascii_letters + string.digits, k=1))
+    """
+
+    let getFunctionText functionName =
+        sprintf """
+def %s(**kwargs):
+    example_value=None
+    if EXAMPLE_ARG in kwargs:
+        example_value = kwargs[EXAMPLE_ARG]
+
+    # Add logic here to generate values
+    return placeholder_value_generator()
+    """
+                functionName
+
+    let functionDefinitions =
+        functionNames
+        |> Seq.map (fun functionName -> getFunctionText functionName)
+        |> String.concat "\n\n"
+
+    seq {
+        for i in imports do
+            yield sprintf "import %s" i
+
+        yield "random_seed=time.time()"
+        yield """print(f"Value generator random seed: {random_seed}")"""
+        yield "random.seed(random_seed)"
+        yield constants
+
+        yield sampleFunction
+        yield functionDefinitions
+        yield dictionaryText
+    }
+
+
+
+

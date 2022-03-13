@@ -50,6 +50,7 @@
   "add_fuzzable_dates": true,
   "token_refresh_interval": 60,
   "wait_for_async_resource_creation": false,
+  "custom_value_generators": "c:\\restler\\Compile\\custom_value_generators.py",
   "per_resource_settings": {
     "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Network/dnsZones/{zoneName}/{recordType}/{relativeRecordSetName}": {
       "producer_timing_delay": 1,

@@ -20,6 +20,7 @@ module Constants =
     let DependenciesDebugFileName = "dependencies_debug.json"
     let DefaultExampleMetadataFileName = "examples.json"
     let DefaultEngineSettingsFileName = "engine_settings.json"
+    let CustomValueGeneratorTemplateFileName = "custom_value_gen_template.py"
 
 let generatePython grammarOutputDirectoryPath config grammar =
     let codeFile = Path.Combine(grammarOutputDirectoryPath, Constants.DefaultRestlerGrammarFileName)
@@ -209,6 +210,12 @@ let generateGrammarFromSwagger grammarOutputDirectoryPath (swaggerDoc, specMetad
         Microsoft.FSharpLu.Json.Compact.serializeToFile newDictionaryFilePath newDict
     writeDictionary Constants.NewDictionaryFileName newDictionary
 
+    // Also generate a template for input value generator based on the dictionary.
+    let newDictJson = Microsoft.FSharpLu.Json.Compact.serialize newDictionary
+    let customValueGeneratorTemplateFilePath = System.IO.Path.Combine(grammarOutputDirectoryPath, Constants.CustomValueGeneratorTemplateFileName)
+    let templateLines = Restler.CodeGenerator.Python.generateCustomValueGenTemplate newDictJson
+    Microsoft.FSharpLu.File.writeLines customValueGeneratorTemplateFilePath templateLines
+
     // Write the per-resource dictionaries.
     perResourceDictionaries
     |> Map.toSeq
@@ -275,5 +282,4 @@ let generateRestlerGrammar swaggerDoc (config:Config) =
     logTimingInfo "Generating python grammar..."
     generatePython grammarOutputDirectoryPath config grammar
     logTimingInfo "Done generating python grammar."
-
     printfn "Workflow completed.  See %s for REST-ler grammar." grammarOutputDirectoryPath

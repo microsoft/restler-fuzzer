@@ -52,6 +52,9 @@
     <Content Include="baselines\dictionaryTests\quoted_primitives_grammar.py">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="baselines\dictionaryTests\customPayloadDict_ValueGeneratorTemplate.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="baselines\exampleTests\array_example_grammar.py">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

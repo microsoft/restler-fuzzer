@@ -8,6 +8,7 @@ import types
 import random
 random.seed(12345)
 import itertools
+import functools, operator
 import collections
 import datetime
 import copy
@@ -175,6 +176,52 @@ class SmokeTestStats(object):
                 self.tracked_parameters[property_name] = property_value
 
 
+class RenderedValuesCache(object):
+    """ Implements a cache of rendered values for a single request.
+    """
+    def __init__(self):
+        self._cache = {}
+        self._value_generators = None
+        self.value_gen_tracker={}
+
+    def __getstate__(self):
+        # Copy state of all instance attributes.
+        state = self.__dict__.copy()
+        # Remove the unpicklable entries.
+        del state['_value_generators']
+        del state['value_gen_tracker']
+        return state
+
+    def __setstate__(self, state):
+        # Restore state of instance attributes.
+        self.__dict__.update(state)
+        # Restore the state of the field that was not pickled.
+        # When a request is copied, the value generators
+        # should be reset
+        self._value_generators = None
+        self.value_gen_tracker={}
+
+    @property
+    def value_generators(self):
+        return self._value_generators
+
+    @value_generators.setter
+    def value_generators(self, value_generators):
+        self._value_generators = value_generators
+
+    def contains(self, combination_id):
+        return combination_id in self._cache
+
+    def add_fuzzable_values(self, combination_id, values):
+        if combination_id not in self._cache:
+            self._cache[combination_id] = {}
+        self._cache[combination_id] = values
+
+    def get_fuzzable_values(self, combination_id):
+        if combination_id not in self._cache:
+            return None
+        return self._cache[combination_id]
+
 class Request(object):
     """ Request Class. """
     def __init__(self, definition=[], requestId=None):
@@ -207,6 +254,7 @@ class Request(object):
         self._set_constraints()
         self._create_once_requests = []
         self._tracked_parameters = {}
+        self._rendered_values_cache = RenderedValuesCache()
 
         # Check for empty request before assigning ids
         if self._definition:
@@ -722,10 +770,7 @@ class Request(object):
             values = []
             # Handling dynamic primitives that need fresh rendering every time
             if primitive_type == primitives.FUZZABLE_UUID4:
-                if quoted:
-                    values = [(primitives.restler_fuzzable_uuid4, True, writer_variable)]
-                else:
-                    values = [(primitives.restler_fuzzable_uuid4, False, writer_variable)]
+                values = [(primitives.restler_fuzzable_uuid4, quoted, writer_variable)]
             # Handle enums that have a list of values instead of one default val
             elif primitive_type == primitives.FUZZABLE_GROUP:
                 if quoted:
@@ -754,30 +799,18 @@ class Request(object):
                     _raise_dict_err(primitive_type, default_val)
                 except Exception as err:
                     _handle_exception(primitive_type, default_val, err)
-            # Handle custom (user defined) static payload
-            elif primitive_type == primitives.CUSTOM_PAYLOAD:
+            # Handle custom (user defined) payloads
+            elif primitive_type == primitives.CUSTOM_PAYLOAD or\
+                 primitive_type == primitives.CUSTOM_PAYLOAD_HEADER or\
+                 primitive_type == primitives.CUSTOM_PAYLOAD_QUERY:
                 try:
                     current_fuzzable_values = candidate_values_pool.\
-                        get_candidate_values(primitive_type, request_id=self._request_id, tag=field_name, quoted=quoted)
+                        get_candidate_values(primitive_type, request_id=self._request_id, tag=field_name, quoted=quoted,examples=examples)
                     # handle case where custom payload have more than one values
                     if isinstance(current_fuzzable_values, list):
                         values = current_fuzzable_values
-                    else:
-                        values = [current_fuzzable_values]
-                except primitives.CandidateValueException:
-                    _raise_dict_err(primitive_type, field_name)
-                except Exception as err:
-                    _handle_exception(primitive_type, field_name, err)
-
-            # Handle custom (user defined) static payload on header or query
-            elif (primitive_type == primitives.CUSTOM_PAYLOAD_HEADER or\
-                  primitive_type == primitives.CUSTOM_PAYLOAD_QUERY):
-                try:
-                    current_fuzzable_values = candidate_values_pool.\
-                        get_candidate_values(primitive_type, request_id=self._request_id, tag=field_name, quoted=quoted)
-                    # handle case where custom payload have more than one values
-                    if isinstance(current_fuzzable_values, list):
-                        values = current_fuzzable_values
+                    elif primitives.is_value_generator(current_fuzzable_values):
+                        values = [(current_fuzzable_values, quoted, writer_variable)]
                     else:
                         values = [current_fuzzable_values]
                 except primitives.CandidateValueException:
@@ -811,6 +844,8 @@ class Request(object):
             # Handle all the rest
             else:
                 values = candidate_values_pool.get_fuzzable_values(primitive_type, default_val, self._request_id, quoted, examples)
+                if primitives.is_value_generator(values):
+                    values = [(values, quoted, writer_variable)]
 
             if Settings().fuzzing_mode == 'random-walk' and not preprocessing:
                 random.shuffle(values)
@@ -834,7 +869,7 @@ class Request(object):
 
         return fuzzable, writer_variables, tracked_parameters
 
-    def render_iter(self, candidate_values_pool, skip=0, preprocessing=False):
+    def render_iter(self, candidate_values_pool, skip=0, preprocessing=False, prev_rendered_values=None):
         """ This is the core method that renders values combinations in a
         request template. It basically is a generator which lazily iterates over
         a pool of possible combination of values that fit the template of the
@@ -854,7 +889,7 @@ class Request(object):
         @param preprocessing: Set to True if this rendering is happening during preprocessing
         @type  preprocessing: Bool
 
-        @return: (rendered request's payload, response's parser function)
+        @return: (rendered request's payload, response's parser function, request's tracked parameter values)
         @rtype : (Str, Function Pointer, List[Str])
 
         """
@@ -866,6 +901,20 @@ class Request(object):
                 print_to_console=True
             )
             raise InvalidDictionaryException
+
+        def init_value_generators(fuzzable_request_blocks, fuzzable, value_gen_tracker):
+            value_generators = {}
+            for idx in fuzzable_request_blocks:
+                if fuzzable[idx] \
+                and isinstance(fuzzable[idx][0], tuple)\
+                and primitives.is_value_generator(fuzzable[idx][0][0]):
+                    value_gen_wrapper = fuzzable[idx][0][0]
+                    value_generator = value_gen_wrapper(value_gen_tracker, idx)
+                    # Replace the wrapper with the generator in the tuple.
+                    tmp_list = list(fuzzable[idx][0])
+                    tmp_list[0] = value_generator
+                    value_generators[idx] = tuple(tmp_list)
+            return value_generators
 
         if not candidate_values_pool:
             print("Candidate values pool empty")
@@ -883,6 +932,11 @@ class Request(object):
         next_combination = 0
         for req in self.get_schema_combinations():
             parser = None
+            fuzzable_request_blocks = []
+            for idx, request_block in enumerate(req.definition):
+                if primitives.CandidateValuesPool.is_custom_fuzzable(request_block[0]):
+                    fuzzable_request_blocks.append(idx)
+
             # If request had post_send metadata, register parsers etc.
             if bool(self.metadata) and 'post_send' in self.metadata\
             and 'parser' in self.metadata['post_send']:
@@ -892,8 +946,28 @@ class Request(object):
 
             # lazy generation of pool for candidate values
             combinations_pool = itertools.product(*fuzzable)
-            combinations_pool = itertools.islice(combinations_pool,
-                                                 Settings().max_combinations)
+
+            # Because of the way 'render_iter' is implemented, dynamic value generators must
+            # be cached and re-used.
+            value_generators = self._rendered_values_cache.value_generators
+            value_gen_tracker = self._rendered_values_cache.value_gen_tracker
+            if value_generators is None:
+                value_generators = init_value_generators(fuzzable_request_blocks, fuzzable,
+                                                         value_gen_tracker)
+                self._rendered_values_cache.value_generators = value_generators
+
+            combinations_pool_len = None
+            if value_generators:
+                # Calculate the number of static combinations.  This is needed later to
+                # keep fetching dynamically generated values for every entry in the
+                # combination pool
+                combinations_pool_len = functools.reduce(operator.mul, map(len, fuzzable), 1)
+                # If there is at least one value generator, it may generate an
+                # infinite number of values.`
+                # Keep plugging in values from the static combinations pool while dynamic
+                # values are available.
+                combinations_pool = itertools.cycle(combinations_pool)
+            combinations_pool = itertools.islice(combinations_pool, Settings().max_combinations)
 
             # skip combinations, if asked to
             while next_combination < skip:
@@ -911,7 +985,28 @@ class Request(object):
             # dependent variables
             for ind, values in enumerate(combinations_pool):
                 values = list(values)
+
+                # Use saved value generators.
+                for idx, val in value_generators.items():
+                    values[idx] = val
+
+                # Replace here with previously rendered values.
+                # This must be done before any dynamically generated values, to make sure
+                # stale values are not used.
+                if prev_rendered_values:
+                    for idx, val in prev_rendered_values.items():
+                        values[idx] = val
+
                 values = request_utilities.resolve_dynamic_primitives(values, candidate_values_pool)
+
+                # If all the value generators are done, and the combination pool is exhausted, exit
+                # the loop.  Note: this check must be made after resolving dynamic primitives,
+                # because that is where the value generator is invoked.
+                if value_generators:
+                    if next_combination >= combinations_pool_len and\
+                    len(value_generators) == len(value_gen_tracker):
+                        break
+
                 for val_idx, val in enumerate(values):
                     (writer_variable, writer_is_quoted) = writer_variables[val_idx]
                     if writer_variable is not None:
@@ -927,24 +1022,44 @@ class Request(object):
                     for idx in idx_list:
                         tracked_parameter_values[k].append(values[idx])
 
+                # Cache the current rendering.
+                # Only fuzzable values need to be cached.
+                cached_values = {}
+                for idx in fuzzable_request_blocks:
+                    cached_values[idx] = values[idx]
+                if cached_values:
+                    self._rendered_values_cache.add_fuzzable_values(next_combination, cached_values)
+
                 rendered_data = "".join(values)
                 yield rendered_data, parser, tracked_parameter_values
 
-    def render_current(self, candidate_values_pool, preprocessing=False):
+                next_combination = next_combination + 1
+
+
+    def render_current(self, candidate_values_pool, preprocessing=False, use_last_cached_rendering=False):
         """ Renders the next combination for the current request.
 
         @param candidate_values_pool: The pool of values for primitive types.
         @type candidate_values_pool: Dict
         @param preprocessing: Set to True if this rendering is happening during preprocessing
         @type  preprocessing: Bool
+        @param use_last_cached_rendering: Set to True if the previous rendering for this combination should
+                                          be used, if found.
+        @type  use_last_cached_rendering: Bool
 
         @return: (rendered request's payload, response's parser function)
         @rtype : (Str, Function Pointer, List[Str])
 
         """
+        rendered_combination = self._current_combination_id - 1
+        prev_rendered_values = None
+        if use_last_cached_rendering and self._rendered_values_cache.contains(rendered_combination):
+            prev_rendered_values = self._rendered_values_cache.get_fuzzable_values(rendered_combination)
+
         return next(self.render_iter(candidate_values_pool,
-                                skip=self._current_combination_id - 1,
-                                preprocessing=preprocessing))
+                                     skip=self._current_combination_id - 1,
+                                     preprocessing=preprocessing,
+                                     prev_rendered_values=prev_rendered_values))
 
     def num_combinations(self, candidate_values_pool):
         """ Returns the number of value combination for request's primitive
@@ -965,6 +1080,10 @@ class Request(object):
         counter = 0
         for combination in self.render_iter(candidate_values_pool):
             counter += 1
+        # Reset the state of the rendering cache
+        # This is necessary because the above iterator has advanced the
+        # custom dynamic value generators, and they must start at the beginning.
+        self._rendered_values_cache = RenderedValuesCache()
         self._total_feasible_combinations = counter
 
         return self._total_feasible_combinations
@@ -1401,7 +1520,7 @@ class RequestCollection(object):
         """
         self._grammar_name = grammar_name
 
-    def set_custom_mutations(self, custom_mutations, per_endpoint_custom_mutations):
+    def set_custom_mutations(self, custom_mutations, per_endpoint_custom_mutations, value_generators_file_path):
         """ Assigns user-defined mutation to pool of mutations.
 
         @param custom_mutations: The dictionary of user-provided mutations.
@@ -1414,6 +1533,8 @@ class RequestCollection(object):
 
         """
         self.candidate_values_pool.set_candidate_values(custom_mutations, per_endpoint_custom_mutations)
+        if value_generators_file_path:
+            self.candidate_values_pool.set_value_generators(value_generators_file_path)
 
     def remove_authentication_tokens(self):
         """ Removes the authentication token line from each request in the collection
