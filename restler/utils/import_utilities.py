@@ -28,5 +28,7 @@ def import_attr(module_file_path, attr_name):
     imported_module = importlib.import_module(module_name)
     imported_attr = getattr(imported_module, attr_name)
 
+    # Remove from path
+    sys.path.pop(len(sys.path) - 1)
     return imported_attr
 
