@@ -278,7 +278,7 @@ class Request(object):
         """
         self._hex_definition = str_to_hex_def(str(self.definition))
 
-        request_id_component = requestId if requestId else self.endpoint
+        request_id_component = requestId if requestId is not None else self.endpoint
         self._request_id = str_to_hex_def(request_id_component)
         self._method_endpoint_hex_definition = str_to_hex_def(self.method + request_id_component)
 
@@ -1440,6 +1440,16 @@ class RequestCollection(object):
     def __deepcopy__(self, memo):
         """ Don't deepcopy this object, just return its reference """
         return self
+
+    def __contains__(self, request_id):
+        """ Returns whether the collection of requests contains the specified
+            request ID (hash of the request ID specified in grammar.py or the endpoint) """
+        return request_id in self._request_id_collection
+
+    def __getitem__(self, request_id):
+        """ Returns the request whose key is the specified request ID
+            (hash of the request ID specified in grammar.py or the endpoint) """
+        return self._request_id_collection[request_id]
 
     def _append_request_id(self, request):
         """ Helper function that appends requests to the request_id collection.
