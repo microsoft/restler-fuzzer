@@ -296,9 +296,24 @@ module SwaggerVisitors =
         /// Returns the specified property when the object contains it.
         /// Note: if the example object does not contain the property,
         let extractPropertyFromObject propertyName (objectType:NJsonSchema.JsonObjectType)
-                                                   (exampleObj: JToken option) =
+                                                   (exampleObj: JToken option)
+                                                   (parents: NJsonSchema.JsonSchema list option) =
             if (String.IsNullOrWhiteSpace propertyName && objectType <> NJsonSchema.JsonObjectType.Array) then
-                failwith (sprintf "non-array should always have a property name.  Property type: %A" objectType)
+                let message = sprintf "non-array should always have a property name.  Property type: %A" objectType
+                let propertyInfo =
+                    let parentPropertyNames =
+                        match parents with
+                        | None -> ""
+                        | Some parents ->
+                            parents
+                            |> Seq.map (fun p -> match p with
+                                                   | :? NJsonSchema.JsonSchemaProperty as jp ->
+                                                        jp.Name
+                                                   | _ -> "")
+                            |> Seq.filter (fun x -> not (String.IsNullOrEmpty x))
+                            |> String.concat "."
+                    sprintf "Property name: %A, parent properties: %s" propertyName parentPropertyNames
+                failwith (sprintf "%s %s" message propertyInfo)
 
             let pv, includeProperty =
                 match exampleObj with
@@ -327,7 +342,7 @@ module SwaggerVisitors =
             pv, includeProperty
 
         let extractPropertyFromArray (exampleObj: JToken option) =
-            extractPropertyFromObject "" NJsonSchema.JsonObjectType.Array exampleObj
+            extractPropertyFromObject "" NJsonSchema.JsonObjectType.Array exampleObj None
 
         let formatJTokenProperty primitiveType (v:JToken) =
             // Use Formatting.None to avoid unintended string formatting, for example
@@ -616,7 +631,7 @@ module SwaggerVisitors =
                 |> Seq.choose (fun item ->
                                     let name = item.Key
                                     // Just extract the property as a string.
-                                    let exValue, includeProperty = GenerateGrammarElements.extractPropertyFromObject name NJsonSchema.JsonObjectType.String exampleValue
+                                    let exValue, includeProperty = GenerateGrammarElements.extractPropertyFromObject name NJsonSchema.JsonObjectType.String exampleValue (Some parents)
                                     if not includeProperty then None
                                     else
                                         Some (processProperty (name, item.Value)
