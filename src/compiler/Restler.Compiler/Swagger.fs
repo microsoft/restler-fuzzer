@@ -6,9 +6,12 @@ module Restler.Swagger
 open Microsoft.FSharpLu.File
 open NSwag
 
-exception UnexpectedSwaggerParameter of string
-exception UnsupportedParameterSchema of string
-exception ParameterTypeNotFound of string
+type UnexpectedSwaggerParameter (msg:string) =
+    inherit System.Exception(msg)
+type UnsupportedParameterSchema (msg:string) =
+    inherit System.Exception(msg)
+type ParameterTypeNotFound (msg:string) =
+    inherit System.Exception(msg)
 
 let at x = Async.AwaitTask(x)
 

@@ -8,7 +8,8 @@ open Restler.ApiResourceTypes
 open Restler.Utilities.Operators
 open Restler.AccessPaths
 
-exception InvalidMutationsDictionaryFormat of string
+type InvalidMutationsDictionaryFormat (msg:string) =
+    inherit System.Exception(msg)
 
 type MutationsDictionary =
     {

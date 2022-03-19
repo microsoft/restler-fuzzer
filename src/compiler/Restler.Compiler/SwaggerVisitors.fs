@@ -10,11 +10,17 @@ open Restler.Utilities.Operators
 open Newtonsoft.Json.Linq
 open NJsonSchema
 
-exception UnsupportedType of string
-exception NullArraySchema of string
-exception UnsupportedArrayExample of string
-exception UnsupportedRecursiveExample of string
+type UnsupportedType (msg:string) =
+    inherit Exception(msg)
 
+type NullArraySchema (msg:string) =
+    inherit Exception(msg)
+
+type UnsupportedArrayExample (msg:string) =
+    inherit Exception(msg)
+
+type UnsupportedRecursiveExample (msg:string) =
+    inherit Exception(msg)
 
 module SchemaUtilities =
 

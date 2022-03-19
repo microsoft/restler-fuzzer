@@ -22,7 +22,8 @@ open Restler.Utilities.Logging
 open Restler.Utilities.Operators
 open Restler.XMsPaths
 
-exception UnsupportedParameterSerialization of string
+type UnsupportedParameterSerialization (msg:string) =
+    inherit Exception(msg)
 
 module Types =
     /// A configuration associated with a single Swagger document
