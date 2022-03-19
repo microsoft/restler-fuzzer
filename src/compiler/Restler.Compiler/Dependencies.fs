@@ -14,7 +14,9 @@ open Restler.ApiResourceTypes
 open Restler.DependencyAnalysisTypes
 open Restler.Annotations
 
-exception UnsupportedType of string
+type UnsupportedType (msg:string) =
+    inherit Exception(msg)
+
 exception InvalidSwaggerEndpoint
 
 /// Determines whether a producer is valid for a given consumer.

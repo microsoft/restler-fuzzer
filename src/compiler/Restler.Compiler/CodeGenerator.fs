@@ -13,8 +13,10 @@ let TAB = @"    "
 let RETURN = @"\r\n"
 let SPACE = @" "
 
+type UnsupportedType (msg:string) =
+    inherit Exception(msg)
+
 exception UnsupportedAccessPath
-exception UnsupportedType of string
 
 module Types =
     type RequestPrimitiveTypeData =
