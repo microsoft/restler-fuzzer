@@ -10,7 +10,6 @@ RUN apk add --no-cache python3
 RUN python3 -m ensurepip
 RUN pip3 install --upgrade pip
 RUN pip3 install requests
-RUN pip3 install requests
 RUN pip3 install applicationinsights
 COPY ./engine /RESTler/engine
 RUN python3 -m compileall -b /RESTler/engine
