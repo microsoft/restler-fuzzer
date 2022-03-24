@@ -358,3 +358,11 @@ MigrationBackup/
 
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
+
+# Restler bin
+restler_bin/
+Compile/
+Fuzz/
+Test/
+demo_server/coverage_stats.txt
+restler

@@ -8,16 +8,32 @@ open System.Text.RegularExpressions
 
 [<Literal>]
 let UnknownResponseCode = 0
+let WarningResponseCode = [ 289 .. 299 ]
 
 [<Literal>]
 let BugResponseCode = 500
 let isFailure x =
     x >= 400 ||
     // Consider these a failure as well, so they are analyzed.
-    x = UnknownResponseCode
+    x = UnknownResponseCode ||
+    List.contains x WarningResponseCode
 
 let isBug x =
     x = BugResponseCode
+
+let containsWarning x = 
+    match x with
+    | 289 -> "Warning"
+    | 290 -> "UserWarning"
+    | 291 -> "DeprecationWarning"
+    | 292 -> "SyntaxWarning"
+    | 293 -> "RuntimeWarning"
+    | 294 -> "FutureWarning"
+    | 295 -> "PendingDeprecationWarning"
+    | 296 -> "ImportWarning"
+    | 297 -> "UnicodeWarning"
+    | 298 -> "BytesWarning"
+    | 299 -> "ResourceWarning"
 
 // TODO replace the Http types here with the ones in Common.Http and Common.Log
 
@@ -40,6 +56,9 @@ type HttpResponseData =
 
     member x.isBug =
         isBug x.code
+
+    member x.containsWarning = 
+        containsWarning x.code
 
 type RequestTrace =
     | RequestData of HttpRequestData

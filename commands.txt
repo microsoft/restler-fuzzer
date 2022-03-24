@@ -1,0 +1,15 @@
+# comments for macos
+# compile restler
+python3 ./build-restler.py --dest_dir restler_bin/
+# compile the engine seperately due to a bug
+python3 ./build-restler.py --dest_dir restler_bin/ --compile_type engine --python_path /usr/local/bin/python3.8
+
+# use the engine only
+python3 restler.py --restler_grammar /Users/anne/Desktop/restler_project/restler-fuzzer/Compile/grammar.py --no_ssl
+
+# compile grammar
+dotnet ./restler_bin/restler/Restler.dll compile --api_spec ./demo_server/swagger.json
+# test
+dotnet ./restler_bin/restler/Restler.dll test --grammar_file ./Compile/grammar.py --dictionary_file ./Compile/dict.json --settings ./Compile/engine_settings.json --no_ssl
+# fuzz
+dotnet ./restler_bin/restler/Restler.dll fuzz --grammar_file ./Compile/grammar.py --dictionary_file ./Compile/dict.json --settings ./Compile/engine_settings.json --no_ssl

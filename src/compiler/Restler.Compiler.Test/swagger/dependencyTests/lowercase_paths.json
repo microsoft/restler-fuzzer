@@ -15,7 +15,7 @@
       "x-ms-azure-resource": true
     }
   },
-  "host": "localhost:8888",
+  "host": "localhost:8878",
   "info": {
     "description": "Small example for lowercase paths.",
     "title": "Lowercase path dependencies regression test",

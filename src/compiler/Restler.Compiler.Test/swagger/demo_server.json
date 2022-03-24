@@ -76,7 +76,7 @@
             ]
         }
     },
-    "host": "localhost:8888",
+    "host": "localhost:8878",
     "info": {
         "description": "A simple demonstration of a Flask RestPlus powered API",
         "title": "My Blog API",

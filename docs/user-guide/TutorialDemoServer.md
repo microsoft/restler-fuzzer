@@ -58,7 +58,7 @@ In this example, coverage is 5 / 6 and the only INVALID request is
         + restler_fuzzable_int: ['0', '1']
         - restler_static_string: ' HTTP/1.1\r\n'
         - restler_static_string: 'Accept: application/json\r\n'
-        - restler_static_string: 'Host: localhost:8888\r\n'
+        - restler_static_string: 'Host: localhost:8878\r\n'
         - restler_static_string: '\r\n'
 
 By looking at `network.testing.<...>.txt`, we can see that RESTler attempts to execute this request 4 times, each time with a value either 0 or 1 for the `per_page=` and `page=`. It turns out none of these 4 combinations are valid: the `per_page=` must be 2 minimally, but RESTler was not able to infer this automatically. (One way to fix this is to edit `dict.json` and add the value `2` in the list for `restler_fuzzable_int`.)

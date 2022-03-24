@@ -69,7 +69,7 @@
       }
     }
   },
-  "host": "localhost:8888",
+  "host": "localhost:8878",
   "info": {
     "description": "Small example that produces cycles due to body dependencies.",
     "title": "Cycle body dependencies regression test",

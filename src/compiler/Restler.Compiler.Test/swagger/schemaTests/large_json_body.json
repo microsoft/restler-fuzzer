@@ -122,7 +122,7 @@
     }
 
   },
-  "host": "localhost:8888",
+  "host": "localhost:8878",
   "info": {
     "description": "Example with deep json body and both arrays, properties, and objects.",
     "title": "Test json nesting depth",

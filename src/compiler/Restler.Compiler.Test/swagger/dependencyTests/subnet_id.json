@@ -121,7 +121,7 @@
     }
   },
 
-  "host": "localhost:8888",
+  "host": "localhost:8878",
   "info": {
     "description": "Small example for object with embedded consumer.",
     "title": "Subnet dependencies regression test",
