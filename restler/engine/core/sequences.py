@@ -725,7 +725,7 @@ class Sequence(object):
         def send_and_parse(request_data):
             """ Gets the token, sends the requst, performs async wait, parses response, returns status code """
             rendered_data = self.get_request_data_with_token(request_data.rendered_data)
-            response = request_utilities.send_request_data(rendered_data)
+            response = request_utilities.send_request_data(rendered_data, reconnect=True)
             responses_to_parse, _, _ = async_request_utilities.try_async_poll(
                 rendered_data, response, request_data.max_async_wait_time)
             if request_data.parser:

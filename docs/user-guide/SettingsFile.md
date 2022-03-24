@@ -162,7 +162,7 @@ the examples instead of just the first one.
 
 ```json
 "test_combinations_settings": {
-      "example_payloadds" : {
+      "example_payloads" : {
           "payload_kind": "all"
       }
 }

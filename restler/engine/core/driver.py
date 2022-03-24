@@ -758,6 +758,14 @@ def generate_sequences(fuzzing_requests, checkers, fuzzing_jobs=1):
 
     return num_total_sequences
 
+def get_host_and_port(hostname):
+    if ':' in hostname:
+        # If hostname includes port, split it out
+        host_split = hostname.split(':')
+        return host_split[0], host_split[1]
+    else:
+        return hostname, None
+
 def replay_sequence_from_log(replay_log_filename, token_refresh_cmd):
     """ Replays a sequence of requests from a properly formed log file
 
@@ -790,6 +798,9 @@ def replay_sequence_from_log(replay_log_filename, token_refresh_cmd):
                     hostname = get_hostname_from_line(line)
                     if hostname is None:
                         raise Exception("Host not found in request. The replay log may be corrupted.")
+                    hostname, port = get_host_and_port(hostname)
+                    if Settings().connection_settings.target_port is None and port is not None:
+                        Settings().set_port(port)
                     Settings().set_hostname(hostname)
 
                 # Append the request data to the list

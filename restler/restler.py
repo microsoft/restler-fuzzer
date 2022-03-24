@@ -447,13 +447,11 @@ if __name__ == '__main__':
     else:
         host = req_collection.get_host_from_grammar()
         if host is not None:
-            if ':' in host:
-                # If hostname includes port, split it out
-                host_split = host.split(':')
-                host = host_split[0]
-                if settings.connection_settings.target_port is None:
-                    settings.set_port(host_split[1])
-            settings.set_hostname(host)
+            hostname, port = driver.get_host_and_port(host)
+
+            if settings.connection_settings.target_port is None and port is not None:
+                settings.set_port(port)
+            settings.set_hostname(hostname)
         else:
             logger.write_to_main(
                 "Host not found in grammar. "

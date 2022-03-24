@@ -102,7 +102,8 @@ class HttpSock(object):
         try:
             if reconnect or not self._connected:
                 if reconnect:
-                    self._closeSocket()
+                    if self._sock:
+                        self._closeSocket()
                 self.set_up_connection()
                 self._connected = True
 
