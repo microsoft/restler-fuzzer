@@ -201,8 +201,8 @@ if __name__ == '__main__':
                         help='The build configuration',
                         type=str, default='release', required=False)
     parser.add_argument('--python_path',
-                        help='The path or python command to use for compilation. (Default: python)',
-                        type=str, default='python', required=False)
+                        help='The path or python command to use for compilation. (Default: python command that initiated this script)',
+                        type=str, default=sys.executable, required=False)
     parser.add_argument('--compile_type',
                         help='all: driver/compiler & engine as python files\n'
                         'engine: engine only, as python files\n'
