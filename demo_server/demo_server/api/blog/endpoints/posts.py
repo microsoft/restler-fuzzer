@@ -4,7 +4,15 @@
 import logging
 
 from flask import request
-from flask_restplus import Resource
+# Workaround for import error
+#    ImportError: cannot import name 'cached_property' from 'werkzeug'
+try:
+    from flask_restplus import Resource
+except ImportError:
+    import werkzeug, flask.scaffold
+    werkzeug.cached_property = werkzeug.utils.cached_property
+    flask.helpers._endpoint_from_view_func = flask.scaffold._endpoint_from_view_func
+    from flask_restplus import Resource
 from demo_server.api.blog.business import create_blog_post, update_post, delete_post, get_post
 from demo_server.api.blog.serializers import blog_post, blog_post_public,\
     page_of_blog_posts

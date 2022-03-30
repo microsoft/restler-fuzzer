@@ -4,7 +4,15 @@
 import logging
 import traceback
 
-from flask_restplus import Api
+# Workaround for import error
+#    ImportError: cannot import name 'cached_property' from 'werkzeug'
+try:
+    from flask_restplus import Api
+except ImportError:
+    import werkzeug, flask.scaffold
+    werkzeug.cached_property = werkzeug.utils.cached_property
+    flask.helpers._endpoint_from_view_func = flask.scaffold._endpoint_from_view_func
+    from flask_restplus import Api
 from demo_server import settings
 from sqlalchemy.orm.exc import NoResultFound
 
