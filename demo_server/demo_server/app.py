@@ -52,6 +52,20 @@ def initialize_app(flask_app):
 
     db.init_app(flask_app)
 
+@app.teardown_request
+def teardown(stream):
+    if not stream:
+        return
+    exhaust = getattr(stream, "exhaust", None)
+
+    if exhaust is not None:
+        exhaust()
+    else:
+        while True:
+            chunk = stream.read(1024 * 64)
+
+            if not chunk:
+                break
 
 def main():
     initialize_app(app)
