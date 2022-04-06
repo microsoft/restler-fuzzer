@@ -776,7 +776,12 @@ let findAnnotation globalAnnotations
                    (resourceName:string)
                    (resourceAccessPath:AccessPath) =
 
-    let annotationMatches consumerParameter resourceName resourceAccessPath exceptConsumers =
+    let annotationMatches consumerId consumerParameter resourceName resourceAccessPath exceptConsumers =
+        let consumerIdMatches =
+            match consumerId with
+            | None -> true
+            | Some consumerId ->
+                consumerId = requestId
         let consumerParameterMatches =
             match consumerParameter with
             | None -> false
@@ -790,11 +795,11 @@ let findAnnotation globalAnnotations
             | None -> true
             | Some exceptConsumers ->
                 not (exceptConsumers |> Seq.exists (fun ec -> ec = requestId))
-        consumerParameterMatches && requestIdMatches
+        consumerIdMatches && consumerParameterMatches && requestIdMatches
 
     let globalAnnotation =
         match globalAnnotations
-              |> Seq.filter (fun a -> annotationMatches a.consumerParameter resourceName resourceAccessPath a.exceptConsumerId
+              |> Seq.filter (fun a -> annotationMatches a.consumerId a.consumerParameter resourceName resourceAccessPath a.exceptConsumerId
                              ) with
         | g when g |> Seq.isEmpty -> None
         | g ->
@@ -809,7 +814,7 @@ let findAnnotation globalAnnotations
 
     let localAnnotation =
         match localAnnotations
-              |> Seq.filter (fun a -> annotationMatches a.consumerParameter resourceName resourceAccessPath a.exceptConsumerId
+              |> Seq.filter (fun a -> annotationMatches a.consumerId a.consumerParameter resourceName resourceAccessPath a.exceptConsumerId
                              ) with
         | g when g |> Seq.isEmpty -> None
         | g ->
