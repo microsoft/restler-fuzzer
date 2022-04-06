@@ -1,0 +1,14 @@
+{
+  "paths": {
+    "/{resourceName}?type=folder": {
+      "put": {
+        "1": {
+          "parameters": {
+            "api-version":  "2020-03-02",
+            "resource-version": "1.2.3.4"
+          }
+        }
+      }
+    }
+  }
+}

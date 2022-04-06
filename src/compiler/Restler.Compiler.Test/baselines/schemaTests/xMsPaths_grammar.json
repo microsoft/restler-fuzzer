@@ -61,6 +61,45 @@
       ],
       "headerParameters": [
         [
+          "Examples",
+          {
+            "ParameterList": [
+              {
+                "name": "api-version",
+                "payload": {
+                  "LeafNode": {
+                    "name": "",
+                    "payload": {
+                      "Constant": [
+                        "String",
+                        "2020-03-02"
+                      ]
+                    },
+                    "isRequired": true,
+                    "isReadOnly": false
+                  }
+                }
+              },
+              {
+                "name": "resource-version",
+                "payload": {
+                  "LeafNode": {
+                    "name": "",
+                    "payload": {
+                      "Constant": [
+                        "String",
+                        "1.2.3.4"
+                      ]
+                    },
+                    "isRequired": true,
+                    "isReadOnly": false
+                  }
+                }
+              }
+            ]
+          }
+        ],
+        [
           "Schema",
           {
             "ParameterList": [
@@ -82,6 +121,22 @@
                           ]
                         },
                         "defaultValue": "2020-03-01"
+                      }
+                    },
+                    "isRequired": true,
+                    "isReadOnly": false
+                  }
+                }
+              },
+              {
+                "name": "resource-version",
+                "payload": {
+                  "LeafNode": {
+                    "name": "",
+                    "payload": {
+                      "Fuzzable": {
+                        "primitiveType": "String",
+                        "defaultValue": "fuzzstring"
                       }
                     },
                     "isRequired": true,
@@ -225,6 +280,22 @@
                           ]
                         },
                         "defaultValue": "2020-03-01"
+                      }
+                    },
+                    "isRequired": true,
+                    "isReadOnly": false
+                  }
+                }
+              },
+              {
+                "name": "resource-version",
+                "payload": {
+                  "LeafNode": {
+                    "name": "",
+                    "payload": {
+                      "Fuzzable": {
+                        "primitiveType": "String",
+                        "defaultValue": "fuzzstring"
                       }
                     },
                     "isRequired": true,
