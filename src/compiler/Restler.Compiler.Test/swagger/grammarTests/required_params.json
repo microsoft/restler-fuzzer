@@ -96,6 +96,18 @@
               }
             },
             {
+              "in": "query",
+              "name": "required_query_param",
+              "required": true,
+              "type": "string"
+            },
+            {
+              "in": "query",
+              "name": "opt_query_param_1",
+              "required": false,
+              "type": "string"
+            },
+            {
               "name": "body",
               "in": "body",
               "schema": {

@@ -587,7 +587,6 @@ let rec parseArgs (args:DriverArgs) = function
 
         let config = { Restler.Config.DefaultConfig with
                         SwaggerSpecFilePath = Some [ swaggerSpecAbsFilePath ]
-                        IncludeOptionalParameters = true
                         // Data fuzzing is on by default here because data fuzzing is on by default
                         // in the RESTler engine for fuzzing.
                         DataFuzzing = true
@@ -616,7 +615,7 @@ let rec parseArgs (args:DriverArgs) = function
                                 UsePathExamples = if config.UsePathExamples.IsSome then
                                                       config.UsePathExamples
                                                     else Restler.Config.DefaultConfig.UsePathExamples
-                                IncludeOptionalParameters = true }
+                                }
             parseArgs { args with task = Compile ; taskParameters = CompilerParameters config } rest
         | Choice2Of2 error ->
             Logging.logError <| sprintf "Invalid format for compiler config file %s. \

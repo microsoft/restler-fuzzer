@@ -175,6 +175,8 @@ let generatePythonParameter includeOptionalParameters parameterKind (requestPara
             // The payload is not specified at this level, so use the one specified at lower levels.
             // The inner properties must be comma separated
             let cs = innerProperties
+                     // Filter empty elements, which are the result of filtered child properties
+                     |> Seq.filter (fun p -> p.Length > 0) 
                      |> Seq.mapi (fun i s ->
                                       if i > 0 && not (s |> List.isEmpty) then
                                           [
@@ -475,29 +477,31 @@ let generatePythonFromRequestElement includeOptionalParameters (requestId:Reques
             let parameters =
                 hp |> List.ofSeq
                    |> List.map (fun p ->
-                                  [
-                                      generatePythonParameter includeOptionalParameters ParameterKind.Header p
+                                  let pythonElementList = generatePythonParameter includeOptionalParameters ParameterKind.Header p
+                                  if pythonElementList.Length > 0 then
+                                      pythonElementList @
                                       [ Restler_static_string_constant RETURN ]
-                                  ]
-                                  |> List.concat
-                                  )
+                                  else
+                                    []
+                                )
                    |> List.concat
             parameters
         | _ ->
             raise (UnsupportedType (sprintf "This request parameters payload type is not supported: %A" hp))
     | QueryParameters qp ->
         match qp with
-        | ParameterList bp ->
+        | ParameterList qp ->
             let parameters =
-                bp |> List.ofSeq
+                qp |> List.ofSeq
                    |> List.map (fun p -> generatePythonParameter includeOptionalParameters ParameterKind.Query p)
-                   |> List.mapi (fun i primitive ->
+                   |> List.filter (fun primitives -> primitives.Length > 0)
+                   |> List.mapi (fun i primitives ->
                                     if i > 0 then
                                         [
                                             yield Restler_static_string_constant "&"
-                                            yield! primitive
+                                            yield! primitives
                                         ]
-                                    else primitive
+                                    else primitives
                                )
                    |> List.concat
             if parameters |> List.isEmpty then
@@ -521,6 +525,7 @@ let generatePythonFromRequestElement includeOptionalParameters (requestId:Reques
             let parameters =
                 bp |> List.ofSeq
                    |> List.map (fun p -> generatePythonParameter includeOptionalParameters ParameterKind.Body p)
+                   |> List.filter (fun primitives -> primitives.Length > 0)
                    |> List.mapi (fun i primitive->
                                     if i > 0 then
                                         (Restler_static_string_jtoken_delim ",") :: primitive
