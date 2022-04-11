@@ -467,8 +467,8 @@ let generatePythonFromRequestElement includeOptionalParameters (requestId:Reques
                     ]
                 )
         // Handle the case of '/'
-        if x |> List.isEmpty then
-            [ Restler_static_string_constant "/" ]
+        if x |> List.isEmpty || queryStartIndex = 0 then
+            [ Restler_static_string_constant "/" ] @ x
         else
             x
     | HeaderParameters (parameterSource, hp) ->
