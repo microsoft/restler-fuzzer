@@ -382,6 +382,23 @@ class PayloadBodyChecker(CheckerBase):
             }
         )
 
+    def _get_ignore_group_for_error_tracking(self):
+        # ignore group: fuzzable string
+        string_group = self._req_collection.candidate_values_pool.get_candidate_values(
+            primitives.FUZZABLE_STRING
+        )
+        # TODO: since the fuzzable string values can be dynamically generated, the error
+        # message bucketing needs to be dynamic rather than based on static values.  It should
+        # also include filtering primitives other than static strings
+        # (e.g. strings provided in custom payloads).
+        # As a workaround, if the candidate values are not provided in a static list,
+        # return an empty list.
+        if not isinstance(string_group, list):
+            print("ignoring value generator...")
+            string_group = []
+        ignore = set(string_group)
+        return ignore
+
     def _run_pipelines(self, request, body_schema_list):
         """ Run all the pipeline tasks
 
@@ -398,11 +415,7 @@ class PayloadBodyChecker(CheckerBase):
         if not self._refresh_per_task:
             self._refresh(request)
 
-        # ignore group: fuzzable string
-        string_group = self._req_collection.candidate_values_pool.get_candidate_values(
-            primitives.FUZZABLE_STRING
-        )
-        ignore = set(string_group)
+        ignore = self._get_ignore_group_for_error_tracking()
 
         # set variable budget
         if self._size_dep_budget:
@@ -535,11 +548,7 @@ class PayloadBodyChecker(CheckerBase):
         self._log(f'#N: {node_num}, #max: {max_combination}, #width: {pipeline_width}')
 
         # Trackers
-        ignore = set(
-            self._req_collection.candidate_values_pool.get_candidate_values(
-                primitives.FUZZABLE_STRING
-            )
-        )
+        ignore = self._get_ignore_group_for_error_tracking()
         tracker_invalid_json = ResponseTracker(ignore, False, self._log)
         tracker_type = ResponseTracker(ignore, False, self._log)
 
@@ -619,11 +628,8 @@ class PayloadBodyChecker(CheckerBase):
         self._log(f'#N: {node_num}, #max: {max_combination}, #width: {pipeline_width}')
 
         # Trackers
-        ignore = set(
-            self._req_collection.candidate_values_pool.get_candidate_values(
-                primitives.FUZZABLE_STRING
-            )
-        )
+        ignore = self._get_ignore_group_for_error_tracking()
+
         tracker_invalid_json = ResponseTracker(ignore, False, self._log)
         tracker_structure = ResponseTracker(ignore, False, self._log)
         tracker_type = ResponseTracker(ignore, False, self._log)
