@@ -1,0 +1,40 @@
+{
+  "basePath": "/api",
+  "consumes": [
+    "application/json"
+  ],
+  "host": "localhost:8888",
+  "info": {
+    "description": "Simple API with required and optional parameters.",
+    "title": "The title.",
+    "version": "1.0.0"
+  },
+  "definitions": {
+  },
+  "paths": {
+    "/products": {
+      "post": {
+        "parameters": [
+          {
+            "in": "query",
+            "name": "required-param",
+            "type": "string",
+            "required": true
+          },
+          {
+            "in": "query",
+            "name": "optional-param",
+            "type": "string",
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    }
+  },
+  "swagger": "2.0"
+}

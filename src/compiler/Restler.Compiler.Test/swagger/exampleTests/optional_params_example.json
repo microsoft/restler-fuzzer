@@ -1,0 +1,14 @@
+{
+  "paths": {
+    "/products": {
+      "post": {
+        "1": {
+          "parameters": {
+            "required-param": "a",
+            "optional-param": "b"
+          }
+        }
+      }
+    }
+  }
+}

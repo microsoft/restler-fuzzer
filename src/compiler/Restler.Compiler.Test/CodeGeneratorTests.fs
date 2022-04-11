@@ -56,11 +56,12 @@ module CodeGenerator =
                 [
                     Method OperationMethod.Get
                     Path pathPayload
-                    QueryParameters (ParameterList [{ name = "page" ; payload = q1 ; serialization = None }
+                    QueryParameters (ParameterPayloadSource.Schema,
+                                     ParameterList [{ name = "page" ; payload = q1 ; serialization = None }
                                                     { name = "payload"; payload = q2; serialization = None} ])
-                    Body (ParameterList  [{ name = "theBody" ; payload = b1 ; serialization = None}])
+                    Body (ParameterPayloadSource.Schema,(ParameterList  [{ name = "theBody" ; payload = b1 ; serialization = None}]))
                     RequestElement.HttpVersion "1.1"
-                    HeaderParameters (ParameterList [])
+                    HeaderParameters (ParameterPayloadSource.Schema,ParameterList [])
                     Headers [("Accept", "application/json")
                              ("Host", "fromSwagger")
                              ("Content-Type", "application/json")]
@@ -103,7 +104,7 @@ module CodeGenerator =
             let l2 = LeafNode p2
             let par = InternalNode (r, [l1 ; l2])
 
-            let result = Restler.CodeGenerator.Python.generatePythonParameter true ParameterKind.Body { name = "theBody"; payload = par; serialization = None }
+            let result = Restler.CodeGenerator.Python.generatePythonParameter true ParameterPayloadSource.Schema ParameterKind.Body { name = "theBody"; payload = par; serialization = None }
 
             let hasRegion = result |> Seq.tryFind (fun s -> s = (Restler_static_string_constant "\"region\":"))
             Assert.True(hasRegion.IsSome, "region not found")

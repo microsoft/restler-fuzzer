@@ -401,9 +401,9 @@ type RequestElement =
     | Method of OperationMethod
     | BasePath of string
     | Path of FuzzingPayload list
-    | QueryParameters of RequestParametersPayload
-    | HeaderParameters of RequestParametersPayload
-    | Body of RequestParametersPayload
+    | QueryParameters of ParameterPayloadSource * RequestParametersPayload
+    | HeaderParameters of ParameterPayloadSource * RequestParametersPayload
+    | Body of ParameterPayloadSource * RequestParametersPayload
     | Token of string
     | RefreshableToken
     | Headers of (string * string) list

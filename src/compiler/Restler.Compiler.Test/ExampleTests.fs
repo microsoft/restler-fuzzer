@@ -506,6 +506,30 @@ module Examples =
             Assert.False(grammar.Contains("ddd"))
 
 
+        /// Test that when optional parameters are excluded, they are still present if added with an example payload.
+        [<Fact>]
+        let ``examples with optional parameters`` () =
+            let grammarOutputDirectoryPath = ctx.testRootDirPath
+            let config = { Restler.Config.SampleConfig with
+                             IncludeOptionalParameters = false
+                             GrammarOutputDirectoryPath = Some grammarOutputDirectoryPath
+                             ResolveBodyDependencies = false
+                             UseQueryExamples = Some true
+                             DataFuzzing = true
+                             SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, @"swagger\exampleTests\optional_params.json"))]
+                         }
 
+            let exampleConfigFile = {
+                filePath = Path.Combine(Environment.CurrentDirectory, @"swagger\exampleTests\optional_params_example.json")
+                exactCopy = false
+            }
+
+            let testConfig = { config with ExampleConfigFiles = Some [ {exampleConfigFile with exactCopy = false }] }
+            Restler.Workflow.generateRestlerGrammar None testConfig
+
+            let grammarFilePath = Path.Combine(grammarOutputDirectoryPath, Restler.Workflow.Constants.DefaultRestlerGrammarFileName)
+            let grammar = File.ReadAllText(grammarFilePath)
+            Assert.True(grammar.Contains("required-param"))
+            Assert.True(grammar.Contains("optional-param"))
 
         interface IClassFixture<Fixtures.TestSetupAndCleanup>
