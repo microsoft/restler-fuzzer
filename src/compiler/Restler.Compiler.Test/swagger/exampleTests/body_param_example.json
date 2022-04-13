@@ -1,0 +1,13 @@
+{
+  "paths": {
+    "/products": {
+      "post": {
+        "1": {
+          "parameters": {
+            "__body__": "<xml><label>banana</label></xml>"
+          }
+        }
+      }
+    }
+  }
+}

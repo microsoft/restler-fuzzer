@@ -355,7 +355,9 @@ module SwaggerVisitors =
             | PrimitiveType.String
             | PrimitiveType.DateTime
             | PrimitiveType.Enum (_, PrimitiveType.String, _, _)
-            | PrimitiveType.Uuid ->
+            | PrimitiveType.Uuid
+            // Special case: non-Json bodies (e.g. text, xml) should not be quoted
+            | PrimitiveType.Object when (rawValue.[0] = ''' || rawValue.[0] =  '"') ->
                 // Remove the start and end quotes, which are preserved with 'Formatting.None'.
                 if rawValue.Length > 1 then
                     match rawValue.[0], rawValue.[rawValue.Length-1] with

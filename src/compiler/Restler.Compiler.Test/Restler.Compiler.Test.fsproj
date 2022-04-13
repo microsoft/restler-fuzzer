@@ -58,7 +58,10 @@
     <Content Include="baselines\exampleTests\array_example_grammar.py">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="baselines\dependencyTests\path_in_dictionary_payload_grammar.py">
+	  <Content Include="baselines\exampleTests\body_param_exactCopy_grammar.py">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
+	  <Content Include="baselines\dependencyTests\path_in_dictionary_payload_grammar.py">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="baselines\dependencyTests\header_response_writer_grammar.py">
@@ -234,6 +237,12 @@
 		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </Content>
 	  <Content Include="swagger\ExampleTests\optional_params_example.json">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
+	  <Content Include="swagger\ExampleTests\body_param.json">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
+	  <Content Include="swagger\ExampleTests\body_param_example.json">
 		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </Content>
 	  <Content Include="swagger\get_path_dependencies.json">

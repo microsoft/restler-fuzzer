@@ -296,12 +296,19 @@ module private Parameters =
                                 if examplePayload.exactCopy then
                                     let payload =
                                         let primitiveType =
-                                            match payloadValue.Type with
-                                            | JTokenType.Array
-                                            | JTokenType.Object ->
+                                            // If the example is for the body, it should
+                                            // be treated as an object.  This covers cases when
+                                            // the example is for a content type other than json, so it
+                                            // needs to be provided as a string in the example file.
+                                            if declaredParameter.Kind = OpenApiParameterKind.Body then
                                                 PrimitiveType.Object
-                                            | _ ->
-                                                PrimitiveType.String
+                                            else
+                                                match payloadValue.Type with
+                                                | JTokenType.Array
+                                                | JTokenType.Object ->
+                                                    PrimitiveType.Object
+                                                | _ ->
+                                                    PrimitiveType.String
                                         let formattedPayloadValue = GenerateGrammarElements.formatJTokenProperty primitiveType payloadValue
                                         Constant (primitiveType, formattedPayloadValue)
 

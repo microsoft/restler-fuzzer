@@ -524,12 +524,80 @@ module Examples =
                 exactCopy = false
             }
 
-            let testConfig = { config with ExampleConfigFiles = Some [ {exampleConfigFile with exactCopy = false }] }
+            let testConfig = { config with ExampleConfigFiles = Some [ exampleConfigFile ] }
             Restler.Workflow.generateRestlerGrammar None testConfig
 
             let grammarFilePath = Path.Combine(grammarOutputDirectoryPath, Restler.Workflow.Constants.DefaultRestlerGrammarFileName)
             let grammar = File.ReadAllText(grammarFilePath)
             Assert.True(grammar.Contains("required-param"))
             Assert.True(grammar.Contains("optional-param"))
+
+
+        /// Test that the grammar is correct when the entire body is replaced by an example payload.
+        /// Both 'exactCopy' settings should be tested.
+        [<Fact>]
+        let ``replace entire body with example`` () =
+            let grammarOutputDirectoryPath = ctx.testRootDirPath
+            let config = { Restler.Config.SampleConfig with
+                             IncludeOptionalParameters = false
+                             GrammarOutputDirectoryPath = Some grammarOutputDirectoryPath
+                             ResolveBodyDependencies = false
+                             UseBodyExamples = Some true
+                             UseQueryExamples = Some true
+                             DataFuzzing = true
+                             SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, @"swagger\exampleTests\body_param.json"))]
+                         }
+
+            let exampleConfigFile = {
+                filePath = Path.Combine(Environment.CurrentDirectory, @"swagger\exampleTests\body_param_example.json")
+                exactCopy = true
+            }
+
+            let testConfig = { config with ExampleConfigFiles = Some [ exampleConfigFile ] }
+            Restler.Workflow.generateRestlerGrammar None testConfig
+
+            let expectedGrammarFilePath = Path.Combine(Environment.CurrentDirectory,
+                                                        @"baselines\exampleTests\body_param_exactCopy_grammar.py")
+            let actualGrammarFilePath = Path.Combine(grammarOutputDirectoryPath,
+                                                     Restler.Workflow.Constants.DefaultRestlerGrammarFileName)
+            let grammarDiff = getLineDifferences expectedGrammarFilePath actualGrammarFilePath
+            let message = sprintf "Grammar Does not match baseline.  First difference: %A" grammarDiff
+            Assert.True(grammarDiff.IsNone, message)
+
+        ///// Test that the grammar is correct when the entire body is replaced by an example payload.
+        ///// Both 'exactCopy' settings should be tested.
+        //[<Fact>]
+        //let ``replace entire body with example`` () =
+        //    let grammarOutputDirectoryPath = ctx.testRootDirPath
+
+        //    let customDictionaryText = "{ \"restler_custom_payload\":\
+        //                                        { \"/subnets/{subnetName}/get/__body__\": [\"abc\"] } }\
+        //                               "
+        //    // TODO: passing in the dictionary directly via 'SwaggerSpecConfig' is not working.
+        //    // Write out the dictionary until the but is fixed
+        //    //
+        //    let dictionaryFilePath =
+        //        Path.Combine(grammarOutputDirectoryPath,
+        //                     "input_dict.json")
+        //    File.WriteAllText(dictionaryFilePath, customDictionaryText)
+
+        //    let config = { Restler.Config.SampleConfig with
+        //                     IncludeOptionalParameters = true
+        //                     GrammarOutputDirectoryPath = Some grammarOutputDirectoryPath
+        //                     ResolveBodyDependencies = true
+        //                     UseBodyExamples = Some true
+        //                     SwaggerSpecFilePath = Some [Path.Combine(Environment.CurrentDirectory, @"swagger\dependencyTests\subnet_id.json")]
+        //                     AllowGetProducers = true
+        //                     CustomDictionaryFilePath = Some dictionaryFilePath
+        //                 }
+
+        //    Restler.Workflow.generateRestlerGrammar None config
+
+        //    let grammarFilePath = Path.Combine(grammarOutputDirectoryPath,
+        //                                       Restler.Workflow.Constants.DefaultRestlerGrammarFileName)
+        //    let grammar = File.ReadAllText(grammarFilePath)
+
+        //    Assert.True(grammar.Contains("""restler_custom_payload("/subnets/{subnetName}/get/__body__", quoted=False)"""))
+
 
         interface IClassFixture<Fixtures.TestSetupAndCleanup>
