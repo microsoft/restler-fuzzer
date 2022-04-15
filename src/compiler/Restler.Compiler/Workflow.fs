@@ -186,17 +186,15 @@ let generateGrammarFromSwagger grammarOutputDirectoryPath (swaggerDoc, specMetad
                         userSpecifiedExamples
 
     let grammarFilePath = Path.Combine(grammarOutputDirectoryPath, Constants.DefaultJsonGrammarFileName)
+    Restler.Utilities.Stream.serializeToFile grammarFilePath grammar
 
-    use fs = new Restler.Utilities.Stream.FileStreamWithoutPreamble(grammarFilePath, IO.FileMode.Create)
-    Microsoft.FSharpLu.Json.Compact.serializeToStream fs grammar
-    fs.Flush()
-    fs.Dispose()
     // The below statement is present as an assertion, to check for deserialization issues for
     // specific grammars.
-
-    let ignoreStream = new System.IO.MemoryStream()
-    Microsoft.FSharpLu.Json.Compact.deserializeStream<GrammarDefinition>(ignoreStream)
+#if TEST_GRAMMAR
+    use f = System.IO.File.OpenRead(grammarFilePath)
+    Microsoft.FSharpLu.Json.Compact.deserializeStream<GrammarDefinition> f
     |> ignore
+#endif
 
     // If examples were discovered, create a new examples file
     if config.DiscoverExamples then

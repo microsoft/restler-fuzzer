@@ -1871,12 +1871,14 @@ let writeDependencies dependenciesFilePath dependencies (unresolvedOnly:bool) =
                    )
         |> Map.ofSeq
 
-    Microsoft.FSharpLu.Json.Compact.serializeToFile dependenciesFilePath grouped
+    Restler.Utilities.Stream.serializeToFile dependenciesFilePath grouped
 
 let writeDependenciesDebug dependenciesFilePath dependencies =
+    Restler.Utilities.Stream.serializeToFile dependenciesFilePath dependencies
 
-    Microsoft.FSharpLu.Json.Compact.serializeToFile dependenciesFilePath dependencies
-    // The below statement is present as an assertion, to check for deserialization issues for
-    // specific grammars.
-    Microsoft.FSharpLu.Json.Compact.deserializeFile<ProducerConsumerDependency list> dependenciesFilePath
+    // The below statement is present as an assertion, to check for deserialization issues
+#if TEST_GRAMMAR
+    use f = System.IO.File.OpenRead(dependenciesFilePath)
+    Microsoft.FSharpLu.Json.Compact.deserializeStream<ProducerConsumerDependency list> f
     |> ignore
+#endif
