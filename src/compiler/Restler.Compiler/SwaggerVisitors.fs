@@ -559,9 +559,10 @@ module SwaggerVisitors =
                             parameterName = None
                             dynamicObject = None
                         }
-                | _ ->
+                | JsonObjectType.Array ->
                     getFuzzableValueForObjectType s.Item.Type s.Format None None trackParameters
-
+                | _ ->
+                    getFuzzableValueForObjectType s.Type s.Format None None trackParameters
             let payload =
                 match schema.Type with
                 | JsonObjectType.Array ->
