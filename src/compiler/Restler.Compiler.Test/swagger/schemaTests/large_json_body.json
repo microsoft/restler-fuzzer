@@ -15,12 +15,12 @@
         "object_level_6": {
           "type": "object"
         },
-      "level8properties": {
-        "type": "array",
-        "items": {
-          "$ref": "#/definitions/Object8"
+        "level8properties": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Object8"
+          }
         }
-      }
       }
     },
     "OrderItem": {
@@ -39,7 +39,7 @@
     "Order": {
       "properties": {
         "recentOrder": {
-            "$ref": "#/definitions/RecentOrderItem"
+          "$ref": "#/definitions/RecentOrderItem"
         },
         "object_level_5": {
           "type": "object"
@@ -74,89 +74,127 @@
           "type": "string"
         },
         "relatives": {
-            "type": "array",
-            "items": {
-              "$ref": "#/definitions/Customer"
-            }
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Customer"
+          }
         },
         "orderProfile": {
-           "$ref": "#/definitions/OrderPropertiesFormat"
+          "$ref": "#/definitions/OrderPropertiesFormat"
         },
         "object_level_2": {
           "type": "object"
         }
       }
     },
-    "Customer": {
+    "Product": {
       "properties": {
-        "properties": {
-          "$ref": "#/definitions/CustomerPropertiesFormat"
-        },
         "name": {
           "type": "string"
         },
-        "object_level_1": {
-          "type": "object"
-        }
-      },
-
-      "allOf": [
-        {
-          "$ref": "#/definitions/SubResource"
-        }
-      ]
-    },
-    "SubResource": {
-      "properties": {
-        "id": {
-          "type": "string"
-        }
-      }
-    },
-    "Object8": {
-      "properties": {
-        "object_level_8": {
-          "type": "string"
-        }
-      }
-    }
-
-  },
-  "host": "localhost:8888",
-  "info": {
-    "description": "Example with deep json body and both arrays, properties, and objects.",
-    "title": "Test json nesting depth",
-    "version": "1.0"
-  },
-  "paths": {
-    "/customers/{customerId}": {
-      "put": {
-          "parameters": [
-            {
-              "in": "path",
-              "name": "customerName",
-              "required": true,
-              "type": "String"
-            },
-            {
-              "in": "body",
-              "name": "body",
-              "required": true,
-              "schema": {
-                "$ref": "#/definitions/Customer"
-              }
-            }
-          ],
-          "responses": {
-            "201": {
-              "description": "Success",
-              "schema": {
-                "$ref": "#/definitions/Customer"
-              }
-            }
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
           }
         }
       }
     },
-  "swagger": "2.0"
-}
+        "Customer": {
+          "properties": {
+            "properties": {
+              "$ref": "#/definitions/CustomerPropertiesFormat"
+            },
+            "name": {
+              "type": "string"
+            },
+            "object_level_1": {
+              "type": "object"
+            }
+          },
+
+          "allOf": [
+            {
+              "$ref": "#/definitions/SubResource"
+            }
+          ]
+        },
+        "SubResource": {
+          "properties": {
+            "id": {
+              "type": "string"
+            }
+          }
+        },
+        "Object8": {
+          "properties": {
+            "object_level_8": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "host": "localhost:8888",
+      "info": {
+        "description": "Example with deep json body and both arrays, properties, and objects.",
+        "title": "Test json nesting depth",
+        "version": "1.0"
+      },
+      "paths": {
+        "/products/{productId}": {
+          "put": {
+            "parameters": [
+              {
+                "in": "path",
+                "name": "productId",
+                "required": true,
+                "type": "String"
+              },
+              {
+                "in": "body",
+                "name": "body",
+                "required": true,
+                "schema": {
+                  "$ref": "#/definitions/Product"
+                }
+              }
+            ],
+            "responses": {
+              "201": {
+                "description": "Success"
+              }
+            }
+
+          }
+        },
+        "/customers/{customerId}": {
+          "put": {
+            "parameters": [
+              {
+                "in": "path",
+                "name": "customerId",
+                "required": true,
+                "type": "String"
+              },
+              {
+                "in": "body",
+                "name": "body",
+                "required": true,
+                "schema": {
+                  "$ref": "#/definitions/Customer"
+                }
+              }
+            ],
+            "responses": {
+              "201": {
+                "description": "Success",
+                "schema": {
+                  "$ref": "#/definitions/Customer"
+                }
+              }
+            }
+          }
+        }
+      },
+      "swagger": "2.0"
+    }
