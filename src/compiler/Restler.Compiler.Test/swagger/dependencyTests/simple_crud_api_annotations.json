@@ -1,0 +1,12 @@
+{
+  "x-restler-global-annotations": [
+    {
+      "producer_endpoint": "/products",
+      "producer_method": "POST",
+      "producer_resource_name": "version",
+      "consumer_endpoint": "/services",
+      "consumer_method": "PUT",
+      "consumer_param": "product-ver"
+    }
+  ]
+}

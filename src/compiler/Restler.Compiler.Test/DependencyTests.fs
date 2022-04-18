@@ -493,5 +493,33 @@ module Dependencies =
             let message = sprintf "Grammar (test with annotations) does not match baseline.  First difference: %A" grammarDiff
             Assert.True(grammarDiff.IsNone, message)
 
+
+        /// Test that per-request annotations work
+        [<Fact>]
+        let ``per request annotations`` () =
+            let grammarOutputDirPath = ctx.testRootDirPath
+            let config = { Restler.Config.SampleConfig with
+                             IncludeOptionalParameters = true
+                             GrammarOutputDirectoryPath = Some grammarOutputDirPath
+                             SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, @"swagger\dependencyTests\simple_crud_api.json"))]
+                             CustomDictionaryFilePath = None
+                             AnnotationFilePath = Some (Path.Combine(Environment.CurrentDirectory, @"swagger\dependencyTests\simple_crud_api_annotations.json"))
+                             AllowGetProducers = true
+                             ResolveQueryDependencies = true
+                         }
+            Restler.Workflow.generateRestlerGrammar None config
+
+            let actualGrammarFilePath = Path.Combine(grammarOutputDirPath,
+                                                     Restler.Workflow.Constants.DefaultRestlerGrammarFileName)
+
+            // Read the grammar and make sure there is only one reader present.
+            // If more than one reader is present, it means the annotation is being applied globally instead of 
+            // just for the specified consumer method.
+            let grammarLines = File.ReadAllLines(actualGrammarFilePath)
+            
+            let readers = grammarLines |> Array.filter (fun line -> line.Contains(".reader()"))
+            let message = sprintf "Grammar contains %d readers, expected 1" readers.Length
+            Assert.True((readers.Length = 1), message)
+
         interface IClassFixture<Fixtures.TestSetupAndCleanup>
 

@@ -197,10 +197,16 @@
     <Content Include="swagger\DependencyTests\header_deps.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="swagger\DependencyTests\ordering_test.json">
+    <Content Include="swagger\DependencyTests\simple_crud_api.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="swagger\DependencyTests\ordering_test_annotations.json">
+	  <Content Include="swagger\DependencyTests\simple_crud_api_annotations.json">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
+	  <Content Include="swagger\DependencyTests\ordering_test.json">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
+	  <Content Include="swagger\DependencyTests\ordering_test_annotations.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="swagger\DependencyTests\header_deps_annotations.json">

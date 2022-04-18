@@ -1,0 +1,72 @@
+{
+  "basePath": "/api",
+  "consumes": [
+    "application/json"
+  ],
+  "host": "localhost:8888",
+  "info": {
+    "description": "Small example for per-request type annotations.",
+    "title": "The title.",
+    "version": "1.0.0"
+  },
+  "definitions": {
+    "Product": {
+      "properties": {
+        "version": {
+          "type": "string"
+        }
+      }
+    }
+  },
+  "paths": {
+    "/products": {
+      "post": {
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Product"
+            }
+
+          }
+        }
+      }
+    },
+    "/services": {
+      "put": {
+        "parameters": [
+          {
+            "in": "query",
+            "name": "product-ver",
+            "type": "string",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      },
+      "get": {
+        "parameters": [
+          {
+            "in": "query",
+            "name": "product-ver",
+            "type": "string",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+
+    }
+
+  },
+  "swagger": "2.0"
+}
