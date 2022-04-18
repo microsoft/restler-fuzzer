@@ -93,3 +93,10 @@ module Stream =
                 ()
             else
                 base.Write(s, offset, count)
+
+    let serializeToFile filePath data = 
+        use fs = new FileStreamWithoutPreamble(filePath, System.IO.FileMode.Create)
+        Microsoft.FSharpLu.Json.Compact.serializeToStream fs data
+        fs.Flush()
+        fs.Dispose()
+
