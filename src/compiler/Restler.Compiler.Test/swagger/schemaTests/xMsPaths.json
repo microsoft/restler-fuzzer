@@ -40,6 +40,12 @@
             "name": "resourceName",
             "type": "string",
             "required": true
+          },
+          {
+            "in": "query",
+            "name": "type",
+            "type": "string",
+            "required": true
           }
         ],
         "responses": {

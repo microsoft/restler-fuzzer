@@ -650,15 +650,22 @@ module private XMsPaths =
                                      (endpointQueryPart:string) =
         // Filter any query parameters that are part of a path
         // declared in x-ms-paths
+        // param1=customer&param2={id}
+        // Note: some specifications declare 'param1' and 'param2' in query parameters, while others declare 'id'.
+        // The code below filters out all of them, so they do not appear twice in the grammar.
         let endpointQueryParameterNames =
             endpointQueryPart.Split("&")
             |> Array.choose (fun x ->
                                  let splitParam = x.Split("=", StringSplitOptions.RemoveEmptyEntries)
                                  match splitParam with
                                  | [|name ; paramValue|] ->
+
                                     if paramValue.StartsWith("{") then
                                         Some (Parameters.getPathParameterName paramValue)
-                                    else None
+                                    else
+                                        Some name
+                                 | [|name|] ->
+                                    Some name
                                  | _ -> None
                              )
 
