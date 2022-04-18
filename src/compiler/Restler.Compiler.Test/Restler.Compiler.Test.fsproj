@@ -173,7 +173,10 @@
     <Content Include="swagger\schemaTests\xMsPaths_annotations.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="swagger\dictionaryTests\customPayloadSwagger.json">
+	  <Content Include="swagger\schemaTests\xMsPaths_examples.json">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
+	  <Content Include="swagger\dictionaryTests\customPayloadSwagger.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="swagger\dictionaryTests\customPayloadDict.json">

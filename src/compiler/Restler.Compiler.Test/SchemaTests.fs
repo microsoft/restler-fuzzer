@@ -44,6 +44,7 @@ module ApiSpecSchema =
             let specFilePath = Path.Combine(Environment.CurrentDirectory, @"swagger\schemaTests\xMsPaths.json")
             let dictionaryFilePath = Path.Combine(Environment.CurrentDirectory, @"swagger\schemaTests\xMsPaths_dict.json")
             let annotationsFilePath = Path.Combine(Environment.CurrentDirectory, @"swagger\schemaTests\xMsPaths_annotations.json")
+            let exampleConfigFilePath = Path.Combine(Environment.CurrentDirectory, @"swagger\schemaTests\xMsPaths_examples.json")
             let config = { Restler.Config.SampleConfig with
                              IncludeOptionalParameters = true
                              GrammarOutputDirectoryPath = Some ctx.testRootDirPath
@@ -52,6 +53,8 @@ module ApiSpecSchema =
                              SwaggerSpecFilePath = Some [specFilePath]
                              CustomDictionaryFilePath = Some dictionaryFilePath
                              AnnotationFilePath = Some annotationsFilePath
+                             ExampleConfigFilePath = Some exampleConfigFilePath
+                             UseHeaderExamples = Some true
                          }
             Restler.Workflow.generateRestlerGrammar None config
 

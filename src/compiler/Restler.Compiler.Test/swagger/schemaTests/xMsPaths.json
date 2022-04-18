@@ -46,6 +46,12 @@
             "name": "type",
             "type": "string",
             "required": true
+          },
+          {
+            "in": "header",
+            "name": "resource-version",
+            "type": "string",
+            "required": true
           }
         ],
         "responses": {
@@ -65,6 +71,12 @@
           {
             "in": "path",
             "name": "resourceName",
+            "type": "string",
+            "required": true
+          },
+          {
+            "in": "header",
+            "name": "resource-version",
             "type": "string",
             "required": true
           }

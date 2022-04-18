@@ -1093,7 +1093,14 @@ let generateRequestGrammar (swaggerDocs:Types.ApiSpecFuzzingConfig list)
                         let useExamples =
                             usePathExamples || useBodyExamples || useQueryExamples || useHeaderExamples
                         if useExamples || config.DiscoverExamples then
-                            let exampleRequestPayloads = getExampleConfig (ep,m.Key) m.Value config.DiscoverExamples
+                            // The original endpoint must be used to find the example
+                            let exampleConfigEndpoint =
+                                match xMsPath with
+                                | None -> ep
+                                | Some xMsPath -> xMsPath.getEndpoint()
+                            let exampleRequestPayloads = getExampleConfig (exampleConfigEndpoint,m.Key)
+                                                                          m.Value
+                                                                          config.DiscoverExamples
                                                                           config.ExamplesDirectory
                                                                           userSpecifiedExamples
                                                                           (config.UseAllExamplePayloads |> Option.defaultValue false)
