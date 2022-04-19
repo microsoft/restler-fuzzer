@@ -10,6 +10,27 @@ __resourceName__type_folder_put_resourceName_path = dependencies.DynamicVariable
 
 __resourceName__type_file_put_resourceName_path = dependencies.DynamicVariable("__resourceName__type_file_put_resourceName_path")
 req_collection = requests.RequestCollection([])
+# Endpoint: /?operation=list, method: Put
+request = requests.Request([
+    primitives.restler_static_string("PUT "),
+    primitives.restler_basepath(""),
+    primitives.restler_static_string("/"),
+    primitives.restler_static_string("?"),
+    primitives.restler_static_string("operation=list"),
+    primitives.restler_static_string(" HTTP/1.1\r\n"),
+    primitives.restler_static_string("Accept: application/json\r\n"),
+    primitives.restler_static_string("Host: \r\n"),
+    primitives.restler_static_string("api-version: "),
+    primitives.restler_fuzzable_group("api-version", ['2020-03-01']  ,quoted=False),
+    primitives.restler_static_string("\r\n"),
+    primitives.restler_refreshable_authentication_token("authentication_token_tag"),
+    primitives.restler_static_string("\r\n"),
+
+],
+requestId="/?operation=list"
+)
+req_collection.add_request(request)
+
 # Endpoint: /{resourceName}?type=folder, method: Put
 request = requests.Request([
     primitives.restler_static_string("PUT "),

@@ -29,6 +29,20 @@
   ],
   "paths": {},
   "x-ms-paths": {
+    "/?operation=list": {
+      "put": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/ApiVersionParameter"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Success"
+          }
+        }
+      }
+    },
     "/{resourceName}?type=folder": {
       "put": {
         "parameters": [
@@ -112,7 +126,7 @@
             "required": true
           },
           {
-            $ref: "#/parameters/ApiVersionParameter"
+            "$ref": "#/parameters/ApiVersionParameter"
           }
         ],
         "responses": {
