@@ -135,7 +135,7 @@ let rec getRestlerPythonPayload (payload:FuzzingPayload) (isQuoted:bool) : Reque
     | p -> [ getPrimitivePayload p ]
 
 /// Generate the RESTler grammar for a request parameter
-let generatePythonParameter includeOptionalParameters parameterKind (requestParameter:RequestParameter) =
+let generatePythonParameter includeOptionalParameters parameterSource parameterKind (requestParameter:RequestParameter) =
     let (parameterName, parameterPayload, parameterSerialization) =
         requestParameter.name, requestParameter.payload, requestParameter.serialization
 
@@ -335,7 +335,7 @@ let generatePythonParameter includeOptionalParameters parameterKind (requestPara
             | PrimitiveType.Number ->
                 false
 
-        if p.isRequired  || includeOptionalParameters then
+        if p.isRequired || parameterSource = ParameterPayloadSource.Examples || includeOptionalParameters then
             let nameSeq =
                 if String.IsNullOrEmpty p.name then
                     if level = 0 && parameterKind = ParameterKind.Query then
@@ -471,13 +471,14 @@ let generatePythonFromRequestElement includeOptionalParameters (requestId:Reques
             [ Restler_static_string_constant "/" ]
         else
             x
-    | HeaderParameters hp ->
+    | HeaderParameters (parameterSource, hp) ->
         match hp with
         | ParameterList hp ->
             let parameters =
                 hp |> List.ofSeq
                    |> List.map (fun p ->
-                                  let pythonElementList = generatePythonParameter includeOptionalParameters ParameterKind.Header p
+                                  let pythonElementList = generatePythonParameter includeOptionalParameters
+                                                                                  parameterSource ParameterKind.Header p
                                   if pythonElementList.Length > 0 then
                                       pythonElementList @
                                       [ Restler_static_string_constant RETURN ]
@@ -488,12 +489,12 @@ let generatePythonFromRequestElement includeOptionalParameters (requestId:Reques
             parameters
         | _ ->
             raise (UnsupportedType (sprintf "This request parameters payload type is not supported: %A" hp))
-    | QueryParameters qp ->
+    | QueryParameters (parameterSource, qp) ->
         match qp with
         | ParameterList qp ->
             let parameters =
                 qp |> List.ofSeq
-                   |> List.map (fun p -> generatePythonParameter includeOptionalParameters ParameterKind.Query p)
+                   |> List.map (fun p -> generatePythonParameter includeOptionalParameters parameterSource ParameterKind.Query p)
                    |> List.filter (fun primitives -> primitives.Length > 0)
                    |> List.mapi (fun i primitives ->
                                     if i > 0 then
@@ -519,12 +520,12 @@ let generatePythonFromRequestElement includeOptionalParameters (requestId:Reques
                 ]
         | _ ->
             raise (UnsupportedType (sprintf "This request parameters payload type is not supported: %A" qp))
-    | Body b ->
+    | Body (parameterSource, b) ->
         match b with
         | ParameterList bp ->
             let parameters =
                 bp |> List.ofSeq
-                   |> List.map (fun p -> generatePythonParameter includeOptionalParameters ParameterKind.Body p)
+                   |> List.map (fun p -> generatePythonParameter includeOptionalParameters parameterSource ParameterKind.Body p)
                    |> List.filter (fun primitives -> primitives.Length > 0)
                    |> List.mapi (fun i primitive->
                                     if i > 0 then
@@ -668,9 +669,8 @@ let generatePythonFromRequest (request:Request) includeOptionalParameters mergeS
         match queryOrBodyParameters
               |> List.tryFind (fun (payloadSource, _) ->
                                  payloadSource = ParameterPayloadSource.Examples || payloadSource = ParameterPayloadSource.Schema) with
-        | Some (_, ParameterList pList) -> pList
-        | _ -> Seq.empty
-
+        | Some (payloadSource, ParameterList pList) -> payloadSource, pList
+        | _ -> ParameterPayloadSource.Schema, Seq.empty
 
     /// Merges all the dictionary custom payloads present in the list and returns them
     let getCustomParameterPayload (queryOrBodyParameters:(ParameterPayloadSource * RequestParametersPayload) list) =
@@ -689,9 +689,9 @@ let generatePythonFromRequest (request:Request) includeOptionalParameters mergeS
                         Seq.empty
 
     let getParameterListPayload (queryOrBodyParameters:(ParameterPayloadSource * RequestParametersPayload) list) =
-        let declaredPayload = getParameterPayload queryOrBodyParameters
+        let payloadSource, declaredPayload = getParameterPayload queryOrBodyParameters
         let injectedPayload = getCustomParameterPayload queryOrBodyParameters
-        ParameterList ([declaredPayload ; injectedPayload] |> Seq.concat)
+        payloadSource, ParameterList ([declaredPayload ; injectedPayload] |> Seq.concat)
 
     let getExamplePayload (queryOrBodyParameters:(ParameterPayloadSource * RequestParametersPayload) list) =
         queryOrBodyParameters
@@ -746,14 +746,14 @@ let generatePythonFromRequest (request:Request) includeOptionalParameters mergeS
         (match request.token with
             | TokenKind.Refreshable -> RefreshableToken
             | (TokenKind.Static token) -> Token (token))
-        Body (let parameterListPayload = getParameterListPayload request.bodyParameters
+        Body (let payloadSource, parameterListPayload = getParameterListPayload request.bodyParameters
               let examplePayload = getExamplePayload request.bodyParameters
               // Either an example or parameter list should be present, but not both.
               // For example, additional parameters will not be combined with an 'Example' payload which
               // the user expects to be used without modification.
               match examplePayload with
-              | Some p -> Example p
-              | None -> parameterListPayload)
+              | Some p -> payloadSource, Example p  // TODO: it's unclear what the 'source' of this example is
+              | None -> payloadSource, parameterListPayload)
         Delimiter
         RequestDependencyData request.dependencyData
     ]

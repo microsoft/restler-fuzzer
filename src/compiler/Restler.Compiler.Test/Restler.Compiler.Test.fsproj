@@ -230,7 +230,13 @@
     <Content Include="swagger\DependencyTests\nested_objects_naming.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="swagger\get_path_dependencies.json">
+	  <Content Include="swagger\ExampleTests\optional_params.json">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
+	  <Content Include="swagger\ExampleTests\optional_params_example.json">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
+	  <Content Include="swagger\get_path_dependencies.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="swagger\put_createorupdate.json">
