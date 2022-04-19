@@ -1,0 +1,51 @@
+{
+  "basePath": "/api",
+  "consumes": [
+    "application/json"
+  ],
+  "host": "localhost:8888",
+  "info": {
+    "description": "Simple API with required and optional parameters.",
+    "title": "The title.",
+    "version": "1.0.0"
+  },
+  "definitions": {
+    "Product": {
+      "xml": {
+        "name": "Product"
+      },
+      "properties": {
+        "label": {
+          "type": "string"
+        },
+        "expiration": {
+          "type": "string",
+          "format": "date"
+        }
+      }
+    }
+  },
+  "paths": {
+    "/products": {
+      "post": {
+        "parameters": [
+          {
+            "name": "orderDetails",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Product"
+            }
+          }
+
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    }
+  },
+  "swagger": "2.0"
+}
