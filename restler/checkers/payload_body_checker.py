@@ -157,22 +157,25 @@ class PayloadBodyChecker(CheckerBase):
 
         # get the corresponding request examples
         self._examples_values = {}
+        body_examples=[]
         if last_request.examples:
-            for example in last_request.examples.body_examples:
-                tag_content = example.get_schema_tag_mapping()
-                for tag in tag_content:
-                    # replace example value None by the string 'null'
-                    val = tag_content[tag]
-                    if val == None:
-                        val = 'null'
-                    if tag in self._examples_values:
-                        self._examples_values[tag].append(val)
-                    else:
-                        self._examples_values[tag] = [val]
+            body_examples = list(filter(lambda x: x is not None, last_request.examples.body_examples))
+
+        for example in body_examples:
+            tag_content = example.get_schema_tag_mapping()
+            for tag in tag_content:
+                # replace example value None by the string 'null'
+                val = tag_content[tag]
+                if val == None:
+                    val = 'null'
+                if tag in self._examples_values:
+                    self._examples_values[tag].append(val)
+                else:
+                    self._examples_values[tag] = [val]
 
         # set the initial starting body schemas
-        if last_request.examples and self._start_with_examples:
-            body_schema_list = list(last_request.examples.body_examples) + [last_request.body_schema]
+        if self._start_with_examples:
+            body_schema_list = body_examples + [last_request.body_schema]
         else:
             body_schema_list = [last_request.body_schema]
 
