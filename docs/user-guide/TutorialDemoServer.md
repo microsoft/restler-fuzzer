@@ -4,13 +4,13 @@ Let's try RESTler on a simple example of REST API and service.
 
 The directory `restler\demo_server` in this repo contains a self-contained example of service you can run locally on your machine. See the [README.md](/demo_server/README.md) file in that directory to install and start this demo_server service.
 
-Let's create a fresh directory `C:\restler-test` where will run RESTler on this example. Let's cd into that dir: `cd C:\restler-test`
+Let's create a fresh directory `C:\demo-server-test` where will run RESTler on this example. Let's cd into that dir: `cd C:\demo-server-test`. Make sure your demo server is running before proceeding with the next part.
 
 ## 1. Compile
 
-Let's copy the Swagger spec `swagger.json` from `restler\demo_server` into `C:\restler-test` and let's compile it with RESTler:
+Let's copy the Swagger spec `swagger.json` from `restler\demo_server` into `C:\demo-server-test` and let's compile it with RESTler:
 
-`C:\RESTler\restler\Restler.exe compile --api_spec C:\restler-test\swagger.json`
+`C:\restler_bin\restler\Restler.exe compile --api_spec C:\demo-server-test\swagger.json`
 
 This command creates a new sub-directory `Compile` where the results of the compilation are saved in several files:
 
@@ -26,11 +26,11 @@ For this simple tutorial, we will use the default values automatically generated
 
 Let's run RESTler in test mode to see what specification coverage we get with this default RESTler grammar:
 
-`C:\RESTler\restler\restler.exe test --grammar_file C:\restler-test\Compile\grammar.py --dictionary_file C:\restler-test\Compile\dict.json --settings C:\restler-test\Compile\engine_settings.json --no_ssl`
+`C:\restler_bin\restler\restler.exe test --grammar_file C:\demo-server-test\Compile\grammar.py --dictionary_file C:\demo-server-test\Compile\dict.json --settings C:\demo-server-test\Compile\engine_settings.json --no_ssl`
 
-(For help, run `C:\RESTler\restler\restler.exe --help`)
+(For help, run `C:\restler_bin\restler\restler.exe --help`)
 
-The results are saved in a new sub-directory `Test`. In the sub-directory `C:\restler-test\Test\RestlerResults\experiment<...>\logs`, we see a file named `main.txt` which lists one-by-one all the API requests in the Swagger spec and whether the request has been succesfully executed (VALID) or not (INVALID). A VALID request means RESTler was able to execute the request and get a `20x` HTTP status code as a response. The total spec coverage is given at the bottom of that file:
+The results are saved in a new sub-directory `Test`. In the sub-directory `C:\demo-server-test\Test\RestlerResults\experiment<...>\logs`, we see a file named `main.txt` which lists one-by-one all the API requests in the Swagger spec and whether the request has been succesfully executed (VALID) or not (INVALID). A VALID request means RESTler was able to execute the request and get a `20x` HTTP status code as a response. The total spec coverage is given at the bottom of that file:
 
     Final Swagger spec coverage: 5 / 6
 
@@ -68,9 +68,9 @@ By looking at `network.testing.<...>.txt`, we can see that RESTler attempts to e
 
 Let's now try to run restler in Fuzz-lean mode.
 
-`C:\RESTler\restler\restler.exe fuzz-lean --grammar_file C:\restler-test\Compile\grammar.py --dictionary_file C:\restler-test\Compile\dict.json --settings C:\restler-test\Compile\engine_settings.json --no_ssl`
+`C:\restler_bin\restler\restler.exe fuzz-lean --grammar_file C:\demo-server-test\Compile\grammar.py --dictionary_file C:\demo-server-test\Compile\dict.json --settings C:\demo-server-test\Compile\engine_settings.json --no_ssl`
 
-The results are in a new `FuzzLean` directory and the experiment results can be found in `C:\restler-test\FuzzLean\RestlerResults\experiment<...>\`. The `logs\` directory should contain the same coverage results as the previous Test run, but you should also now see a new `bug_buckets` directory.
+The results are in a new `FuzzLean` directory and the experiment results can be found in `C:\demo-server-test\FuzzLean\RestlerResults\experiment<...>\`. The `logs\` directory should contain the same coverage results as the previous Test run, but you should also now see a new `bug_buckets` directory.
 
 Inside the `bug_buckets` directory there should be four files:
 
@@ -97,11 +97,11 @@ Right above the body in the header you should also see `StructMissing_/id/checks
 
 Now let's try to fuzz:
 
-`C:\RESTler\restler\restler.exe fuzz --grammar_file C:\restler-test\Compile\grammar.py --dictionary_file C:\restler-test\Compile\dict.json --settings C:\restler-test\Compile\engine_settings.json --no_ssl --time_budget 1`
+`C:\restler_bin\restler\restler.exe fuzz --grammar_file C:\demo-server-test\Compile\grammar.py --dictionary_file C:\demo-server-test\Compile\dict.json --settings C:\demo-server-test\Compile\engine_settings.json --no_ssl --time_budget 1`
 
 The new __time_budget__ parameter is the length, in hours, to perform the fuzzing run.
 
-The results are in a new `Fuzz` directory and the experiment results can be found in `C:\restler-test\Fuzz\RestlerResults\experiment<...>\`.
+The results are in a new `Fuzz` directory and the experiment results can be found in `C:\demo-server-test\Fuzz\RestlerResults\experiment<...>\`.
 
 Like the FuzzLean experiment above, you will see three unique bugs in `bug_buckets\bug_buckets.txt` as well as their corresponding bug logs.
 If you were to closely inspect the `logs\network.testing.####.1.txt` file

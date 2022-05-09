@@ -15,9 +15,9 @@ Inputs: (same as for test)
 
 ## How to invoke RESTler in fuzz-lean or fuzz mode
 
-```C:\RESTler\restler\restler.exe fuzz-lean --grammar_file <RESTLer grammar.py file> --dictionary_file <RESTler fuzzing-dictionary.json file> --token_refresh_interval <time in seconds> --token_refresh_command <command>```
+```C:\restler_bin\restler\restler.exe fuzz-lean --grammar_file <RESTLer grammar.py file> --dictionary_file <RESTler fuzzing-dictionary.json file> --token_refresh_interval <time in seconds> --token_refresh_command <command>```
 
-```C:\RESTler\restler\restler.exe fuzz --grammar_file <RESTLer grammar.py file> --dictionary_file <RESTler fuzzing-dictionary.json file> --token_refresh_interval <time in seconds> --token_refresh_command <command> --time_budget <max number of hours (default 1)```
+```C:\restler_bin\restler\restler.exe fuzz --grammar_file <RESTLer grammar.py file> --dictionary_file <RESTler fuzzing-dictionary.json file> --token_refresh_interval <time in seconds> --token_refresh_command <command> --time_budget <max number of hours (default 1)```
 
 An optional settings file can also be passed to RESTler by adding the command-line option `--settings <path_to_settings_file.json>`.
 For a list of available settings, see [SettingsFile](SettingsFile.md).
