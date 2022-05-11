@@ -153,4 +153,21 @@ module ApiSpecSchema =
                     Assert.True(grammar.Contains(objectName))
                     Assert.False(grammar.Contains(nextObjectName))
 
+        [<Fact>]
+        let ``additionalProperties schema`` () =
+            let specFilePath = Path.Combine(Environment.CurrentDirectory, @"swagger\schemaTests\additionalProperties.yml")
+            let config = { Restler.Config.SampleConfig with
+                                IncludeOptionalParameters = true
+                                GrammarOutputDirectoryPath = Some ctx.testRootDirPath
+                                ResolveBodyDependencies = true
+                                ResolveQueryDependencies = true
+                                SwaggerSpecFilePath = Some [specFilePath]
+                         }
+            Restler.Workflow.generateRestlerGrammar None config
+            let grammarOutputFilePath = config.GrammarOutputDirectoryPath.Value ++ Restler.Workflow.Constants.DefaultRestlerGrammarFileName
+            let grammar = File.ReadAllText(grammarOutputFilePath)
+            let expectedProperties = ["supiRanges"; "groupId"; "start"; "end"]
+            for ep in expectedProperties do
+                Assert.True(grammar.Contains(sprintf "\"%s\":" ep))
+
         interface IClassFixture<Fixtures.TestSetupAndCleanup>
