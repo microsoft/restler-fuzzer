@@ -1,0 +1,71 @@
+openapi: 3.0.3
+info:
+  title: example api
+  version: 1.2.3
+paths:
+  "/test_additionalProperties":
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties:
+                $ref: '#/components/schemas/UdrInfo'
+              minProperties: 1
+      responses:
+        '200':
+          description: OK
+components:
+  schemas:
+    SupiRange:
+      example:
+        start: start
+        pattern: pattern
+        end: end
+      properties:
+        start:
+          pattern: ^[0-9]+$
+          type: string
+        end:
+          pattern: ^[0-9]+$
+          type: string
+        pattern:
+          type: string
+      type: object
+    UdrInfo:
+      example:
+        supportedDataSets:
+        - null
+        - null
+        groupId: groupId
+        externalGroupIdentifiersRanges:
+        - start: start
+          pattern: pattern
+          end: end
+        - start: start
+          pattern: pattern
+          end: end
+        supiRanges:
+        - start: start
+          pattern: pattern
+          end: end
+        - start: start
+          pattern: pattern
+          end: end
+        gpsiRanges:
+        - start: start
+          pattern: pattern
+          end: end
+        - start: start
+          pattern: pattern
+          end: end
+      properties:
+        groupId:
+          type: string
+        supiRanges:
+          items:
+            $ref: '#/components/schemas/SupiRange'
+          minItems: 1
+          type: array
+      type: object

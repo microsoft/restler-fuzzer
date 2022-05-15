@@ -642,6 +642,23 @@ module SwaggerVisitors =
                                                               (trackParameters, jsonPropertyMaxDepth)
                                                               (schema::parents)
                                                               schemaCache id))
+            let additionalPropertyParameters = 
+                if isNull schema.AdditionalPropertiesSchema then Seq.empty
+                else
+                    let additionalPropertiesSchema = getActualSchema schema.AdditionalPropertiesSchema
+                    additionalPropertiesSchema.Properties
+                    |> Seq.choose (fun item ->
+                                        let name = item.Key
+                                        // Just extract the property as a string.
+                                        let exValue, includeProperty = GenerateGrammarElements.extractPropertyFromObject name NJsonSchema.JsonObjectType.String exampleValue (Some parents)
+                                        if not includeProperty then None
+                                        else
+                                            Some (processProperty (name, item.Value)
+                                                                  (exValue, generateFuzzablePayloadsForExamples)
+                                                                  (trackParameters, jsonPropertyMaxDepth)
+                                                                  (schema::parents)
+                                                                  schemaCache id))
+
             let arrayProperties =
                 if schema.IsArray then
                     // OpenAPI parsing succeeds when the array does not have an element type declared
@@ -747,6 +764,7 @@ module SwaggerVisitors =
 
             let internalNodes =
                 seq { yield declaredPropertyParameters
+                      yield additionalPropertyParameters
                       yield arrayProperties
                       yield allOfProperties
                       yield anyOfProperties
