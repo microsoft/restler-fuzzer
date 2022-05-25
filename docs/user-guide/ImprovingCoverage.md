@@ -37,7 +37,7 @@ In some cases, it is more convenient to analyze the grammar since it does not re
 
 * If the results analyzer failed to produce output (```errorBuckets.json``` is not present), try running it on a network log manually
 
-  ```C:\RESTler\resultsAnalyzer\Restler.ResultsAnalyzer.exe analyze <networklogpath.txt>```
+  ```C:\restler_bin\resultsAnalyzer\Restler.ResultsAnalyzer.exe analyze <networklogpath.txt>```
 
 * Try to identify any failing POST or PUT requests that produce resources used by lots of other requests
   * Example: if much of the API updates a "site" resource, that "site" resource needs to be created successfully
