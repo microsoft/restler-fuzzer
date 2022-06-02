@@ -6,7 +6,8 @@ env/
 mprofile_*
 
 ## Ignore pycharm settings
-restler/.idea/*
+restler/.idea/
+demo_server/.idea/
 
 ## Ignore VS Code settings
 .vscode/settings.json

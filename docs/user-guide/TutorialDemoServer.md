@@ -42,26 +42,27 @@ RESTler has a garbage-collector (gc) that attempts to delete all resources ever 
 
 In this example, coverage is 5 / 6 and the only INVALID request is
 
-    Rendering INVALID
-        - restler_static_string: 'GET '
-        - restler_static_string: '/'
-        - restler_static_string: 'api'
-        - restler_static_string: '/'
-        - restler_static_string: 'blog'
-        - restler_static_string: '/'
-        - restler_static_string: 'posts'
-        - restler_static_string: '?'
-        - restler_static_string: 'per_page='
-        + restler_fuzzable_int: ['0', '1']
-        - restler_static_string: '&'
-        - restler_static_string: 'page='
-        + restler_fuzzable_int: ['0', '1']
-        - restler_static_string: ' HTTP/1.1\r\n'
-        - restler_static_string: 'Accept: application/json\r\n'
-        - restler_static_string: 'Host: localhost:8888\r\n'
-        - restler_static_string: '\r\n'
+2022-06-24 11:32:24.360: Rendering INVALID
+		- restler_static_string: 'GET '
+		- restler_static_string: ''
+		- restler_static_string: '/'
+		- restler_static_string: 'api'
+		- restler_static_string: '/'
+		- restler_static_string: 'blog'
+		- restler_static_string: '/'
+		- restler_static_string: 'posts'
+		- restler_static_string: '?'
+		- restler_static_string: 'page='
+		- restler_fuzzable_int: '1'
+		- restler_static_string: '&'
+		- restler_static_string: 'per_page='
+		- restler_fuzzable_int: '1'
+		- restler_static_string: ' HTTP/1.1\r\n'
+		- restler_static_string: 'Accept: application/json\r\n'
+		- restler_static_string: 'Host: localhost\r\n'
+		- restler_static_string: '\r\n'
 
-By looking at `network.testing.<...>.txt`, we can see that RESTler attempts to execute this request 4 times, each time with a value either 0 or 1 for the `per_page=` and `page=`. It turns out none of these 4 combinations are valid: the `per_page=` must be 2 minimally, but RESTler was not able to infer this automatically. (One way to fix this is to edit `dict.json` and add the value `2` in the list for `restler_fuzzable_int`.)
+By looking at `network.testing.<...>.txt`, we can see that RESTler attempts to execute this request with a value 1 for the `per_page=` and `page=`. It turns out that the `per_page=` must be 2 minimally, but RESTler was not able to infer this automatically. (One way to fix this is to edit `dict.json` and add the value `2` in the list for `restler_fuzzable_int`.)
 
 
 ## 3. Fuzz-lean
@@ -75,23 +76,22 @@ The results are in a new `FuzzLean` directory and the experiment results can be 
 Inside the `bug_buckets` directory there should be four files:
 
 * bug_buckets.txt
-* InvalidDynamicObjectChecker_20x_1.txt
-* InvalidDynamicObjectChecker_500_1.txt
-* PayloadBodyChecker_500_1.txt
+* InvalidDynamicObjectChecker_20x: 2
+* PayloadBodyChecker_500: 2
+* UseAfterFreeChecker_20x: 1
 
 The `bug_buckets.txt` file contains a list of each unique sequence that found a bug.  Any request that receives a '500' status code as a response will be treated as a bug.  Additionally, some checkers also record bugs if an unexpected '20x' status code is received. Bugs are bucketized by only including one bug per unique request sequence even if that same sequence produces more than one bug throughout the fuzzing run.  The exception to this is if a new bug was detected due to a different status code, e.g. the first bug was a 500 and the second was a 503.
 
 Each unique sequence in the `bug_buckets.txt` file also has a corresponding individual log associated with that bug.  This log shows the sequence of requests and their responses exactly as they were sent and received from the server. These particular bugs were planted in the demo server for this example.
 
-Looking at the `InvalidDynamicObjectChecker_20x_1.txt` log you can see that the sequence of requests includes a POST request that creates a blog post and a GET request that attempts to get the post that was just created.  Here the Invalid Dynamic Object Checker replaced the blog post id of `5879` with `5879?api-version=2019-01-01`, which was accepted by the demo server because the unexpected query string of `?api-version=2019-01` was ignored, which resulted in a 200 response code. Because the Invalid Dynamic Object Checker assumes that any 'invalid dynamic object' will fail to produce a 20x status code, it flags this as a bug.
+Looking at the `InvalidDynamicObjectChecker_20x_1.txt` log you can see that the sequence of requests includes a POST request that creates a blog post and a GET request that attempts to get the post that was just created.  Here the Invalid Dynamic Object Checker replaced the blog post id of `14` with `14?injected_query_string=123`, which was accepted by the demo server because the unexpected query string of `?injected_query_string=123` was ignored, which resulted in a 200 response code. Because the Invalid Dynamic Object Checker assumes that any 'invalid dynamic object' should cause the request to fail (not return a 20x status code), it flags this as a bug.
 
-The next log in the list, `InvalidDynamicObjectChecker_500_1.txt` comes from the same sequence of requests as the previous Invalid Dynamic Object Checker bug. As mentioned before, because these two bugs were detected from different response codes, they are considered unique bugs.
-
-As you can see in the log, this request received a 500 status code in its response, which is always considered a bug.  Looking closely at the GET request you can see that the request contains two question marks after the endpoint, which triggered the 500 error in the demo server.
-
-Finally, the `PayloadBodyChecker_500_1.txt` file contains a sequence that includes a POST request followed by a PUT request.  The body used during this fuzz can be seen in the sequence log, but, for Payload Body Checker bugs only, you can also find the body used to fuzz the request at the top of the log file in the header.  In this case, the body was `{'body': 'fuzzstring'}`.
+Next, the `PayloadBodyChecker_500_1.txt` file contains a sequence that includes a POST request followed by a PUT request.  The body used during this fuzz can be seen in the sequence log, but, for Payload Body Checker bugs only, you can also find the body used to fuzz the request at the top of the log file in the header.  In this case, the body was `{"body":"my first blog post"}`.
 
 Right above the body in the header you should also see `StructMissing_/id/checksum`. This is a Payload Body Checker specific tag that helps identify how the body was fuzzed in order to help identify what could have caused the bug in the service.  What this particular tag is telling us is that the body was fuzzed by removing a piece of the body's structure (StructMissing) and the pieces that were missing were 'id' and 'checksum'.  Because the bug was planted, we know that this bug was, in fact, triggered by the missing 'id' field in the body.
+
+Finally, the `UseAfterFreeChecker_20x_1.txt` file contains a POST followed by a DELETE, then a GET.  The Use After Free checker detected that a resource (in this case, blog post with ID `24`) was successfully deleted, but could still be accessed after deletion.  In this case, the cause of the failure is a planted bug in the GET validation logic.
+
 
 ## 4. Fuzz
 
