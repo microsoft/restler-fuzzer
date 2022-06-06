@@ -121,6 +121,15 @@ class BodySchema():
         """
         return self._schema.get_blocks(self._config)
 
+    def get_original_blocks(self, config) -> list:
+        """ Returns the request blocks exactly as they were
+            defined in the original grammar.
+
+        @return: The request blocks for this schema
+        @rtype : List[str]
+        """
+        return self._schema.get_original_blocks(config)
+
     def get_signature(self) -> str:
         """ Returns the signature of this schema
 

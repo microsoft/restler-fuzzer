@@ -7,7 +7,6 @@ import itertools
 import json
 
 import engine.primitives as primitives
-from engine.core.requests import Request
 
 def get_product_exhaust(sets, bound):
     """ Return the product of the input sets exhaustively

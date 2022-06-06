@@ -259,7 +259,7 @@ class CandidateValuesPool(object):
 
         return current_primitives
 
-    def get_candidate_values(self, primitive_name, request_id=None, tag=None, quoted=False, examples=None):
+    def get_candidate_values(self, primitive_name, request_id=None, tag=None, quoted=False, examples=[]):
         """ Return feasible values for a given primitive.
 
         @param primitive_name: The primitive whose feasible values we wish to fetch.
@@ -343,7 +343,7 @@ class CandidateValuesPool(object):
         except KeyError:
             raise CandidateValueException
 
-    def get_fuzzable_values(self, primitive_type, default_value, request_id=None, quoted=False, examples=None):
+    def get_fuzzable_values(self, primitive_type, default_value, request_id=None, quoted=False, examples=[]):
         """ Return list of fuzzable values with a default value (specified)
         in the front of the list.
 
@@ -492,7 +492,7 @@ def restler_fuzzable_string(*args, **kwargs):
     quoted = False
     if QUOTED_ARG in kwargs:
         quoted = kwargs[QUOTED_ARG]
-    examples=None
+    examples=[]
     if EXAMPLES_ARG in kwargs:
         examples = kwargs[EXAMPLES_ARG]
     param_name = None
@@ -523,7 +523,7 @@ def restler_fuzzable_int(*args, **kwargs):
     quoted = False
     if QUOTED_ARG in kwargs:
         quoted = kwargs[QUOTED_ARG]
-    examples=None
+    examples=[]
     if EXAMPLES_ARG in kwargs:
         examples = kwargs[EXAMPLES_ARG]
     param_name = None
@@ -556,7 +556,7 @@ def restler_fuzzable_bool(*args, **kwargs):
     quoted = False
     if QUOTED_ARG in kwargs:
         quoted = kwargs[QUOTED_ARG]
-    examples=None
+    examples=[]
     if EXAMPLES_ARG in kwargs:
         examples = kwargs[EXAMPLES_ARG]
     param_name = None
@@ -588,7 +588,7 @@ def restler_fuzzable_number(*args, **kwargs):
     quoted = False
     if QUOTED_ARG in kwargs:
         quoted = kwargs[QUOTED_ARG]
-    examples=None
+    examples=[]
     if EXAMPLES_ARG in kwargs:
         examples = kwargs[EXAMPLES_ARG]
     param_name = None
@@ -620,7 +620,7 @@ def restler_fuzzable_delim(*args, **kwargs):
     quoted = False
     if QUOTED_ARG in kwargs:
         quoted = kwargs[QUOTED_ARG]
-    examples=None
+    examples=[]
     if EXAMPLES_ARG in kwargs:
         examples = kwargs[EXAMPLES_ARG]
     param_name = None
@@ -657,7 +657,7 @@ def restler_fuzzable_group(*args, **kwargs):
     quoted = False
     if QUOTED_ARG in kwargs:
         quoted = kwargs[QUOTED_ARG]
-    examples=None
+    examples=[]
     if EXAMPLES_ARG in kwargs:
         examples = kwargs[EXAMPLES_ARG]
     param_name = None
@@ -687,7 +687,7 @@ def restler_fuzzable_uuid4(*args, **kwargs):
     quoted = False
     if QUOTED_ARG in kwargs:
         quoted = kwargs[QUOTED_ARG]
-    examples=None
+    examples=[]
     if EXAMPLES_ARG in kwargs:
         examples = kwargs[EXAMPLES_ARG]
     param_name = None
@@ -719,7 +719,7 @@ def restler_fuzzable_datetime(*args, **kwargs) :
     quoted = False
     if QUOTED_ARG in kwargs:
         quoted = kwargs[QUOTED_ARG]
-    examples=None
+    examples=[]
     if EXAMPLES_ARG in kwargs:
         examples = kwargs[EXAMPLES_ARG]
     param_name = None
@@ -751,7 +751,7 @@ def restler_fuzzable_date(*args, **kwargs) :
     quoted = False
     if QUOTED_ARG in kwargs:
         quoted = kwargs[QUOTED_ARG]
-    examples=None
+    examples=[]
     if EXAMPLES_ARG in kwargs:
         examples = kwargs[EXAMPLES_ARG]
     param_name = None
@@ -782,7 +782,7 @@ def restler_fuzzable_object(*args, **kwargs) :
     quoted = False
     if QUOTED_ARG in kwargs:
         quoted = kwargs[QUOTED_ARG]
-    examples=None
+    examples=[]
     if EXAMPLES_ARG in kwargs:
         examples = kwargs[EXAMPLES_ARG]
     param_name = None

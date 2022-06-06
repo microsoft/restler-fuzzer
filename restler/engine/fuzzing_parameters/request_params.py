@@ -12,6 +12,7 @@ from engine.fuzzing_parameters.fuzzing_config import *
 TAG_SEPARATOR = '/'
 FUZZABLE_GROUP_TAG = "fuzzable_group_tag"
 
+
 class KeyValueParamBase():
     __metaclass__ = ABCMeta
 
@@ -60,6 +61,21 @@ class KeyValueParamBase():
         """
         return hash(self._content)
 
+    def get_fuzzing_pool(self, fuzzer, config):
+        """ Returns the fuzzing pool
+
+        @param fuzzer: The fuzzer object to use for fuzzing
+        @type  fuzzer: ParamListSchemaFuzzerBase
+        @param config: The configuration for the current fuzzing session
+        @type  config: FuzzingConfig
+
+        @return: The fuzzing pool
+        @rtype : List[KeyValueParamBase]
+
+        """
+        fuzzed_value = self.content.get_fuzzing_pool(fuzzer, config)
+        return fuzzer._fuzz_member(self, fuzzed_value)
+
 
 class QueryParam(KeyValueParamBase):
     """ Query Parameter Class
@@ -80,6 +96,23 @@ class QueryParam(KeyValueParamBase):
         key = primitives.restler_static_string(f'{self._key}=')
         return [key] + self._content.get_blocks(FuzzingConfig())
 
+    def get_original_blocks(self, config=None):
+        """ Gets the original request blocks for the Query Parameter.
+
+        @return: Request blocks representing the format:
+                    key=ParamObject
+        @rtype : List[str]
+
+        """
+        include_parameter = config.filter_fn is None or config.filter_fn(self)
+
+        if include_parameter:
+            key = primitives.restler_static_string(f'{self._key}=')
+            return [key] + self._content.get_original_blocks(config)
+        else:
+            return []
+
+
 class HeaderParam(KeyValueParamBase):
     """ Header Parameter Class
     """
@@ -99,13 +132,32 @@ class HeaderParam(KeyValueParamBase):
         key = primitives.restler_static_string(f'{self._key}: ')
         return [key] + self._content.get_blocks(FuzzingConfig())
 
+    def get_original_blocks(self, config):
+        """ Gets the original request blocks for the Header Parameter.
+
+        @return: Request blocks representing the format:
+                    key: ParamObject
+        @rtype : List[str]
+
+        """
+        include_parameter = config.filter_fn is None or config.filter_fn(self)
+
+        if include_parameter:
+            key = primitives.restler_static_string(f'{self._key}: ')
+            return [key] + self._content.get_original_blocks(config)
+        else:
+            return []
+
 class ParamBase():
     """ Base class for all body parameters """
-    def __init__(self, is_required=True, is_dynamic_object=False):
+    def __init__(self, is_required=True, is_dynamic_object=False, content_type=None, is_quoted=False):
         self._fuzzable = False
+        self._example_values = []
         self._tag = ''
         self._is_required = is_required
         self._is_dynamic_object = is_dynamic_object
+        self._content_type = content_type
+        self._is_quoted=is_quoted
 
     @property
     def tag(self):
@@ -138,6 +190,26 @@ class ParamBase():
         return self._is_required
 
     @property
+    def example_values(self):
+        """ Return the example values
+
+        @return: The example values
+        @rtype : list[Str]
+
+        """
+        return self._example_values
+
+    @property
+    def is_quoted(self):
+        """ Returns whether the param is quoted
+
+        @return: True if the parameter is quoted
+        @rtype:  Bool
+
+        """
+        return self._is_quoted
+
+    @property
     def is_dynamic_object(self):
         """ Returns whether the param is a dynamic object
 
@@ -156,9 +228,14 @@ class ParamBase():
         @rtype:  None
 
         """
-        self.set_fuzzable(src.is_fuzzable())
+        self._fuzzable = src._fuzzable
+        self._example_values = src._example_values
         self._tag = src._tag
         self._is_required = src._is_required
+        self._is_dynamic_object = src._is_dynamic_object
+        self._content_type = src.content_type
+        self._is_quoted = src.is_quoted
+
 
     def set_fuzzable(self, is_fuzzable):
         """ Sets param as fuzzable
@@ -172,6 +249,28 @@ class ParamBase():
         """
         self._fuzzable = is_fuzzable
 
+    def set_example_values(self, example_values):
+        """ Sets example values for the parameter
+
+        @param example_values: list of entries or None
+        @type  example_values: list[String]
+
+        @return: None
+        @rtype : None
+
+        """
+        self._example_values = example_values
+
+    def set_content_type(self, content_type):
+        """ Sets the content type of the parameter
+
+        @return: None
+        @rtype : None
+
+        """
+        self._content_type = content_type
+
+    @property
     def is_fuzzable(self):
         """ Returns whether or not the param is fuzzable
 
@@ -181,18 +280,28 @@ class ParamBase():
         """
         return self._fuzzable
 
+    def content_type(self):
+        """ Returns whether or not the param is fuzzable
+
+        @return: True if the param is fuzzable
+        @rtype : Bool
+
+        """
+        return self._content_type
+
+
 class ParamValue(ParamBase):
     """ Base class for value type parameters. Value can be Object, Array,
     String, Number, Boolean, ObjectLeaf, and Enum.
     """
-    def __init__(self, custom_payload_type=None, is_required=True, is_dynamic_object=False):
+    def __init__(self, custom_payload_type=None, is_required=True, is_dynamic_object=False, is_quoted=False):
         """ Initialize a ParamValue.
 
         @return: None
         @rtype:  None
 
         """
-        ParamBase.__init__(self, is_required, is_dynamic_object)
+        ParamBase.__init__(self, is_required=is_required, is_dynamic_object=is_dynamic_object, is_quoted=is_quoted)
         self._content = None
         self._custom_payload_type = custom_payload_type
 
@@ -261,6 +370,7 @@ class ParamValue(ParamBase):
 
         """
         if self._custom_payload_type is not None:
+            # TODO: support 'writer' variable in the schema parser and request parameters below
             if self._custom_payload_type == "String":
                 return [primitives.restler_custom_payload(self._content)]
             elif self._custom_payload_type == "Query":
@@ -379,6 +489,16 @@ class ParamObject(ParamBase):
         members_blocks = self._traverse(config, sys._getframe().f_code.co_name, [])
         return self._get_blocks(members_blocks)
 
+    def get_original_blocks(self, config):
+        """ Gets the original request blocks for the Object Parameters
+
+        @return: Request blocks representing the format: {ParamMember, ParamMember, ...}
+        @rtype : List[str]
+
+        """
+        members_blocks = self._traverse(config, sys._getframe().f_code.co_name, [])
+        return self._get_blocks(members_blocks)
+
     def get_fuzzing_pool(self, fuzzer, config):
         """ Returns the fuzzing pool
 
@@ -393,7 +513,12 @@ class ParamObject(ParamBase):
         if config.depth < config.max_depth:
             config.depth += 1
             for member in self._members:
-                fuzzed_members.append(member.get_fuzzing_pool(fuzzer, config))
+                member_fuzzing_pool = member.get_fuzzing_pool(fuzzer, config)
+                # It is possible that this member was excluded from fuzzing by
+                # a filter configured by the fuzzer.  If so, do not add it to
+                # 'fuzzed_members'.
+                if len(member_fuzzing_pool) > 0:
+                    fuzzed_members.append(member_fuzzing_pool)
             config.depth -= 1
 
         return fuzzer._fuzz_object(self, fuzzed_members)
@@ -485,8 +610,11 @@ class ParamObject(ParamBase):
         blocks.append(primitives.restler_static_string('{'))
 
         for idx, member_blocks in enumerate(members_blocks):
-            blocks += member_blocks
+            # If member_blocks is empty (because the member was filtered), process the next item
+            if len(member_blocks) == 0:
+                continue
 
+            blocks += member_blocks
             if idx != (len(members_blocks) - 1):
                 blocks.append(primitives.restler_static_string(','))
 
@@ -547,6 +675,16 @@ class ParamArray(ParamBase):
 
     def get_blocks(self, config):
         """ Gets request blocks for Array Parameters
+
+        @return: Request blocks representing the format: [ParamObject, ParamObject]
+        @rtype : List[str]
+
+        """
+        values_blocks = self._traverse(config, sys._getframe().f_code.co_name, [])
+        return self._get_blocks(values_blocks)
+
+    def get_original_blocks(self, config):
+        """ Gets the original request blocks for Array Parameters
 
         @return: Request blocks representing the format: [ParamObject, ParamObject]
         @rtype : List[str]
@@ -665,11 +803,13 @@ class ParamArray(ParamBase):
         blocks = []
 
         blocks.append(primitives.restler_static_string('['))
-
+        values_blocks_length = len(values_blocks)
         for idx, value_blocks in enumerate(values_blocks):
-            blocks += value_blocks
+            if len(value_blocks) == 0:
+                continue
 
-            if idx != (len(values_blocks) - 1):
+            blocks += value_blocks
+            if idx != (values_blocks_length - 1):
                 blocks.append(primitives.restler_static_string(','))
 
         blocks.append(primitives.restler_static_string(']'))
@@ -678,7 +818,7 @@ class ParamArray(ParamBase):
 class ParamString(ParamValue):
     """ Class for string type parameters """
 
-    def __init__(self, custom_payload_type=None, is_required=True, is_dynamic_object=False):
+    def __init__(self, custom_payload_type=None, is_required=True, is_dynamic_object=False, is_quoted=True, content_type="String"):
         """ Initialize a string type parameter
 
         @param custom: Whether or not this is a custom payload
@@ -688,9 +828,10 @@ class ParamString(ParamValue):
         @rtype:  None
 
         """
-        ParamValue.__init__(self, is_required=is_required, is_dynamic_object=is_dynamic_object)
+        ParamValue.__init__(self, is_required=is_required, is_dynamic_object=is_dynamic_object, is_quoted=is_quoted)
 
         self._custom_payload_type=custom_payload_type
+        self._content_type = content_type
         self._unknown = False
 
     @property
@@ -713,14 +854,53 @@ class ParamString(ParamValue):
         """
         if self._custom_payload_type is not None:
             if self._custom_payload_type == "String":
-                return [primitives.restler_custom_payload(self._content, quoted=True)]
+                return [primitives.restler_custom_payload(self._content, quoted=self.is_quoted)]
+            elif self._custom_payload_type == "Header":
+                return [primitives.restler_custom_payload_header(self._content, quoted=self.is_quoted)]
+            elif self._custom_payload_type == "Query":
+                return [primitives.restler_custom_payload_query(self._content, quoted=self.is_quoted)]
             else:
                 raise Exception(f"Unexpected custom payload type: {self._custom_payload_type}")
         if self.is_dynamic_object:
             content = dependencies.RDELIM + self._content + dependencies.RDELIM
         else:
             content = self._content
-        return [primitives.restler_static_string(content, quoted=True)]
+        return [primitives.restler_static_string(content, quoted=self.is_quoted)]
+
+    def get_original_blocks(self, config=None):
+        """ Gets the original request blocks for the String Parameters.
+
+        @return: A request block containing the string
+        @rtype : List[str]
+
+        """
+        if self._custom_payload_type is not None:
+            if self._custom_payload_type == "String":
+                return [primitives.restler_custom_payload(self._content, quoted=self.is_quoted)]
+            elif self._custom_payload_type == "Header":
+                return [primitives.restler_custom_payload_header(self._content, quoted=self.is_quoted)]
+            elif self._custom_payload_type == "Query":
+                return [primitives.restler_custom_payload_query(self._content, quoted=self.is_quoted)]
+            else:
+                raise Exception(f"Unexpected custom payload type: {self._custom_payload_type}")
+        if self.is_dynamic_object:
+            content = dependencies.RDELIM + self._content + dependencies.RDELIM
+        else:
+            content = self._content
+
+        if self.is_fuzzable:
+            if self._content_type == "String":
+                return [primitives.restler_fuzzable_string(content, quoted=self.is_quoted, examples=self.example_values)]
+            elif self._content_type == "Uuid":
+                return [primitives.restler_fuzzable_uuid4(content, quoted=self.is_quoted, examples=self.example_values)]
+            elif self._content_type == "DateTime":
+                return [primitives.restler_fuzzable_datetime(content, quoted=self.is_quoted, examples=self.example_values)]
+            elif self._content_type == "Date":
+                return [primitives.restler_fuzzable_date(content, quoted=self.is_quoted, examples=self.example_values)]
+            else:
+                raise Exception(f"Unexpected content type: {self._content_type}")
+
+        return [primitives.restler_static_string(content, quoted=self.is_quoted)]
 
     def get_fuzzing_blocks(self, config):
         """ Returns the fuzzing request blocks per the config
@@ -764,16 +944,16 @@ class ParamString(ParamValue):
             if not_like_string(default_value):
                 return [primitives.restler_static_string(default_value, quoted=False)]
 
-        if not self.is_fuzzable():
+        if not self.is_fuzzable:
             if self.is_dynamic_object:
                 content = dependencies.RDELIM + self._content + dependencies.RDELIM
-                return [primitives.restler_static_string(content, quoted=True)]
-            return [primitives.restler_static_string(default_value, quoted=True)]
+                return [primitives.restler_static_string(content, quoted=self.is_quoted)]
+            return [primitives.restler_static_string(default_value, quoted=self.is_quoted)]
 
         # fuzz as normal fuzzable string
         if not config.merge_fuzzable_values:
             blocks = []
-            blocks.append(primitives.restler_fuzzable_string(default_value), quoted=True)
+            blocks.append(primitives.restler_fuzzable_string(default_value), quoted=self.is_quoted)
             return blocks
 
         # get the set of fuzzable values
@@ -806,8 +986,8 @@ class ParamString(ParamValue):
 class ParamUuidSuffix(ParamString):
     """ Class for uuid suffix parameters """
 
-    def get_blocks(self, config=None):
-        """ Gets request blocks for Uuid Suffix Parameters.
+    def get_original_blocks(self, config=None):
+        """ Gets the original request blocks for Uuid Suffix Parameters.
 
         @return: A request block containing the uuid key
         @rtype : List[str]
@@ -815,8 +995,31 @@ class ParamUuidSuffix(ParamString):
         """
         return [primitives.restler_custom_payload_uuid4_suffix(self._content)]
 
+    def get_blocks(self, config=None):
+        """ Gets request blocks for Uuid Suffix Parameters.
+
+        @return: A request block containing the uuid key
+        @rtype : List[str]
+
+        """
+        return self.get_original_blocks(config)
+
+
 class ParamNumber(ParamValue):
     """ Class for number type parameters """
+    def __init__(self, is_required=True, is_dynamic_object=False, is_quoted=False, number_type="Int"):
+        """ Initialize a number type parameter
+
+        @param custom: Whether or not this is a custom payload
+        @type  custom: Bool
+
+        @return: None
+        @rtype:  None
+
+        """
+        ParamValue.__init__(self, is_required=is_required, is_dynamic_object=is_dynamic_object, is_quoted=is_quoted)
+        self._number_type = number_type
+
     @property
     def type(self):
         return int
@@ -824,6 +1027,24 @@ class ParamNumber(ParamValue):
     def get_signature(self, config):
         """ Returns the Number signature """
         return f'{TAG_SEPARATOR}{self.tag}_num'
+
+    def get_original_blocks(self, config=None):
+        """ Gets the original request blocks for the Number Parameters.
+
+        @return: A request block containing the number
+        @rtype : List[str]
+
+        """
+        if self.is_dynamic_object:
+            content = dependencies.RDELIM + self._content + dependencies.RDELIM
+            return [primitives.restler_static_string(content)]
+
+        content = self._content
+        if self._number_type == "Int":
+            return [primitives.restler_fuzzable_int(content, quoted=self.is_quoted, examples=self.example_values)]
+        else:
+            return [primitives.restler_fuzzable_number(content, quoted=self.is_quoted, examples=self.example_values)]
+
 
     def get_fuzzing_blocks(self, config):
         """ Returns the fuzzing request blocks per the config
@@ -838,7 +1059,7 @@ class ParamNumber(ParamValue):
         )
         default_value = str(default_value)
 
-        if not self.is_fuzzable():
+        if not self.is_fuzzable:
             if self.is_dynamic_object:
                 default_value = dependencies.RDELIM + default_value + dependencies.RDELIM
             return [primitives.restler_static_string(default_value)]
@@ -884,6 +1105,20 @@ class ParamBoolean(ParamValue):
         """ Returns the boolean signature """
         return f'{TAG_SEPARATOR}{self.tag}_bool'
 
+    def get_original_blocks(self, config=None):
+        """ Gets original request blocks for Boolean Parameters
+
+        @return: Request block
+        @rtype : List[str]
+
+        """
+        if self.is_dynamic_object:
+            content = dependencies.RDELIM + self._content + dependencies.RDELIM
+            return [primitives.restler_static_string(content)]
+
+        return [primitives.restler_fuzzable_bool(self._content, quoted=self.is_quoted, examples=self.example_values)]
+
+
     def get_fuzzing_blocks(self, config):
         """ Returns the fuzzing request blocks per the config
 
@@ -896,7 +1131,7 @@ class ParamBoolean(ParamValue):
             self.tag, primitives.FUZZABLE_BOOL
         )
 
-        if not self.is_fuzzable():
+        if not self.is_fuzzable:
             if self.is_dynamic_object:
                 default_value = dependencies.RDELIM + default_value + dependencies.RDELIM
             else:
@@ -960,6 +1195,22 @@ class ParamObjectLeaf(ParamValue):
 
         return [primitives.restler_static_string(formalized_content)]
 
+    def get_original_blocks(self, config=None):
+        """ Gets original request blocks for Object Leaf Parameters
+
+        @return: Request block
+        @rtype : List[str]
+
+        """
+        if self.is_dynamic_object:
+            content = dependencies.RDELIM + self._content + dependencies.RDELIM
+            return [primitives.restler_static_string(content)]
+
+        formalized_content = self._content.replace("'", '"')
+        formalized_content = formalized_content.replace('u"', '"')
+
+        return [primitives.restler_fuzzable_object(formalized_content, quoted=self.is_quoted, examples=self.example_values)]
+
     def get_fuzzing_blocks(self, config):
         """ Returns the fuzzing request blocks per the config
 
@@ -987,7 +1238,7 @@ class ParamObjectLeaf(ParamValue):
         )
 
         # not fuzzalbe --> constant
-        if not self.is_fuzzable():
+        if not self.is_fuzzable:
             if self.is_dynamic_object:
                 default_value = dependencies.RDELIM + default_value + dependencies.RDELIM
             else:
@@ -1030,12 +1281,13 @@ class ParamObjectLeaf(ParamValue):
 class ParamEnum(ParamBase):
     """ Class for Enum type parameters """
 
-    def __init__(self, contents, content_type, is_required=True, body_param=True, is_dynamic_object=False):
-        """ Initialize a Enum type parameter
+    def __init__(self, contents, content_type, is_required=True, body_param=True, is_dynamic_object=False,
+                 enum_name=FUZZABLE_GROUP_TAG):
+        """ Initialize an Enum type parameter
 
         @param contents: A list of enum contents
         @type  contents: List [str]
-        @param content_type: Type of contents
+        @param content_type: Type of contents.
         @type  content_type: Str
 
         @return: None
@@ -1047,6 +1299,7 @@ class ParamEnum(ParamBase):
         self._contents = contents
         self._type = content_type
         self._is_quoted = body_param
+        self._enum_name = enum_name
 
     @property
     def contents(self):
@@ -1081,6 +1334,24 @@ class ParamEnum(ParamBase):
         """
         return 0
 
+    def get_original_blocks(self, config=None):
+        """ Gets the original request blocks for the Enum Parameters
+
+        @return: Request blocks
+        @rtype : List[str]
+
+        """
+        contents_str = []
+
+        for content in self._contents:
+            if self._is_quoted and (self.content_type in ['String', 'Uuid', 'DateTime', 'Date']):
+                content_str = f'"{content}"'
+            else:
+                content_str = content
+            contents_str.append(content_str)
+
+        return [primitives.restler_fuzzable_group(self._enum_name, contents_str)]
+
     def get_blocks(self, config=None):
         """ Gets request blocks for the Enum Parameters
 
@@ -1091,8 +1362,7 @@ class ParamEnum(ParamBase):
         contents_str = []
 
         for content in self._contents:
-            if self._is_quoted and (self.content_type == 'String' or \
-                                    self.content_type == 'Uuid' or self.content_type == 'DateTime'):
+            if self._is_quoted and (self.content_type in ['String', 'Uuid', 'DateTime', 'Date']):
                 content_str = f'"{content}"'
             else:
                 content_str = content
@@ -1130,6 +1400,7 @@ class ParamEnum(ParamBase):
     def check_struct_missing(self, check_value, visitor):
         # Not relevant for this param type
         pass
+
 
 class ParamMember(ParamBase):
     """ Class for member type parameters """
@@ -1227,6 +1498,26 @@ class ParamMember(ParamBase):
         """
         return 1 + self._value.count_nodes(config)
 
+    def get_original_blocks(self, config=None):
+        """ Gets the original request blocks for the Member Parameters.
+
+        @return: Request blocks representing the format: "key":value
+        @rtype : List[str]
+
+        """
+        member_blocks = self._value.get_original_blocks(config)
+
+        if config.filter_fn is not None:
+            num_included_children = 0
+            include_parameter = config.filter_fn(self)
+            if isinstance(self._value, ParamObject):
+                num_included_children = len(list(filter(config.filter_fn, self._value.members)))
+
+            if not include_parameter and num_included_children == 0:
+                return []
+
+        return [primitives.restler_static_string(f'"{self._name}":')] + self._value.get_original_blocks(config)
+
     def get_blocks(self, config=None):
         """ Gets request blocks for the Member Parameters.
 
@@ -1234,6 +1525,8 @@ class ParamMember(ParamBase):
         @rtype : List[str]
 
         """
+        member_blocks = self._value.get_blocks(config)
+
         return [primitives.restler_static_string(f'"{self._name}":')] +\
                self._value.get_blocks(config)
 

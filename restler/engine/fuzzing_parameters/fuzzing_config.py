@@ -25,6 +25,7 @@ class FuzzingConfig(object):
         self.max_combination = 100
         self.merge_fuzzable_values = False
         self.max_depth = sys.maxsize
+        self.filter_fn = None
         # Traversal depth state
         self.depth = 0
 
@@ -86,6 +87,7 @@ class FuzzingConfig(object):
         new_config.max_combination = self.max_combination
         new_config.merge_fuzzable_values = self.merge_fuzzable_values
         new_config.max_depth = self.max_depth
+        new_config.filter_fn = self.filter_fn
 
         return new_config
 

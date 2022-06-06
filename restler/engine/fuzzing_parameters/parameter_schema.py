@@ -67,6 +67,27 @@ class KeyValueParamList():
         """
         self.param_list.append(param_item)
 
+    # def get_fuzzing_pool(self, fuzzer, config):
+    #     """ Returns the fuzzing pool
+    #
+    #     @param fuzzer: The body fuzzer object to use for fuzzing
+    #     @type  fuzzer: BodySchemaStructuralFuzzer
+    #
+    #     @return: The fuzzing pool
+    #     @rtype : List[ParamObject]
+    #
+    #     """
+    #     fuzzed_members = []
+    #     for param_item in self.param_list:
+    #         item_fuzzing_pool = param_item.get_fuzzing_pool(fuzzer, config)  #list of key=value pairs
+    #         # It is possible that this member was excluded from fuzzing by
+    #         # a filter configured by the fuzzer.  If so, do not add it to
+    #         # 'fuzzed_members'.
+    #         if len(item_fuzzing_pool) > 0:
+    #             fuzzed_members.append(item_fuzzing_pool)
+    #
+    #     return fuzzer._fuzz_param_list(fuzzed_members)  # list of lists of key=value pairs
+
 class QueryList(KeyValueParamList):
     def __init__(self, request_schema_json=None, param=None):
         """ Initializes the QueryList
@@ -127,6 +148,23 @@ class QueryList(KeyValueParamList):
                 query_blocks.append(primitives.restler_static_string('&'))
         return query_blocks
 
+    def get_original_blocks(self, config) -> list:
+        """ Returns the request blocks for the query list
+            as they were declared in the original schema.
+
+        @return: The request blocks for this schema
+        @rtype : List[]
+
+        """
+        query_blocks = []
+        for idx, query in enumerate(self.param_list):
+            query_blocks += query.get_original_blocks(config)
+            if len(query_blocks) > 0 and idx < len(self.param_list) - 1:
+                # Add the query separator
+                query_blocks.append(primitives.restler_static_string('&'))
+        return query_blocks
+
+
 class HeaderList(KeyValueParamList):
     def __init__(self, request_schema_json=None, param=None):
         """ Initializes the HeaderList
@@ -183,7 +221,23 @@ class HeaderList(KeyValueParamList):
         header_blocks = []
         for idx, header in enumerate(self.param_list):
             header_blocks += header.get_blocks()
-            if idx < len(self.param_list):
+            if len(header_blocks) > 0 and idx < len(self.param_list):
+                # Must add header separator \r\n after every header
+                header_blocks.append(primitives.restler_static_string('\r\n'))
+        return header_blocks
+
+    def get_original_blocks(self, config) -> list:
+        """ Returns the request blocks as they were originally declared
+        in the schema.
+
+        @return: The request blocks for this schema
+        @rtype : List[]
+
+        """
+        header_blocks = []
+        for idx, header in enumerate(self.param_list):
+            header_blocks += header.get_original_blocks(config)
+            if len(header_blocks) > 0 and idx < len(self.param_list):
                 # Must add header separator \r\n after every header
                 header_blocks.append(primitives.restler_static_string('\r\n'))
         return header_blocks
