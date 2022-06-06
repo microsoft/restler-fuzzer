@@ -702,7 +702,8 @@ class Request(object):
         example_payloads = Settings().example_payloads
         if example_payloads is not None and self.examples is not None:
             tested_example_payloads = True
-            for ex in self.get_example_payloads(example_payloads):
+            example_schemas = self.get_example_payloads()
+            for ex in itertools.islice(example_schemas, Settings().max_examples):
                 yield ex
 
         tested_param_combinations = False
@@ -931,7 +932,8 @@ class Request(object):
         # constructed, since not all of them may be needed, e.g. during smoke test mode.
         next_combination = 0
         schema_idx = -1
-        for req in self.get_schema_combinations():
+        schema_combinations = itertools.islice(self.get_schema_combinations(), Settings().max_schema_combinations)
+        for req in schema_combinations:
             schema_idx += 1
             parser = None
             fuzzable_request_blocks = []

@@ -157,8 +157,8 @@ header parameter combinations (see above).
 
 __example_payloads__
 
-For request types where one or more examples are provided, this option enables testing all of
-the examples instead of just the first one.
+For request types where one or more examples are provided, this option enables
+testing all of the examples instead of just the first one.
 
 ```json
 "test_combinations_settings": {
@@ -168,6 +168,15 @@ the examples instead of just the first one.
 }
 ```
 The supported ```payload_kind``` value is 'all'.
+
+__max_schema_combinations__
+When RESTler explores more than one schema (for example, because parameter
+combinations are being tested, as specified in ```test_combinations_settings```),
+this option limits the number of schemas that will be tested.
+
+__max_examples__
+For request types where one or more examples are provided, this option limits
+the number of examples that will be tested.
 
 
 ### add_fuzzable_dates: bool (default False)

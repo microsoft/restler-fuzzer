@@ -12,7 +12,9 @@
     },
     "example_payloads": {
       "payload_kind": "all"
-    }
+    },
+    "max_examples": 100,
+    "max_schema_combinations": 30
   },
   "max_request_execution_time": 90,
   "save_results_in_fixed_dirname": false,
