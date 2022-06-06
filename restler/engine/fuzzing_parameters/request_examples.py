@@ -5,6 +5,7 @@ from engine.fuzzing_parameters.request_params import *
 from engine.fuzzing_parameters.request_schema_parser import *
 from engine.fuzzing_parameters.body_schema import BodySchema
 from engine.fuzzing_parameters.parameter_schema import QueryList
+from engine.fuzzing_parameters.parameter_schema import HeaderList
 import utils.logger as logger
 
 class NoExamplesFound(Exception):
@@ -26,6 +27,7 @@ class RequestExamples():
         """
         # initialization
         self._query_examples: list = []   # {QueryList}
+        self._header_examples: list = []   # {HeaderList}
         self._body_examples: list = []    # {BodySchema}
 
         # process the request schema
@@ -37,13 +39,19 @@ class RequestExamples():
             raise Exception(msg)
 
         try:
+            self._set_header_params(request_schema_json['headerParameters'])
+        except Exception as err:
+            msg = f'Fail deserializing request schema header examples: {err!s}'
+            logger.write_to_main(msg, print_to_console=True)
+
+        try:
             self._set_body_params(request_schema_json['bodyParameters'])
         except Exception as err:
             msg = f'Fail deserializing request schema body examples: {err!s}'
             logger.write_to_main(msg, print_to_console=True)
             raise Exception(msg)
 
-        if not self._query_examples and not self._body_examples:
+        if not (self._query_examples or self._body_examples or self._header_examples):
             raise NoExamplesFound
 
     @property
@@ -66,6 +74,16 @@ class RequestExamples():
         """
         return self._query_examples
 
+    @property
+    def header_examples(self):
+        """ Return the header examples
+
+        @return: Header examples
+        @rtype:  Set {ParamObject}
+
+        """
+        return self._header_examples
+
     def _set_query_params(self, query_parameters):
         """ Deserializes and populates the query parameters
 
@@ -84,6 +102,25 @@ class RequestExamples():
                 for query in des_query_param(query_parameter[1]):
                     query_list.append(query)
                 self._query_examples.append(query_list)
+
+    def _set_header_params(self, query_parameters):
+        """ Deserializes and populates the header parameters
+
+        @param query_parameters: Header parameters from request schema
+        @param query_parameters: JSON
+
+        @return: None
+        @rtype : None
+
+        """
+        # Iterate through each collection of header parameters
+        for header_parameter in query_parameters:
+            if header_parameter[0] == 'Examples':
+                header_list = HeaderList()
+                # Set each header parameter of the query
+                for header in des_header_param(header_parameter[1]):
+                    header_list.append(header)
+                self._header_examples.append(header_list)
 
     def _set_body_params(self, body_parameters):
         """ Deserializes and populates the body parameters

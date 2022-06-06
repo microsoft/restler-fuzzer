@@ -23,6 +23,15 @@
             }
           ]
         ],
+        "headerParameters": [
+          [
+            "Schema",
+            {
+              "ParameterList": [
+              ]
+            }
+          ]
+        ],
         "bodyParameters": [
           [
             "Schema",
@@ -69,6 +78,14 @@
           }
         ],
         "queryParameters": [
+          [
+            "Schema",
+            {
+              "ParameterList": []
+            }
+          ]
+        ],
+        "headerParameters": [
           [
             "Schema",
             {
@@ -201,19 +218,19 @@
           ]
         ],
         "headers": [
-            [
-              "Accept",
-              "application/json"
-            ],
-            [
-              "Host",
-              "restler.unit.test.server.com"
-            ]
+          [
+            "Accept",
+            "application/json"
           ],
-          "httpVersion": "1.1",
-          "requestMetadata": {
-            "isLongRunningOperation": false
-          }
+          [
+            "Host",
+            "restler.unit.test.server.com"
+          ]
+        ],
+        "httpVersion": "1.1",
+        "requestMetadata": {
+          "isLongRunningOperation": false
+        }
       },
       {
         "id": {
@@ -267,8 +284,7 @@
                       "payload": {
 
                         "Fuzzable": {
-                          "primitiveType":
-                           {
+                          "primitiveType": {
                             "Enum": [
                               "group",
                               "String",
@@ -290,6 +306,14 @@
             }
           ]
         ],
+        "headerParameters": [
+          [
+            "Schema",
+            {
+              "ParameterList": []
+            }
+          ]
+        ],
         "bodyParameters": [
           [
             "Schema",
@@ -299,19 +323,19 @@
           ]
         ],
         "headers": [
-            [
-              "Accept",
-              "application/json"
-            ],
-            [
-              "Host",
-              "restler.unit.test.server.com"
-            ]
+          [
+            "Accept",
+            "application/json"
           ],
-          "httpVersion": "1.1",
-          "requestMetadata": {
-            "isLongRunningOperation": false
-          }
+          [
+            "Host",
+            "restler.unit.test.server.com"
+          ]
+        ],
+        "httpVersion": "1.1",
+        "requestMetadata": {
+          "isLongRunningOperation": false
+        }
       },
       {
         "id": {
@@ -342,6 +366,15 @@
             }
           ]
         ],
+        "headerParameters": [
+          [
+            "Schema",
+            {
+              "ParameterList": []
+            }
+          ]
+        ],
+
         "bodyParameters": [
           [
             "Schema",
@@ -351,19 +384,19 @@
           ]
         ],
         "headers": [
-            [
-              "Accept",
-              "application/json"
-            ],
-            [
-              "Host",
-              "restler.unit.test.server.com"
-            ]
+          [
+            "Accept",
+            "application/json"
           ],
-          "httpVersion": "1.1",
-          "requestMetadata": {
-            "isLongRunningOperation": false
-          }
+          [
+            "Host",
+            "restler.unit.test.server.com"
+          ]
+        ],
+        "httpVersion": "1.1",
+        "requestMetadata": {
+          "isLongRunningOperation": false
+        }
       },
       {
         "id": {
@@ -386,10 +419,10 @@
             }
           },
           {
-              "Constant": [
-                  "String",
-                  "house"
-              ]
+            "Constant": [
+              "String",
+              "house"
+            ]
           }
         ],
         "queryParameters": [
@@ -400,6 +433,15 @@
             }
           ]
         ],
+        "headerParameters": [
+          [
+            "Schema",
+            {
+              "ParameterList": []
+            }
+          ]
+        ],
+
         "bodyParameters": [
           [
             "Schema",
@@ -409,19 +451,19 @@
           ]
         ],
         "headers": [
-            [
-              "Accept",
-              "application/json"
-            ],
-            [
-              "Host",
-              "restler.unit.test.server.com"
-            ]
+          [
+            "Accept",
+            "application/json"
           ],
-          "httpVersion": "1.1",
-          "requestMetadata": {
-            "isLongRunningOperation": false
-          }
+          [
+            "Host",
+            "restler.unit.test.server.com"
+          ]
+        ],
+        "httpVersion": "1.1",
+        "requestMetadata": {
+          "isLongRunningOperation": false
+        }
       },
       {
         "id": {
@@ -444,10 +486,10 @@
             }
           },
           {
-              "Constant": [
-                  "String",
-                  "house"
-              ]
+            "Constant": [
+              "String",
+              "house"
+            ]
           },
           {
             "Custom": {
@@ -466,121 +508,129 @@
             }
           ]
         ],
+        "headerParameters": [
+          [
+            "Schema",
+            {
+              "ParameterList": []
+            }
+          ]
+        ],
+
         "bodyParameters": [
-            [
-              "Schema",
-              {
-                "ParameterList": [
-                  {
-                    "name": "payload",
-                    "payload": {
-                      "InternalNode": [
+          [
+            "Schema",
+            {
+              "ParameterList": [
+                {
+                  "name": "payload",
+                  "payload": {
+                    "InternalNode": [
+                      {
+                        "name": "",
+                        "propertyType": "Array",
+                        "isRequired": true,
+                        "isReadOnly": false
+                      },
+                      [
                         {
-                          "name": "",
-                          "propertyType": "Array",
-                          "isRequired": true,
-                          "isReadOnly": false
-                        },
-                        [
-                          {
-                            "InternalNode": [
+                          "InternalNode": [
+                            {
+                              "name": "",
+                              "propertyType": "Object",
+                              "isRequired": true,
+                              "isReadOnly": false
+                            },
+                            [
                               {
-                                "name": "",
-                                "propertyType": "Object",
-                                "isRequired": true,
-                                "isReadOnly": false
+                                "LeafNode": {
+                                  "name": "house",
+                                  "payload": {
+                                    "Custom": {
+                                      "payloadType": "UuidSuffix",
+                                      "primitiveType": "String",
+                                      "payloadValue": "houseName",
+                                      "isObject": false
+                                    }
+                                  },
+                                  "isRequired": false,
+                                  "isReadOnly": false
+                                }
                               },
-                              [
-                                {
-                                  "LeafNode": {
-                                    "name": "house",
-                                    "payload": {
-                                      "Custom": {
-                                        "payloadType": "UuidSuffix",
-                                        "primitiveType": "String",
-                                        "payloadValue": "houseName",
-                                        "isObject": false
-                                      }
-                                    },
-                                    "isRequired": false,
-                                    "isReadOnly": false
-                                  }
-                                },
-                                {
-                                  "LeafNode": {
-                                    "name": "group",
-                                    "payload": {
-                                      "Fuzzable": {
-                                        "primitiveType":
-                                        {
-                                          "Enum": [
-                                            "group",
-                                            "String",
-                                            [
-                                              "A",
-                                              "BB",
-                                              "CCC"
-                                            ],
-                                            null
-                                          ]
-                                        },
-                                        "defaultValue": "A"
-                                      }
+                              {
+                                "LeafNode": {
+                                  "name": "group",
+                                  "payload": {
+                                    "Fuzzable": {
+                                      "primitiveType": {
+                                        "Enum": [
+                                          "group",
+                                          "String",
+                                          [
+                                            "A",
+                                            "BB",
+                                            "CCC"
+                                          ],
+                                          null
+                                        ]
+                                      },
+                                      "defaultValue": "A"
                                     }
                                   }
                                 }
-                              ]
+                              }
                             ]
-                          },
-                          {
-                            "InternalNode": [
+                          ]
+                        },
+                        {
+                          "InternalNode": [
+                            {
+                              "name": "",
+                              "propertyType": "Object",
+                              "isRequired": true,
+                              "isReadOnly": false
+                            },
+                            [
                               {
-                                "name": "",
-                                "propertyType": "Object",
-                                "isRequired": true,
-                                "isReadOnly": false
-                              },
-                              [
-                                {
-                                  "LeafNode": {
-                                    "name": "arraytest",
-                                    "payload": {
-                                      "Custom": {
-                                        "payloadType": "String",
-                                        "primitiveType": "String",
-                                        "payloadValue": "location",
-                                        "isObject": false
-                                      }
-                                    },
-                                    "isRequired": false,
-                                    "isReadOnly": false
-                                  }
+                                "LeafNode": {
+                                  "name": "arraytest",
+                                  "payload": {
+                                    "Custom": {
+                                      "payloadType": "String",
+                                      "primitiveType": "String",
+                                      "payloadValue": "location",
+                                      "isObject": false
+                                    }
+                                  },
+                                  "isRequired": false,
+                                  "isReadOnly": false
                                 }
-                              ]
+                              }
                             ]
-                          }
-                        ]
+                          ]
+                        }
                       ]
-                    }
+                    ]
                   }
-                ]
-              }
-            ]
-          ],
+                }
+              ]
+            }
+          ]
+        ],
         "headers": [
-            [
-              "Accept",
-              "application/json"
-            ],
-            [
-              "Host",
-              "restler.unit.test.server.com"
-            ]
+          [
+            "Accept",
+            "application/json"
           ],
-          "httpVersion": "1.1",
-          "requestMetadata": {
-            "isLongRunningOperation": false
-          }
+          [
+            "Host",
+            "restler.unit.test.server.com"
+          ]
+        ],
+        "httpVersion": "1.1",
+        "requestMetadata": {
+          "isLongRunningOperation": false
+        }
       },
       {
         "id": {
@@ -599,14 +649,14 @@
             "DynamicObject": {
               "primitiveType": "String",
               "variableName": "_city_put_name",
-              "isWriter":  false
+              "isWriter": false
             }
           },
           {
-              "Constant": [
-                  "String",
-                  "house"
-              ]
+            "Constant": [
+              "String",
+              "house"
+            ]
           },
           {
             "DynamicObject": {
@@ -624,6 +674,15 @@
             }
           ]
         ],
+        "headerParameters": [
+          [
+            "Schema",
+            {
+              "ParameterList": []
+            }
+          ]
+        ],
+
         "bodyParameters": [
           [
             "Schema",
@@ -633,19 +692,19 @@
           ]
         ],
         "headers": [
-            [
-              "Accept",
-              "application/json"
-            ],
-            [
-              "Host",
-              "restler.unit.test.server.com"
-            ]
+          [
+            "Accept",
+            "application/json"
           ],
-          "httpVersion": "1.1",
-          "requestMetadata": {
-            "isLongRunningOperation": false
-          }
+          [
+            "Host",
+            "restler.unit.test.server.com"
+          ]
+        ],
+        "httpVersion": "1.1",
+        "requestMetadata": {
+          "isLongRunningOperation": false
+        }
       },
       {
         "id": {
@@ -668,10 +727,10 @@
             }
           },
           {
-              "Constant": [
-                  "String",
-                  "house"
-              ]
+            "Constant": [
+              "String",
+              "house"
+            ]
           },
           {
             "DynamicObject": {
@@ -689,6 +748,14 @@
             }
           ]
         ],
+        "headerParameters": [
+          [
+            "Schema",
+            {
+              "ParameterList": []
+            }
+          ]
+        ],
         "bodyParameters": [
           [
             "Schema",
@@ -698,19 +765,19 @@
           ]
         ],
         "headers": [
-            [
-              "Accept",
-              "application/json"
-            ],
-            [
-              "Host",
-              "restler.unit.test.server.com"
-            ]
+          [
+            "Accept",
+            "application/json"
           ],
-          "httpVersion": "1.1",
-          "requestMetadata": {
-            "isLongRunningOperation": false
-          }
+          [
+            "Host",
+            "restler.unit.test.server.com"
+          ]
+        ],
+        "httpVersion": "1.1",
+        "requestMetadata": {
+          "isLongRunningOperation": false
+        }
       }
     ]
   }
