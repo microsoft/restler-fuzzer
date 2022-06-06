@@ -181,8 +181,8 @@ class RenderedValuesCache(object):
     """
     def __init__(self):
         self._cache = {}
-        self._value_generators = None
-        self.value_gen_tracker={}
+        self._value_generators = {}
+        self.value_gen_tracker = {}
 
     def __getstate__(self):
         # Copy state of all instance attributes.
@@ -198,8 +198,8 @@ class RenderedValuesCache(object):
         # Restore the state of the field that was not pickled.
         # When a request is copied, the value generators
         # should be reset
-        self._value_generators = None
-        self.value_gen_tracker={}
+        self._value_generators = {}
+        self.value_gen_tracker = {}
 
     @property
     def value_generators(self):
@@ -930,7 +930,9 @@ class Request(object):
         # If multiple schemas are being tested, generate the schemas.  Note: these should be lazily
         # constructed, since not all of them may be needed, e.g. during smoke test mode.
         next_combination = 0
+        schema_idx = -1
         for req in self.get_schema_combinations():
+            schema_idx += 1
             parser = None
             fuzzable_request_blocks = []
             for idx, request_block in enumerate(req.definition):
@@ -949,12 +951,12 @@ class Request(object):
 
             # Because of the way 'render_iter' is implemented, dynamic value generators must
             # be cached and re-used.
-            value_generators = self._rendered_values_cache.value_generators
             value_gen_tracker = self._rendered_values_cache.value_gen_tracker
-            if value_generators is None:
+            if schema_idx not in self._rendered_values_cache._value_generators:
                 value_generators = init_value_generators(fuzzable_request_blocks, fuzzable,
                                                          value_gen_tracker)
-                self._rendered_values_cache.value_generators = value_generators
+                self._rendered_values_cache.value_generators[schema_idx] = value_generators
+            value_generators = self._rendered_values_cache.value_generators[schema_idx]
 
             combinations_pool_len = None
             if value_generators:

@@ -5,6 +5,9 @@ env/
 *.pyc
 mprofile_*
 
+## Ignore pycharm settings
+restler/.idea/*
+
 ## Ignore VS Code settings
 .vscode/settings.json
 
