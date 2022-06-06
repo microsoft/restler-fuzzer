@@ -464,6 +464,8 @@ class RestlerSettingsTest(unittest.TestCase):
         self.assertEqual("c:\\restler\\custom_dict2.json", custom_dicts[hex_def(request2)])
 
         self.assertEqual(20, settings.max_combinations)
+        self.assertEqual(100, settings.max_examples)
+        self.assertEqual(30, settings.max_schema_combinations)
         self.assertEqual("optional", settings.header_param_combinations['param_kind'])
         self.assertEqual(10, settings.header_param_combinations['max_combinations'])
         self.assertEqual("required", settings.query_param_combinations['param_kind'])

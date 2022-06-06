@@ -301,6 +301,9 @@ MAX_ASYNC_RESOURCE_CREATION_TIME_DEFAULT = 20
 # first-time use, such as in Test mode.  Users are expected to increase this value
 # as needed for more extensive fuzzing.
 MAX_COMBINATIONS_DEFAULT = 20
+MAX_SCHEMA_COMBINATIONS_DEFAULT = 20
+MAX_EXAMPLES_DEFAULT = 20
+
 MAX_SEQUENCE_LENGTH_DEFAULT = 100
 TARGET_PORT_MAX = (1<<16)-1
 TIME_BUDGET_DEFAULT = 24.0*30 # ~1 month
@@ -571,6 +574,18 @@ class RestlerSettings(object):
     @property
     def max_combinations(self):
         return self._max_combinations.val
+
+    @property
+    def max_schema_combinations(self):
+        if 'max_schema_combinations' in self._combinations_args.val:
+            return self._combinations_args.val['max_schema_combinations']
+        return MAX_SCHEMA_COMBINATIONS_DEFAULT
+
+    @property
+    def max_examples(self):
+        if 'max_examples' in self._combinations_args.val:
+            return self._combinations_args.val['max_examples']
+        return MAX_EXAMPLES_DEFAULT
 
     @property
     def header_param_combinations(self):
