@@ -1216,36 +1216,66 @@ class Request(object):
                 # In such cases, skip the combination.
                 logger.write_to_main(f"Warning: could not substitute header parameters.")
 
-    def get_example_payloads(self, example_payloads_setting):
+    def get_example_payloads(self, example_payloads_setting=None):
         """
-        Replaces the body and query of this request by the available examples.
-        Does not currently modify the headers, because header examples are not yet supported.
+        Replaces the body, query, and headers of this request by the available examples.
         """
-        # The length of all the example lists is currently expected to be the same.
-        num_payloads = len(self.examples.query_examples)
-        for payload_idx in range(num_payloads):
-            logger.write_to_main(f"Found example {payload_idx}.")
-            if len(self.examples.body_examples) <= payload_idx:
-                error_message=f"ERROR: ill-formed example {self.endpoint} {self.method}."
+        # The length of all the example lists is currently expected to be the same when examples are present.
+        # For example, there may be no body example, but if there are 2 query examples,
+        # there should also be 2 header examples.
+        num_query_payloads = len(self.examples.query_examples)
+        num_body_payloads = len(self.examples.body_examples)
+        num_header_payloads = len(self.examples.header_examples)
+        max_example_payloads = max([num_query_payloads, num_body_payloads, num_header_payloads])
+
+        def check_example_schema_is_valid(num_payloads, total_payloads, payload_kind):
+            is_valid = (num_payloads == 0 or num_payloads == total_payloads)
+
+            if not is_valid:
+                error_message=f"""ERROR: ill-formed {payload_kind} example for {self.method} {self.endpoint}.
+                                  Number of examples: {num_payloads}, total: {total_payloads}."""
                 logger.write_to_main(error_message)
                 raise Exception(error_message)
-            body_example = self.examples.body_examples[payload_idx]
-            query_example = self.examples.query_examples[payload_idx]
-            # TODO: header examples are not supported yet.
-            #  header_example = examples.header_examples[payload_idx]
+
+        # TODO: this should be moved to the schema parser
+        check_example_schema_is_valid(num_header_payloads, max_example_payloads, "header")
+        check_example_schema_is_valid(num_query_payloads, max_example_payloads, "query")
+        check_example_schema_is_valid(num_body_payloads, max_example_payloads, "body")
+
+        for payload_idx in range(max_example_payloads):
+            body_example = None
+            query_example = None
+            header_example = None
+
+            if num_body_payloads > 0:
+                body_example = self.examples.body_examples[payload_idx]
+            if num_query_payloads > 0:
+                query_example = self.examples.query_examples[payload_idx]
+            if num_header_payloads > 0:
+                header_example = self.examples.header_examples[payload_idx]
 
             # Copy the request definition and reset it here.
+            new_request = self
             body_blocks = None
+            query_blocks = None
+            header_blocks = None
             if body_example:
                 body_blocks = body_example.get_blocks()
-            query_blocks = query_example.get_blocks()
+                # Only substitute the body if there is a body.
+                if body_blocks:
+                    new_request = new_request.substitute_body(body_blocks)
 
-            new_request = self.substitute_query(query_blocks)
-            # Only substitute the body if there is a body.
-            if body_blocks:
-                new_request = new_request.substitute_body(body_blocks)
+            if query_example:
+                query_blocks = query_example.get_blocks()
+                new_request = new_request.substitute_query(query_blocks)
+            if header_example:
+                header_blocks = header_example.get_blocks()
+                new_request = new_request.substitute_headers(header_blocks)
 
             if new_request:
+                # Update the new Request object with the create once requests data of the old Request,
+                # so bug replay logs will include the necessary create once request data.
+                new_request._create_once_requests = self._create_once_requests
                 yield new_request
             else:
                 # For malformed requests, it is possible that the place to insert query parameters is not found,

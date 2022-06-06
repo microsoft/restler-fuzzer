@@ -10,6 +10,7 @@ from engine.core.request_utilities import str_to_hex_def
 from engine.core.requests import Request
 from engine.core.requests import FailureInformation
 from engine.core.sequences import Sequence
+from engine.fuzzing_parameters.parameter_schema import HeaderList
 import engine.primitives as primitives
 
 class ExamplesChecker(CheckerBase):
@@ -104,6 +105,18 @@ class ExamplesChecker(CheckerBase):
                 _send_request(new_request)
             else:
                 self._log('Failed to substitute query')
+
+        # Send new request for each header example.
+        # For now don't try to match these up with the other examples.
+        # There will soon be IDs associated with the examples, so they can be matched.
+        for example in filter(lambda x : x is not None, request.examples.header_examples):
+            headers_schema = HeaderList(param=example.param_list)
+            h_blocks = headers_schema.get_blocks()
+            new_request = request.substitute_headers(h_blocks)
+            if new_request:
+                _send_request(new_request)
+            else:
+                self._log('Failed to substitute header')
 
         self._log("Results:")
         for code in status_codes:
