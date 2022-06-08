@@ -72,7 +72,10 @@ def create_fuzzing_req_collection(path_regex):
 
     return fuzz_reqs
 
-def _set_schemas(examples: RequestExamples, body_schema: BodySchema, query_schema: QueryList, headers_schema: HeaderList, method: str, endpoint: str):
+
+def _set_method_endpoint_schemas(examples: RequestExamples, body_schema: BodySchema, query_schema: QueryList,
+                 headers_schema: HeaderList, method: str, endpoint: str,
+                 req_collection=None):
     """ Assigns a specified RequestExamples object to the matching
     request in the RequestCollection
 
@@ -80,6 +83,9 @@ def _set_schemas(examples: RequestExamples, body_schema: BodySchema, query_schem
     @param body_schema: The BodySchema object to set
     @param method: The request's method
     @param endpoint: The request's endpoint
+    @param req_collection: The request collection to which the json schema corresponds.
+                           If None, use the global request collection.
+    @type  req_collection: RequestCollection
 
     @return: None
 
@@ -87,11 +93,11 @@ def _set_schemas(examples: RequestExamples, body_schema: BodySchema, query_schem
     def _print_req_not_found():
         logger.write_to_main(
             "Request from grammar does not exist in the Request Collection!\n"
-            f"{method} {endpoint}\n",\
+            f"{method} {endpoint}\n",
             print_to_console=True
         )
 
-    request_collection = GrammarRequestCollection().request_id_collection
+    request_collection = GrammarRequestCollection().request_id_collection if req_collection is None else req_collection
 
     hex_def = str_to_hex_def(endpoint)
     # Find the request's endpoint in the request collection
@@ -120,12 +126,16 @@ def _set_schemas(examples: RequestExamples, body_schema: BodySchema, query_schem
         # Failed to find request in the request collection
         _print_req_not_found()
 
-def parse_grammar_schema(schema_json):
+def parse_grammar_schema(schema_json, req_collection=None):
     """ Parses the grammar.json file for examples and body schemas and sets the
     examples for each matching request in the RequestCollection
 
     @param schema_json: The json schema to parse for examples
     @type  schema_json: Json
+
+    @param req_collection: The request collection to which the json schema corresponds.
+                           If None, use the global request collection.
+    @type  req_json: RequestCollection
 
     @return: False if there was an exception while parsing the examples
     @rtype : Bool
@@ -166,7 +176,8 @@ def parse_grammar_schema(schema_json):
 
             if request_examples or body_schema or \
                 (headers_schema is not None) or (query_schema is not None):
-                _set_schemas(request_examples, body_schema, query_schema, headers_schema, method, endpoint)
+                _set_method_endpoint_schemas(request_examples, body_schema, query_schema, headers_schema, method,
+                                             endpoint, req_collection=req_collection)
 
         return True
     except ValueError as err:

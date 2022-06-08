@@ -176,6 +176,7 @@ def des_param_payload(param_payload_json, tag='', body_param=True):
 
         content_type = 'Unknown'
         content_value = 'Unknown'
+        example_values = []
         custom_payload_type = None
         fuzzable = False
         is_dynamic_object = False
@@ -183,6 +184,8 @@ def des_param_payload(param_payload_json, tag='', body_param=True):
         if 'Fuzzable' in payload:
             content_type = payload['Fuzzable']['primitiveType']
             content_value = payload['Fuzzable']['defaultValue']
+            if 'exampleValue' in payload['Fuzzable']:
+                example_values = [payload['Fuzzable']['exampleValue']]
             fuzzable = True
         elif 'Constant' in payload:
             content_type = payload['Constant'][0]
@@ -214,17 +217,15 @@ def des_param_payload(param_payload_json, tag='', body_param=True):
 
         # create value w.r.t. the type
         value = None
-        if content_type == 'String' or content_type == 'Uuid' or content_type == 'DateTime':
-            # If query parameter, assign as a value and not a string
-            # because we don't want to wrap with quotes in the request
-            if body_param:
-                value = ParamString(custom_payload_type=custom_payload_type, is_required=is_required, is_dynamic_object=is_dynamic_object)
-            else:
-                value = ParamValue(custom_payload_type=custom_payload_type, is_required=is_required, is_dynamic_object=is_dynamic_object)
+        if content_type in ['String', 'Uuid', 'DateTime', 'Date']:
+            # Query or header parameter values should not be quoted
+            is_quoted = body_param
+            value = ParamString(custom_payload_type=custom_payload_type, is_required=is_required,
+                                is_dynamic_object=is_dynamic_object, is_quoted=is_quoted, content_type=content_type)
         elif content_type == 'Int':
-            value = ParamNumber(is_required=is_required, is_dynamic_object=is_dynamic_object)
+            value = ParamNumber(is_required=is_required, is_dynamic_object=is_dynamic_object, number_type=content_type)
         elif content_type == 'Number':
-            value = ParamNumber(is_required=is_required, is_dynamic_object=is_dynamic_object)
+            value = ParamNumber(is_required=is_required, is_dynamic_object=is_dynamic_object, number_type=content_type)
         elif content_type == 'Bool':
             value = ParamBoolean(is_required=is_required, is_dynamic_object=is_dynamic_object)
         elif content_type == 'Object':
@@ -253,7 +254,7 @@ def des_param_payload(param_payload_json, tag='', body_param=True):
                 enum_name = enum_definition[0]
                 enum_content_type = enum_definition[1]
                 contents = enum_definition[2]
-                value = ParamEnum(contents, enum_content_type, is_required=is_required, body_param=body_param)
+                value = ParamEnum(contents, enum_content_type, is_required=is_required, body_param=body_param, enum_name=enum_name)
             else:
                 logger.write_to_main(f'Unexpected enum schema {name}')
         else:
@@ -261,6 +262,8 @@ def des_param_payload(param_payload_json, tag='', body_param=True):
             value.set_unknown()
 
         value.set_fuzzable(fuzzable)
+        value.set_example_values(example_values)
+        value.set_content_type(content_type)
         value.content = content_value
 
         if tag and name:

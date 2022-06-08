@@ -1157,7 +1157,7 @@ class Request(object):
 
         # Get the required header blocks that should always be present
         # These special headers are not fuzzed, and should not be replaced
-        skipped_headers_str = ["Accept", "Host", "Content-Type"]
+        skipped_headers_str = ["Accept", "Host"]
         required_header_blocks = []
         append_header = False
         for line in old_request.definition[header_start_index : header_end_index]:
