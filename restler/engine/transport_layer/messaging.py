@@ -35,7 +35,7 @@ class HttpSock(object):
         else:
             self._subject = HttpRawSock(connection_settings)
 
-    def sendRecv(self, message: str, req_timeout_sec: int) -> Tuple[bool, Union[HttpResponse ,str]]:
+    def sendRecv(self, message: str, req_timeout_sec: int, reconnect: bool = False) -> Tuple[bool, Union[HttpResponse ,str]]:
         """ Sends a specified request to the server and waits for a response
 
         @param message: Message to be sent.
@@ -49,7 +49,7 @@ class HttpSock(object):
         @rtype : Tuple (Bool, String)
 
         """
-        return self._subject.sendRecv(message, req_timeout_sec)
+        return self._subject.sendRecv(message, req_timeout_sec, reconnect=reconnect)
 
 
 class BaseSocket(object, metaclass=ABCMeta):
@@ -125,7 +125,7 @@ class Http2Sock(BaseSocket):
             secure=self.connection_settings.use_ssl
         )
 
-    def sendRecv(self, message: str, req_timeout_sec: int) -> Tuple[bool, str]:
+    def sendRecv(self, message: str, req_timeout_sec: int, *args, **kwargs) -> Tuple[bool, str]:
         super().sendRecv(message, req_timeout_sec)
         method = self._get_method_from_message(message) 
         message_body = self._get_payload_from_message(message)
