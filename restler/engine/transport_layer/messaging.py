@@ -166,6 +166,7 @@ class HttpRawSock(BaseSocket):
         """
         super().__init__(connection_settings)
 
+    def set_up_connection(self):
         try:
             self._sock = None
 
