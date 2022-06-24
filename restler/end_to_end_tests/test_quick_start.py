@@ -10,6 +10,8 @@ To call: python ./test_quick_start.py <path_to_restler_drop_directory>
 """
 import sys
 import os
+import signal
+import time
 import subprocess
 import shutil
 import glob
@@ -56,7 +58,7 @@ def test_test_task(restler_working_dir, swagger_path, restler_drop_dir):
         shell=True, capture_output=True
     )
     expected_strings = [
-        'Request coverage (successful / total): 6 / 6',
+        'Request coverage (successful / total): 5 / 6',
         'No bugs were found.' ,
         'Task Test succeeded.'
     ]
@@ -70,11 +72,11 @@ def test_fuzzlean_task(restler_working_dir, swagger_path, restler_drop_dir):
         shell=True, capture_output=True
     )
     expected_strings = [
-        'Request coverage (successful / total): 6 / 6',
+        'Request coverage (successful / total): 5 / 6',
         'Bugs were found!' ,
         'InvalidDynamicObjectChecker_20x: 2',
-        'InvalidDynamicObjectChecker_500: 1',
-        'PayloadBodyChecker_500: 1',
+        'PayloadBodyChecker_500: 2',
+        'UseAfterFreeChecker_20x: 1',
         'Task FuzzLean succeeded.'
     ]
     check_output_errors(output)
@@ -130,7 +132,7 @@ def test_replay_task(restler_working_dir, task_output_dir, restler_drop_dir):
     with open(network_log) as rf, open(original_bug_buckets_file_path) as of:
         orig_buckets = of.read()
         log_contents = rf.read()
-        if 'HTTP/1.1 500 INTERNAL SERVER ERROR' not in log_contents:
+        if 'HTTP/1.1 500 Internal Server Error' not in log_contents:
             raise QuickStartFailedException(f"Failing because bug buckets {orig_buckets} were not reproduced.  Replay log: {log_contents}.")
         else:
             print("500 error was reproduced.")
@@ -139,16 +141,12 @@ demo_server_output=[]
 
 def get_demo_server_output(demo_server_process):
     demo_server_output.clear()
-    while True:
-        output = demo_server_process.stdout.readline()
+    while demo_server_process.poll() is None:
+        output,_ = demo_server_process.communicate()
+
         if output:
             demo_server_output.append(output)
-        else:
-            result = demo_server_process.poll()
-            if result is not None:
-                break
 
-    return result
 
 if __name__ == '__main__':
     curr = os.getcwd()
@@ -157,10 +155,15 @@ if __name__ == '__main__':
     # Note: demo_server must be started in its directory
     os.chdir('demo_server')
     demo_server_path = Path('demo_server', 'app.py')
-    demo_server_process = subprocess.Popen([sys.executable, demo_server_path],
-                                    stdout=subprocess.PIPE,
-                                    stderr=subprocess.STDOUT)
+    if hasattr(os.sys, 'winver'):
+        creationflags=subprocess.CREATE_NEW_PROCESS_GROUP
+    else:
+        creationflags = 0
 
+    demo_server_process = subprocess.Popen([sys.executable, demo_server_path],
+                                            stdout=subprocess.PIPE,
+                                            stderr=subprocess.STDOUT,
+                                            creationflags=creationflags)
     thread = Thread(target = get_demo_server_output, args = (demo_server_process, ))
     thread.start()
 
@@ -190,11 +193,17 @@ if __name__ == '__main__':
         raise
     finally:
         # Kill demo server
-        demo_server_process.terminate()
+        if hasattr(os.sys, 'winver'):
+            os.kill(demo_server_process.pid, signal.CTRL_BREAK_EVENT)
+        else:
+            demo_server_process.send_signal(signal.SIGTERM)
+        print("done terminating demo_server process")
+
         thread.join()
-        demo_server_out, _ = demo_server_process.communicate()
         if test_failed:
-            print(f"Demo server output: {demo_server_output} {demo_server_out}")
+            print(f"Demo server output: {demo_server_output}.")
+
+        print("The End.")
 
         # Delete the working directory that was created during restler quick start
         shutil.rmtree(RESTLER_WORKING_DIR)
