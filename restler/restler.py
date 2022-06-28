@@ -12,16 +12,15 @@ from subprocess import call
 import os
 import sys
 import signal
-import time
 import json
 import shutil
 import argparse
 import checkers
 import restler_settings
-import atexit
-from threading import Thread
+import traceback
 
 import utils.logger as logger
+
 import engine.bug_bucketing as bug_bucketing
 import engine.dependencies as dependencies
 import engine.core.preprocessing as preprocessing
@@ -111,9 +110,10 @@ def get_checker_list(req_collection, fuzzing_requests, enable_list, disable_list
     # Add any custom checkers
     for custom_checker_file_path in custom_checkers:
         try:
-            utils.import_utilities.load_module('custom_checkers', custom_checker_file_path)
+            import_utilities.load_module('custom_checkers', custom_checker_file_path)
             logger.write_to_main(f"Loaded custom checker from {custom_checker_file_path}", print_to_console=True)
         except Exception as err:
+            traceback.print_exc()
             logger.write_to_main(f"Failed to load custom checker {custom_checker_file_path}: {err!s}", print_to_console=True)
             sys.exit(-1)
 

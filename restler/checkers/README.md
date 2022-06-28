@@ -3,7 +3,7 @@ The checkers are created as subclasses to the CheckerBase abstract base class.  
 the subclasses' logs and maintaining data members that are shared across all checkers.
 The CheckerBase class also declares and/or defines functions that are required for each checker subclass.
 
-See the checkers in this directory for examples.
+See the checkers in this directory for examples.  A simple checker demo is also included in this directory, which can be used as a template for creating a custom checker.   To run the demo checker, add it to the engine settings file `custom_checkers` setting.
 
 ## Data Members:
 * _checker_log: The CheckerLog log file for the checker
@@ -19,7 +19,7 @@ See the checkers in this directory for examples.
 checker. It can be thought of as a checker's "main" entry point.
 * _send_request: This function sends a request to the service under test and then returns the response. The function request_utilities.call_response_parser() should be called after this function
 in order to update resource dependencies (due to the new request that was just executed) and make these visible to the garbage collector (otherwise resources created by the newly sent request will not be garbage collected).
-* _render_and_send_data: This function renders data for a request, sends the request to the service under test, and then adds that rendered data and its response to a sequence's sent-request-data list. 
+* _render_and_send_data: This function renders data for a request, sends the request to the service under test, and then adds that rendered data and its response to a sequence's sent-request-data list.
   * This sent-request-data list is used exclusively for replaying sequences to test for bug reproducibility. Because checkers tend not
   to use the sequences.render function to render and send requests, the sent-request-data is never added to the list. This means that,
   in order to replay the sequence when a bug is found, this function must be called.
@@ -39,10 +39,10 @@ rule violation is detected.
 # Creating a Checker
 ## To create a checker, the following rules must be adhered to:
 
-* The checker must be defined in its own file and this file must be specified in the settings.json file like this 
+* The checker must be defined in its own file and this file must be specified in the settings.json file like this
 
-  ```"custom_checkers": ["C:\\<path>\\my_new_checker.py"]``` 
-  
+  ```"custom_checkers": ["C:\\<path>\\my_new_checker.py"]```
+
   or be added to checkers/\_\_init\_\_.py (the order of this list defines the order in which the checkers will be called).
 * The checker must inherit from CheckerBase.
 * The checker's class name must end with Checker.
