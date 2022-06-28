@@ -967,8 +967,8 @@ class Request(object):
             # be cached and re-used.
             value_gen_tracker = self._rendered_values_cache.value_gen_tracker
             if schema_idx not in self._rendered_values_cache._value_generators:
-                value_generators = init_value_generators(fuzzable_request_blocks, fuzzable,
-                                                         value_gen_tracker)
+                value_generators = Request.init_value_generators(fuzzable_request_blocks, fuzzable,
+                                                                 value_gen_tracker)
                 self._rendered_values_cache.value_generators[schema_idx] = value_generators
             value_generators = self._rendered_values_cache.value_generators[schema_idx]
 
