@@ -1,0 +1,12 @@
+{
+  "x-restler-global-annotations": [
+    {
+      "producer_endpoint": "/app/{appId}",
+      "producer_method": "DELETE",
+      "producer_resource_name": "appId",
+      "consumer_endpoint": "/data/deletedApps/{appId}",
+      "consumer_method": "GET",
+      "consumer_param": "appId"
+    }
+  ]
+}

@@ -1,0 +1,81 @@
+{
+  "basePath": "/api",
+  "consumes": [
+    "application/json"
+  ],
+  "host": "localhost:8888",
+  "info": {
+    "description": "Small example for per-request type annotations.",
+    "title": "The title.",
+    "version": "1.0.0"
+  },
+  "definitions": {
+    "App": {
+      "properties": {
+        "id": {
+          "type": "string"
+        }
+      }
+    }
+  },
+  "paths": {
+    "/app/{appId}": {
+      "put": {
+        "parameters": [
+          {
+            "name": "appId",
+            "in": "path",
+            "type": "string",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/App"
+            }
+
+          }
+        }
+      },
+      "delete": {
+        "parameters": [
+          {
+            "name": "appId",
+            "in": "path",
+            "type": "string",
+            "required": true
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Success"
+          }
+        }
+      }
+
+    },
+    "/data/deletedApps/{appId}": {
+      "get": {
+        "parameters": [
+          {
+            "name": "appId",
+            "in": "path",
+            "type": "string",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/App"
+            }
+          }
+        }
+      }
+    }
+  },
+  "swagger": "2.0"
+}

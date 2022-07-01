@@ -173,3 +173,15 @@ type Producers() =
             else
                 p.sortedByMatchNonNested.Values |> seq
 
+
+type ProducerKind = 
+| Input
+| Response
+
+/// Object IDs are currently names, but could be extended to
+/// both the name and the type (as declared in the API spec) in the future.
+type ResourceId =
+    {
+        requestId : RequestId
+        resourceReference : ResourceReference
+    }

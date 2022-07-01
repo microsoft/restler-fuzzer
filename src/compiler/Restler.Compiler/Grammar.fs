@@ -218,14 +218,6 @@ type RequestId =
         method : OperationMethod
     }
 
-/// Object IDs are currently names, but could be extended to
-/// both the name and the type (as declared in the API spec) in the future.
-type ResourceId =
-    {
-        requestId : RequestId
-        resourceName : string
-    }
-
 type AnnotationResourceReference =
     /// A resource parameter may be obtained by name only
     | ResourceName of string

@@ -1324,6 +1324,14 @@ let generateRequestGrammar (swaggerDocs:Types.ApiSpecFuzzingConfig list)
 
     logTimingInfo "Generating request primitives..."
 
+       
+    // The dependencies above are analyzed on a per-request basis.
+    // This can lead to missing dependencies (for example, an input producer writer 
+    // may be missing because the same parameter already refers to a reader). 
+    // As a workaround, the function below handles such issues by finding and fixing up the
+    // problematic cases.
+    let dependenciesIndex, orderingConstraints = Restler.Dependencies.mergeDynamicObjects dependenciesIndex orderingConstraints
+
     let dependencies =
         dependenciesIndex
         |> Seq.map (fun kvp -> kvp.Value)

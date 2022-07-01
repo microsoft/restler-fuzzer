@@ -521,5 +521,33 @@ module Dependencies =
             let message = sprintf "Grammar contains %d readers, expected 1" readers.Length
             Assert.True((readers.Length = 1), message)
 
+
+        /// Test the case when a dynamic object reader is also a writer for a different variable
+        [<Fact>]
+        let ``reader and writer with annotations`` () =
+            let grammarOutputDirPath = ctx.testRootDirPath
+
+            for annotationTest in ["1"; "2"] do
+                let config = { Restler.Config.SampleConfig with
+                                 IncludeOptionalParameters = true
+                                 GrammarOutputDirectoryPath = Some grammarOutputDirPath
+                                 SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, @"swagger\dependencyTests\simple_api_soft_delete.json"))]
+                                 CustomDictionaryFilePath = None
+                                 AnnotationFilePath = Some (Path.Combine(Environment.CurrentDirectory, sprintf @"swagger\dependencyTests\simple_api_soft_delete_annotations%s.json" annotationTest))
+                                 AllowGetProducers = true
+                                 ResolveQueryDependencies = true
+                             }
+                Restler.Workflow.generateRestlerGrammar None config
+
+                let actualGrammarFilePath = Path.Combine(grammarOutputDirPath,
+                                                         Restler.Workflow.Constants.DefaultRestlerGrammarFileName)
+                let expectedGrammarFilePath = Path.Combine(Environment.CurrentDirectory,
+                                                           sprintf @"baselines\dependencyTests\soft_delete_test_grammar%s.py" annotationTest)
+
+                let grammarDiff = getLineDifferences expectedGrammarFilePath actualGrammarFilePath
+                let message = sprintf "Grammar for annotation test %s does not match baseline.  First difference: %A" annotationTest grammarDiff
+                Assert.True(grammarDiff.IsNone, message)
+
+
         interface IClassFixture<Fixtures.TestSetupAndCleanup>
 
