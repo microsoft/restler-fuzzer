@@ -1,13 +1,13 @@
 name: '🚀 Feature request'
-description: Please let us know if there is anything we can do better
-title: [Feature request]
-# labels: ["enhancement"] 
+description: Suggest an idea or enhancement.
+title: "[Enhancement]"
+# labels: ["enhancement"]
 body:
   - type: markdown
     attributes:
       value: |
-        Thank you for suggesting a way to improve this project.
-        Please complete the below form to ensure we have all the details to get things started.
+        Thank you for suggesting an idea or improvement for this project.
+        Please complete the below form to ensure we have all the details to investigate further.
   - type: textarea
     id: solution
     attributes:
@@ -21,7 +21,7 @@ body:
     attributes:
       label: Is your feature related to a bug
       description: |
-        Refer to a an existing bug, add issue number if exists like #100 .
+        Refer to a an existing bug, add issue number if exists like #100.
     validations:
       required: false
   - type: textarea
@@ -30,11 +30,3 @@ body:
       label: Alternatives
       description: |
         Have you considered alternative solutions or implementations? Do you have an idea on how this should be implemented? Let us know!
-  - type: textarea
-    id: info
-    attributes:
-      label: Additional Info
-      description: |
-        Provide additional information or links to resources that can help with the creation of this command.
-    validations:
-      required: false

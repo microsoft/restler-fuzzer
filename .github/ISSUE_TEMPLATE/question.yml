@@ -1,22 +1,21 @@
-name: '🐞 Bug report'
-description: Report that something is not working as expected.
-title: "[Bug]"
-# labels: ["bug"]
+name: 'Question'
+description: Ask a question.
+title: "[Question]"
+# labels: ["question"]
 body:
   - type: textarea
     id: description
     attributes:
       label: Description
-      description: Provide a short description of the issue you are facing
     validations:
       required: false
   - type: textarea
     id: steps
     attributes:
       label: Steps to reproduce
-      description: Provide the steps you have taken so that we can reproduce the error
+      description: Provide the steps you have taken so that we can reproduce them
     validations:
-      required: true
+      required: false
   - type: textarea
     id: expected
     attributes:
