@@ -1,6 +1,5 @@
 name: '🐞 Bug report'
 description: Report that something is not working as expected.
-labels: ["bug"]
 body:
   - type: textarea
     id: description
@@ -30,35 +29,19 @@ body:
       description: Provide a description of what actually happens
     validations:
       required: false
+  - type: input
+    id: environment
+    attributes:
+      label: Environment details
+      description: |
+        Please provide:
+        - Operating system (Windows, macOS, Linux, other)
+        - Python version
+        - .NET version
+        and any other details about your environment that may be relevant for the issue.
 
-  - type: input
-    id: pythonversion
-    attributes:
-      label: python version
-      description: |
-        Provide the version of python you are using
-        Execute `python --version` or `python -V` in your terminal to identify your version
-    validations:
-      required: false
-  - type: input
-    id: dotnetversion
-    attributes:
-      label: dotnet version
-      description: |
-        Provide the version of .NET you are using
-        Execute `dotnet --version` in your terminal to identify your version
-    validations:
-      required: false
-  - type: dropdown
-    id: os
-    attributes:
-      label: Operating system (environment)
-      description: Provide the operating system that you are using
-      options:
-        - Windows
-        - macOS
-        - Linux
-        - Other
+        To get the Python version: run `python --version` or `python -V` in your terminal
+        To get the .NET version: run `dotnet --version` in your terminal
     validations:
       required: false
 
