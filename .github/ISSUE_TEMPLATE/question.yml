@@ -1,6 +1,5 @@
 name: 'Question'
 description: Ask a question.
-title: "[Question]"
 # labels: ["question"]
 body:
   - type: textarea
@@ -8,57 +7,4 @@ body:
     attributes:
       label: Description
     validations:
-      required: false
-  - type: textarea
-    id: steps
-    attributes:
-      label: Steps to reproduce
-      description: Provide the steps you have taken so that we can reproduce them
-    validations:
-      required: false
-  - type: textarea
-    id: expected
-    attributes:
-      label: Expected results
-      description: Provide a description of what you expect to happen
-    validations:
-      required: false
-  - type: textarea
-    id: actual
-    attributes:
-      label: Actual results
-      description: Provide a description of what actually happens
-    validations:
-      required: false
-
-  - type: input
-    id: pythonversion
-    attributes:
-      label: python version
-      description: |
-        Provide the version of python you are using
-        Execute `python --version` or `python -V` in your terminal to identify your version
-    validations:
-      required: false
-  - type: input
-    id: dotnetversion
-    attributes:
-      label: dotnet version
-      description: |
-        Provide the version of .NET you are using
-        Execute `dotnet --version` in your terminal to identify your version
-    validations:
-      required: false
-  - type: dropdown
-    id: os
-    attributes:
-      label: Operating system (environment)
-      description: Provide the operating system that you are using
-      options:
-        - Windows
-        - macOS
-        - Linux
-        - Other
-    validations:
-      required: false
-
+      required: true

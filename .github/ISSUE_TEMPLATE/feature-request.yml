@@ -1,6 +1,5 @@
 name: '🚀 Feature request'
 description: Suggest an idea or enhancement.
-title: "[Enhancement]"
 # labels: ["enhancement"]
 body:
   - type: markdown
@@ -19,14 +18,14 @@ body:
   - type: input
     id: bugrelation
     attributes:
-      label: Is your feature related to a bug
+      label: Is your feature related to an existing issue?
       description: |
-        Refer to a an existing bug, add issue number if exists like #100.
+        Refer to a an existing issue by number (for example, #100).
     validations:
       required: false
   - type: textarea
     id: alternatives
     attributes:
-      label: Alternatives
+      label: Design Notes
       description: |
         Have you considered alternative solutions or implementations? Do you have an idea on how this should be implemented? Let us know!
