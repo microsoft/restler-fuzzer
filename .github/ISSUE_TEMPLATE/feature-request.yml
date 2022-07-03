@@ -1,6 +1,6 @@
 name: '🚀 Feature request'
 description: Suggest an idea or enhancement.
-labels: ["enhancement"]
+title: "[Feature Request]"
 body:
   - type: markdown
     attributes:
@@ -12,17 +12,9 @@ body:
     attributes:
       label: 💡 Idea
       description: |
-        Please describe the desired behavior, pitch your idea, or suggest improvements
+        Please describe the desired behavior, pitch your idea, or suggest improvements.
     validations:
       required: true
-  - type: input
-    id: bugrelation
-    attributes:
-      label: Is your feature related to an existing issue?
-      description: |
-        Refer to a an existing issue by number (for example, #100).
-    validations:
-      required: false
   - type: textarea
     id: alternatives
     attributes:
