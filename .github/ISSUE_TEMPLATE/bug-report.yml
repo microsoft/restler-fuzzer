@@ -63,6 +63,6 @@ body:
     attributes:
       label: Additional Info
       description: |
-        Provide any additional information that may help with the identification of the root cause of this issue 
-        validations
+        Provide any additional information that may help with the identification of the root cause of this issue
+    validations:
       required: false
