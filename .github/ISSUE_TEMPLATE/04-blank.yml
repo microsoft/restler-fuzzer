@@ -1,0 +1,9 @@
+name: 'Blank Issue'
+description: Discuss a topic not already covered by the other issue types.
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+    validations:
+      required: true
