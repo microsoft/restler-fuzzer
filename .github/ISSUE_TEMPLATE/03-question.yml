@@ -1,5 +1,5 @@
-name: 'Blank Issue'
-description: Ask a question or discuss a topic not already covered by the other issue types.
+name: 'Question'
+description: Ask a question.
 body:
   - type: textarea
     id: description
