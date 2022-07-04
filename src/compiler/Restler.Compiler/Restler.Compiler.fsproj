@@ -40,9 +40,9 @@
     <PackageReference Include="Microsoft.FSharpLu" Version="0.11.6" />
     <PackageReference Include="Microsoft.FSharpLu.Json" Version="0.11.6" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-    <PackageReference Include="NJsonSchema" Version="10.0.27" />
-    <PackageReference Include="NSwag.Core" Version="13.1.3" />
-    <PackageReference Include="NSwag.Core.Yaml" Version="13.1.3" />
+    <PackageReference Include="NJsonSchema" Version="10.7.2" />
+    <PackageReference Include="NSwag.Core" Version="13.16.1" />
+    <PackageReference Include="NSwag.Core.Yaml" Version="13.16.1" />
     <PackageReference Include="Pluralize.NET.Core" Version="1.0.0" />
   </ItemGroup>
   <ItemGroup>

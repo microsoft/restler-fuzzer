@@ -229,9 +229,10 @@ let getSpecPayloadExamples (swaggerMethodDefinition:OpenApiOperation) (examplesD
                     else
                         // The examples may be file references or inlined
                         // simply return the object.
-                        if exampleValues.Contains("__referencePath") then
-                            yield exampleValues.["__referencePath"]
-
+                        let refString = "$ref"
+                        if exampleValues.Contains(refString) then
+                            yield exampleValues.[refString]
+ 
                         if exampleValues.Contains("parameters") then
                             yield exampleValues :> obj
             }
