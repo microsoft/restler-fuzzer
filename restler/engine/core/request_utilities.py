@@ -76,7 +76,7 @@ def execute_token_refresh_cmd(cmd):
 
             _RAW_LOGGING(f"New value: {cmd_result}")
             _, latest_token_value, latest_shadow_token_value = parse_authentication_tokens(cmd_result)
-            _RAW_LOGGING(f"Parse latest token value succeed: {cmd_result}")
+            _RAW_LOGGING(f"Successfully obtained the latest token")
             break
         except subprocess.CalledProcessError:
             error_str = f"Authentication failed when refreshing token:\n\nCommand that failed: \n{cmd}"
