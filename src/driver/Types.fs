@@ -124,9 +124,6 @@ type RestlerTask =
 /// Test driver arguments
 type DriverArgs =
     {
-        /// The directory to which results should be written.
-        outputDirPath : string
-
         /// Working directory to run tools
         workingDirectoryPath : string
 
