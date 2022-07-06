@@ -733,12 +733,6 @@ let tryRecreateDir dirPath =
 
 [<EntryPoint>]
 let main argv =
-    let logsDirPath = Environment.CurrentDirectory ++ "RestlerLogs"
-    tryRecreateDir logsDirPath
-
-    use tracing = System.Diagnostics.Listener.registerFileTracer
-                        "restler"
-                        (Some logsDirPath)
 
     Console.CancelKeyPress.Add(fun arg ->
                                     Trace.info "Ctrl-C intercepted. Long running tasks should have exited. Uploading logs."
@@ -750,7 +744,7 @@ let main argv =
 
     let logShareDirPath = getConfigValue LogCollection.RestlerLogShareSettingsKey
 
-    let args = parseArgs { outputDirPath = logsDirPath
+    let args = parseArgs {
                            task = Compile
                            taskParameters = Undefined
                            workingDirectoryPath = Environment.CurrentDirectory
@@ -758,6 +752,13 @@ let main argv =
                            pythonFilePath = None
                          }
                          (argv |> Array.toList)
+
+    let logsDirPath = args.workingDirectoryPath ++ "RestlerLogs"
+    tryRecreateDir logsDirPath
+
+    use tracing = System.Diagnostics.Listener.registerFileTracer
+                        "restler"
+                        (Some logsDirPath)
 
     // Instrumentation key is from the app insights resource in Azure Portal
     let instrumentationKey =
