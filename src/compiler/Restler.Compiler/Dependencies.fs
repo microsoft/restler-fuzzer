@@ -618,14 +618,25 @@ let findProducerWithResourceName
             |> Seq.isEmpty &&
            inferredExactMatches |> Seq.isEmpty then
 
-            getCreateOrUpdateProducer
-                        consumer
-                        dictionary
-                        producers
-                        consumerResourceName
-                        producerParameterName
-                        pathParameterIndex.Value
-                        bracketedConsumerResourceName.Value
+           let dictionary, producer = 
+                getCreateOrUpdateProducer
+                            consumer
+                            dictionary
+                            producers
+                            consumerResourceName
+                            producerParameterName
+                            pathParameterIndex.Value
+                            bracketedConsumerResourceName.Value
+           // If there is an input producer match, then
+           // combine the input producer with this generated dictionary payload
+           match inputProducerMatches |> Seq.tryHead with
+           | Some (InputParameter (iop, dp, true)) -> // 'isWriter' should always be true (this case only applies to producer variables).
+                match producer with
+                | Some (DictionaryPayload createOrUpdateDictionaryPayload) ->
+                    dictionary, Some (InputParameter (iop, Some createOrUpdateDictionaryPayload, true))
+                | _ -> dictionary, producer
+           | _ -> dictionary, producer
+
         else
             dictionary, None
 
@@ -1887,3 +1898,75 @@ let writeDependenciesDebug dependenciesFilePath dependencies =
     Microsoft.FSharpLu.Json.Compact.deserializeStream<ProducerConsumerDependency list> f
     |> ignore
 #endif
+
+
+let mergeDynamicObjects (dependenciesIndex:Dictionary<string, List<ProducerConsumerDependency>>) 
+                        (orderingConstraints:(RequestId * RequestId) list)
+                        : Dictionary<string, List<ProducerConsumerDependency>> * (RequestId * RequestId) list =
+
+    let producerDict =  Dictionary<ResourceId, List<ProducerKind * ApiResource * Producer>>()
+
+    let addDependency (id:ApiResource) depKind producerApiResource producer = 
+        let key = { requestId = id.RequestId; resourceReference = id.ResourceReference }
+        let newItem = producerDict.TryAdd(key, List<ProducerKind * ApiResource * Producer>())
+        producerDict.[key].Add(depKind, producerApiResource, producer)
+
+    let dependencies = 
+        dependenciesIndex
+        |> Seq.map (fun kvp -> kvp.Value)
+        |> Seq.concat
+
+    for dep in dependencies |> Seq.filter (fun x -> x.producer.IsSome) do
+
+        match dep.producer.Value with
+        | DictionaryPayload dp ->
+            // A writer would have been added.
+            ()
+        | ResponseObject rp -> 
+            addDependency dep.consumer.id ProducerKind.Response rp.id dep.producer.Value
+        | InputParameter (ip, _, _) ->
+            addDependency dep.consumer.id ProducerKind.Input ip.id dep.producer.Value
+        | SameBodyPayload _ -> ()
+        | OrderingConstraintParameter _ -> ()
+
+
+    let newDependenciesIndex = Dictionary<string, List<ProducerConsumerDependency>>()
+    let newOrderingConstraints = List<RequestId * RequestId>()
+    for kvp in dependenciesIndex do
+        let newDepList, orderingConstraints = 
+            kvp.Value
+            |> Seq.mapFold (fun oc dep -> 
+                                match dep.producer with
+                                | None -> dep, oc
+                                | Some _ ->
+                                    let consumerId = 
+                                        { requestId = dep.consumer.id.RequestId ; resourceReference = dep.consumer.id.ResourceReference }
+                        
+                                    if producerDict.ContainsKey(consumerId) then
+
+                                        match producerDict.[consumerId] |> Seq.tryFind (fun (depKind, _, _) -> depKind = ProducerKind.Input) with
+                                        | None -> dep, oc
+                                        | Some (depKind, inputProducerApiResource, _) ->
+
+                                            let producerResourceId = 
+                                                { requestId = inputProducerApiResource.RequestId ; resourceReference = inputProducerApiResource.ResourceReference }
+
+                                            if producerDict.ContainsKey(producerResourceId) then
+                                                match producerDict.[producerResourceId] |> Seq.tryFind (fun (depKind, _, _) -> depKind = ProducerKind.Response) with
+                                                | None -> 
+                                                    // This is the case when an input producer corresponds to a dictionary entry or fuzzing payload (not a dynamic object from a response)
+                                                    dep, oc
+                                                | Some (depKind, responseProducerApiResource, responseProducer) ->
+                                                    // Add an ordering constraint from the *input producer* writer to the consumer
+                                                    let newOrderingConstraint = producerResourceId.requestId, consumerId.requestId 
+                                                    // Replace the input producer with the response producer if it exists
+                                                    { dep with producer = Some responseProducer }, newOrderingConstraint::oc
+                                            else
+                                                // This is the case when an input producer is only specified in an annotation, which causes a uuid suffix to be generated.
+                                                dep, oc
+                                    else
+                                        dep, oc
+                        ) []
+        newDependenciesIndex.Add(kvp.Key, List<ProducerConsumerDependency>(newDepList))
+        newOrderingConstraints.AddRange(orderingConstraints)
+    newDependenciesIndex, orderingConstraints @ (newOrderingConstraints |> Seq.toList)

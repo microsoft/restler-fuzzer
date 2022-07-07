@@ -34,7 +34,13 @@
     <Content Include="baselines\dependencyTests\path_annotation_grammar.py">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="baselines\schemaTests\xMsPaths_grammar.py">
+	  <Content Include="baselines\dependencyTests\soft_delete_test_grammar1.py">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
+	  <Content Include="baselines\dependencyTests\soft_delete_test_grammar2.py">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
+	  <Content Include="baselines\schemaTests\xMsPaths_grammar.py">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="baselines\schemaTests\xMsPaths_grammar.json">
@@ -207,6 +213,15 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
 	  <Content Include="swagger\DependencyTests\simple_crud_api_annotations.json">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
+    <Content Include="swagger\DependencyTests\simple_api_soft_delete.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+	  <Content Include="swagger\DependencyTests\simple_api_soft_delete_annotations1.json">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
+	  <Content Include="swagger\DependencyTests\simple_api_soft_delete_annotations2.json">
 		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </Content>
 	  <Content Include="swagger\DependencyTests\ordering_test.json">
