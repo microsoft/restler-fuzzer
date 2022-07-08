@@ -676,6 +676,7 @@ let getDataFromTestingSummary taskWorkingDirectory =
                 Microsoft.FSharpLu.Json.Compact.deserializeFile<Engine.TestingSummary> testingSummaryFilePath
 
             Logging.logInfo <| sprintf "Request coverage (successful / total): %s" testingSummary.final_spec_coverage
+            Logging.logInfo <| sprintf "Attempted requests: %s" testingSummary.rendered_requests
 
             let bugBuckets = testingSummary.bug_buckets
                                 |> Seq.map (fun kvp -> kvp.Key, sprintf "%A" kvp.Value)
