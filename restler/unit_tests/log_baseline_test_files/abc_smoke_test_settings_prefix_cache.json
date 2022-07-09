@@ -12,5 +12,8 @@
         "reset_after_success": false
       }
     ]
+  },
+  "test_combinations_settings": {
+    "max_schema_combinations": 1
   }
 }

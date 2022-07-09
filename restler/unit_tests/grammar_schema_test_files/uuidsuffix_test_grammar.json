@@ -1,0 +1,348 @@
+{
+  "Requests": [
+    {
+      "id": {
+        "endpoint": "/customer",
+        "method": "Post"
+      },
+      "method": "Post",
+      "basePath": "",
+      "path": [
+        {
+          "Constant": [
+            "String",
+            "customer"
+          ]
+        }
+      ],
+      "queryParameters": [
+        [
+          "Schema",
+          {
+            "ParameterList": [
+              {
+                "name": "api-version",
+                "payload": {
+                  "LeafNode": {
+                    "name": "",
+                    "payload": {
+                      "Fuzzable": {
+                        "primitiveType": "String",
+                        "defaultValue": "fuzzstring"
+                      }
+                    },
+                    "isRequired": true,
+                    "isReadOnly": false
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      ],
+      "bodyParameters": [
+        [
+          "Schema",
+          {
+            "ParameterList": [
+              {
+                "name": "body",
+                "payload": {
+                  "InternalNode": [
+                    {
+                      "name": "",
+                      "propertyType": "Object",
+                      "isRequired": true,
+                      "isReadOnly": false
+                    },
+                    [
+                      {
+                        "LeafNode": {
+                          "name": "id",
+                          "payload": {
+                            "Custom": {
+                              "payloadType": "UuidSuffix",
+                              "primitiveType": "String",
+                              "payloadValue": "id",
+                              "isObject": false
+                            }
+                          },
+                          "isRequired": false,
+                          "isReadOnly": false
+                        }
+                      },
+                      {
+                        "InternalNode": [
+                          {
+                            "name": "Person",
+                            "propertyType": "Property",
+                            "isRequired": false,
+                            "isReadOnly": false
+                          },
+                          [
+                            {
+                              "InternalNode": [
+                                {
+                                  "name": "",
+                                  "propertyType": "Object",
+                                  "isRequired": false,
+                                  "isReadOnly": false
+                                },
+                                [
+                                  {
+                                    "LeafNode": {
+                                      "name": "name",
+                                      "payload": {
+                                        "Fuzzable": {
+                                          "primitiveType": "String",
+                                          "defaultValue": "fuzzstring"
+                                        }
+                                      },
+                                      "isRequired": true,
+                                      "isReadOnly": false
+                                    }
+                                  },
+                                  {
+                                    "LeafNode": {
+                                      "name": "address",
+                                      "payload": {
+                                        "Fuzzable": {
+                                          "primitiveType": "Object",
+                                          "defaultValue": "{ \"fuzz\": false }"
+                                        }
+                                      },
+                                      "isRequired": true,
+                                      "isReadOnly": false
+                                    }
+                                  }
+                                ]
+                              ]
+                            }
+                          ]
+                        ]
+                      }
+                    ]
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      ],
+      "headerParameters": [
+        [
+          "Schema",
+          {
+            "ParameterList": [
+              {
+                "name": "schema-version",
+                "payload": {
+                  "LeafNode": {
+                    "name": "",
+                    "payload": {
+                      "Fuzzable": {
+                        "primitiveType": "String",
+                        "defaultValue": "fuzzstring"
+                      }
+                    },
+                    "isRequired": false,
+                    "isReadOnly": false
+                  }
+                }
+              }
+            ]
+          }
+        ],
+        [
+          "DictionaryCustomPayload",
+          {
+            "ParameterList": [
+              {
+                "name": "Content-Type",
+                "payload": {
+                  "LeafNode": {
+                    "name": "",
+                    "payload": {
+                      "Constant": [
+                        "String",
+                        "application/json"
+                      ]
+                    },
+                    "isRequired": true,
+                    "isReadOnly": false
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      ],
+      "token": "Refreshable",
+      "headers": [
+        [
+          "Accept",
+          "application/json"
+        ],
+        [
+          "Host",
+          null
+        ]
+      ],
+      "httpVersion": "1.1",
+      "dependencyData": {
+        "responseParser": {
+          "writerVariables": [
+            {
+              "requestId": {
+                "endpoint": "/customer",
+                "method": "Post"
+              },
+              "accessPathParts": {
+                "path": [
+                  "id"
+                ]
+              },
+              "primitiveType": "String",
+              "kind": "BodyResponseProperty"
+            }
+          ],
+          "headerWriterVariables": []
+        },
+        "inputWriterVariables": [],
+        "orderingConstraintWriterVariables": [],
+        "orderingConstraintReaderVariables": []
+      },
+      "requestMetadata": {
+        "isLongRunningOperation": false
+      }
+    },
+    {
+      "id": {
+        "endpoint": "/customer/{customerId}",
+        "method": "Get"
+      },
+      "method": "Get",
+      "basePath": "",
+      "path": [
+        {
+          "Constant": [
+            "String",
+            "customer"
+          ]
+        },
+        {
+          "DynamicObject": {
+            "primitiveType": "String",
+            "variableName": "_customer_post_id",
+            "isWriter": false
+          }
+        }
+      ],
+      "queryParameters": [
+        [
+          "Schema",
+          {
+            "ParameterList": [
+              {
+                "name": "api-version",
+                "payload": {
+                  "LeafNode": {
+                    "name": "",
+                    "payload": {
+                      "Fuzzable": {
+                        "primitiveType": "String",
+                        "defaultValue": "fuzzstring"
+                      }
+                    },
+                    "isRequired": true,
+                    "isReadOnly": false
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      ],
+      "bodyParameters": [
+        [
+          "Schema",
+          {
+            "ParameterList": []
+          }
+        ]
+      ],
+      "headerParameters": [
+        [
+          "Schema",
+          {
+            "ParameterList": [
+              {
+                "name": "schema-version",
+                "payload": {
+                  "LeafNode": {
+                    "name": "",
+                    "payload": {
+                      "Fuzzable": {
+                        "primitiveType": "String",
+                        "defaultValue": "fuzzstring"
+                      }
+                    },
+                    "isRequired": false,
+                    "isReadOnly": false
+                  }
+                }
+              },
+              {
+                "name": "view-option",
+                "payload": {
+                  "LeafNode": {
+                    "name": "",
+                    "payload": {
+                      "Fuzzable": {
+                        "primitiveType": {
+                          "Enum": [
+                            "view-option",
+                            "String",
+                            [
+                              "detailed",
+                              "minimal"
+                            ],
+                            null
+                          ]
+                        },
+                        "defaultValue": "detailed"
+                      }
+                    },
+                    "isRequired": false,
+                    "isReadOnly": false
+                  }
+                }
+              }
+            ]
+          }
+        ],
+        [
+          "DictionaryCustomPayload",
+          {
+            "ParameterList": []
+          }
+        ]
+      ],
+      "token": "Refreshable",
+      "headers": [
+        [
+          "Accept",
+          "application/json"
+        ],
+        [
+          "Host",
+          null
+        ]
+      ],
+      "httpVersion": "1.1",
+      "requestMetadata": {
+        "isLongRunningOperation": false
+      }
+    }
+  ]
+}

@@ -55,20 +55,31 @@ class SchemaParserTest(unittest.TestCase):
     def tearDown(self):
         restler_settings.RestlerSettings.TEST_DeleteInstance()
 
-    def generate_new_request(self, req, headers_schema, query_schema, body_schema):
+    def generate_new_request(self, req, headers_schema, query_schema, body_schema, use_get_blocks=False):
         fuzzing_config = FuzzingConfig()
 
-        query_blocks = query_schema.get_original_blocks(fuzzing_config)
+        if use_get_blocks:
+            query_blocks = query_schema.get_blocks()
+        else:
+            query_blocks = query_schema.get_original_blocks(fuzzing_config)
         new_request = req.substitute_query(query_blocks)
         self.assertTrue(new_request is not None)
 
-        header_blocks = headers_schema.get_original_blocks(fuzzing_config)
+        if use_get_blocks:
+            header_blocks = headers_schema.get_blocks()
+        else:
+            header_blocks = headers_schema.get_original_blocks(fuzzing_config)
+
         new_request = new_request.substitute_headers(header_blocks)
         self.assertTrue(new_request is not None)
 
         if body_schema is not None:
-            body_schema.set_config(fuzzing_config) # This line is required for legacy reasons
-            body_blocks = body_schema.get_original_blocks(fuzzing_config)
+            body_schema.set_config(fuzzing_config)  # This line is required for legacy reasons
+            if use_get_blocks:
+                body_blocks = body_schema.get_blocks()
+            else:
+                body_blocks = body_schema.get_original_blocks(fuzzing_config)
+
             new_request = new_request.substitute_body(body_blocks)
             self.assertTrue(new_request is not None)
 
@@ -178,3 +189,91 @@ class SchemaParserTest(unittest.TestCase):
 
             self.check_equivalence(req, generated_req, request_collection)
 
+            # Now generate the request with required parameters only
+            combination_settings = {
+                "max_combinations": 1,
+                "param_kind": "optional"
+            }
+            req_current = req
+            req_current = next(req_current.get_header_param_combinations(combination_settings))
+            req_current = next(req_current.get_query_param_combinations(combination_settings))
+            if req.body_schema:
+                req_current = next(req_current.get_body_param_combinations(combination_settings))
+            required_only_generated_req = req_current
+            original_rendering, generated_rendering =\
+                self.check_equivalence(req, required_only_generated_req, request_collection, equal=False)
+
+            # Confirm that none of the optional parameters are present in the generated request.
+            optional_param_names = {
+                0: ['schema-version', 'id', 'address'],
+                1: ['schema-version', 'view-option']
+            }
+
+            for optional_param in optional_param_names[idx]:
+                # The original rendering currently has all parameters, optional and required.
+                self.assertTrue(optional_param in original_rendering, optional_param)
+                self.assertFalse(optional_param in generated_rendering, optional_param)
+
+    def test_schema_pool_no_fuzzing(self):
+        """
+        This test checks that the schema pool returns the correct schema when no
+        fuzzing has been requested.
+        """
+        self.setup()
+        grammar_name = "simple_swagger_all_param_types_grammar"
+        schema_json_file_name = f"{grammar_name}.json"
+
+        request_collection = get_python_grammar(grammar_name)
+
+        set_grammar_schema(schema_json_file_name, request_collection)
+        req_with_body = next(iter(request_collection))
+
+        # Fuzz the body using the base class for fuzzing the schema, which should be a no-op.
+        schema_pool = JsonBodySchemaFuzzerBase().run(req_with_body.body_schema)
+
+        self.assertEqual(len(schema_pool), 1)
+
+        generated_req = self.generate_new_request(req_with_body, req_with_body.headers_schema,
+                                                  req_with_body.query_schema, schema_pool[0])
+        self.check_equivalence(req_with_body, generated_req, request_collection)
+
+        # Now generate combinations of the body properties according to the default strategy
+        schema_pool_2 = JsonBodyPropertyCombinations().run(req_with_body.body_schema)
+
+        # TODO: Confirm the expected combinations are in the schema pool.
+        self.assertTrue(len(schema_pool_2) > 1)
+
+        pass
+
+    def test_schema_with_null_example(self):
+        """Regression test for generating a python grammar from a schema with a null example. """
+        self.setup()
+        grammar_name = "null_test_example_grammar"
+        schema_json_file_name = f"{grammar_name}.json"
+
+        request_collection = get_python_grammar(grammar_name)
+
+        set_grammar_schema(schema_json_file_name, request_collection)
+        req_with_body = next(iter(request_collection))
+        print(f"req{req_with_body.endpoint} {req_with_body.method}")
+
+        # Just go through and get all schema combinations.  This makes sure there are no crashes.
+        for x in req_with_body.get_schema_combinations(use_grammar_py_schema=False):
+            self.assertTrue(len(x.definition) > 0)
+
+
+    def test_schema_with_uuid4_suffix_example(self):
+        """Regression test for generating a python grammar from a schema with a uuid4_suffix in the body. """
+        self.setup()
+        grammar_name = "uuidsuffix_test_grammar"
+        schema_json_file_name = f"{grammar_name}.json"
+
+        request_collection = get_python_grammar(grammar_name)
+
+        set_grammar_schema(schema_json_file_name, request_collection)
+        req_with_body = next(iter(request_collection))
+        print(f"req{req_with_body.endpoint} {req_with_body.method}")
+
+        # Just go through and get all schema combinations.  This makes sure there are no crashes.
+        for x in req_with_body.get_schema_combinations(use_grammar_py_schema=False):
+            self.assertTrue(len(x.definition) > 0)

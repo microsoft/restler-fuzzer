@@ -43,6 +43,7 @@ class RequestExamples():
         except Exception as err:
             msg = f'Fail deserializing request schema header examples: {err!s}'
             logger.write_to_main(msg, print_to_console=True)
+            raise Exception(msg)
 
         try:
             self._set_body_params(request_schema_json['bodyParameters'])

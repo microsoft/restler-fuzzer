@@ -21,6 +21,7 @@ from engine.fuzzing_parameters.body_schema import BodySchema
 from engine.fuzzing_parameters.parameter_schema import QueryList
 from engine.fuzzing_parameters.parameter_schema import HeaderList
 import engine.fuzzing_parameters.param_combinations as param_combinations
+from engine.fuzzing_parameters.fuzzing_config import FuzzingConfig
 
 from engine.errors import InvalidDictionaryException
 import utils.logger as logger
@@ -515,6 +516,21 @@ class Request(object):
         """
         self._examples = examples
 
+    def set_schemas(self, other):
+        """ Sets the schema of this request to the schema of
+        the input parameter (without deep copying).
+
+        @param other: The request whose schemas should be equal
+                      to this request's schemas.
+        @type  other: Request
+        @return: None
+
+        """
+        self.set_examples(other.examples)
+        self.set_body_schema(other.body_schema)
+        self.set_query_schema(other.query_schema)
+        self.set_headers_schema(other.headers_schema)
+
     def set_body_schema(self, body_schema: BodySchema):
         """ Sets the Request's body schema
 
@@ -685,7 +701,7 @@ class Request(object):
                 return i + 1
         return -1
 
-    def get_schema_combinations(self):
+    def get_schema_combinations(self, use_grammar_py_schema=True):
         """ A generator that lazily iterates over a pool of schema combinations
         for this request, determined the specified settings.
 
@@ -703,12 +719,16 @@ class Request(object):
         @rtype : (Request)
 
         """
+        def get_all_example_schemas():
+            if self.examples is not None:
+                ex_schemas = self.get_example_payloads()
+                for ex_schema in itertools.islice(ex_schemas, Settings().max_examples):
+                    yield ex_schema
+
         tested_example_payloads = False
-        example_payloads = Settings().example_payloads
-        if example_payloads is not None and self.examples is not None:
+        if Settings().example_payloads is not None:
             tested_example_payloads = True
-            example_schemas = self.get_example_payloads()
-            for ex in itertools.islice(example_schemas, Settings().max_examples):
+            for ex in get_all_example_schemas():
                 yield ex
 
         tested_param_combinations = False
@@ -725,7 +745,48 @@ class Request(object):
                 yield hpc
 
         if not (tested_param_combinations or tested_example_payloads):
-            yield self
+            # When no test combination settings are specified, RESTler will try
+            # a small number of schema combinations that are likely to get the request to
+            # successfully execute.
+
+            tested_all_params = False
+            tested_first_example = False
+            # To minimize breaking changes, always execute the first request from the grammar
+            # This is necessary because not all schema elements are implemented in 'request_params' yet (for example,
+            # writer variables are not yet supported).
+            # In the future, this may still be necessary for cases when the user manually modifies the grammar.
+            # This will be controlled with an 'allow_grammar_py_modifications' option.
+            if use_grammar_py_schema:
+                # Remember which case was already tested, to avoid duplication.
+                if self.examples is None:
+                    tested_all_params = True
+                else:
+                    tested_first_example = True
+                yield self
+
+            # If examples are available, test all the examples (up to the maximum in the settings)
+            example_schemas = get_all_example_schemas()
+            # If there is at least one example, skip the first one because it was already tested above (the first
+            # example is always present in the grammar).
+            if tested_first_example:
+                next(example_schemas)
+            for ex in example_schemas:
+                yield ex
+
+            if not tested_all_params:
+                param_schema_combinations = {
+                    "max_combinations": 1,
+                    "param_kind": "all",
+                    "choose_n": "max"
+                }
+                yield self.get_parameters_from_schema(param_schema_combinations)
+
+            # Test all required parameters (obtained from the schema, without examples)
+            param_schema_combinations = {
+                "max_combinations": 1,
+                "param_kind": "optional"
+            }
+            yield self.get_parameters_from_schema(param_schema_combinations)
 
     def init_fuzzable_values(self, req_definition, candidate_values_pool, preprocessing=False):
         def _raise_dict_err(type, tag):
@@ -938,6 +999,8 @@ class Request(object):
         next_combination = 0
         schema_idx = -1
         schema_combinations = itertools.islice(self.get_schema_combinations(), Settings().max_schema_combinations)
+        remaining_combinations_count = Settings().max_combinations - skip
+
         for req in schema_combinations:
             schema_idx += 1
             parser = None
@@ -993,6 +1056,9 @@ class Request(object):
             # for each combination's values render dynamic primitives and resolve
             # dependent variables
             for ind, values in enumerate(combinations_pool):
+                if remaining_combinations_count == 0:
+                    break
+
                 values = list(values)
 
                 # Use saved value generators.
@@ -1043,7 +1109,7 @@ class Request(object):
                 yield rendered_data, parser, tracked_parameter_values
 
                 next_combination = next_combination + 1
-
+                remaining_combinations_count = remaining_combinations_count - 1
 
     def render_current(self, candidate_values_pool, preprocessing=False, use_last_cached_rendering=False):
         """ Renders the next combination for the current request.
@@ -1191,15 +1257,21 @@ class Request(object):
         return new_request
 
     def get_query_param_combinations(self, query_param_combinations_setting):
+        """ Gets the query parameter combinations according to the specified setting.
         """
-        """
+        fuzzing_config = FuzzingConfig()
         for param_list in param_combinations.get_param_combinations(self, query_param_combinations_setting,
                                                                     self.query_schema.param_list, "query"):
             query_schema = QueryList(param=param_list)
-            query_blocks = query_schema.get_blocks()
+            query_blocks = query_schema.get_original_blocks(fuzzing_config)
+            # query_blocks = query_schema.get_blocks()
 
             new_request = self.substitute_query(query_blocks)
             if new_request:
+                # The schemas need to be copied because this new request will be passed into checkers,
+                # and the schema needs to exist.
+                # TODO: are there any cases where it needs to correspond to the request definition?
+                new_request.set_schemas(self)
                 yield new_request
             else:
                 # For malformed requests, it is possible that the place to insert parameters is not found,
@@ -1207,23 +1279,50 @@ class Request(object):
                 logger.write_to_main(f"Warning: could not substitute query parameters.")
 
     def get_header_param_combinations(self, header_param_combinations_setting):
+        """ Gets the header parameter combinations according to the specified setting.
         """
-
-        """
+        fuzzing_config = FuzzingConfig()
         for param_list in param_combinations.get_param_combinations(self, header_param_combinations_setting,
                                                                     self.headers_schema.param_list, "header"):
             headers_schema = HeaderList(param=param_list)
-            header_blocks = headers_schema.get_blocks()
+            header_blocks = headers_schema.get_original_blocks(fuzzing_config)
+            # header_blocks = headers_schema.get_blocks()
 
             new_request = self.substitute_headers(header_blocks)
             if new_request:
+                # The schemas need to be copied because this new request will be passed into checkers,
+                # and the schema needs to exist.
+                # TODO: are there any cases where it needs to correspond to the request definition?
+                new_request.set_schemas(self)
                 yield new_request
             else:
                 # For malformed requests, it is possible that the place to insert parameters is not found,
                 # In such cases, skip the combination.
                 logger.write_to_main(f"Warning: could not substitute header parameters.")
 
-    def get_example_payloads(self, example_payloads_setting=None):
+    def get_body_param_combinations(self, body_param_combinations_setting):
+        fuzzing_config = FuzzingConfig()
+        for new_body_schema in param_combinations.get_body_param_combinations(self, body_param_combinations_setting,
+                                                                              self.body_schema):
+            new_body_schema.set_config(fuzzing_config) # This line is required for legacy reasons
+            new_body_blocks = new_body_schema.get_original_blocks(fuzzing_config)
+            # new_body_blocks = new_body_schema.get_blocks()
+
+            if new_body_blocks:
+                new_request = self.substitute_body(new_body_blocks)
+
+            if new_request:
+                # The schemas need to be copied because this new request will be passed into checkers,
+                # and the schema needs to exist.
+                # TODO: are there any cases where it needs to correspond to the request definition?
+                new_request.set_schemas(self)
+                yield new_request
+            else:
+                # For malformed requests, it is possible that the place to insert parameters is not found,
+                # In such cases, skip the combination.
+                logger.write_to_main(f"Warning: could not substitute body when generating parameter combinations.")
+
+    def get_example_payloads(self):
         """
         Replaces the body, query, and headers of this request by the available examples.
         """
@@ -1249,6 +1348,9 @@ class Request(object):
         check_example_schema_is_valid(num_query_payloads, max_example_payloads, "query")
         check_example_schema_is_valid(num_body_payloads, max_example_payloads, "body")
 
+        fuzzing_config = FuzzingConfig()
+        fuzzing_config.use_constant_enum_value = True
+
         for payload_idx in range(max_example_payloads):
             body_example = None
             query_example = None
@@ -1261,12 +1363,18 @@ class Request(object):
             if num_header_payloads > 0:
                 header_example = self.examples.header_examples[payload_idx]
 
-            # Copy the request definition and reset it here.
+            # Create the new request
+            # Note: the code below that generates the python grammar from the schema *must*
+            # use 'get_blocks' instead of 'get_original_blocks'.  This is because in the main algorithm, only one
+            # combination for each example (the example itself) should be generated.
+            # For example, 'get_original_blocks' may have a 'restler_fuzzable_group' for enum values, but the
+            # example may only be applicable to one enum value.
             new_request = self
             body_blocks = None
             query_blocks = None
             header_blocks = None
             if body_example:
+                body_example.set_config(fuzzing_config)
                 body_blocks = body_example.get_blocks()
                 # Only substitute the body if there is a body.
                 if body_blocks:
@@ -1288,6 +1396,19 @@ class Request(object):
                 # For malformed requests, it is possible that the place to insert query parameters is not found,
                 # so the query parameters cannot be inserted. In such cases, skip the example.
                 logger.write_to_main(f"Warning: could not substitute example parameters for example {payload_idx}.")
+
+    def get_parameters_from_schema(self, combination_settings=None):
+        """ Get the parameters for this request schema, as specified in combination_settings.
+        """
+        req_current = self
+        if self.headers_schema:
+            req_current = next(req_current.get_header_param_combinations(combination_settings))
+        if self.query_schema:
+            req_current = next(req_current.get_query_param_combinations(combination_settings))
+        if self.body_schema:
+            req_current = next(req_current.get_body_param_combinations(combination_settings))
+
+        return req_current
 
     def get_body_start(self):
         """ Get the starting index of the request body

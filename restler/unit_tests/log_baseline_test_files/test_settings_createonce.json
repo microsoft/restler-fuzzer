@@ -1,4 +1,7 @@
 {
+  "test_combinations_settings": {
+    "max_schema_combinations":  1
+  },
     "per_resource_settings": {
         "/item/{itemName}": {
             "producer_timing_delay": 0,

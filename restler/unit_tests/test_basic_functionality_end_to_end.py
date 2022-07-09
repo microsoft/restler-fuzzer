@@ -93,7 +93,7 @@ class FunctionalityTests(unittest.TestCase):
                   "Experiments directory was not deleted.")
 
     def test_abc_invalid_b_smoke_test(self):
-        self.run_abc_smoke_test(Test_File_Directory, "abc_test_grammar_invalid_b.py", "directed-smoke-test")
+        self.run_abc_smoke_test(Test_File_Directory, "abc_test_grammar_invalid_b.py", "directed-smoke-test", settings_file="test_one_schema_settings.json")
         experiments_dir = self.get_experiments_dir()
 
         # Make sure all requests were successfully rendered.  This is because the comparisons below do not
@@ -170,7 +170,8 @@ class FunctionalityTests(unittest.TestCase):
 
 
         """
-        self.run_abc_smoke_test(Test_File_Directory, "abc_test_grammar_combinations.py", "test-all-combinations")
+        self.run_abc_smoke_test(Test_File_Directory, "abc_test_grammar_combinations.py", "test-all-combinations",
+                                settings_file="test_one_schema_settings.json")
         experiments_dir = self.get_experiments_dir()
 
         ## Make sure all requests were successfully rendered.  This is because the comparisons below do not
@@ -462,10 +463,12 @@ class FunctionalityTests(unittest.TestCase):
         bugs planted for each checker, and a main driver bug, will produce the
         appropriate bug buckets and the requests will be sent in the correct order.
         """
+        settings_file_path = os.path.join(Test_File_Directory, "test_one_schema_settings.json")
         args = Common_Settings + [
             '--fuzzing_mode', 'directed-smoke-test',
             '--restler_grammar', f'{os.path.join(Test_File_Directory, "test_grammar_bugs.py")}',
-            '--enable_checkers', '*'
+            '--enable_checkers', '*',
+            '--settings', f'{settings_file_path}'
         ]
 
         result = subprocess.run(args, capture_output=True)
@@ -541,12 +544,15 @@ class FunctionalityTests(unittest.TestCase):
         """
         Fuzz_Time = 0.1 # 6 minutes
         Num_Sequences = 300
+        settings_file_path = os.path.join(Test_File_Directory, "test_one_schema_settings.json")
+
         args = Common_Settings + [
             '--fuzzing_mode', 'bfs-cheap',
             '--restler_grammar',f'{os.path.join(Test_File_Directory, "test_grammar.py")}',
             '--time_budget', f'{Fuzz_Time}',
             '--enable_checkers', '*',
-            '--disable_checkers', 'namespacerule'
+            '--disable_checkers', 'namespacerule',
+            '--settings', f'{settings_file_path}'
         ]
 
         result = subprocess.run(args, capture_output=True)
@@ -578,10 +584,14 @@ class FunctionalityTests(unittest.TestCase):
         unexpected changes exist.
 
         """
+
+        settings_file_path = os.path.join(Test_File_Directory, "test_one_schema_settings.json")
+
         args = Common_Settings + [
             '--fuzzing_mode', 'directed-smoke-test',
             '--restler_grammar', f'{os.path.join(Test_File_Directory, "test_grammar.py")}',
-            '--enable_checkers', 'payloadbody'
+            '--enable_checkers', 'payloadbody',
+            '--settings', f'{settings_file_path}'
         ]
 
         result = subprocess.run(args, capture_output=True)
@@ -626,10 +636,12 @@ class FunctionalityTests(unittest.TestCase):
         unexpected changes exist.
 
         """
+        settings_file_path = os.path.join(Test_File_Directory, "test_one_schema_settings.json")
         args = Common_Settings + [
             '--fuzzing_mode', 'directed-smoke-test',
             '--restler_grammar', f'{os.path.join(Test_File_Directory, "test_grammar_body.py")}',
-            '--enable_checkers', 'payloadbody'
+            '--enable_checkers', 'payloadbody',
+            '--settings', f'{settings_file_path}'
         ]
 
         result = subprocess.run(args, capture_output=True)

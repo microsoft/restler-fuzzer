@@ -377,6 +377,8 @@ class ParamValue(ParamBase):
                 return [primitives.restler_custom_payload(self._content)]
             elif self._custom_payload_type == "Header":
                 return [primitives.restler_custom_payload_header(self._content)]
+            elif self._custom_payload_type == "UuidSuffix":
+                return [primitives.restler_custom_payload_uuid4_suffix(self._content)]
             else:
                 raise Exception(f"Unknown custom payload type: {self._custom_payload_type}")
 
@@ -859,6 +861,8 @@ class ParamString(ParamValue):
                 return [primitives.restler_custom_payload_header(self._content, quoted=self.is_quoted)]
             elif self._custom_payload_type == "Query":
                 return [primitives.restler_custom_payload_query(self._content, quoted=self.is_quoted)]
+            elif self._custom_payload_type == "UuidSuffix":
+                return [primitives.restler_custom_payload_uuid4_suffix(self._content)]
             else:
                 raise Exception(f"Unexpected custom payload type: {self._custom_payload_type}")
         if self.is_dynamic_object:
@@ -881,6 +885,8 @@ class ParamString(ParamValue):
                 return [primitives.restler_custom_payload_header(self._content, quoted=self.is_quoted)]
             elif self._custom_payload_type == "Query":
                 return [primitives.restler_custom_payload_query(self._content, quoted=self.is_quoted)]
+            elif self._custom_payload_type == "UuidSuffix":
+                return [primitives.restler_custom_payload_uuid4_suffix(self._content)]
             else:
                 raise Exception(f"Unexpected custom payload type: {self._custom_payload_type}")
         if self.is_dynamic_object:
@@ -1190,6 +1196,10 @@ class ParamObjectLeaf(ParamValue):
             content = dependencies.RDELIM + self._content + dependencies.RDELIM
             return [primitives.restler_static_string(content)]
 
+        # If the leaf value is null, return a static string with the value null
+        if self._content is None:
+            return [primitives.restler_static_string("null")]
+
         formalized_content = self._content.replace("'", '"')
         formalized_content = formalized_content.replace('u"', '"')
 
@@ -1278,7 +1288,7 @@ class ParamObjectLeaf(ParamValue):
         """
         return fuzzer._fuzz_object_leaf(self)
 
-class ParamEnum(ParamBase):
+class ParamEnum(ParamValue):
     """ Class for Enum type parameters """
 
     def __init__(self, contents, content_type, is_required=True, body_param=True, is_dynamic_object=False,
@@ -1334,13 +1344,7 @@ class ParamEnum(ParamBase):
         """
         return 0
 
-    def get_original_blocks(self, config=None):
-        """ Gets the original request blocks for the Enum Parameters
-
-        @return: Request blocks
-        @rtype : List[str]
-
-        """
+    def _get_fuzzable_group_values(self):
         contents_str = []
 
         for content in self._contents:
@@ -1349,8 +1353,16 @@ class ParamEnum(ParamBase):
             else:
                 content_str = content
             contents_str.append(content_str)
+        return contents_str
 
-        return [primitives.restler_fuzzable_group(self._enum_name, contents_str)]
+    def get_original_blocks(self, config=None):
+        """ Gets the original request blocks for the Enum Parameters
+
+        @return: Request blocks
+        @rtype : List[str]
+
+        """
+        return [primitives.restler_fuzzable_group(self._enum_name, self._get_fuzzable_group_values())]
 
     def get_blocks(self, config=None):
         """ Gets request blocks for the Enum Parameters
@@ -1361,14 +1373,14 @@ class ParamEnum(ParamBase):
         """
         contents_str = []
 
-        for content in self._contents:
+        if config is not None and config.use_constant_enum_value:
             if self._is_quoted and (self.content_type in ['String', 'Uuid', 'DateTime', 'Date']):
-                content_str = f'"{content}"'
+                content_str = f'"{self._content}"'
             else:
-                content_str = content
-            contents_str.append(content_str)
-
-        return [primitives.restler_fuzzable_group(FUZZABLE_GROUP_TAG, contents_str)]
+                content_str = self._content
+            return [primitives.restler_static_string(content_str)]
+        else:
+            return [primitives.restler_fuzzable_group(FUZZABLE_GROUP_TAG, self._get_fuzzable_group_values())]
 
     def get_fuzzing_pool(self, fuzzer, config):
         """ Returns the fuzzing pool
