@@ -1855,6 +1855,8 @@ let writeDependencies dependenciesFilePath dependencies (unresolvedOnly:bool) =
                                 consumer_endpoint = None
                                 consumer_method = None
                                 except = None
+                                description = None
+                                tags = None
                             }
                         {|
                             endpoint = consumer.id.RequestId.endpoint
