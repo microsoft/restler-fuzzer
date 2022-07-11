@@ -32,6 +32,11 @@ type ProducerConsumerUserAnnotation =
         consumer_endpoint : string option
         consumer_method : string option
         except : obj option
+
+        // The description and tags that a user can specify to
+        // better document the annotation
+        description : string option
+        tags: string list option
     }
 
 let parseAnnotation (ann:JToken) =
