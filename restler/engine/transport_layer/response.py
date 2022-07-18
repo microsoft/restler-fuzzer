@@ -95,13 +95,13 @@ class HttpResponse(object):
             return headers_dict
 
         for header in self.headers:
-            payload_start_idx = header.index(":")
             try:
+                payload_start_idx = header.index(":")
                 header_name = header[0:payload_start_idx]
                 header_val = header[payload_start_idx+1:]
                 headers_dict[header_name] = header_val
             except Exception as error:
-                print(f"Error parsing header: {x}", x)
+                print(f"Error parsing header: {header}")
                 pass
         return headers_dict
 
