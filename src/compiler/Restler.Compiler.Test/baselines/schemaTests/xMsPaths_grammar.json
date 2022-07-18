@@ -10,6 +10,7 @@
         "method": "Put"
       },
       "method": "Put",
+      "basePath": "",
       "path": [
         {
           "Constant": [
@@ -112,6 +113,7 @@
         "method": "Put"
       },
       "method": "Put",
+      "basePath": "",
       "path": [
         {
           "Custom": {
@@ -310,6 +312,7 @@
         "method": "Put"
       },
       "method": "Put",
+      "basePath": "",
       "path": [
         {
           "Custom": {
@@ -469,6 +472,7 @@
         "method": "Get"
       },
       "method": "Get",
+      "basePath": "",
       "path": [
         {
           "DynamicObject": {
@@ -601,6 +605,7 @@
         "method": "Get"
       },
       "method": "Get",
+      "basePath": "",
       "path": [
         {
           "DynamicObject": {
@@ -694,6 +699,7 @@
         "method": "Delete"
       },
       "method": "Delete",
+      "basePath": "",
       "path": [
         {
           "DynamicObject": {

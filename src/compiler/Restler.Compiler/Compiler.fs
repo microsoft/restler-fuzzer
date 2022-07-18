@@ -1340,7 +1340,19 @@ let generateRequestGrammar (swaggerDocs:Types.ApiSpecFuzzingConfig list)
 
     let dependencyInfo = getResponseParsers dependencies orderingConstraints
 
-    let basePath = swaggerDocs.[0].swaggerDoc.BasePath
+    let basePath = 
+        // Remove the ending slash if present, since a static slash will
+        // be inserted in the grammar
+        // Note: this code is not sufficient, and the same logic must be added in the engine,
+        // since the user may specify their own base path through a custom payload.
+        // However, this is included here as well so reading the grammar is not confusing and for any
+        // other tools that may process the grammar separately from the engine.
+        let bp = swaggerDocs.[0].swaggerDoc.BasePath 
+        if String.IsNullOrEmpty bp then ""
+        elif bp.EndsWith("/") then
+            bp.[0..bp.Length-2]
+        else
+            bp
     let host = swaggerDocs.[0].swaggerDoc.Host
 
     // Get the request primitives for each request

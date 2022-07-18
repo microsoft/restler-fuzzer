@@ -164,9 +164,11 @@ module Dependencies =
         /// Regression test for cycles created from body dependencies
         [<Fact>]
         let ``no dependencies when the same body is used in unrelated requests`` () =
+            let outputDirectory = ctx.testRootDirPath
+                             
             let config = { Restler.Config.SampleConfig with
                              IncludeOptionalParameters = true
-                             GrammarOutputDirectoryPath = Some ctx.testRootDirPath
+                             GrammarOutputDirectoryPath = Some outputDirectory
                              ResolveBodyDependencies = true
                              UseBodyExamples = Some true
                              SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, @"swagger\dependencyTests\body_dependency_cycles.json"))]
@@ -177,7 +179,7 @@ module Dependencies =
 
             // Read the dependencies.json and check that there are 3 producer-consumer dependencies.
             let dependencies =
-                let dependenciesJsonFilePath = Path.Combine(ctx.testRootDirPath,
+                let dependenciesJsonFilePath = Path.Combine(outputDirectory,
                                                             Restler.Workflow.Constants.DependenciesDebugFileName)
 
                 Microsoft.FSharpLu.Json.Compact.deserializeFile<ProducerConsumerDependency list> dependenciesJsonFilePath
