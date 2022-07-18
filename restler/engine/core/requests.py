@@ -662,7 +662,12 @@ class Request(object):
             basepath = self._definition[basepath_idx][1]
             if Settings().basepath is not None:
                 basepath = Settings().basepath
+            # If the base path ends with a slash, remove it - the
+            # following line already contains a static slash
+            if basepath.endswith("/"):
+                basepath = basepath[:-1]
             self._definition[basepath_idx] = primitives.restler_static_string(basepath)
+
         else:
             # No basepath custom payload in the grammar - this is possible for older grammar versions.
             # Do nothing
