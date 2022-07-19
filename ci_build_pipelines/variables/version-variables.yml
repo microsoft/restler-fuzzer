@@ -4,7 +4,7 @@ variables:
   - name: version.minor
     value: 5
   - name: devRevision
-    value: 0
+    value: 1
   - name: buildPlatform
     value: 'Any CPU'
   - name: buildConfiguration
