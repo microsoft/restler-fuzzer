@@ -1317,12 +1317,36 @@ class Request(object):
         except Exception:
             pass
 
+        # Also try searching for the body after the authentication token
+        # There must be \r\n around the body.  Find this and return the body index if the body start
+        # character is found.
+        if dict_index == -1 and array_index == -1:
+            body_delim_patterns = [
+                primitives.restler_static_string('\r\n'),
+                primitives.restler_static_string('\r\n\r\n')
+            ]
+            try:
+                auth_tokens = [i for i, x in enumerate(request.definition)
+                               if x[0] == primitives.REFRESHABLE_AUTHENTICATION_TOKEN]
+                if auth_tokens:
+                    auth_token_index = auth_tokens[0]
+                    for idx in range(auth_token_index + 1, len(request.definition)-1):
+                        if request.definition[idx] not in body_delim_patterns and\
+                                request.definition[idx][0] == primitives.STATIC_STRING:
+                            if request.definition[idx][1].startswith("{"):
+                                dict_index = idx
+                                break
+                            if request.definition[idx][1].startswith("["):
+                                array_index = idx
+                                break
+            except Exception:
+                pass
+
         if dict_index == -1 or array_index == -1:
             # If one of the indices is -1 then it wasn't found, return the other
             return max(dict_index, array_index)
         # Return the lowest index / first character found in body.
         return min(dict_index, array_index)
-
 
     def get_query_start_end(self):
         """ Get the start and end index of a request's query
@@ -1371,7 +1395,19 @@ class Request(object):
         # substitute the body definition with the new one
         idx = old_request.get_body_start()
         if idx == -1:
-            return None
+            # This may be a case where grammar.py does not have a body, because the body is optional, and
+            # the first example value does not have a body ('body_example' is None below)
+            # Since substitute_body is invoked only when there is a body schema, simply append the body
+            # to the end of the request.
+            first_example_has_no_body = False
+            if self.examples is not None and self.examples.body_examples:
+                first_body_example = self.examples.body_examples[0]
+                if first_body_example is None:
+                    first_example_has_no_body = True
+            if first_example_has_no_body:
+                idx = len(old_request.definition)
+            else:
+                return None
 
         new_definition = old_request.definition[:idx] + new_body_blocks
         new_definition += [old_request.metadata.copy()]
@@ -1379,11 +1415,6 @@ class Request(object):
         # Update the new Request object with the create once requests data of the old Request,
         # so bug replay logs will include the necessary create once request data.
         new_request._create_once_requests = old_request._create_once_requests
-
-        # Update the new request with the query and header schemas of the old request, since
-        # these must still be present for correctly rendering the request combinations.
-        new_request.set_headers_schema(old_request.headers_schema)
-        new_request.set_query_schema(old_request.query_schema)
         return new_request
 
     def substitute_query(self, new_query_blocks):
