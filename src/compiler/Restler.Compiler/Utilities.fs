@@ -61,6 +61,17 @@ module JsonParse =
         else
             None
 
+    let mergeWithOverride (defaultJson:string) (overrideJson:string) =
+        let newJson = JObject.Parse(defaultJson)
+        let userConfigAsJson = JObject.Parse(overrideJson)
+        for prop in userConfigAsJson.Properties() do
+            // Overwrite the default property
+            newJson.Remove(prop.Name) |> ignore
+            newJson.Add(prop.Name, prop.Value)
+
+        newJson.ToString()
+
+
 module Dict =
     open System.Collections.Generic
     let tryGetString (dict:IDictionary<_, obj>) name =

@@ -11,6 +11,10 @@ open Newtonsoft.Json.Linq
 open Restler.Utilities.JsonParse
 open Restler.XMsPaths
 
+module Constants = 
+    let GlobalAnnotationKey = "x-restler-global-annotations"
+    let EmptyAnnotationFile = JObject(JProperty(GlobalAnnotationKey)).ToString()
+
 type ExceptConsumerUserAnnotation =
     {
        consumer_endpoint : string
@@ -208,8 +212,8 @@ let getGlobalAnnotationsFromFile filePath =
     if File.Exists filePath then
         let annFileText = System.IO.File.ReadAllText(filePath)
         let globalAnnotationsJson = JObject.Parse(annFileText)
-        let globalAnnotationKey = "x-restler-global-annotations"
-        match Restler.Utilities.JsonParse.getProperty globalAnnotationsJson globalAnnotationKey with
+
+        match Restler.Utilities.JsonParse.getProperty globalAnnotationsJson Constants.GlobalAnnotationKey with
         | Some globalAnn ->
             getAnnotationsFromJson globalAnn
         | None ->
