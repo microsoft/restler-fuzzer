@@ -11,8 +11,10 @@ import random
 from engine.fuzzing_parameters.fuzzing_utils import *
 from engine.fuzzing_parameters.request_params import *
 
-class BodySchemaStructuralFuzzer():
-    """ Body Schema Fuzzer Base Class """
+from engine.fuzzing_parameters.param_combinations import JsonBodySchemaFuzzerBase
+
+class BodySchemaStructuralFuzzer(JsonBodySchemaFuzzerBase):
+    """ Body Schema Fuzzer Class """
 
     def __init__(self, LOG=print, strategy=''):
         """ Initialize the body schema fuzzer
@@ -24,6 +26,7 @@ class BodySchemaStructuralFuzzer():
         @rtype:  None
 
         """
+        JsonBodySchemaFuzzerBase.__init__(self)
         # setup customized log
         self._log = LOG
 
@@ -136,6 +139,10 @@ class BodySchemaStructuralFuzzer():
 
         """
         return self._strategy.upper() == 'ALL'
+
+    def _apply_shuffle_propagation(self, values_pool):
+        if self._shuffle_propagation:
+            random.Random(self._random_seed).shuffle(values_pool)
 
     def _fuzz_member(self, param_member, fuzzed_value):
         """ Fuzz a ParamMember node

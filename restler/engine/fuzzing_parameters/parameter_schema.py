@@ -67,26 +67,26 @@ class KeyValueParamList():
         """
         self.param_list.append(param_item)
 
-    # def get_fuzzing_pool(self, fuzzer, config):
-    #     """ Returns the fuzzing pool
-    #
-    #     @param fuzzer: The body fuzzer object to use for fuzzing
-    #     @type  fuzzer: BodySchemaStructuralFuzzer
-    #
-    #     @return: The fuzzing pool
-    #     @rtype : List[ParamObject]
-    #
-    #     """
-    #     fuzzed_members = []
-    #     for param_item in self.param_list:
-    #         item_fuzzing_pool = param_item.get_fuzzing_pool(fuzzer, config)  #list of key=value pairs
-    #         # It is possible that this member was excluded from fuzzing by
-    #         # a filter configured by the fuzzer.  If so, do not add it to
-    #         # 'fuzzed_members'.
-    #         if len(item_fuzzing_pool) > 0:
-    #             fuzzed_members.append(item_fuzzing_pool)
-    #
-    #     return fuzzer._fuzz_param_list(fuzzed_members)  # list of lists of key=value pairs
+    def get_fuzzing_pool(self, fuzzer, config):
+        """ Returns the fuzzing pool
+
+        @param fuzzer: The body fuzzer object to use for fuzzing
+        @type  fuzzer: BodySchemaStructuralFuzzer
+
+        @return: The fuzzing pool
+        @rtype : List[ParamObject]
+
+        """
+        fuzzed_members = []
+        for param_item in self.param_list:
+            item_fuzzing_pool = param_item.get_fuzzing_pool(fuzzer, config)  #list of key=value pairs
+            # It is possible that this member was excluded from fuzzing by
+            # a filter configured by the fuzzer.  If so, do not add it to
+            # 'fuzzed_members'.
+            if len(item_fuzzing_pool) > 0:
+                fuzzed_members.append(item_fuzzing_pool)
+
+        return fuzzer._fuzz_param_list(fuzzed_members)  # list of lists of key=value pairs
 
 class QueryList(KeyValueParamList):
     def __init__(self, request_schema_json=None, param=None):

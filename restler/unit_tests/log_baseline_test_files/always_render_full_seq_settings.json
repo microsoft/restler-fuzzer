@@ -2,5 +2,8 @@
   "sequence_exploration_settings": {
     "create_prefix_once": [
     ]
+  },
+  "test_combinations_settings": {
+    "max_schema_combinations": 1
   }
 }
