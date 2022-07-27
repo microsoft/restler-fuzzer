@@ -174,10 +174,11 @@
                   "LeafNode": {
                     "name": "",
                     "payload": {
-                      "Constant": [
-                        "String",
-                        "2020-03-02"
-                      ]
+                      "Fuzzable": {
+                        "primitiveType": "String",
+                        "defaultValue": "fuzzstring",
+                        "exampleValue": "2020-03-02"
+                      }
                     },
                     "isRequired": true,
                     "isReadOnly": false
@@ -190,10 +191,11 @@
                   "LeafNode": {
                     "name": "",
                     "payload": {
-                      "Constant": [
-                        "String",
-                        "1.2.3.4"
-                      ]
+                      "Fuzzable": {
+                        "primitiveType": "String",
+                        "defaultValue": "fuzzstring",
+                        "exampleValue": "1.2.3.4"
+                      }
                     },
                     "isRequired": true,
                     "isReadOnly": false

@@ -258,7 +258,7 @@ class SchemaParserTest(unittest.TestCase):
         print(f"req{req_with_body.endpoint} {req_with_body.method}")
 
         # Just go through and get all schema combinations.  This makes sure there are no crashes.
-        for x in req_with_body.get_schema_combinations(use_grammar_py_schema=False):
+        for x, is_example in req_with_body.get_schema_combinations(use_grammar_py_schema=False):
             self.assertTrue(len(x.definition) > 0)
 
 
@@ -275,5 +275,5 @@ class SchemaParserTest(unittest.TestCase):
         print(f"req{req_with_body.endpoint} {req_with_body.method}")
 
         # Just go through and get all schema combinations.  This makes sure there are no crashes.
-        for x in req_with_body.get_schema_combinations(use_grammar_py_schema=False):
+        for x, is_example in req_with_body.get_schema_combinations(use_grammar_py_schema=False):
             self.assertTrue(len(x.definition) > 0)
