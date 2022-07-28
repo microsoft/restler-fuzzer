@@ -26,7 +26,6 @@ class FuzzingConfig(object):
         self.merge_fuzzable_values = False
         self.max_depth = sys.maxsize
         self.filter_fn = None
-        self.use_constant_enum_value = False
         # Traversal depth state
         self.depth = 0
 
@@ -89,7 +88,6 @@ class FuzzingConfig(object):
         new_config.merge_fuzzable_values = self.merge_fuzzable_values
         new_config.max_depth = self.max_depth
         new_config.filter_fn = self.filter_fn
-        new_config.use_constant_enum_value = self.use_constant_enum_value
 
         return new_config
 

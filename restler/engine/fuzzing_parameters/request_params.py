@@ -1362,7 +1362,8 @@ class ParamEnum(ParamValue):
         @rtype : List[str]
 
         """
-        return [primitives.restler_fuzzable_group(self._enum_name, self._get_fuzzable_group_values())]
+        return [primitives.restler_fuzzable_group(self._enum_name, self._get_fuzzable_group_values(),
+                                                  quoted=self.is_quoted, examples=self.example_values)]
 
     def get_blocks(self, config=None):
         """ Gets request blocks for the Enum Parameters
@@ -1371,16 +1372,8 @@ class ParamEnum(ParamValue):
         @rtype : List[str]
 
         """
-        contents_str = []
-
-        if config is not None and config.use_constant_enum_value:
-            if self._is_quoted and (self.content_type in ['String', 'Uuid', 'DateTime', 'Date']):
-                content_str = f'"{self._content}"'
-            else:
-                content_str = self._content
-            return [primitives.restler_static_string(content_str)]
-        else:
-            return [primitives.restler_fuzzable_group(FUZZABLE_GROUP_TAG, self._get_fuzzable_group_values())]
+        return [primitives.restler_fuzzable_group(FUZZABLE_GROUP_TAG, self._get_fuzzable_group_values(),
+                                                  quoted=self.is_quoted, examples=self.example_values)]
 
     def get_fuzzing_pool(self, fuzzer, config):
         """ Returns the fuzzing pool

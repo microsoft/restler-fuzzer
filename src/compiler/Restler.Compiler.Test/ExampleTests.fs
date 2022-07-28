@@ -118,7 +118,8 @@ module Examples =
                                                Restler.Workflow.Constants.DefaultRestlerGrammarFileName)
             let grammar = File.ReadAllText(grammarFilePath)
             // Check that the grammar contains the object example
-            Assert.True(grammar.Contains("\"tag1\":\"value1\"") && grammar.Contains("\"tag2\":\"value2\""))
+            //examples=["{\"tag1\":\"value1\",\"tag2\":\"value2\"}"]
+            Assert.True(grammar.Contains("\\\"tag1\\\":\\\"value1\\\"") && grammar.Contains("\\\"tag2\\\":\\\"value2\\\""))
 
         [<Fact>]
         let ``allof property omitted in example`` () =
@@ -188,7 +189,8 @@ module Examples =
             // computerName is missing from the example
             Assert.False(grammar.Contains("primitives.restler_static_string(\"computerName: \")"))
             Assert.True(grammar.Contains("primitives.restler_static_string(\"computerDimensions: \")"))
-            Assert.True(grammar.Contains("primitives.restler_static_string(\"\\\"quotedString\\\"\")"))
+            // primitives.restler_fuzzable_string("fuzzstring", quoted=False, examples=["\"quotedString\""]),
+            Assert.True(grammar.Contains("primitives.restler_fuzzable_string(\"fuzzstring\", quoted=False, examples=[\"\\\"quotedString\\\"\"])"))
 
             // The grammar should contain the array items from the example
             Assert.True(grammar.Contains("1.11"))
@@ -496,12 +498,18 @@ module Examples =
                 exactCopy = true
             }
 
+            let exactCopyTestConfig = { config with ExampleConfigFiles = Some [ exampleConfigFile ] }
+            Restler.Workflow.generateRestlerGrammar None exactCopyTestConfig
+            let grammarFilePath = Path.Combine(grammarOutputDirectoryPath, Restler.Workflow.Constants.DefaultRestlerGrammarFileName)
+            let grammar = File.ReadAllText(grammarFilePath)
+            Assert.True(grammar.Contains("primitives.restler_static_string(\"2020-02-02\")"))
+
             let testConfig = { config with ExampleConfigFiles = Some [ {exampleConfigFile with exactCopy = false }] }
             Restler.Workflow.generateRestlerGrammar None testConfig
 
             let grammarFilePath = Path.Combine(grammarOutputDirectoryPath, Restler.Workflow.Constants.DefaultRestlerGrammarFileName)
             let grammar = File.ReadAllText(grammarFilePath)
-            Assert.True(grammar.Contains("primitives.restler_static_string(\"2020-02-02\"),"))
+            Assert.True(grammar.Contains("primitives.restler_fuzzable_string(\"fuzzstring\", quoted=False, examples=[\"2020-02-02\"])"))
             /// Also test to make sure that 'exactCopy : true' filters out the parameters that are not declared in the spec
             Assert.False(grammar.Contains("ddd"))
 

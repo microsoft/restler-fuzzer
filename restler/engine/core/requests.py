@@ -716,7 +716,7 @@ class Request(object):
         parameter combinations, there will be a total of 8 combinations.
 
         @return: (One or more copies of the request, each with a unique schema)
-        @rtype : (Request)
+        @rtype : List[(Request, is_example)]
 
         """
         def get_all_example_schemas():
@@ -729,20 +729,20 @@ class Request(object):
         if Settings().example_payloads is not None:
             tested_example_payloads = True
             for ex in get_all_example_schemas():
-                yield ex
+                yield ex, True
 
         tested_param_combinations = False
         header_param_combinations = Settings().header_param_combinations
         if header_param_combinations is not None:
             tested_param_combinations = True
             for hpc in self.get_header_param_combinations(header_param_combinations):
-                yield hpc
+                yield hpc, False
 
         query_param_combinations = Settings().query_param_combinations
         if query_param_combinations is not None:
             tested_param_combinations = True
             for hpc in self.get_query_param_combinations(query_param_combinations):
-                yield hpc
+                yield hpc, False
 
         if not (tested_param_combinations or tested_example_payloads):
             # When no test combination settings are specified, RESTler will try
@@ -762,7 +762,7 @@ class Request(object):
                     tested_all_params = True
                 else:
                     tested_first_example = True
-                yield self
+                yield self, tested_first_example
 
             # If examples are available, test all the examples (up to the maximum in the settings)
             example_schemas = get_all_example_schemas()
@@ -771,7 +771,7 @@ class Request(object):
             if tested_first_example:
                 next(example_schemas)
             for ex in example_schemas:
-                yield ex
+                yield ex, True
 
             if not tested_all_params:
                 param_schema_combinations = {
@@ -779,14 +779,14 @@ class Request(object):
                     "param_kind": "all",
                     "choose_n": "max"
                 }
-                yield self.get_parameters_from_schema(param_schema_combinations)
+                yield self.get_parameters_from_schema(param_schema_combinations), False
 
             # Test all required parameters (obtained from the schema, without examples)
             param_schema_combinations = {
                 "max_combinations": 1,
                 "param_kind": "optional"
             }
-            yield self.get_parameters_from_schema(param_schema_combinations)
+            yield self.get_parameters_from_schema(param_schema_combinations), False
 
     def init_fuzzable_values(self, req_definition, candidate_values_pool, preprocessing=False, log_dict_err_to_main=True):
         def _raise_dict_err(type, tag):
@@ -841,14 +841,23 @@ class Request(object):
                 values = [(primitives.restler_fuzzable_uuid4, quoted, writer_variable)]
             # Handle enums that have a list of values instead of one default val
             elif primitive_type == primitives.FUZZABLE_GROUP:
+                values = []
+                # Handle example values
+                for ex_value in examples:
+                    if ex_value is None:
+                        ex_value = "null"
+                    elif quoted:
+                        ex_value = f'"{ex_value}"'
+                    values.append(ex_value)
                 if quoted:
-                    values = [f'"{val}"' for val in default_val]
+                    enum_values = [f'"{val}"' for val in default_val]
                 else:
-                    values = list(default_val)
+                    enum_values = list(default_val)
+                values.extend(enum_values)
             # Handle static whose value is the field name
             elif primitive_type == primitives.STATIC_STRING:
                 val = default_val
-                if val == None:
+                if val is None:
                     # the examplesChecker may inject None/null, so replace these with the string 'null'
                     logger.raw_network_logging(f"Warning: there is a None value in a STATIC_STRING.")
                     val = 'null'
@@ -1010,7 +1019,7 @@ class Request(object):
         schema_combinations = itertools.islice(self.get_schema_combinations(), Settings().max_schema_combinations)
         remaining_combinations_count = Settings().max_combinations - skip
 
-        for req in schema_combinations:
+        for (req, is_example) in schema_combinations:
             schema_idx += 1
             parser = None
             fuzzable_request_blocks = []
@@ -1048,7 +1057,10 @@ class Request(object):
                 # Keep plugging in values from the static combinations pool while dynamic
                 # values are available.
                 combinations_pool = itertools.cycle(combinations_pool)
-            combinations_pool = itertools.islice(combinations_pool, Settings().max_combinations)
+            # If this is an example payload, only use the first combination.  This contains the original example
+            # values.
+            max_combinations = 1 if is_example else Settings().max_combinations
+            combinations_pool = itertools.islice(combinations_pool, max_combinations)
 
             # skip combinations, if asked to
             while next_combination < skip:
@@ -1360,9 +1372,6 @@ class Request(object):
         check_example_schema_is_valid(num_query_payloads, max_example_payloads, "query")
         check_example_schema_is_valid(num_body_payloads, max_example_payloads, "body")
 
-        fuzzing_config = FuzzingConfig()
-        fuzzing_config.use_constant_enum_value = True
-
         for payload_idx in range(max_example_payloads):
             body_example = None
             query_example = None
@@ -1386,7 +1395,6 @@ class Request(object):
             query_blocks = None
             header_blocks = None
             if body_example:
-                body_example.set_config(fuzzing_config)
                 body_blocks = body_example.get_blocks()
                 # Only substitute the body if there is a body.
                 if body_blocks:
