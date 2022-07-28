@@ -167,6 +167,8 @@ class CandidateValuesPool(object):
         self._create_fuzzable_dates()
         self._dates_added = False
         self._value_generators = None
+        self._add_examples = True
+        self._add_default_value = True
 
     def _create_fuzzable_dates(self):
         """ Creates dates for future and past, which can be added to a list
@@ -376,7 +378,7 @@ class CandidateValuesPool(object):
         if quoted:
             default_value = f'"{default_value}"'
 
-        if examples:
+        if examples and self._add_examples:
             # Use the examples instead of default value
             # Quote the example values if needed
             examples_quoted=[]
@@ -391,7 +393,7 @@ class CandidateValuesPool(object):
         # Only use the default value if no values are defined in
         # the dictionary for that fuzzable type and there are no
         # example values
-        if not fuzzable_values:
+        if not fuzzable_values and self._add_default_value:
             fuzzable_values.append(default_value)
         elif primitive_type in [FUZZABLE_DATE, FUZZABLE_DATETIME] and\
         len(fuzzable_values) == 2:

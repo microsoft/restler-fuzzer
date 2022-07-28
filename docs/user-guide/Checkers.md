@@ -14,7 +14,7 @@ To enable or disable more checkers during fuzzing (fuzz-lean or fuzz modes),
 simply add one, or both, of the following to the command-line (as example):
 
 ```
---enable_checkers UseAfterFree,InvalidDynamicObject
+--enable_checkers UseAfterFree InvalidDynamicObject
 --disable_Checkers LeakageRule
 ```
 
@@ -48,7 +48,7 @@ The two following options can (optionally) be specified in the settings file:
 
 If *trigger_on_dynamic_objects* is true, then the namespacerule checker performs all its checks as usual. (Default: true)
 
-*trigger_objects* is a list of strings. If this list is non-empty, any request containing any of these strings will be replayed using the attacker credentials. This way, the user can direct this checker to try attacker credentials for any request containing specific trigger_object strings (and regardless of whether the request consumes a resource, etc.). In the example above, any request which includes either the string "tenantID" or "userID" anywhere in its rendering (e.g., in its path, or body, or header, etc.) will be replayed with the attacker credentials. 
+*trigger_objects* is a list of strings. If this list is non-empty, any request containing any of these strings will be replayed using the attacker credentials. This way, the user can direct this checker to try attacker credentials for any request containing specific trigger_object strings (and regardless of whether the request consumes a resource, etc.). In the example above, any request which includes either the string "tenantID" or "userID" anywhere in its rendering (e.g., in its path, or body, or header, etc.) will be replayed with the attacker credentials.
 
 Both options are independent of each other and can be used simultaneously.
 
@@ -151,3 +151,38 @@ you can simply add a list of custom checkers to the settings file,
 like in the example below (these custom checkers will run __after__ any other enabled checkers):
 
 `"custom_checkers": ["<path_to_checker>", "<path_to_checker2>"]`
+
+# Experimental Checkers
+
+The checkers below are a work in progress, and may go through significant changes or be removed in the future.
+
+## InvalidValuesChecker
+For every request, this checker will fuzz invalid parameters for each
+primitive type specified in a custom dictionary that contains specific invalid values.
+
+Using this checker is preferable to using the main dictionary to separately specify invalid values,
+because it tests each parameter individually, while the main RESTler fuzzing loop tests all combinations
+of the values specified in the global mutations dictionary.
+
+The following settings are available for this checker:
+```json
+    "checkers": {
+        "invalidvalue": {
+            "custom_dictionary": "C:\\restler\\invalidvalue\\dict.json",
+            "max_combinations": 100,
+            "custom_value_generators": "c:\\restler\\invalidvalue\\invalid_value_generators.py"
+        }
+    }
+```
+__custom_dictionary__: Specifies the path to the custom dictionary of invalid values.  Required if a custom value generator is not specified.
+
+__custom_value_generators__: Specifies the path to custom value generators for invalid values.  Required if a dictionary is not specified.
+If both a dictionary and value generators are specified, the checker will first test all of the values in the dictionary (up to ```max_combinations```),
+then will test the remaining combinations using the value generator.
+
+__max_combinations__: Optional (default 100).  Specifies the maximum number of invalid combinations to test for each parameter.
+
+
+All 5xx errors are reported as bugs.
+
+

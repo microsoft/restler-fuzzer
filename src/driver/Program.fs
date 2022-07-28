@@ -79,7 +79,7 @@ let usage() =
             all the checkers below except namespacerule.
             Supported checkers: leakagerule, resourcehierarchy, useafterfree,
                                 namespacerule, invaliddynamicobject, payloadbody,
-                                examples.
+                                examples, invalidvalue
 
         --no_results_analyzer
             If specified, do not run results analyzer on the network logs.
@@ -179,13 +179,14 @@ module Fuzz =
             "invaliddynamicobject"
             "payloadbody"
             "examples"
+            "invalidvalue"
             "*"
         ]
 
     let DefaultFuzzModeCheckerOptions =
         [
             ("--enable_checkers", "*")
-            ("--disable_checkers", "namespacerule")
+            ("--disable_checkers", "namespacerule invalidvalue")
         ]
 
     let getPythonVersionString pythonExeName workingDirectory = async {
