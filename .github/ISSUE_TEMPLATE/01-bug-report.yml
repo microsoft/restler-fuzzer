@@ -38,10 +38,12 @@ body:
         - Operating system (Windows, macOS, Linux, other)
         - Python version
         - .NET version
+        - RESTler version
         and any other details about your environment that may be relevant for the issue.
 
         To get the Python version: run `python --version` or `python -V` in your terminal
         To get the .NET version: run `dotnet --version` in your terminal
+        To get the RESTler version: run `restler --version`
     validations:
       required: false
 
