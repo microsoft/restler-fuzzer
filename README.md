@@ -51,7 +51,7 @@ docker build -t restler .
 #### Local
 
 Prerequisites: Install [Python 3.8.2](https://www.python.org/downloads/) and
-[.NET 5.0](https://dotnet.microsoft.com/download/dotnet-core?utm_source=getdotnetcorecli&utm_medium=referral), for your appropriate OS.
+[.NET 6.0](https://dotnet.microsoft.com/download/dotnet-core?utm_source=getdotnetcorecli&utm_medium=referral), for your appropriate OS.
 
 Create a directory where you'd like to place the RESTler binaries:
 
@@ -71,7 +71,7 @@ Note: if you get nuget error NU1403 when building, a quick workaround is to clea
 RESTler binary drops are coming soon.
 
 Prerequisites: Install [Python 3.8.2](https://www.python.org/downloads/) and
-[.NET 5.0](https://dotnet.microsoft.com/download/dotnet-core?utm_source=getdotnetcorecli&utm_medium=referral) or higher, for your appropriate OS.
+[.NET 6.0](https://dotnet.microsoft.com/download/dotnet-core?utm_source=getdotnetcorecli&utm_medium=referral) or higher, for your appropriate OS.
 
 
 ## Using RESTler

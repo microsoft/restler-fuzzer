@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>netcoreapp5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <NoWarn>NU1603;FS0988</NoWarn>
     <DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
   </PropertyGroup>
@@ -383,8 +383,9 @@
 	  <PackageReference Include="NJsonSchema" Version="10.7.2" />
 	  <PackageReference Include="NSwag.Core" Version="13.16.1" />
 	  <PackageReference Include="xunit" Version="2.4.1" />
-	  <PackageReference Include="xunit.runner.console" Version="2.4.1">
-      <PrivateAssets>all</PrivateAssets>
+	  <PackageReference Include="Microsoft.net.test.sdk" Version="16.9.1"/>
+	  <PackageReference Include="xunit.runner.console" Version="2.4.1" >
+			  <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1">
