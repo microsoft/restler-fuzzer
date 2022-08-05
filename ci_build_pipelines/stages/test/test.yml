@@ -3,7 +3,7 @@ stages:
     jobs:
       - job: CompilerFunctionalTests
         pool:
-          vmImage: 'windows-2019'
+          vmImage: 'windows-2022'
         steps:
           - template: steps/compilerFunctionalTests.yml
 
@@ -21,6 +21,6 @@ stages:
 
       - job: QuickStartTests_Windows
         pool:
-          vmImage: 'windows-2019'
+          vmImage: 'windows-2022'
         steps:
           - template: steps/quickStartTests.yml
