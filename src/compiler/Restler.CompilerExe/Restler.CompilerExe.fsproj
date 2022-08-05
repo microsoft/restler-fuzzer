@@ -20,7 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Restler.Compiler\Restler.Compiler.fsproj" />
-    <PackageReference Include="Microsoft.FSharpLu.Json" Version="0.11.6" />
+    <PackageReference Include="Microsoft.FSharpLu.Json" Version="0.11.7" />
 	  <PackageReference Include="NJsonSchema" Version="10.7.2" />
 	  <PackageReference Include="NSwag.Core" Version="13.16.1" />
   </ItemGroup>

@@ -33,7 +33,7 @@ module String =
     let deterministicShortHash (str:string): string =
         let hashLength = 16 // bytes
 
-        use sha1 = new SHA1Managed()
+        use sha1 = SHA1.Create()
         let bytes = Encoding.Default.GetBytes(str)
         let hashBytes = sha1.ComputeHash(bytes)
         hashBytes

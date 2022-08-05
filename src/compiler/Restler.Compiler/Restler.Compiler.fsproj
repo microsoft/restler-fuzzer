@@ -37,8 +37,8 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.ApplicationInsights" Version="2.14.0" />
-    <PackageReference Include="Microsoft.FSharpLu" Version="0.11.6" />
-    <PackageReference Include="Microsoft.FSharpLu.Json" Version="0.11.6" />
+    <PackageReference Include="Microsoft.FSharpLu" Version="0.11.7" />
+    <PackageReference Include="Microsoft.FSharpLu.Json" Version="0.11.7" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="NJsonSchema" Version="10.7.2" />
     <PackageReference Include="NSwag.Core" Version="13.16.1" />
