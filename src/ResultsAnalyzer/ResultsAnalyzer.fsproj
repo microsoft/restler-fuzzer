@@ -30,8 +30,8 @@
   <ItemGroup>
     <ProjectReference Include="..\compiler\Restler.Compiler\Restler.Compiler.fsproj" />
     <PackageReference Include="DiffPlex" Version="1.4.4" />
-    <PackageReference Include="Microsoft.FSharpLu" Version="0.11.6" />
-    <PackageReference Include="Microsoft.FSharpLu.Json" Version="0.11.6" />
+    <PackageReference Include="Microsoft.FSharpLu" Version="0.11.7" />
+    <PackageReference Include="Microsoft.FSharpLu.Json" Version="0.11.7" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\compiler\Restler.Compiler\Restler.Compiler.fsproj" />

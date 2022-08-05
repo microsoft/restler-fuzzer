@@ -20,9 +20,9 @@
       },
       "Microsoft.FSharpLu": {
         "type": "Direct",
-        "requested": "[0.11.6, )",
-        "resolved": "0.11.6",
-        "contentHash": "1NNiQu62MyooCS0XRhcsfYxGFH/N0EdE4tWnVd10tiMb+WJlXJvjTrBmdynQ+pot2toz1frKJW7Oorq7efJBbA==",
+        "requested": "[0.11.7, )",
+        "resolved": "0.11.7",
+        "contentHash": "ocQijOCIIgK70xdS1W9sblivg2IDuLkahfbm0uJLYifbWste4lf1HVbJ5h1LExxzqsUAf2BYI628ggP8OuHMUA==",
         "dependencies": {
           "FSharp.Control.AsyncSeq": "2.0.22",
           "FSharp.Core": "4.5.4",
@@ -38,9 +38,9 @@
       },
       "Microsoft.FSharpLu.Json": {
         "type": "Direct",
-        "requested": "[0.11.6, )",
-        "resolved": "0.11.6",
-        "contentHash": "BRH3w2LRqMgLWnTiuOO5u1ZsDjkExPpURXEF1owrbhE7ahtL1OdiXdK9cw5dy067ncQufWX96vK8oLrY485sug==",
+        "requested": "[0.11.7, )",
+        "resolved": "0.11.7",
+        "contentHash": "RCrBUl8JK+fSOaVuoBSZ6rcsiuTZ6o0sKz3qTPnPWNhJsdSo43g8gGLLUDHLifaNqttfmQ8F8wasHPXEXVy5eQ==",
         "dependencies": {
           "FSharp.Core": "4.5.4",
           "Newtonsoft.Json": "10.0.3"
