@@ -150,12 +150,13 @@ class HeaderParam(KeyValueParamBase):
 
 class ParamBase():
     """ Base class for all body parameters """
-    def __init__(self, is_required=True, is_dynamic_object=False, content_type=None, is_quoted=False):
+    def __init__(self, is_required=True, dynamic_object=None, param_name=None, content_type=None, is_quoted=False):
         self._fuzzable = False
         self._example_values = []
         self._tag = ''
         self._is_required = is_required
-        self._is_dynamic_object = is_dynamic_object
+        self._dynamic_object = dynamic_object
+        self._param_name = param_name
         self._content_type = content_type
         self._is_quoted=is_quoted
 
@@ -200,6 +201,16 @@ class ParamBase():
         return self._example_values
 
     @property
+    def param_name(self):
+        """ Return the param name
+
+        @return: The parameter name
+        @rtype : list[Str]
+
+        """
+        return self._param_name
+
+    @property
     def is_quoted(self):
         """ Returns whether the param is quoted
 
@@ -210,13 +221,24 @@ class ParamBase():
         return self._is_quoted
 
     @property
-    def is_dynamic_object(self):
-        """ Returns whether the param is a dynamic object
+    def dynamic_object_writer_variable(self):
+        """ Returns whether the param is a dynamic object writer variable
+
+        @return: True if the parameter is a writer variable
+        @rtype:  Bool
+        """
+        if self._dynamic_object is None:
+            return None
+        return self._dynamic_object._variable_name
+
+    @property
+    def is_dynamic_object_reader(self):
+        """ Returns whether the param is a dynamic object reader
 
         @return: True if the parameter is a dynamic object
         @rtype:  Bool
         """
-        return self._is_dynamic_object
+        return self._dynamic_object is not None and (not self._dynamic_object._is_writer)
 
     def meta_copy(self, src):
         """ Copy meta data of a ParamValue
@@ -232,10 +254,10 @@ class ParamBase():
         self._example_values = src._example_values
         self._tag = src._tag
         self._is_required = src._is_required
-        self._is_dynamic_object = src._is_dynamic_object
+        self._dynamic_object = src._dynamic_object
         self._content_type = src.content_type
         self._is_quoted = src.is_quoted
-
+        self._param_name = src._param_name
 
     def set_fuzzable(self, is_fuzzable):
         """ Sets param as fuzzable
@@ -260,6 +282,28 @@ class ParamBase():
 
         """
         self._example_values = example_values
+
+    def set_dynamic_object(self, dynamic_object):
+        """ Sets dynamic object
+
+        @param is_fuzzable: True if fuzzable
+        @type  is_fuzzable: Bool
+
+        @return: None
+        @rtype : None
+
+        """
+        self._dynamic_object = dynamic_object
+
+    def set_param_name(self, param_name):
+        """ Sets the parameter name for this parameter
+
+        @return: None
+        @rtype : None
+
+        """
+        self._param_name = param_name
+
 
     def set_content_type(self, content_type):
         """ Sets the content type of the parameter
@@ -294,14 +338,14 @@ class ParamValue(ParamBase):
     """ Base class for value type parameters. Value can be Object, Array,
     String, Number, Boolean, ObjectLeaf, and Enum.
     """
-    def __init__(self, custom_payload_type=None, is_required=True, is_dynamic_object=False, is_quoted=False):
+    def __init__(self, custom_payload_type=None, is_required=True, dynamic_object=None, is_quoted=False):
         """ Initialize a ParamValue.
 
         @return: None
         @rtype:  None
 
         """
-        ParamBase.__init__(self, is_required=is_required, is_dynamic_object=is_dynamic_object, is_quoted=is_quoted)
+        ParamBase.__init__(self, is_required=is_required, dynamic_object=dynamic_object, is_quoted=is_quoted)
         self._content = None
         self._custom_payload_type = custom_payload_type
 
@@ -383,7 +427,7 @@ class ParamValue(ParamBase):
                 raise Exception(f"Unknown custom payload type: {self._custom_payload_type}")
 
         content = self._content
-        if self.is_dynamic_object:
+        if self.is_dynamic_object_reader:
             content = dependencies.RDELIM + self._content + dependencies.RDELIM
 
         return [primitives.restler_static_string(content)]
@@ -820,7 +864,8 @@ class ParamArray(ParamBase):
 class ParamString(ParamValue):
     """ Class for string type parameters """
 
-    def __init__(self, custom_payload_type=None, is_required=True, is_dynamic_object=False, is_quoted=True, content_type="String"):
+    def __init__(self, custom_payload_type=None, is_required=True, dynamic_object=None, is_quoted=True,
+                 content_type="String"):
         """ Initialize a string type parameter
 
         @param custom: Whether or not this is a custom payload
@@ -830,7 +875,7 @@ class ParamString(ParamValue):
         @rtype:  None
 
         """
-        ParamValue.__init__(self, is_required=is_required, is_dynamic_object=is_dynamic_object, is_quoted=is_quoted)
+        ParamValue.__init__(self, is_required=is_required, dynamic_object=dynamic_object, is_quoted=is_quoted)
 
         self._custom_payload_type=custom_payload_type
         self._content_type = content_type
@@ -861,11 +906,9 @@ class ParamString(ParamValue):
                 return [primitives.restler_custom_payload_header(self._content, quoted=self.is_quoted)]
             elif self._custom_payload_type == "Query":
                 return [primitives.restler_custom_payload_query(self._content, quoted=self.is_quoted)]
-            elif self._custom_payload_type == "UuidSuffix":
-                return [primitives.restler_custom_payload_uuid4_suffix(self._content)]
             else:
                 raise Exception(f"Unexpected custom payload type: {self._custom_payload_type}")
-        if self.is_dynamic_object:
+        if self.is_dynamic_object_reader:
             content = dependencies.RDELIM + self._content + dependencies.RDELIM
         else:
             content = self._content
@@ -880,29 +923,42 @@ class ParamString(ParamValue):
         """
         if self._custom_payload_type is not None:
             if self._custom_payload_type == "String":
-                return [primitives.restler_custom_payload(self._content, quoted=self.is_quoted)]
+                return [primitives.restler_custom_payload(self._content, quoted=self.is_quoted,
+                                                          param_name=self.param_name,
+                                                          writer=self.dynamic_object_writer_variable)]
             elif self._custom_payload_type == "Header":
-                return [primitives.restler_custom_payload_header(self._content, quoted=self.is_quoted)]
+                return [primitives.restler_custom_payload_header(self._content, quoted=self.is_quoted,
+                                                                 param_name=self.param_name,
+                                                                 writer=self.dynamic_object_writer_variable)]
             elif self._custom_payload_type == "Query":
-                return [primitives.restler_custom_payload_query(self._content, quoted=self.is_quoted)]
-            elif self._custom_payload_type == "UuidSuffix":
-                return [primitives.restler_custom_payload_uuid4_suffix(self._content)]
+                return [primitives.restler_custom_payload_query(self._content, quoted=self.is_quoted,
+                                                                param_name=self.param_name,
+                                                                writer=self.dynamic_object_writer_variable)]
             else:
                 raise Exception(f"Unexpected custom payload type: {self._custom_payload_type}")
-        if self.is_dynamic_object:
+        if self.is_dynamic_object_reader:
             content = dependencies.RDELIM + self._content + dependencies.RDELIM
         else:
             content = self._content
 
         if self.is_fuzzable:
             if self._content_type == "String":
-                return [primitives.restler_fuzzable_string(content, quoted=self.is_quoted, examples=self.example_values)]
+                return [primitives.restler_fuzzable_string(content, quoted=self.is_quoted, examples=self.example_values,
+                                                           param_name=self.param_name,
+                                                           writer=self.dynamic_object_writer_variable)]
             elif self._content_type == "Uuid":
-                return [primitives.restler_fuzzable_uuid4(content, quoted=self.is_quoted, examples=self.example_values)]
+                return [primitives.restler_fuzzable_uuid4(content, quoted=self.is_quoted, examples=self.example_values,
+                                                          param_name=self.param_name,
+                                                          writer=self.dynamic_object_writer_variable)]
             elif self._content_type == "DateTime":
-                return [primitives.restler_fuzzable_datetime(content, quoted=self.is_quoted, examples=self.example_values)]
+                return [primitives.restler_fuzzable_datetime(content, quoted=self.is_quoted,
+                                                             examples=self.example_values,
+                                                             param_name=self.param_name,
+                                                             writer=self.dynamic_object_writer_variable)]
             elif self._content_type == "Date":
-                return [primitives.restler_fuzzable_date(content, quoted=self.is_quoted, examples=self.example_values)]
+                return [primitives.restler_fuzzable_date(content, quoted=self.is_quoted, examples=self.example_values,
+                                                         param_name=self.param_name,
+                                                         writer=self.dynamic_object_writer_variable)]
             else:
                 raise Exception(f"Unexpected content type: {self._content_type}")
 
@@ -951,7 +1007,7 @@ class ParamString(ParamValue):
                 return [primitives.restler_static_string(default_value, quoted=False)]
 
         if not self.is_fuzzable:
-            if self.is_dynamic_object:
+            if self.is_dynamic_object_reader:
                 content = dependencies.RDELIM + self._content + dependencies.RDELIM
                 return [primitives.restler_static_string(content, quoted=self.is_quoted)]
             return [primitives.restler_static_string(default_value, quoted=self.is_quoted)]
@@ -999,7 +1055,10 @@ class ParamUuidSuffix(ParamString):
         @rtype : List[str]
 
         """
-        return [primitives.restler_custom_payload_uuid4_suffix(self._content)]
+        return [primitives.restler_custom_payload_uuid4_suffix(self._content,
+                                                               quoted=self.is_quoted,
+                                                               param_name=self.param_name,
+                                                               writer=self.dynamic_object_writer_variable)]
 
     def get_blocks(self, config=None):
         """ Gets request blocks for Uuid Suffix Parameters.
@@ -1011,9 +1070,21 @@ class ParamUuidSuffix(ParamString):
         return self.get_original_blocks(config)
 
 
+class DynamicObject:
+    """ Class for dynamic object variables """
+    def __init__(self, primitive_type, variable_name, is_writer):
+        self._primitive_type = primitive_type
+        self._variable_name = variable_name
+        self._is_writer = is_writer
+
+    @property
+    def is_writer(self):
+        return self._is_writer
+
+
 class ParamNumber(ParamValue):
     """ Class for number type parameters """
-    def __init__(self, is_required=True, is_dynamic_object=False, is_quoted=False, number_type="Int"):
+    def __init__(self, is_required=True, dynamic_object=None, is_quoted=False, number_type="Int"):
         """ Initialize a number type parameter
 
         @param custom: Whether or not this is a custom payload
@@ -1023,7 +1094,7 @@ class ParamNumber(ParamValue):
         @rtype:  None
 
         """
-        ParamValue.__init__(self, is_required=is_required, is_dynamic_object=is_dynamic_object, is_quoted=is_quoted)
+        ParamValue.__init__(self, is_required=is_required, dynamic_object=dynamic_object, is_quoted=is_quoted)
         self._number_type = number_type
 
     @property
@@ -1041,15 +1112,20 @@ class ParamNumber(ParamValue):
         @rtype : List[str]
 
         """
-        if self.is_dynamic_object:
+        if self.is_dynamic_object_reader:
             content = dependencies.RDELIM + self._content + dependencies.RDELIM
             return [primitives.restler_static_string(content)]
 
         content = self._content
         if self._number_type == "Int":
-            return [primitives.restler_fuzzable_int(content, quoted=self.is_quoted, examples=self.example_values)]
+            return [primitives.restler_fuzzable_int(content, quoted=self.is_quoted,
+                                                    examples=self.example_values,
+                                                    param_name=self.param_name,
+                                                    writer=self.dynamic_object_writer_variable)]
         else:
-            return [primitives.restler_fuzzable_number(content, quoted=self.is_quoted, examples=self.example_values)]
+            return [primitives.restler_fuzzable_number(content, quoted=self.is_quoted, examples=self.example_values,
+                                                       param_name=self.param_name,
+                                                       writer=self.dynamic_object_writer_variable)]
 
 
     def get_fuzzing_blocks(self, config):
@@ -1066,7 +1142,7 @@ class ParamNumber(ParamValue):
         default_value = str(default_value)
 
         if not self.is_fuzzable:
-            if self.is_dynamic_object:
+            if self.is_dynamic_object_reader:
                 default_value = dependencies.RDELIM + default_value + dependencies.RDELIM
             return [primitives.restler_static_string(default_value)]
 
@@ -1118,12 +1194,13 @@ class ParamBoolean(ParamValue):
         @rtype : List[str]
 
         """
-        if self.is_dynamic_object:
+        if self.is_dynamic_object_reader:
             content = dependencies.RDELIM + self._content + dependencies.RDELIM
             return [primitives.restler_static_string(content)]
 
-        return [primitives.restler_fuzzable_bool(self._content, quoted=self.is_quoted, examples=self.example_values)]
-
+        return [primitives.restler_fuzzable_bool(self._content, quoted=self.is_quoted, examples=self.example_values,
+                                                 param_name=self.param_name,
+                                                 writer=self.dynamic_object_writer_variable)]
 
     def get_fuzzing_blocks(self, config):
         """ Returns the fuzzing request blocks per the config
@@ -1138,7 +1215,7 @@ class ParamBoolean(ParamValue):
         )
 
         if not self.is_fuzzable:
-            if self.is_dynamic_object:
+            if self.is_dynamic_object_reader:
                 default_value = dependencies.RDELIM + default_value + dependencies.RDELIM
             else:
                 default_value = str(default_value).lower()
@@ -1192,7 +1269,7 @@ class ParamObjectLeaf(ParamValue):
         @rtype : List[str]
 
         """
-        if self.is_dynamic_object:
+        if self.is_dynamic_object_reader:
             content = dependencies.RDELIM + self._content + dependencies.RDELIM
             return [primitives.restler_static_string(content)]
 
@@ -1212,14 +1289,21 @@ class ParamObjectLeaf(ParamValue):
         @rtype : List[str]
 
         """
-        if self.is_dynamic_object:
+        if self.is_dynamic_object_reader:
             content = dependencies.RDELIM + self._content + dependencies.RDELIM
             return [primitives.restler_static_string(content)]
 
-        formalized_content = self._content.replace("'", '"')
-        formalized_content = formalized_content.replace('u"', '"')
+        # This check is present to support older grammars, and can be removed in the future.
+        if self._content is None:
+            formalized_content = "null"
+        else:
+            formalized_content = self._content.replace("'", '"')
+            formalized_content = formalized_content.replace('u"', '"')
 
-        return [primitives.restler_fuzzable_object(formalized_content, quoted=self.is_quoted, examples=self.example_values)]
+        return [primitives.restler_fuzzable_object(formalized_content, quoted=self.is_quoted,
+                                                   examples=self.example_values,
+                                                   param_name=self.param_name,
+                                                   writer=self.dynamic_object_writer_variable)]
 
     def get_fuzzing_blocks(self, config):
         """ Returns the fuzzing request blocks per the config
@@ -1249,7 +1333,7 @@ class ParamObjectLeaf(ParamValue):
 
         # not fuzzalbe --> constant
         if not self.is_fuzzable:
-            if self.is_dynamic_object:
+            if self.is_dynamic_object_reader:
                 default_value = dependencies.RDELIM + default_value + dependencies.RDELIM
             else:
                 default_value = formalize_object_value(default_value)
@@ -1291,7 +1375,8 @@ class ParamObjectLeaf(ParamValue):
 class ParamEnum(ParamValue):
     """ Class for Enum type parameters """
 
-    def __init__(self, contents, content_type, is_required=True, body_param=True, is_dynamic_object=False,
+    def __init__(self, contents, content_type, is_quoted=False,
+                 is_required=True, body_param=True, is_dynamic_object=False,
                  enum_name=FUZZABLE_GROUP_TAG):
         """ Initialize an Enum type parameter
 
@@ -1308,7 +1393,7 @@ class ParamEnum(ParamValue):
 
         self._contents = contents
         self._type = content_type
-        self._is_quoted = body_param
+        self._is_quoted = is_quoted
         self._enum_name = enum_name
 
     @property
@@ -1362,8 +1447,11 @@ class ParamEnum(ParamValue):
         @rtype : List[str]
 
         """
-        return [primitives.restler_fuzzable_group(self._enum_name, self._get_fuzzable_group_values(),
-                                                  quoted=self.is_quoted, examples=self.example_values)]
+        return [primitives.restler_fuzzable_group(self._enum_name,
+                                                  self._contents,
+                                                  quoted=self.is_quoted, examples=self.example_values,
+                                                  param_name=self.param_name,
+                                                  writer=self.dynamic_object_writer_variable)]
 
     def get_blocks(self, config=None):
         """ Gets request blocks for the Enum Parameters
@@ -1372,7 +1460,8 @@ class ParamEnum(ParamValue):
         @rtype : List[str]
 
         """
-        return [primitives.restler_fuzzable_group(FUZZABLE_GROUP_TAG, self._get_fuzzable_group_values(),
+        return [primitives.restler_fuzzable_group(FUZZABLE_GROUP_TAG,
+                                                  self._get_fuzzable_group_values(),
                                                   quoted=self.is_quoted, examples=self.example_values)]
 
     def get_fuzzing_pool(self, fuzzer, config):

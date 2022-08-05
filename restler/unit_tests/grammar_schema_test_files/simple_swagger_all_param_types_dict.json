@@ -1,0 +1,11 @@
+{
+  "restler_custom_payload": {
+    "productId": ["productid"],
+    "id": ["id"]
+  },
+  "restler_custom_payload_uuid4_suffix": {
+    "productId": "productid",
+    "id": "id"
+  },
+  "restler_custom_payload_unquoted": {}
+}

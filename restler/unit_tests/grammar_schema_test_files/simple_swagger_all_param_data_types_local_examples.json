@@ -1,0 +1,385 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "Simple Swagger with all parameter data types",
+    "description": "Covers parameter types x data types x dependency types (with annotation file)",
+    "version": "1"
+  },
+  "servers": [
+    {
+      "url": "/"
+    }
+  ],
+  "paths": {
+    "/customer": {
+      "post": {
+        "operationId": "post_customer",
+        "parameters": [
+          {
+            "name": "string-query-param",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "the quick brown fox"
+          },
+          {
+            "name": "string-date-query-param",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "example": "2020-12-10"
+          },
+          {
+            "name": "string-date-time-query-param",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "example": "2022-12-12"
+          },
+          {
+            "name": "string-password-query-param",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "example": 2987
+            }
+          },
+          {
+            "name": "float-number-query-param",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "float",
+              "example": 2.32
+            }
+          },
+          {
+            "name": "double-number-query-param",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "double",
+              "example": 4.56
+            },
+            "example": 9.999
+          },
+          {
+            "name": "boolean-query-param",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "boolean",
+              "example": false
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "*/*": {
+              "schema": {
+                "$ref": "#/components/schemas/Customer"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Success",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Customer"
+                }
+              }
+            }
+          }
+        },
+        "x-codegen-request-body-name": "body"
+      }
+    },
+    "/customer/{customerId}": {
+      "get": {
+        "operationId": "post_customer",
+        "parameters": [
+          {
+            "name": "customerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "string-enum-header-param",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "enum_val_1",
+                "enum_val_2"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Success",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Customer"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/product": {
+      "post": {
+        "parameters": [
+          {
+            "name": "query-producer-param",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "*/*": {
+              "schema": {
+                "$ref": "#/components/schemas/Product"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {}
+      }
+    },
+    "/product/{productId}": {
+      "get": {
+        "parameters": [
+          {
+            "name": "productId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {}
+
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Customer": {
+        "required": [
+          "Person",
+          "id"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "Person": {
+            "$ref": "#/components/schemas/ParameterTests"
+          }
+        }
+      },
+      "Product": {
+        "required": [
+          "info",
+          "id"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "info": {
+            "$ref": "#/components/schemas/ParameterTests"
+          }
+        }
+      },
+      "ParameterTests": {
+        "required": [
+          "int-body-param",
+          "int32-body-param",
+          "int64-body-param",
+          "obj-body-param"
+        ],
+        "type": "object",
+        "properties": {
+          "int32-body-param": {
+            "type": "integer",
+            "format": "int32",
+            "example": 321
+          },
+          "int64-body-param": {
+            "type": "integer",
+            "format": "int64",
+            "example": 200
+          },
+          "int-body-param": {
+            "type": "integer",
+            "example": -30
+          },
+          "obj-body-param": {
+            "type": "object",
+            "properties": {},
+            "example": {
+              "tags": {"label": "important"}
+            }
+          }
+        }
+      }
+    },
+    "parameters": {
+      "StringQueryParameter": {
+        "name": "string-query-param",
+        "in": "query",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      },
+      "StringDateQueryParameter": {
+        "name": "string-date-query-param",
+        "in": "query",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "format": "date"
+        }
+      },
+      "StringDateTimeQueryParameter": {
+        "name": "string-date-time-query-param",
+        "in": "query",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "StringPasswordQueryParameter": {
+        "name": "string-password-query-param",
+        "in": "query",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "format": "password"
+        }
+      },
+      "StringByteQueryParameter": {
+        "name": "string-password-query-param",
+        "in": "query",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "format": "byte"
+        }
+      },
+      "StringBinaryQueryParameter": {
+        "name": "string-password-query-param",
+        "in": "query",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "format": "binary"
+        }
+      },
+      "ObjectQueryParameter": {
+        "name": "string-password-query-param",
+        "in": "query",
+        "required": true,
+        "schema": {
+          "type": "object"
+        }
+      },
+      "IntQueryParameter": {
+        "name": "string-password-query-param",
+        "in": "query",
+        "required": true,
+        "schema": {
+          "type": "integer"
+        }
+      },
+      "Int32QueryParameter": {
+        "name": "string-password-query-param",
+        "in": "query",
+        "required": true,
+        "schema": {
+          "type": "integer",
+          "format": "int32"
+        }
+      },
+      "Int64QueryParameter": {
+        "name": "string-password-query-param",
+        "in": "query",
+        "required": true,
+        "schema": {
+          "type": "integer",
+          "format": "int64"
+        }
+      },
+      "NumberQueryParameter": {
+        "name": "number-query-param",
+        "in": "query",
+        "required": true,
+        "schema": {
+          "type": "number"
+        }
+      },
+      "FloatNumberQueryParameter": {
+        "name": "float-number-query-param",
+        "in": "query",
+        "required": true,
+        "schema": {
+          "type": "number",
+          "format": "float"
+        }
+      },
+      "DoubleNumberQueryParameter": {
+        "name": "double-number-query-param",
+        "in": "query",
+        "required": true,
+        "schema": {
+          "type": "number",
+          "format": "double",
+          "example": "4.56"
+        },
+        "example": "9.78"
+      },
+      "BooleanQueryParameter": {
+        "name": "boolean-query-param",
+        "in": "query",
+        "required": true,
+        "schema": {
+          "type": "boolean"
+        }
+      }
+    }
+  }
+}

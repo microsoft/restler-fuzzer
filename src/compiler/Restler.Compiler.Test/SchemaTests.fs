@@ -85,7 +85,7 @@ module ApiSpecSchema =
             Restler.Workflow.generateRestlerGrammar None config
             let grammarOutputFilePath = config.GrammarOutputDirectoryPath.Value ++ Restler.Workflow.Constants.DefaultRestlerGrammarFileName
             let grammar = File.ReadAllText(grammarOutputFilePath)
-            Assert.True(grammar.Contains("restler_custom_payload_uuid4_suffix(\"customerId\")"))
+            Assert.True(grammar.Contains("restler_custom_payload_uuid4_suffix(\"customerId\", quoted=False)"))
 
         [<Fact>]
         let ``swagger escape characters is parsed successfully`` () =

@@ -17,35 +17,11 @@
       ],
       "queryParameters": [
         [
-          "Examples",
-          {
-            "ParameterList": [
-              {
-                "name": "api-version",
-                "payload": {
-                  "LeafNode": {
-                    "name": "",
-                    "payload": {
-                      "Fuzzable": {
-                        "primitiveType": "String",
-                        "defaultValue": "fuzzstring",
-                        "exampleValue": "zzz"
-                      }
-                    },
-                    "isRequired": true,
-                    "isReadOnly": false
-                  }
-                }
-              }
-            ]
-          }
-        ],
-        [
           "Schema",
           {
             "ParameterList": [
               {
-                "name": "api-version",
+                "name": "string-query-param",
                 "payload": {
                   "LeafNode": {
                     "name": "",
@@ -59,102 +35,108 @@
                     "isReadOnly": false
                   }
                 }
+              },
+              {
+                "name": "string-date-query-param",
+                "payload": {
+                  "LeafNode": {
+                    "name": "",
+                    "payload": {
+                      "Fuzzable": {
+                        "primitiveType": "Date",
+                        "defaultValue": "2019-06-26"
+                      }
+                    },
+                    "isRequired": true,
+                    "isReadOnly": false
+                  }
+                }
+              },
+              {
+                "name": "string-date-time-query-param",
+                "payload": {
+                  "LeafNode": {
+                    "name": "",
+                    "payload": {
+                      "Fuzzable": {
+                        "primitiveType": "DateTime",
+                        "defaultValue": "2019-06-26T20:20:39+00:00"
+                      }
+                    },
+                    "isRequired": true,
+                    "isReadOnly": false
+                  }
+                }
+              },
+              {
+                "name": "string-password-query-param",
+                "payload": {
+                  "LeafNode": {
+                    "name": "",
+                    "payload": {
+                      "Fuzzable": {
+                        "primitiveType": "String",
+                        "defaultValue": "fuzzstring"
+                      }
+                    },
+                    "isRequired": true,
+                    "isReadOnly": false
+                  }
+                }
+              },
+              {
+                "name": "float-number-query-param",
+                "payload": {
+                  "LeafNode": {
+                    "name": "",
+                    "payload": {
+                      "Fuzzable": {
+                        "primitiveType": "Number",
+                        "defaultValue": "1.23"
+                      }
+                    },
+                    "isRequired": true,
+                    "isReadOnly": false
+                  }
+                }
+              },
+              {
+                "name": "double-number-query-param",
+                "payload": {
+                  "LeafNode": {
+                    "name": "",
+                    "payload": {
+                      "Fuzzable": {
+                        "primitiveType": "Number",
+                        "defaultValue": "1.23"
+                      }
+                    },
+                    "isRequired": true,
+                    "isReadOnly": false
+                  }
+                }
+              },
+              {
+                "name": "boolean-query-param",
+                "payload": {
+                  "LeafNode": {
+                    "name": "",
+                    "payload": {
+                      "Fuzzable": {
+                        "primitiveType": "Bool",
+                        "defaultValue": "true"
+                      }
+                    },
+                    "isRequired": true,
+                    "isReadOnly": false
+                  }
+                }
               }
             ]
           }
         ]
       ],
       "bodyParameters": [
-        [
-          "Examples",
-          {
-            "ParameterList": [
-              {
-                "name": "body",
-                "payload": {
-                  "InternalNode": [
-                    {
-                      "name": "",
-                      "propertyType": "Object",
-                      "isRequired": true,
-                      "isReadOnly": false
-                    },
-                    [
-                      {
-                        "LeafNode": {
-                          "name": "id",
-                          "payload": {
-                            "Fuzzable": {
-                              "primitiveType": "String",
-                              "defaultValue": "fuzzstring",
-                              "exampleValue": "zzz"
-                            }
-                          },
-                          "isRequired": false,
-                          "isReadOnly": false
-                        }
-                      },
-                      {
-                        "InternalNode": [
-                          {
-                            "name": "Person",
-                            "propertyType": "Property",
-                            "isRequired": false,
-                            "isReadOnly": false
-                          },
-                          [
-                            {
-                              "InternalNode": [
-                                {
-                                  "name": "",
-                                  "propertyType": "Object",
-                                  "isRequired": false,
-                                  "isReadOnly": false
-                                },
-                                [
-                                  {
-                                    "LeafNode": {
-                                      "name": "name",
-                                      "payload": {
-                                        "Fuzzable": {
-                                          "primitiveType": "String",
-                                          "defaultValue": "fuzzstring",
-                                          "exampleValue": "zzz"
-                                        }
-                                      },
-                                      "isRequired": true,
-                                      "isReadOnly": false
-                                    }
-                                  },
-                                  {
-                                    "LeafNode": {
-                                      "name": "address",
-                                      "payload": {
-                                        "Fuzzable": {
-                                          "primitiveType": "Object",
-                                          "defaultValue": "{ \"fuzz\": false }",
-                                          "exampleValue": {
-                                            "Some": null
-                                          }
-                                        }
-                                      },
-                                      "isRequired": true,
-                                      "isReadOnly": false
-                                    }
-                                  }
-                                ]
-                              ]
-                            }
-                          ]
-                        ]
-                      }
-                    ]
-                  ]
-                }
-              }
-            ]
-          }
-        ],
         [
           "Schema",
           {
@@ -179,7 +161,7 @@
                               "defaultValue": "fuzzstring"
                             }
                           },
-                          "isRequired": false,
+                          "isRequired": true,
                           "isReadOnly": false
                         }
                       },
@@ -188,7 +170,7 @@
                           {
                             "name": "Person",
                             "propertyType": "Property",
-                            "isRequired": false,
+                            "isRequired": true,
                             "isReadOnly": false
                           },
                           [
@@ -197,17 +179,17 @@
                                 {
                                   "name": "",
                                   "propertyType": "Object",
-                                  "isRequired": false,
+                                  "isRequired": true,
                                   "isReadOnly": false
                                 },
                                 [
                                   {
                                     "LeafNode": {
-                                      "name": "name",
+                                      "name": "int32-body-param",
                                       "payload": {
                                         "Fuzzable": {
-                                          "primitiveType": "String",
-                                          "defaultValue": "fuzzstring"
+                                          "primitiveType": "Int",
+                                          "defaultValue": "1"
                                         }
                                       },
                                       "isRequired": true,
@@ -216,11 +198,106 @@
                                   },
                                   {
                                     "LeafNode": {
-                                      "name": "address",
+                                      "name": "int64-body-param",
+                                      "payload": {
+                                        "Fuzzable": {
+                                          "primitiveType": "Int",
+                                          "defaultValue": "1"
+                                        }
+                                      },
+                                      "isRequired": true,
+                                      "isReadOnly": false
+                                    }
+                                  },
+                                  {
+                                    "LeafNode": {
+                                      "name": "int-body-param",
+                                      "payload": {
+                                        "Fuzzable": {
+                                          "primitiveType": "Int",
+                                          "defaultValue": "1"
+                                        }
+                                      },
+                                      "isRequired": true,
+                                      "isReadOnly": false
+                                    }
+                                  },
+                                  {
+                                    "LeafNode": {
+                                      "name": "obj-body-param",
                                       "payload": {
                                         "Fuzzable": {
                                           "primitiveType": "Object",
                                           "defaultValue": "{ \"fuzz\": false }"
+                                        }
+                                      },
+                                      "isRequired": true,
+                                      "isReadOnly": false
+                                    }
+                                  },
+                                  {
+                                    "LeafNode": {
+                                      "name": "string-enum-body-param",
+                                      "payload": {
+                                        "Fuzzable": {
+                                          "primitiveType": {
+                                            "Enum": [
+                                              "string-enum-body-param",
+                                              "String",
+                                              [
+                                                "enum_body_val_1",
+                                                "enum_body_val_2"
+                                              ],
+                                              null
+                                            ]
+                                          },
+                                          "defaultValue": "enum_body_val_1"
+                                        }
+                                      },
+                                      "isRequired": true,
+                                      "isReadOnly": false
+                                    }
+                                  },
+                                  {
+                                    "LeafNode": {
+                                      "name": "int-enum-body-param",
+                                      "payload": {
+                                        "Fuzzable": {
+                                          "primitiveType": {
+                                            "Enum": [
+                                              "int-enum-body-param",
+                                              "Int",
+                                              [
+                                                "1024",
+                                                "512"
+                                              ],
+                                              null
+                                            ]
+                                          },
+                                          "defaultValue": "1024"
+                                        }
+                                      },
+                                      "isRequired": true,
+                                      "isReadOnly": false
+                                    }
+                                  },
+                                  {
+                                    "LeafNode": {
+                                      "name": "string-enum-null-body-param",
+                                      "payload": {
+                                        "Fuzzable": {
+                                          "primitiveType": {
+                                            "Enum": [
+                                              "string-enum-null-body-param",
+                                              "String",
+                                              [
+                                                "A",
+                                                "B"
+                                              ],
+                                              null
+                                            ]
+                                          },
+                                          "defaultValue": "A"
                                         }
                                       },
                                       "isRequired": true,
@@ -243,50 +320,9 @@
       ],
       "headerParameters": [
         [
-          "Examples",
-          {
-            "ParameterList": [
-              {
-                "name": "schema-version",
-                "payload": {
-                  "LeafNode": {
-                    "name": "",
-                    "payload": {
-                      "Fuzzable": {
-                        "primitiveType": "String",
-                        "defaultValue": "fuzzstring",
-                        "exampleValue": "zzz"
-                      }
-                    },
-                    "isRequired": false,
-                    "isReadOnly": false
-                  }
-                }
-              }
-            ]
-          }
-        ],
-        [
           "Schema",
           {
-            "ParameterList": [
-              {
-                "name": "schema-version",
-                "payload": {
-                  "LeafNode": {
-                    "name": "",
-                    "payload": {
-                      "Fuzzable": {
-                        "primitiveType": "String",
-                        "defaultValue": "fuzzstring"
-                      }
-                    },
-                    "isRequired": false,
-                    "isReadOnly": false
-                  }
-                }
-              }
-            ]
+            "ParameterList": []
           }
         ],
         [
@@ -378,24 +414,7 @@
         [
           "Schema",
           {
-            "ParameterList": [
-              {
-                "name": "api-version",
-                "payload": {
-                  "LeafNode": {
-                    "name": "",
-                    "payload": {
-                      "Fuzzable": {
-                        "primitiveType": "String",
-                        "defaultValue": "fuzzstring"
-                      }
-                    },
-                    "isRequired": true,
-                    "isReadOnly": false
-                  }
-                }
-              }
-            ]
+            "ParameterList": []
           }
         ]
       ],
@@ -413,23 +432,7 @@
           {
             "ParameterList": [
               {
-                "name": "schema-version",
-                "payload": {
-                  "LeafNode": {
-                    "name": "",
-                    "payload": {
-                      "Fuzzable": {
-                        "primitiveType": "String",
-                        "defaultValue": "fuzzstring"
-                      }
-                    },
-                    "isRequired": false,
-                    "isReadOnly": false
-                  }
-                }
-              },
-              {
-                "name": "view-option",
+                "name": "string-enum-header-param",
                 "payload": {
                   "LeafNode": {
                     "name": "",
@@ -437,19 +440,19 @@
                       "Fuzzable": {
                         "primitiveType": {
                           "Enum": [
-                            "view-option",
+                            "string-enum-header-param",
                             "String",
                             [
-                              "detailed",
-                              "minimal"
+                              "enum_header_val_1",
+                              "enum_header_val_2"
                             ],
                             null
                           ]
                         },
-                        "defaultValue": "detailed"
+                        "defaultValue": "enum_header_val_1"
                       }
                     },
-                    "isRequired": false,
+                    "isRequired": true,
                     "isReadOnly": false
                   }
                 }

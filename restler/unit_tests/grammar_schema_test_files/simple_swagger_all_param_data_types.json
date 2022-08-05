@@ -1,0 +1,263 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "Simple Swagger with all parameter data types",
+    "version": "1",
+    "description": "Covers parameter types x data types x dependency types (with annotation file)"
+  },
+  "paths": {
+    "/customer": {
+      "post": {
+        "operationId": "post_customer",
+        "parameters": [
+          {
+            "$ref": "#/parameters/StringQueryParameter"
+          },
+          {
+            "$ref": "#/parameters/StringDateQueryParameter"
+          },
+          {
+            "$ref": "#/parameters/StringDateTimeQueryParameter"
+          },
+          {
+            "$ref": "#/parameters/StringPasswordQueryParameter"
+          },
+          {
+            "$ref": "#/parameters/StringByteQueryParameter"
+          },
+          {
+            "$ref": "#/parameters/StringBinaryQueryParameter"
+          },
+          {
+            "$ref": "#/parameters/ObjectQueryParameter"
+          },
+          {
+            "$ref": "#/parameters/IntQueryParameter"
+          },
+          {
+            "$ref": "#/parameters/Int32QueryParameter"
+          },
+          {
+            "$ref": "#/parameters/Int64QueryParameter"
+          },
+          {
+            "$ref": "#/parameters/FloatNumberQueryParameter"
+          },
+          {
+            "$ref": "#/parameters/DoubleNumberQueryParameter"
+          },
+          {
+            "$ref": "#/parameters/BooleanQueryParameter"
+          },
+          {
+            "name": "body",
+            "required": true,
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/Customer"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Customer"
+            }
+          }
+        }
+      }
+    },
+    "/customer/{customerId}": {
+      "get": {
+        "operationId": "post_customer",
+        "parameters": [
+          {
+            "name": "customerId",
+            "type": "string",
+            "in": "path",
+            "required": true
+          },
+          {
+            "name": "string-enum-header-param",
+            "type": "string",
+            "enum": [
+              "enum_header_val_1",
+              "enum_header_val_2"
+            ],
+            "in": "header",
+            "required": true
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Customer"
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "Customer": {
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "Person": {
+          "$ref": "#/definitions/ParameterTests"
+        }
+      },
+      "required": [
+        "id",
+        "Person"
+      ]
+
+    },
+    "ParameterTests": {
+      "properties": {
+        "int32-body-param": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "int64-body-param": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "int-body-param": {
+          "type": "integer"
+        },
+        "obj-body-param": {
+          "type": "object"
+        },
+        "string-enum-body-param": {
+          "type": ["string"],
+          "enum": [
+            "enum_body_val_1",
+            "enum_body_val_2"
+          ]
+        },
+        "int-enum-body-param": {
+          "type": "integer",
+          "enum": [
+            1024,
+            512
+          ]
+        },
+        "string-enum-null-body-param": {
+          "type": "string",
+          "enum": [
+            "A",
+            "B"
+          ]
+        }
+      },
+      "required": [
+        "string-enum-body-param",
+        "int-enum-body-param",
+        "string-enum-null-body-param",
+        "int-body-param",
+        "int32-body-param",
+        "int64-body-param",
+        "obj-body-param"
+      ]
+    }
+  },
+  "parameters": {
+    "StringQueryParameter": {
+      "name": "string-query-param",
+      "in": "query",
+      "type": "string",
+      "required": true
+    },
+    "StringDateQueryParameter": {
+      "name": "string-date-query-param",
+      "in": "query",
+      "type": "string",
+      "format": "date",
+      "required": true
+    },
+    "StringDateTimeQueryParameter": {
+      "name": "string-date-time-query-param",
+      "in": "query",
+      "type": "string",
+      "format": "date-time",
+      "required": true
+    },
+    "StringPasswordQueryParameter": {
+      "name": "string-password-query-param",
+      "in": "query",
+      "type": "string",
+      "format": "password",
+      "required": true
+    },
+    "StringByteQueryParameter": {
+      "name": "string-password-query-param",
+      "in": "query",
+      "type": "string",
+      "format": "byte",
+      "required": true
+    },
+    "StringBinaryQueryParameter": {
+      "name": "string-password-query-param",
+      "in": "query",
+      "type": "string",
+      "format": "binary",
+      "required": true
+    },
+    "ObjectQueryParameter": {
+      "name": "string-password-query-param",
+      "in": "query",
+      "type": "object",
+      "required": true
+    },
+    "IntQueryParameter": {
+      "name": "string-password-query-param",
+      "in": "query",
+      "type": "integer",
+      "required": true
+    },
+    "Int32QueryParameter": {
+      "name": "string-password-query-param",
+      "in": "query",
+      "type": "integer",
+      "format": "int32",
+      "required": true
+    },
+    "Int64QueryParameter": {
+      "name": "string-password-query-param",
+      "in": "query",
+      "type": "integer",
+      "format": "int64",
+      "required": true
+    },
+    "NumberQueryParameter": {
+      "name": "number-query-param",
+      "in": "query",
+      "type": "number",
+      "required": true
+    },
+    "FloatNumberQueryParameter": {
+      "name": "float-number-query-param",
+      "in": "query",
+      "type": "number",
+      "format": "float",
+      "required": true
+    },
+    "DoubleNumberQueryParameter": {
+      "name": "double-number-query-param",
+      "in": "query",
+      "type": "number",
+      "format": "double",
+      "required": true
+    },
+    "BooleanQueryParameter": {
+      "name": "boolean-query-param",
+      "in": "query",
+      "type": "boolean",
+      "required": true
+    }
+  }
+}

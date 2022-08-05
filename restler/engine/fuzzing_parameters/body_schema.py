@@ -54,7 +54,7 @@ class BodySchema():
             except Exception as err:
                 msg = f'Fail deserializing request schema body parameters: {err!s}'
                 logger.write_to_main(msg, print_to_console=True)
-                raise Exception(msg)
+                raise
 
         self._node_count = self._schema.count_nodes(self._config)
 

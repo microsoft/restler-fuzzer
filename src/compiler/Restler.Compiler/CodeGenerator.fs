@@ -51,7 +51,7 @@ module Types =
         | Restler_custom_payload_header of string * DynamicObjectWriter option
         | Restler_custom_payload_query of string * DynamicObjectWriter option
         /// (Payload name, dynamic object writer name)
-        | Restler_custom_payload_uuid4_suffix of string * DynamicObjectWriter option
+        | Restler_custom_payload_uuid4_suffix of string * bool * DynamicObjectWriter option
         | Restler_refreshable_authentication_token of string
         | Restler_basepath of string
         | Shadow_values of string
@@ -118,7 +118,7 @@ let rec getRestlerPythonPayload (payload:FuzzingPayload) (isQuoted:bool) : Reque
             | CustomPayloadType.String ->
                 Restler_custom_payload ({ defaultValue = c.payloadValue ; isQuoted = isQuoted ; exampleValue = None ; trackedParameterName = None }, dynamicObject)
             | CustomPayloadType.UuidSuffix ->
-                Restler_custom_payload_uuid4_suffix (c.payloadValue, dynamicObject)
+                Restler_custom_payload_uuid4_suffix (c.payloadValue, isQuoted, dynamicObject)
             | CustomPayloadType.Header ->
                 Restler_custom_payload_header (c.payloadValue, dynamicObject)
             | CustomPayloadType.Query ->
@@ -350,12 +350,12 @@ let generatePythonParameter includeOptionalParameters parameterSource parameterK
             let needQuotes, isFuzzable, isDynamicObject =
                 match p.payload with
                 | FuzzingPayload.Custom c ->
-                    let isFuzzable = (c.payloadType = CustomPayloadType.String)
+                    let isFuzzable = true
                     // 'needQuotes' must be based on the underlying type of the payload.
                     let needQuotes =
                         (not c.isObject) &&
                         (isPrimitiveTypeQuoted c.primitiveType false)
-                    needQuotes, isFuzzable, false
+                    needQuotes, isFuzzable, false 
                 | FuzzingPayload.Constant (PrimitiveType.String, s) ->
                     // TODO: improve the metadata of FuzzingPayload.Constant to capture whether
                     // the constant represents an object,
@@ -1191,10 +1191,11 @@ let getRequests(requests:Request list) includeOptionalParameters =
                         p.defaultValue
                         (if p.isQuoted then "True" else "False")
                         (formatDynamicObjectVariable dynamicObject)
-            | Restler_custom_payload_uuid4_suffix (p, dynamicObject) ->
-                sprintf "primitives.restler_custom_payload_uuid4_suffix(\"%s\"%s)"
+            | Restler_custom_payload_uuid4_suffix (p, isQuoted, dynamicObject) ->
+                sprintf "primitives.restler_custom_payload_uuid4_suffix(\"%s\"%s, quoted=%s)"
                         p
                         (formatDynamicObjectVariable dynamicObject)
+                        (if isQuoted then "True" else "False")
             | Restler_custom_payload_header (p, dynamicObject) ->
                 sprintf "primitives.restler_custom_payload_header(\"%s\"%s)"
                         p

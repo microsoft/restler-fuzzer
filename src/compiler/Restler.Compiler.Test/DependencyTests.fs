@@ -336,7 +336,7 @@ module Dependencies =
                                                Restler.Workflow.Constants.DefaultRestlerGrammarFileName)
             let grammar = File.ReadAllText(grammarFilePath)
 
-            Assert.True(grammar.Contains("""restler_custom_payload_uuid4_suffix("fileId", writer=_file__fileId__post_fileId_path.writer())"""))
+            Assert.True(grammar.Contains("""restler_custom_payload_uuid4_suffix("fileId", writer=_file__fileId__post_fileId_path.writer(), quoted=False)"""))
             Assert.True(grammar.Contains("""restler_static_string(_file__fileId__post_fileId_path.reader(), quoted=False)"""))
 
             // Validate (tag, label) annotation.  tag - body producer (jsonpath), label: path parameter.
