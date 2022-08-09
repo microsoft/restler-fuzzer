@@ -24,11 +24,14 @@ type UnsupportedRecursiveExample (msg:string) =
 
 module SchemaUtilities =
 
+    let formatExampleValue (exampleObject:obj) = 
+        Microsoft.FSharpLu.Json.Compact.serialize exampleObject
+
     /// Get an example value as a string, either directly from the 'example' attribute or
     /// from the extension 'Examples' property.
     let tryGetSchemaExampleValue (schema:NJsonSchema.JsonSchema) =
         if not (isNull schema.Example) then
-            Some (schema.Example.ToString())
+            Some (formatExampleValue schema.Example)
         else if not (isNull schema.ExtensionData) then
             let extensionDataExample =
                 schema.ExtensionData
@@ -41,12 +44,7 @@ module SchemaUtilities =
                 let specExampleValues = seq {
                     if not (isNull dict) then
                         for exampleValue in dict.Values do
-                            let valueAsJson =
-                                match exampleValue with
-                                | :? string -> (exampleValue.ToString())
-                                | _ ->
-                                    Microsoft.FSharpLu.Json.Compact.serialize exampleValue
-                            yield valueAsJson
+                            yield (formatExampleValue exampleValue)
                 }
                 specExampleValues |> Seq.tryHead
         else None
@@ -222,76 +220,35 @@ module SwaggerVisitors =
                 if cycleRoot.IsSome then
                     cycles.Remove(cycleRoot.Value) |> ignore
 
-    let getFuzzableValueForProperty propertyName (propertySchema:NJsonSchema.JsonSchema) isRequired isReadOnly enumeration defaultValue (exampleValue:string option)
-                                    (trackParameters:bool) =
-        let payload =
-            match propertySchema.Type with
-                | NJsonSchema.JsonObjectType.String
-                | NJsonSchema.JsonObjectType.Number
-                | NJsonSchema.JsonObjectType.Integer
-                | NJsonSchema.JsonObjectType.Boolean ->
-                    match enumeration with
-                    | None -> getFuzzableValueForObjectType propertySchema.Type propertySchema.Format exampleValue (Some propertyName) trackParameters
-                    | Some ev ->
-                        let enumValues = ev |> Seq.map (fun e -> string e) |> Seq.toList
-                        let grammarPrimitiveType,_,exv,_ = getGrammarPrimitiveTypeWithDefaultValue propertySchema.Type propertySchema.Format exampleValue (Some propertyName) trackParameters
-                        let defaultFuzzableEnumValue =
-                            match enumValues with
-                            | [] -> "null"
-                            | h::rest -> h
-                        Fuzzable
-                            {
-                                primitiveType = PrimitiveType.Enum (propertyName, grammarPrimitiveType, enumValues, defaultValue)
-                                defaultValue = defaultFuzzableEnumValue
-                                exampleValue = exv
-                                parameterName = None
-                                dynamicObject = None
-                            }
-                | NJsonSchema.JsonObjectType.Object
-                | NJsonSchema.JsonObjectType.None ->
-                    // Example of JsonObjectType.None: "content": {} without a type specified in Swagger.
-                    // Let's treat these the same as Object.
-                    getFuzzableValueForObjectType NJsonSchema.JsonObjectType.Object propertySchema.Format exampleValue (Some propertyName) trackParameters
-                | NJsonSchema.JsonObjectType.File ->
-                    // Fuzz it as a string.
-                    Fuzzable
-                        {
-                            primitiveType = PrimitiveType.String
-                            defaultValue = "file object"
-                            exampleValue = None
-                            parameterName = if trackParameters then Some propertyName else None
-                            dynamicObject = None
-                        }
-                | nst ->
-                    raise (UnsupportedType (sprintf "Unsupported type formatting: %A" nst))
-        { LeafProperty.name = propertyName; payload = payload ;isRequired = isRequired ; isReadOnly = isReadOnly }
-
-    let tryGetEnumeration (property:NJsonSchema.JsonSchema) =
-        if property.IsEnumeration then
-            // This must be converted to a list to make sure it is available for the duration of the compilation.
-            Some (property.Enumeration |> Seq.map (id) |> Seq.toList) else None
-
-    let tryGetDefault (property:NJsonSchema.JsonSchema) =
-        if isNull property.Default || String.IsNullOrWhiteSpace (property.Default.ToString())
-        then None
-        else Some (property.Default.ToString())
-
-    /// Add property name to the fuzzable payload
-    /// This is used to track fuzzed parameter values
-    let addTrackedParameterName (tree:Tree<LeafProperty, InnerProperty>) paramName trackParameters =
-        if trackParameters then
-            match tree with
-            | LeafNode leafProperty ->
-                let payload = leafProperty.payload
-                match payload with
-                | Fuzzable fp ->
-                    let payload = Fuzzable { fp with parameterName = Some paramName }
-                    LeafNode { leafProperty with LeafProperty.payload = payload }
-                | x -> tree
-            | InternalNode (_,_) -> tree
-        else tree
-
     module GenerateGrammarElements =
+
+        let formatJTokenProperty primitiveType (v:JToken) =
+            // Use Formatting.None to avoid unintended string formatting, for example
+            // https://github.com/JamesNK/Newtonsoft.Json/issues/248
+
+            let rawValue = v.ToString(Newtonsoft.Json.Formatting.None)
+
+            match primitiveType with
+            | _ when v.Type = JTokenType.Null -> null
+            | PrimitiveType.String
+            | PrimitiveType.DateTime
+            | PrimitiveType.Enum (_, PrimitiveType.String, _, _)
+            | PrimitiveType.Uuid
+            // Special case: non-Json bodies (e.g. text, xml) should not be quoted
+            | PrimitiveType.Object when (rawValue.[0] = ''' || rawValue.[0] =  '"') ->
+                // Remove the start and end quotes, which are preserved with 'Formatting.None'.
+                if rawValue.Length > 1 then
+                    match rawValue.[0], rawValue.[rawValue.Length-1] with
+                    | '"', '"' ->
+                        rawValue.[1..rawValue.Length-2]
+                    | '"', _
+                    | _, '"' ->
+                        printfn "WARNING: example file contains malformed value in property %A.  The compiler does not currently support this.  Please modify the grammar manually to send the desired payload."
+                                rawValue
+                        rawValue
+                    | _ -> rawValue
+                else rawValue
+            | _ -> rawValue
 
         /// Returns the specified property when the object contains it.
         /// Note: if the example object does not contain the property,
@@ -344,33 +301,90 @@ module SwaggerVisitors =
         let extractPropertyFromArray (exampleObj: JToken option) =
             extractPropertyFromObject "" NJsonSchema.JsonObjectType.Array exampleObj None
 
-        let formatJTokenProperty primitiveType (v:JToken) =
-            // Use Formatting.None to avoid unintended string formatting, for example
-            // https://github.com/JamesNK/Newtonsoft.Json/issues/248
 
-            let rawValue = v.ToString(Newtonsoft.Json.Formatting.None)
+    let getFuzzableValueForProperty propertyName (propertySchema:NJsonSchema.JsonSchema) 
+                                    isRequired isReadOnly enumeration defaultValue 
+                                    (exampleValue:JToken option)
+                                    (trackParameters:bool) =
+        let placeholderExampleValue = None
 
-            match primitiveType with
-            | _ when v.Type = JTokenType.Null -> null
-            | PrimitiveType.String
-            | PrimitiveType.DateTime
-            | PrimitiveType.Enum (_, PrimitiveType.String, _, _)
-            | PrimitiveType.Uuid
-            // Special case: non-Json bodies (e.g. text, xml) should not be quoted
-            | PrimitiveType.Object when (rawValue.[0] = ''' || rawValue.[0] =  '"') ->
-                // Remove the start and end quotes, which are preserved with 'Formatting.None'.
-                if rawValue.Length > 1 then
-                    match rawValue.[0], rawValue.[rawValue.Length-1] with
-                    | '"', '"' ->
-                        rawValue.[1..rawValue.Length-2]
-                    | '"', _
-                    | _, '"' ->
-                        printfn "WARNING: example file contains malformed value in property %A.  The compiler does not currently support this.  Please modify the grammar manually to send the desired payload."
-                                rawValue
-                        rawValue
-                    | _ -> rawValue
-                else rawValue
-            | _ -> rawValue
+        let payload =
+            match propertySchema.Type with
+                | NJsonSchema.JsonObjectType.String
+                | NJsonSchema.JsonObjectType.Number
+                | NJsonSchema.JsonObjectType.Integer
+                | NJsonSchema.JsonObjectType.Boolean ->
+                    match enumeration with
+                    | None -> getFuzzableValueForObjectType propertySchema.Type propertySchema.Format placeholderExampleValue (Some propertyName) trackParameters
+                    | Some ev ->
+                        let enumValues = ev |> Seq.map (fun e -> string e) |> Seq.toList
+                        let grammarPrimitiveType,_,exv,_ = getGrammarPrimitiveTypeWithDefaultValue propertySchema.Type propertySchema.Format placeholderExampleValue (Some propertyName) trackParameters
+                        let defaultFuzzableEnumValue =
+                            match enumValues with
+                            | [] -> "null"
+                            | h::rest -> h
+                        Fuzzable
+                            {
+                                primitiveType = PrimitiveType.Enum (propertyName, grammarPrimitiveType, enumValues, defaultValue)
+                                defaultValue = defaultFuzzableEnumValue
+                                exampleValue = exv
+                                parameterName = None
+                                dynamicObject = None
+                            }
+                | NJsonSchema.JsonObjectType.Object
+                | NJsonSchema.JsonObjectType.None ->
+                    // Example of JsonObjectType.None: "content": {} without a type specified in Swagger.
+                    // Let's treat these the same as Object.
+                    getFuzzableValueForObjectType NJsonSchema.JsonObjectType.Object propertySchema.Format placeholderExampleValue (Some propertyName) trackParameters
+                | NJsonSchema.JsonObjectType.File ->
+                    // Fuzz it as a string.
+                    Fuzzable
+                        {
+                            primitiveType = PrimitiveType.String
+                            defaultValue = "file object"
+                            exampleValue = None
+                            parameterName = if trackParameters then Some propertyName else None
+                            dynamicObject = None
+                        }
+                | nst ->
+                    raise (UnsupportedType (sprintf "Unsupported type formatting: %A" nst))
+
+        let payload = 
+            match payload with
+            | Fuzzable fp ->
+                let exv = 
+                    match exampleValue with
+                    | None -> None
+                    | Some e ->
+                        Some (GenerateGrammarElements.formatJTokenProperty fp.primitiveType e)
+                Fuzzable { fp with exampleValue = exv }
+            | _ -> raise (Exception "invalid case")
+        { LeafProperty.name = propertyName; payload = payload ;isRequired = isRequired ; isReadOnly = isReadOnly }
+
+    let tryGetEnumeration (property:NJsonSchema.JsonSchema) =
+        if property.IsEnumeration then
+            // This must be converted to a list to make sure it is available for the duration of the compilation.
+            Some (property.Enumeration |> Seq.map (id) |> Seq.toList) else None
+
+    let tryGetDefault (property:NJsonSchema.JsonSchema) =
+        if isNull property.Default || String.IsNullOrWhiteSpace (property.Default.ToString())
+        then None
+        else Some (property.Default.ToString())
+
+    /// Add property name to the fuzzable payload
+    /// This is used to track fuzzed parameter values
+    let addTrackedParameterName (tree:Tree<LeafProperty, InnerProperty>) paramName trackParameters =
+        if trackParameters then
+            match tree with
+            | LeafNode leafProperty ->
+                let payload = leafProperty.payload
+                match payload with
+                | Fuzzable fp ->
+                    let payload = Fuzzable { fp with parameterName = Some paramName }
+                    LeafNode { leafProperty with LeafProperty.payload = payload }
+                | x -> tree
+            | InternalNode (_,_) -> tree
+        else tree
 
     module ExampleHelpers =
 
@@ -403,6 +417,12 @@ module SwaggerVisitors =
                             (schemaCache:SchemaCache)
                             (cont: Tree<LeafProperty, InnerProperty> -> Tree<LeafProperty, InnerProperty>) =
 
+        let getPropertyExampleValue() = 
+            // Currently, only one example value is available in NJsonSchema
+            // TODO: check if multiple example values are supported through
+            // extension properties.
+            SchemaUtilities.tryGetSchemaExampleAsJToken (property :> NJsonSchema.JsonSchema)
+
         // If an example value was not specified, also check for a locally defined example
         // in the Swagger specification.
         match property.Type with
@@ -410,9 +430,11 @@ module SwaggerVisitors =
             | NJsonSchema.JsonObjectType.Number
             | NJsonSchema.JsonObjectType.Integer
             | NJsonSchema.JsonObjectType.Boolean ->
+
                 let fuzzablePropertyPayload =
                     let propertySchema = (property :> NJsonSchema.JsonSchema)
-                    let schemaExampleValue = SchemaUtilities.tryGetSchemaExampleAsString property
+                    let schemaExampleValue = getPropertyExampleValue()
+
                     getFuzzableValueForProperty propertyName
                              propertySchema
                              property.IsRequired
@@ -629,6 +651,15 @@ module SwaggerVisitors =
         else if exampleValue.IsNone && cachedProperty.IsSome then
             cachedProperty.Value.tree |> cont
         else
+            // If this schema has an example value, and there isn't a payload example already provided,
+            // use the schema example value.
+            // TODO: handle this for the cyclic case and move to the top of the function
+            let exampleValue = 
+                match exampleValue with
+                | Some _ -> exampleValue
+                | None ->
+                    SchemaUtilities.tryGetSchemaExampleAsJToken schema
+                    
             let declaredPropertyParameters =
                 schema.Properties
                 |> Seq.choose (fun item ->
@@ -782,7 +813,8 @@ module SwaggerVisitors =
                         else
                             // Check for local examples from the Swagger spec if external examples were not specified.
                             // A fuzzable payload with a local example as the default value will be generated.
-                            let specExampleValue = tryGetSchemaExampleAsString schema
+                            let specExampleValue = tryGetSchemaExampleAsJToken schema
+
                             getFuzzableValueForProperty
                                 ""
                                 schema
