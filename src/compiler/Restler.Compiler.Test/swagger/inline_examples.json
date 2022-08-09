@@ -20,7 +20,7 @@
         "memory": {
           "description": "The amount of memory in GB",
           "type": "integer",
-          "example":  "32"
+          "example": 32
         }
       }
     }
@@ -34,7 +34,7 @@
               "name": "serverId",
               "required": true,
               "type": "integer",
-              "example": "1234567"
+              "example": 1234567
             },
             {
               "in": "header",
@@ -51,8 +51,8 @@
               "required": true,
               "type": "number",
               "examples": {
-                "firstExample": "1.67",
-                 "secondExample": "999.99"
+                "firstExample": 1.67,
+                 "secondExample": 999.99
                 }
               },
             {
@@ -76,7 +76,7 @@
               },
               "example": {
                 "cpu": "i7",
-                "memory": 12
+                "memory": 120
               }
             }
           ],

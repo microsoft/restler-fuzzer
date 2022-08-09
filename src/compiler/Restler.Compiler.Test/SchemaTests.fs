@@ -170,4 +170,30 @@ module ApiSpecSchema =
             for ep in expectedProperties do
                 Assert.True(grammar.Contains(sprintf "\"%s\":" ep))
 
+        [<Fact>]
+        let ``openapi3 examples`` () =
+            let specFilePath = Path.Combine(Environment.CurrentDirectory, @"swagger\schemaTests\openapi3_examples.json")
+            let config = { Restler.Config.SampleConfig with
+                                IncludeOptionalParameters = true
+                                GrammarOutputDirectoryPath = Some ctx.testRootDirPath
+                                ResolveBodyDependencies = true
+                                ResolveQueryDependencies = true
+                                SwaggerSpecFilePath = Some [specFilePath]
+                            }
+            Restler.Workflow.generateRestlerGrammar None config
+            let grammarOutputFilePath = config.GrammarOutputDirectoryPath.Value ++ Restler.Workflow.Constants.DefaultRestlerGrammarFileName
+            let grammar = File.ReadAllText(grammarOutputFilePath)
+            
+            Assert.True(grammar.Contains("9.9999"))
+            Assert.True(grammar.Contains("examples=[\"string_param_example999\"]"))
+            Assert.True(grammar.Contains("examples=[\"string_schema_example888\"]"))
+            Assert.True(grammar.Contains("examples=[\"id_string_example_12345\"]"))
+            // the below are body example properties
+            Assert.True(grammar.Contains("examples=[\"50000\"]"))
+            Assert.True(grammar.Contains("examples=[\"10000000\"]"))
+            Assert.True(grammar.Contains("examples=[\"48\"]"))
+            Assert.False(grammar.Contains("schema_example_9574638"))
+            Assert.True(grammar.Contains("\\\"completed\\\":true"))
+
+
         interface IClassFixture<Fixtures.TestSetupAndCleanup>

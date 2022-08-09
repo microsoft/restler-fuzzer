@@ -339,30 +339,33 @@ module private Parameters =
     // The priority is:
     // - first, check the 'Example' property
     // - then, check the 'Examples' property
+    // - then, check the schema for the 'Example' or 'Examples' property
+    // TODO: support getting multiple examples, so RESTler can use all available examples
     let getExamplesFromParameter (p:OpenApiParameter) =
-        let schemaExample =
+        let getSchemaExample() =
             if isNull p.Schema then None
             else
-                SchemaUtilities.tryGetSchemaExampleAsString p.Schema
-        match schemaExample with
-        | Some e ->
-            Some e
-        | None ->
-            if not (isNull p.Examples) then
+                SchemaUtilities.tryGetSchemaExampleAsJToken p.Schema
+
+        let getParameterExample() = 
+            // Get the example from p.Example
+            match SchemaUtilities.tryGetSchemaExampleAsJToken (p :> NJsonSchema.JsonSchema) with
+            | Some ext -> Some ext
+            | None when not (isNull p.Examples) -> 
+                // Get the value from p.Examples
                 if p.Examples.Count > 0 then
                     let firstExample = p.Examples.First()
-                    let exValue =
-                        let v = firstExample.Value.Value.ToString()
-                        if p.Type = NJsonSchema.JsonObjectType.Array ||
-                            p.Type = NJsonSchema.JsonObjectType.Object then
-                            v
-                        else
-                            sprintf "\"%s\"" v
-                    Some exValue
+                    let v = firstExample.Value.Value.ToString()
+                    v |> SchemaUtilities.formatExampleValue |> SchemaUtilities.tryParseJToken
                 else
                     None
-            else
-                None
+            | _ -> None
+            
+        match getParameterExample() with
+        | Some parameterExample ->  
+            Some parameterExample
+        | None ->
+            getSchemaExample()
 
     let getSpecParameters (swaggerMethodDefinition:OpenApiOperation)
                           (parameterKind:NSwag.OpenApiParameterKind) =
@@ -491,10 +494,7 @@ module private Parameters =
                 Some (parameterList
                       |> Seq.map (fun p ->
                                     let specExampleValue =
-                                        match getExamplesFromParameter p with
-                                        | None -> None
-                                        | Some exValue ->
-                                            SchemaUtilities.tryParseJToken exValue
+                                         getExamplesFromParameter p 
 
                                     let parameterPayload = generateGrammarElementForSchema
                                                                 p.ActualSchema
@@ -565,7 +565,7 @@ module private Parameters =
             if not (isNull swaggerMethodDefinition.RequestBody) &&
                 not (isNull swaggerMethodDefinition.RequestBody.Content) then
                 let content =
-                    swaggerMethodDefinition.RequestBody.Content |> Seq.tryFind (fun x -> x.Key = "application/json")
+                    swaggerMethodDefinition.RequestBody.Content |> Seq.tryFind (fun x -> x.Key = "application/json" || x.Key = "*/*")
                 // If the schema is null, issue a warning.
                 match content with
                 | Some c ->

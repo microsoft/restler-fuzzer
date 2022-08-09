@@ -1,0 +1,138 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "Simple OpenAPI spec with examples across different parameter data types",
+    "version": "1"
+  },
+  "servers": [
+    {
+      "url": "/"
+    }
+  ],
+  "paths": {
+    "/customer": {
+      "post": {
+        "operationId": "post_customer",
+        "parameters": [
+          {
+            "name": "float-number-query-param",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "float",
+              "example": 4.56
+            },
+            "example": 9.9999
+          },
+          {
+            "name": "string-query-param-1",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "string_param_example999"
+          },
+          {
+            "name": "string-query-param-2",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "string_schema_example888"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "*/*": {
+              "schema": {
+                "$ref": "#/components/schemas/Customer"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Success",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Customer"
+                }
+              }
+            }
+          }
+        },
+        "x-codegen-request-body-name": "body"
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Customer": {
+        "required": [
+          "Person",
+          "id"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example":  "id_string_example_12345"
+          },
+          "Person": {
+            "$ref": "#/components/schemas/ParameterTests"
+          }
+        }
+      },
+      "ParameterTests": {
+        "required": [
+          "int-body-param",
+          "int32-body-param",
+          "int64-body-param",
+          "number-body-param",
+          "obj-body-param",
+          "string-body-param"
+        ],
+        "type": "object",
+        "example": {
+          "int-body-param": 48,
+          "number-body-param":  23.4,
+            "int32-body-param": 50000,
+          "int64-body-param": 10000000,
+          "string-body-param":  "string_body_param_example_2020",
+            "obj-body-param": { "tags": {"completed":  true} }
+        },
+        "properties": {
+          "string-body-param": {
+            "type": "string",
+            "example": "string_schema_body_param_example_9574638"
+          },
+          "number-body-param": {
+            "type": "number",
+            "example": 56.8
+          },
+          "int32-body-param": {
+            "type": "integer",
+            "format": "int32",
+            "example": "schema_example_9574638"
+          },
+          "int64-body-param": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "int-body-param": {
+            "type": "integer"
+          },
+          "obj-body-param": {
+            "type": "object",
+            "properties": {}
+          }
+        }
+      }
+    }
+  }
+}
