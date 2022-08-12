@@ -55,7 +55,7 @@ request = requests.Request([
     primitives.restler_static_string("/"),
     primitives.restler_static_string("app"),
     primitives.restler_static_string("/"),
-    primitives.restler_custom_payload_uuid4_suffix("appId"),
+    primitives.restler_custom_payload_uuid4_suffix("appId", quoted=False),
     primitives.restler_static_string(" HTTP/1.1\r\n"),
     primitives.restler_static_string("Accept: application/json\r\n"),
     primitives.restler_static_string("Host: localhost:8888\r\n"),

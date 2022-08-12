@@ -405,10 +405,10 @@ module Examples =
             // Make sure the grammar contains expected partial resource IDs (from the example)
             Assert.True(grammar.Contains("primitives.restler_static_string(\"/frontendPorts/\")"))
             Assert.True(grammar.Contains("primitives.restler_static_string(\"/frontendIPConfigurations/\")"))
-            Assert.True(grammar.Contains("primitives.restler_custom_payload_uuid4_suffix(\"frontendPorts_name\")"))
-            Assert.True(grammar.Contains("primitives.restler_custom_payload_uuid4_suffix(\"frontendIPConfigurations_name\")"))
-            Assert.False(grammar.Contains("primitives.restler_custom_payload_uuid4_suffix(\"frontendPort_name\")"))
-            Assert.False(grammar.Contains("primitives.restler_custom_payload_uuid4_suffix(\"frontendIPConfiguration_name\")"))
+            Assert.True(grammar.Contains("primitives.restler_custom_payload_uuid4_suffix(\"frontendPorts_name\", quoted=True)"))
+            Assert.True(grammar.Contains("primitives.restler_custom_payload_uuid4_suffix(\"frontendIPConfigurations_name\", quoted=True)"))
+            Assert.False(grammar.Contains("primitives.restler_custom_payload_uuid4_suffix(\"frontendPort_name\", quoted=True)"))
+            Assert.False(grammar.Contains("primitives.restler_custom_payload_uuid4_suffix(\"frontendIPConfiguration_name\", quoted=True)"))
 
             Assert.True(grammar.Contains("appgwipc")) // This does not have a producer
             Assert.False(grammar.Contains("appgwfip"))

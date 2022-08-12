@@ -6,6 +6,7 @@
         "method": "Post"
       },
       "method": "Post",
+      "basePath": "",
       "path": [
         {
           "Constant": [
@@ -219,6 +220,7 @@
         "method": "Get"
       },
       "method": "Get",
+      "basePath": "",
       "path": [
         {
           "Constant": [
