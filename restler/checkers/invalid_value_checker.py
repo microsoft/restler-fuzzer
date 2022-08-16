@@ -13,7 +13,6 @@ import os
 import typing
 
 from engine.bug_bucketing import BugBuckets
-import engine.dependencies as dependencies
 import engine.core.sequences as sequences
 import engine.core.requests as requests
 from engine.core.requests import Request
@@ -21,8 +20,7 @@ import engine.primitives as primitives
 from engine.primitives import CandidateValuesPool
 from engine.errors import TimeOutException
 from engine.errors import InvalidDictionaryException
-
-from utils.logger import raw_network_logging as RAW_LOGGING
+from engine.core.requests import FailureInformation
 
 
 def get_test_values(max_values: int, req: Request, static_dict=None,
@@ -133,6 +131,9 @@ class InvalidValueChecker(CheckerBase):
 
     def __init__(self, req_collection, fuzzing_requests):
         CheckerBase.__init__(self, req_collection, fuzzing_requests)
+        # Fuzzing settings
+        self._fuzz_valid = True
+        self._fuzz_invalid = True
 
         # The custom invalid mutations dictionary
         self._custom_invalid_mutations = None
@@ -183,11 +184,10 @@ class InvalidValueChecker(CheckerBase):
         @rtype : None
 
         """
-        # If this is not a valid sequence, do not attempt to fuzz the parameters.
-        #if not rendered_sequence.valid:
-        #    return
-
-        if not rendered_sequence.sequence:
+        if rendered_sequence.sequence is None or\
+        rendered_sequence.failure_info == FailureInformation.SEQUENCE or\
+        (rendered_sequence.valid and not self._fuzz_valid) or\
+        (not rendered_sequence.valid and not self._fuzz_invalid):
             return
 
         if not self._custom_invalid_mutations:
@@ -198,7 +198,6 @@ class InvalidValueChecker(CheckerBase):
         generation = self._sequence.length
 
         self._checker_log.checker_print(f"Testing request: {last_request.endpoint} {last_request.method}")
-
 
         # Note: this hash must be the hex definition, so each of the different schema variations of the request
         # are fuzzed separately (since they may contain different parameters).
@@ -283,7 +282,9 @@ class InvalidValueChecker(CheckerBase):
                 field_name = request_block[1]
             else:
                 field_name = request_block[4]
-            self._checker_log.checker_print(f"Fuzzing parameter {field_name}")
+
+            logged_param = "" if field_name is None else f", name: {field_name}"
+            self._checker_log.checker_print(f"Fuzzing request block {idx}, type: {primitive_type}{logged_param}")
 
             tv = get_test_values(param_budget, temp_req, self._custom_invalid_mutations,
                                  self._value_generators_file_path)
