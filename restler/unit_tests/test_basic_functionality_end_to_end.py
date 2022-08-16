@@ -661,6 +661,101 @@ class FunctionalityTests(unittest.TestCase):
         except TestFailedException:
             self.fail("Payload body arrays failed: Fuzzing")
 
+    def test_invalid_value_checker(self):
+        """ This checks that the invalid value checker sends all of the correct
+        requests in the correct order and an expected 500 bug is logged.
+        The test specifies a random seed to the checker, so the logs are expected
+        to be identical on every run.
+
+        If this test fails it is important to verify (by diffing the current baseline files)
+        that the differences that caused the failure are expected by a recent change and no other
+        unexpected changes exist.
+
+        """
+
+        settings_file_path = os.path.join(Test_File_Directory, "test_invalid_value_checker_settings.json")
+
+        args = Common_Settings + [
+            '--fuzzing_mode', 'directed-smoke-test',
+            '--restler_grammar', f'{os.path.join(Test_File_Directory, "test_grammar.py")}',
+            '--enable_checkers', 'invalidvalue',
+            '--settings', f'{settings_file_path}'
+        ]
+
+        result = subprocess.run(args, capture_output=True)
+        if result.stderr:
+            self.fail(result.stderr)
+        try:
+            result.check_returncode()
+        except subprocess.CalledProcessError:
+            self.fail(f"Restler returned non-zero exit code: {result.returncode} {result.stdout}")
+
+        experiments_dir = self.get_experiments_dir()
+
+        try:
+            default_parser = FuzzingLogParser(os.path.join(Test_File_Directory, "invalidvalue_testing_log.txt"))
+            test_parser = FuzzingLogParser(self.get_network_log_path(experiments_dir, logger.LOG_TYPE_TESTING))
+            self.assertTrue(default_parser.diff_log(test_parser))
+        except TestFailedException:
+            self.fail("Invalid value checker failed: Fuzzing")
+
+        try:
+            default_parser = BugLogParser(os.path.join(Test_File_Directory, "invalidvalue_bug_buckets.txt"))
+            test_parser = BugLogParser(os.path.join(experiments_dir, 'bug_buckets', 'bug_buckets.txt'))
+            self.assertTrue(default_parser.diff_log(test_parser))
+        except TestFailedException:
+            self.fail("Invalid value checker failed: Bug Buckets")
+
+        try:
+            default_parser = GarbageCollectorLogParser(os.path.join(Test_File_Directory, "invalidvalue_gc_log.txt"))
+            test_parser = GarbageCollectorLogParser(self.get_network_log_path(experiments_dir, logger.LOG_TYPE_GC))
+            self.assertTrue(default_parser.diff_log(test_parser))
+        except TestFailedException:
+            self.fail("Invalid value checker failed: Garbage Collector")
+
+    def test_invalid_value_checker_advanced(self):
+        """ This checks that the invalid value checker sends all of the correct
+        requests in the correct order for more complicated bodies.
+        The bodies in this test include arrays and nested dict objects.  The test specifies a random seed
+        to the checker, so the logs are expected to be identical on every run.
+
+        If this test fails it is important to verify (by diffing the current baseline file)
+        that the differences that caused the failure are expected by a recent change and no other
+        unexpected changes exist.
+
+        """
+        settings_file_path = os.path.join(Test_File_Directory, "test_invalid_value_checker_settings.json")
+        args = Common_Settings + [
+            '--fuzzing_mode', 'directed-smoke-test',
+            '--restler_grammar', f'{os.path.join(Test_File_Directory, "test_grammar_body.py")}',
+            '--enable_checkers', 'invalidvalue',
+            '--settings', f'{settings_file_path}'
+        ]
+
+        result = subprocess.run(args, capture_output=True)
+        if result.stderr:
+            self.fail(result.stderr)
+        try:
+            result.check_returncode()
+        except subprocess.CalledProcessError:
+            self.fail(f"Restler returned non-zero exit code: {result.returncode}")
+
+        experiments_dir = self.get_experiments_dir()
+
+        try:
+            default_parser = FuzzingLogParser(os.path.join(Test_File_Directory, "invalidvalue_advanced_testing_log.txt"))
+            test_parser = FuzzingLogParser(self.get_network_log_path(experiments_dir, logger.LOG_TYPE_TESTING))
+            self.assertTrue(default_parser.diff_log(test_parser))
+        except TestFailedException:
+            self.fail("Invalid value advanced failed: Fuzzing")
+
+        try:
+            default_parser = BugLogParser(os.path.join(Test_File_Directory, "invalidvalue_advanced_bug_buckets.txt"))
+            test_parser = BugLogParser(os.path.join(experiments_dir, 'bug_buckets', 'bug_buckets.txt'))
+            self.assertTrue(default_parser.diff_log(test_parser))
+        except TestFailedException:
+            self.fail("Invalid value advanced failed: Bug Buckets")
+
     def test_examples_checker(self):
         """ This checks that the examples checker sends the correct requests
         in the correct order when query or body examples are present

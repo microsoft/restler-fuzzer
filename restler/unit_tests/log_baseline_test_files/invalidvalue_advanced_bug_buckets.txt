@@ -1,0 +1,7 @@
+InvalidValueChecker_500: 1
+Total Buckets: 1
+-------------
+InvalidValueChecker_500 - Bug was reproduced - InvalidValueChecker_500_1.txt
+Hash: InvalidValueChecker_500_04253dc98135690c234d24a23d5a149b74d5bca6
+PUT /city/cityName HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nauthentication_token_tag\r\n{"properties":{"population":10000, "area": "5000",strtest:true,"subproperties":{"subtest":true}}}\r\n
+--------------------------------------------------------------------------------

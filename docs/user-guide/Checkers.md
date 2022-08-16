@@ -170,7 +170,8 @@ The following settings are available for this checker:
         "invalidvalue": {
             "custom_dictionary": "C:\\restler\\invalidvalue\\dict.json",
             "max_combinations": 100,
-            "custom_value_generators": "c:\\restler\\invalidvalue\\invalid_value_generators.py"
+            "custom_value_generators": "c:\\restler\\invalidvalue\\invalid_value_generators.py",
+            "random_seed": 0
         }
     }
 ```
@@ -182,6 +183,7 @@ then will test the remaining combinations using the value generator.
 
 __max_combinations__: Optional (default 100).  Specifies the maximum number of invalid combinations to test for each parameter.
 
+__random_seed__: Optional.  Specifies the random seed that should be used for the invalid value checker value generation.  When specifying a custom value generator, the function ```set_random_seed(seed_value)``` must be added to override the default random seed.
 
 All 5xx errors are reported as bugs.
 

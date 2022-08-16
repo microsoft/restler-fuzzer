@@ -25,7 +25,8 @@ from engine.core.requests import FailureInformation
 
 def get_test_values(max_values: int, req: Request, static_dict=None,
                     value_gen_file_path=None,
-                    override_value_generators=None):
+                    override_value_generators=None,
+                    random_seed=None):
     """First, test the dictionary values.
        If there are remaining iterations in the budget, get the
        remaining ones from the value generator.
@@ -54,7 +55,8 @@ def get_test_values(max_values: int, req: Request, static_dict=None,
     if value_gen_file_path is not None:
         vg_pool = CandidateValuesPool()
         # todo: relative path
-        vg_pool.set_value_generators(value_gen_file_path)
+        vg_pool.set_value_generators(value_gen_file_path, random_seed=random_seed)
+
         if override_value_generators:
             vg_pool._value_generators = {
                 k: override_value_generators.get(k, v) for k, v in vg_pool._value_generators.items()
@@ -150,6 +152,9 @@ class InvalidValueChecker(CheckerBase):
         # The file path of the default value generators included with the checker
         self._value_generators_file_path = None
 
+        # The random seed override
+        self._override_random_seed = None
+
     def init_mutations(self):
         current_file_dir = os.path.dirname(os.path.abspath(__file__))
         default_value_generators_file_path = os.path.join(current_file_dir, "invalid_value_checker_value_gen.py")
@@ -170,6 +175,8 @@ class InvalidValueChecker(CheckerBase):
         self._value_generators_file_path = Settings().get_checker_arg(self._friendly_name, 'custom_value_generators')
         if self._value_generators_file_path is None:
             self._value_generators_file_path = default_value_generators_file_path
+
+        self._override_random_seed = Settings().get_checker_arg(self._friendly_name, 'random_seed')
 
     def apply(self, rendered_sequence, lock):
         """ Fuzzes each value in the parameters of this request as specified by
@@ -259,6 +266,7 @@ class InvalidValueChecker(CheckerBase):
 
         self._checker_log.checker_print(f"Budget: {param_budget} values per parameter.")
 
+
         for idx, is_fuzzable in enumerate(fuzzable_parameter_value_blocks):
             if not is_fuzzable:
                 continue
@@ -286,8 +294,10 @@ class InvalidValueChecker(CheckerBase):
             logged_param = "" if field_name is None else f", name: {field_name}"
             self._checker_log.checker_print(f"Fuzzing request block {idx}, type: {primitive_type}{logged_param}")
 
+
             tv = get_test_values(param_budget, temp_req, self._custom_invalid_mutations,
-                                 self._value_generators_file_path)
+                                 self._value_generators_file_path,
+                                 random_seed=self._override_random_seed)
 
             # Now plug in the test value into the rendered values, saving the original rendering
             orig_rendered_values = rendered_values[idx]
