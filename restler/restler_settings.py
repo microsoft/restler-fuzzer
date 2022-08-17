@@ -470,6 +470,8 @@ class RestlerSettings(object):
         self._disable_logging = SettingsArg('disable_logging', bool, False, user_args)
         ## Add current dates in addition to the ones specified in the dictionary
         self._add_fuzzable_dates = SettingsArg('add_fuzzable_dates', bool, False, user_args)
+        ## Add ipv4 in addition to the ones specified in the dictionary
+        self._add_fuzzable_ipv4 = SettingsArg("add_fuzzable_ipv4", bool, False, user_args)
         ## The command to execute in order to refresh the authentication token
         self._token_refresh_cmd = SettingsArg('token_refresh_cmd', str, None, user_args)
         ## Interval to periodically refresh the authentication token (seconds)
@@ -678,6 +680,10 @@ class RestlerSettings(object):
     @property
     def add_fuzzable_dates(self):
         return self._add_fuzzable_dates.val
+
+    @property
+    def add_fuzzable_ipv4(self):
+        return self._add_fuzzable_ipv4.val
 
     @property
     def token_refresh_cmd(self):

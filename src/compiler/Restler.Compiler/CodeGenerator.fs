@@ -47,6 +47,7 @@ module Types =
         | Restler_fuzzable_int of RequestPrimitiveTypeData * DynamicObjectWriter option
         | Restler_fuzzable_number of RequestPrimitiveTypeData * DynamicObjectWriter option
         | Restler_multipart_formdata of string
+        | Restler_fuzzable_ipv4 of RequestPrimitiveTypeData * DynamicObjectWriter option
         | Restler_custom_payload of RequestPrimitiveTypeData * DynamicObjectWriter option
         | Restler_custom_payload_header of string * DynamicObjectWriter option
         | Restler_custom_payload_query of string * DynamicObjectWriter option
@@ -99,6 +100,7 @@ let rec getRestlerPythonPayload (payload:FuzzingPayload) (isQuoted:bool) : Reque
             | Number -> Restler_fuzzable_number ({ defaultValue = v ; isQuoted = false ; exampleValue = exv  ; trackedParameterName = parameterName }, dynamicObject)
             | Uuid ->
                 Restler_fuzzable_uuid4 ({ defaultValue = v ; isQuoted = isQuoted ; exampleValue = exv ; trackedParameterName = parameterName }, dynamicObject)
+            | PrimitiveType.Ipv4 -> Restler_fuzzable_ipv4 ({ defaultValue = v ; isQuoted = false ; exampleValue = exv  ; trackedParameterName = parameterName  }, dynamicObject)
             | PrimitiveType.Enum (enumPropertyName, _, enumeration, defaultValue) ->
                 let defaultStr =
                     match defaultValue with
@@ -332,6 +334,7 @@ let generatePythonParameter includeOptionalParameters parameterSource parameterK
             | PrimitiveType.Object
             | PrimitiveType.Int
             | PrimitiveType.Bool
+            | PrimitiveType.Ipv4
             | PrimitiveType.Number ->
                 false
 
@@ -1148,6 +1151,13 @@ let getRequests(requests:Request list) includeOptionalParameters =
             | Restler_fuzzable_bool (s, dynamicObject) ->
                 sprintf "primitives.restler_fuzzable_bool(\"%s\"%s%s%s)"
                         s.defaultValue
+                        (getExamplePrimitiveParameter s.exampleValue)
+                        (getTrackedParamPrimitiveParameter s.trackedParameterName)
+                        (formatDynamicObjectVariable dynamicObject)
+            | Restler_fuzzable_ipv4 (s, dynamicObject) ->
+                sprintf "primitives.restler_fuzzable_ipv4(\"%s\", quoted=%s%s%s%s)"
+                        s.defaultValue
+                        (if s.isQuoted then "True" else "False")
                         (getExamplePrimitiveParameter s.exampleValue)
                         (getTrackedParamPrimitiveParameter s.trackedParameterName)
                         (formatDynamicObjectVariable dynamicObject)

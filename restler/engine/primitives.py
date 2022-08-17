@@ -3,6 +3,7 @@
 
 """  Primitive types supported by restler. """
 from __future__ import print_function
+import random
 import sys
 import os
 import time
@@ -38,6 +39,7 @@ FUZZABLE_GROUP = "restler_fuzzable_group"
 FUZZABLE_BOOL = "restler_fuzzable_bool"
 FUZZABLE_INT = "restler_fuzzable_int"
 FUZZABLE_NUMBER = "restler_fuzzable_number"
+FUZZABLE_IPV4 = "restler_fuzzable_ipv4"
 FUZZABLE_DATETIME = "restler_fuzzable_datetime"
 FUZZABLE_DATE = "restler_fuzzable_date"
 FUZZABLE_OBJECT = "restler_fuzzable_object"
@@ -137,6 +139,7 @@ class CandidateValuesPool(object):
             FUZZABLE_BOOL,
             FUZZABLE_INT,
             FUZZABLE_NUMBER,
+            FUZZABLE_IPV4,
             FUZZABLE_DATETIME,
             FUZZABLE_DATE,
             FUZZABLE_OBJECT,
@@ -186,6 +189,24 @@ class CandidateValuesPool(object):
         oneday = datetime.timedelta(days=1)
         yesterday = today - oneday
         self._past_date = yesterday.strftime(PAYLOAD_DATE_FORMAT)
+
+    def _create_fuzzable_ipv4(self):
+        list = [str(random.randint(0, 255)) for x in range(0,4)]
+        return ".".join(list)
+
+    def _add_fuzzable_ipv4(self, candidate_values):
+        """ Adds fuzzable dates to a candidate values dict
+
+        @param candidate_values: The candidate values to add the dates to
+        @type  candidate_values: Dict
+
+        @return: None
+        @rtype : None
+
+        """
+        if Settings().add_fuzzable_ipv4:
+            if FUZZABLE_IPV4 in candidate_values:
+                candidate_values[FUZZABLE_IPV4].values.append(self._create_fuzzable_ipv4())
 
     def _add_fuzzable_dates(self, candidate_values):
         """ Adds fuzzable dates to a candidate values dict
@@ -734,6 +755,38 @@ def restler_fuzzable_datetime(*args, **kwargs) :
 
 def restler_fuzzable_date(*args, **kwargs) :
     """ date primitive
+
+    @param args: The argument with which the primitive is defined in the block
+                    of the request to which it belongs to. This is a date-time
+                    primitive and therefore the arguments will be added to the
+                    existing candidate values for date-time mutations.
+    @type  args: Tuple
+    @param kwargs: Optional keyword arguments.
+    @type  kwargs: Dict
+
+    @return: A tuple of the primitive's name and its default value or its tag
+                both passed as arguments via the restler grammar.
+    @rtype : Tuple
+
+    """
+    # datetime works the same as date
+    field_name = args[0]
+    quoted = False
+    if QUOTED_ARG in kwargs:
+        quoted = kwargs[QUOTED_ARG]
+    examples=[]
+    if EXAMPLES_ARG in kwargs:
+        examples = kwargs[EXAMPLES_ARG]
+    param_name = None
+    if PARAM_NAME_ARG in kwargs:
+        param_name = kwargs[PARAM_NAME_ARG]
+    writer_variable = None
+    if WRITER_VARIABLE_ARG in kwargs:
+        writer_variable = kwargs[WRITER_VARIABLE_ARG]
+    return sys._getframe().f_code.co_name, field_name, quoted, examples, param_name, writer_variable
+
+def restler_fuzzable_ipv4(*args, **kwargs) :
+    """ ipv4 primitive
 
     @param args: The argument with which the primitive is defined in the block
                     of the request to which it belongs to. This is a date-time

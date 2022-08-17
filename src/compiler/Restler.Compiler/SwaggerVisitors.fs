@@ -81,6 +81,9 @@ module SchemaUtilities =
                     PrimitiveType.String, DefaultPrimitiveValues.[PrimitiveType.String]
                 if not (isNull format) then
                     match (format.ToLower()) with
+                    | "ipv4" ->
+                        PrimitiveType.Ipv4,
+                        DefaultPrimitiveValues.[PrimitiveType.Ipv4]
                     | "uuid"
                     | "guid" ->
                         PrimitiveType.Uuid,
