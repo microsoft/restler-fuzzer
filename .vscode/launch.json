@@ -11,6 +11,15 @@
             "program": "${file}"
         },
         {
+            "name": "Python: test quick start",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}\\restler\\end_to_end_tests\\test_quick_start.py",
+            "args" :[
+                "d:\\restlerdrop\\main",
+            ]
+        },
+           {
             "name": "Python: Payload body checker",
             "type": "python",
             "request": "launch",

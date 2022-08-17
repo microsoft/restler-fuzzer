@@ -55,8 +55,13 @@ module Dictionary =
             let grammar = File.ReadAllText(grammarFilePath)
 
             // The grammar should contain both of the custom payload uuid suffixes from the dictionary
-            Assert.True(grammar.Contains("""primitives.restler_custom_payload_uuid4_suffix("resourceId"),"""))
-            Assert.True(grammar.Contains("""primitives.restler_custom_payload_uuid4_suffix("/resource/id"),"""))
+            Assert.True(grammar.Contains("""primitives.restler_custom_payload_uuid4_suffix("resourceId", quoted=False)"""))
+
+            // TODO: the generated grammar currently contains a known bug - the resoruce ID is an integer and is being
+            // assigned a uuid suffix, which currently only supports strings.  The 'quoted' value is correctly 'False'
+            // because ID is an integer type, but
+            // in the future this should be a different primitive, e.g. 'custom_payload_unique_integer' 
+            Assert.True(grammar.Contains("""primitives.restler_custom_payload_uuid4_suffix("/resource/id", quoted=False)"""))
 
         [<Fact>]
         /// Test that when a custom payload query (resp. header) is specified in the dictionary, it is injected.

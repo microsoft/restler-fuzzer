@@ -12,6 +12,7 @@ from engine.core.requests import FailureInformation
 from engine.core.sequences import Sequence
 from engine.fuzzing_parameters.parameter_schema import HeaderList
 import engine.primitives as primitives
+from engine.fuzzing_parameters.fuzzing_config import FuzzingConfig
 
 class ExamplesChecker(CheckerBase):
     """ Checker for payload body fuzzing. """
@@ -81,10 +82,11 @@ class ExamplesChecker(CheckerBase):
                 BugBuckets.Instance().update_bug_buckets(seq, code, origin=self.__class__.__name__, hash_full_request=True)
 
         status_codes = {}
+        fuzzing_config = FuzzingConfig()
 
         # Send new request for each body example
         for example in filter(lambda x : x is not None, request.examples.body_examples):
-            blocks = example.get_blocks()
+            blocks = example.get_original_blocks(fuzzing_config)
             new_request = request.substitute_body(blocks)
             if new_request:
                 _send_request(new_request)
@@ -96,7 +98,7 @@ class ExamplesChecker(CheckerBase):
         for example in filter(lambda x : x is not None, request.examples.query_examples):
             q_blocks = []
             for idx, query in enumerate(example.param_list):
-                q_blocks += query.get_blocks()
+                q_blocks += query.get_original_blocks(fuzzing_config)
                 if idx < len(example) - 1:
                     # Add the query separator
                     q_blocks.append(primitives.restler_static_string('&'))
@@ -111,7 +113,7 @@ class ExamplesChecker(CheckerBase):
         # There will soon be IDs associated with the examples, so they can be matched.
         for example in filter(lambda x : x is not None, request.examples.header_examples):
             headers_schema = HeaderList(param=example.param_list)
-            h_blocks = headers_schema.get_blocks()
+            h_blocks = headers_schema.get_original_blocks(fuzzing_config)
             new_request = request.substitute_headers(h_blocks)
             if new_request:
                 _send_request(new_request)

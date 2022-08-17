@@ -701,7 +701,7 @@ class Request(object):
                 return i + 1
         return -1
 
-    def get_schema_combinations(self, use_grammar_py_schema=True):
+    def get_schema_combinations(self, use_grammar_py_schema=False):
         """ A generator that lazily iterates over a pool of schema combinations
         for this request, determined the specified settings.
 
@@ -1016,7 +1016,9 @@ class Request(object):
         # constructed, since not all of them may be needed, e.g. during smoke test mode.
         next_combination = 0
         schema_idx = -1
-        schema_combinations = itertools.islice(self.get_schema_combinations(), Settings().max_schema_combinations)
+        schema_combinations = itertools.islice(self.get_schema_combinations(
+                                                    use_grammar_py_schema=Settings().allow_grammar_py_user_update),
+                                               Settings().max_schema_combinations)
         remaining_combinations_count = Settings().max_combinations - skip
 
         for (req, is_example) in schema_combinations:
@@ -1372,6 +1374,8 @@ class Request(object):
         check_example_schema_is_valid(num_query_payloads, max_example_payloads, "query")
         check_example_schema_is_valid(num_body_payloads, max_example_payloads, "body")
 
+        fuzzing_config = FuzzingConfig()
+
         for payload_idx in range(max_example_payloads):
             body_example = None
             query_example = None
@@ -1395,16 +1399,16 @@ class Request(object):
             query_blocks = None
             header_blocks = None
             if body_example:
-                body_blocks = body_example.get_blocks()
+                body_blocks = body_example.get_original_blocks(fuzzing_config)
                 # Only substitute the body if there is a body.
                 if body_blocks:
                     new_request = new_request.substitute_body(body_blocks)
 
             if query_example:
-                query_blocks = query_example.get_blocks()
+                query_blocks = query_example.get_original_blocks(fuzzing_config)
                 new_request = new_request.substitute_query(query_blocks)
             if header_example:
-                header_blocks = header_example.get_blocks()
+                header_blocks = header_example.get_original_blocks(fuzzing_config)
                 new_request = new_request.substitute_headers(header_blocks)
 
             if new_request:
