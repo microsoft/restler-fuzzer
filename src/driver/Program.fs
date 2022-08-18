@@ -14,7 +14,7 @@ open Microsoft.FSharpLu.Diagnostics.Process
 open Restler.Telemetry
 
 [<Literal>]
-let CurrentVersion = "8.6.2"
+let CurrentVersion = "9.0.0"
 let EngineErrorCode = -2
 
 let exitRestler status =
@@ -446,10 +446,10 @@ let getCheckerOptions defaultCheckerOptions userSpecifiedCheckerOptions =
     engineCheckerOptions
 
 
-module Config = 
+module Config =
     open Newtonsoft.Json.Linq
 
-    type GenerateConfigParameters = 
+    type GenerateConfigParameters =
         {
             specFilesOrDirs : string list
             outputDir : string option
@@ -460,7 +460,7 @@ module Config =
             if args.specFilesOrDirs.Length = 0 then
                 Logging.logError <| sprintf "At least one specification file or directory must be specified."
                 usage()
-               
+
             { args with
                 outputDir = match args.outputDir with
                             | Some d -> Some d
@@ -469,9 +469,9 @@ module Config =
             let absPath = Restler.Config.convertToAbsPath Environment.CurrentDirectory outputDir
             parseGenerateConfigParameters { args with outputDir = Some absPath } rest
         | "--specs"::rest ->
-            let nextArgIndex = 
+            let nextArgIndex =
                 rest |> Seq.tryFindIndex (fun x -> x.StartsWith("--"))
-            let specs, rest = 
+            let specs, rest =
                 match nextArgIndex with
                 | None ->
                     rest, []
@@ -483,17 +483,17 @@ module Config =
             Logging.logError <| sprintf "Invalid argument: %s" invalidArgument
             usage()
 
-    let generateConfig (generateConfigParameters:string list) = 
+    let generateConfig (generateConfigParameters:string list) =
         // If the config directory path is specified, it will be the last two entries
         // in the list
-        let configParameters = parseGenerateConfigParameters 
+        let configParameters = parseGenerateConfigParameters
                                     { specFilesOrDirs = []
                                       outputDir = None }
                                     generateConfigParameters
         let configDirPath = configParameters.outputDir.Value
         printf "Creating directory %s" configDirPath
         createDirIfNotExists configDirPath
-        let specPaths = 
+        let specPaths =
             configParameters.specFilesOrDirs
             |> Seq.distinct
             |> Seq.map (fun specFileOrDir ->
@@ -503,7 +503,7 @@ module Config =
                     // Assume the specifications are either yaml or json
                     let fileExtensions = [".json"; ".yml"; ".yaml"]
                     fileExtensions
-                    |> Seq.map (fun ext -> 
+                    |> Seq.map (fun ext ->
                                     Directory.GetFiles(specFileOrDir, sprintf "*%s" ext)
                                     |> seq)
                     |> Seq.concat
@@ -515,8 +515,8 @@ module Config =
 
         // Get absolute paths.  The user will need to convert these to a relative path
         // when checked in.
-        let swaggerSpecAbsFilePaths = 
-            specPaths 
+        let swaggerSpecAbsFilePaths =
+            specPaths
             |> Seq.map (fun filePath ->
                             Restler.Config.convertToAbsPath Environment.CurrentDirectory filePath)
             |> Seq.toList
@@ -528,15 +528,15 @@ module Config =
             "restler_custom_payload_query": {},
             "restler_custom_payload_uuid4_suffix": {}
         }"""
-        let defaultDictionary = 
-            match Restler.Dictionary.getDictionaryFromString customPayloads with 
+        let defaultDictionary =
+            match Restler.Dictionary.getDictionaryFromString customPayloads with
             | Ok d ->
                 Microsoft.FSharpLu.Json.Compact.serializeToFile dictionaryFilePath d
             | error ->
                 failwith "Could not deserialize default dictionary during generate_config."
         let engineSettingsFilePath = configDirPath ++ Restler.Workflow.Constants.DefaultEngineSettingsFileName
 
-        let updateEngineSettingsResult = Restler.Engine.Settings.updateEngineSettings 
+        let updateEngineSettingsResult = Restler.Engine.Settings.updateEngineSettings
                                                [] (Map.empty<string, string>) None configDirPath engineSettingsFilePath
         match updateEngineSettingsResult with
         | Ok () -> ()
@@ -548,9 +548,9 @@ module Config =
         File.WriteAllText(annotationFilePath, Restler.Annotations.Constants.EmptyAnnotationFile)
 
         // Add the dictionary, annotations, and engine settings.
-        // In order to generate only the properties required to set the config files, 
+        // In order to generate only the properties required to set the config files,
         // use a JObject below instead of modifying the default config.
-        let config = 
+        let config =
             JObject(
                 JProperty("SwaggerSpecFilePath", JArray(swaggerSpecAbsFilePaths)),
                 JProperty("DataFuzzing", true),
@@ -561,7 +561,7 @@ module Config =
         // Serialize the config to the specified directory
         let configFilePath = configDirPath ++ Restler.Workflow.Constants.DefaultCompilerConfigName
         // Deserialize the config to make sure it is valid before writing it.
-        let defaultConfig = config.ToString() 
+        let defaultConfig = config.ToString()
         let _ = Microsoft.FSharpLu.Json.Compact.deserialize<Restler.Config.Config> defaultConfig
         File.WriteAllText(configFilePath, defaultConfig)
         ()
