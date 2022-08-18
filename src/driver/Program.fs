@@ -187,7 +187,7 @@ module Fuzz =
     let DefaultFuzzModeCheckerOptions =
         [
             ("--enable_checkers", "*")
-            ("--disable_checkers", "namespacerule invalidvalue")
+            ("--disable_checkers", "namespacerule")
         ]
 
     let getPythonVersionString pythonExeName workingDirectory = async {

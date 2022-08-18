@@ -410,10 +410,14 @@ class CandidateValuesPool(object):
 
         return unique_fuzzable_values
 
-    def set_value_generators(self, file_path):
+    def set_value_generators(self, file_path, random_seed=None):
         """ Imports the value generators from the specified module file path.
         """
-        self._value_generators = import_utilities.import_attr(file_path, "value_generators")
+        attrs = import_utilities.import_attrs(file_path, ["value_generators", "set_random_seed"])
+        self._value_generators = attrs[0]
+        random_seed_override_fn = attrs[1]
+        if random_seed is not None and random_seed_override_fn is not None:
+            random_seed_override_fn(random_seed)
 
     def set_candidate_values(self, custom_values, per_endpoint_custom_mutations=None):
         """ Overrides default primitive type values with user-provided ones.

@@ -75,7 +75,7 @@ class CandidateValuesTest(unittest.TestCase):
         # Default generators with 'int' in request block, which is not present there.
         # Expected: the string generator should be used.
         fuzzable_int = primitives.restler_fuzzable_int("20", is_quoted=False, examples=[])
-
+        override_value_gen["restler_fuzzable_int"] = None
         req_definition = [fuzzable_int]
         temp_req = Request(req_definition)
         tv = get_test_values(4, temp_req, user_dict, file_path, override_value_generators=override_value_gen)
