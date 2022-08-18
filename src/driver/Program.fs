@@ -26,7 +26,7 @@ let usage() =
         "Usage:
 
   restler --version
-          --generate_config <OpenAPI file list or directory> --output_dir <output directory>
+          generate_config --specs <OpenAPI file list or directory> --output_dir <output directory>
           [--disable_log_upload] [--logsUploadRootDirPath <log upload directory>]
           [--python_path <full path to python executable>]
           [--workingDirPath <local logs directory (default: cwd)>]
@@ -449,44 +449,67 @@ let getCheckerOptions defaultCheckerOptions userSpecifiedCheckerOptions =
 module Config = 
     open Newtonsoft.Json.Linq
 
+    type GenerateConfigParameters = 
+        {
+            specFilesOrDirs : string list
+            outputDir : string option
+        }
+
+    let rec parseGenerateConfigParameters (args:GenerateConfigParameters) = function
+        | [] ->
+            if args.specFilesOrDirs.Length = 0 then
+                Logging.logError <| sprintf "At least one specification file or directory must be specified."
+                usage()
+               
+            { args with
+                outputDir = match args.outputDir with
+                            | Some d -> Some d
+                            | None -> Some (Environment.CurrentDirectory ++ "restlerConfig") }
+        | "--output_dir"::outputDir::rest ->
+            let absPath = Restler.Config.convertToAbsPath Environment.CurrentDirectory outputDir
+            parseGenerateConfigParameters { args with outputDir = Some absPath } rest
+        | "--specs"::rest ->
+            let nextArgIndex = 
+                rest |> Seq.tryFindIndex (fun x -> x.StartsWith("--"))
+            let specs, rest = 
+                match nextArgIndex with
+                | None ->
+                    rest, []
+                | Some i ->
+                    rest.[0..i-1], (rest |> List.skip i)
+
+            parseGenerateConfigParameters { args with specFilesOrDirs = specs } rest
+        | invalidArgument::rest ->
+            Logging.logError <| sprintf "Invalid argument: %s" invalidArgument
+            usage()
+
     let generateConfig (generateConfigParameters:string list) = 
         // If the config directory path is specified, it will be the last two entries
         // in the list
-        let configDirIndex = 
-            generateConfigParameters |> Seq.tryFindIndex (fun x -> x.StartsWith("--output_dir"))
-
-        let configDirPath, specPathsOrDirs = 
-            match configDirIndex with
-            | None ->
-                Environment.CurrentDirectory ++ "restler_job_config",
-                generateConfigParameters
-            | Some i ->
-                if i = generateConfigParameters.Length - 1 then
-                    printf "Missing config output directory value."
-                    usage()
-                else
-                    let relPath = generateConfigParameters.[i+1]
-                    let absPath = Restler.Config.convertToAbsPath Environment.CurrentDirectory relPath
-                    absPath, generateConfigParameters.[0..i-1]
-        printf "Created directory %s" configDirPath
+        let configParameters = parseGenerateConfigParameters 
+                                    { specFilesOrDirs = []
+                                      outputDir = None }
+                                    generateConfigParameters
+        let configDirPath = configParameters.outputDir.Value
+        printf "Creating directory %s" configDirPath
         createDirIfNotExists configDirPath
         let specPaths = 
-            specPathsOrDirs
+            configParameters.specFilesOrDirs
             |> Seq.distinct
-            |> Seq.map (fun specPathOrDir ->
-                if File.Exists specPathOrDir then
-                    [ specPathOrDir ]
-                elif (Directory.Exists specPathOrDir) then
+            |> Seq.map (fun specFileOrDir ->
+                if File.Exists specFileOrDir then
+                    [ specFileOrDir ]
+                elif (Directory.Exists specFileOrDir) then
                     // Assume the specifications are either yaml or json
                     let fileExtensions = [".json"; ".yml"; ".yaml"]
                     fileExtensions
                     |> Seq.map (fun ext -> 
-                                    Directory.GetFiles(specPathOrDir, sprintf "*%s" ext)
+                                    Directory.GetFiles(specFileOrDir, sprintf "*%s" ext)
                                     |> seq)
                     |> Seq.concat
                     |> Seq.toList
                 else
-                    Logging.logError <| sprintf "API specification file or directory %s does not exist." specPathOrDir
+                    Logging.logError <| sprintf "API specification file or directory %s does not exist." specFileOrDir
                     usage())
             |> Seq.concat
 
@@ -660,7 +683,7 @@ let rec parseArgs (args:DriverArgs) = function
     | "--version"::_ ->
         printfn "RESTler version: %s" CurrentVersion
         exit 0
-    | "--generate_config"::rest ->
+    | "generate_config"::rest ->
         Config.generateConfig rest
         exit 0
     | "--disable_log_upload"::rest ->
