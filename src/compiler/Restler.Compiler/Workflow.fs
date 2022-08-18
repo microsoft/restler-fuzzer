@@ -21,6 +21,8 @@ module Constants =
     let DefaultExampleMetadataFileName = "examples.json"
     let DefaultEngineSettingsFileName = "engine_settings.json"
     let CustomValueGeneratorTemplateFileName = "custom_value_gen_template.py"
+    let DefaultAnnotationFileName = "annotations.json"
+    let DefaultCompilerConfigName = "config.json"
 
 let generatePython grammarOutputDirectoryPath config grammar =
     let codeFile = Path.Combine(grammarOutputDirectoryPath, Constants.DefaultRestlerGrammarFileName)
@@ -201,11 +203,24 @@ let generateGrammarFromSwagger grammarOutputDirectoryPath (swaggerDoc, specMetad
         let discoveredExamplesFilePath = Path.Combine(examplesDirectory, Constants.DefaultExampleMetadataFileName)
         Examples.serializeExampleConfigFile discoveredExamplesFilePath examples
 
+
+    // A helper function to override defaults with user-specified dictionary values 
+    // when the user specifies only some of the properties
+    let mergeWithDefaultDictionary (newDictionaryAsString:string) =
+        let defaultDict = Microsoft.FSharpLu.Json.Compact.serialize Dictionary.DefaultMutationsDictionary
+        let newDict = Utilities.JsonParse.mergeWithOverride defaultDict newDictionaryAsString
+
+        Microsoft.FSharpLu.Json.Compact.deserialize<Dictionary.MutationsDictionary> newDict
+
     // Write the updated dictionary.
     let writeDictionary dictionaryName newDict =
         let newDictionaryFilePath = System.IO.Path.Combine(grammarOutputDirectoryPath, dictionaryName)
         printfn "Writing new dictionary to %s" newDictionaryFilePath
+        // Add any properties to the dictionary that are missing from the original dictionary
+        // For example, the user may specify only custom payloads, and exclude fuzzable properties.
+        let newDict = mergeWithDefaultDictionary (Microsoft.FSharpLu.Json.Compact.serialize newDict) 
         Microsoft.FSharpLu.Json.Compact.serializeToFile newDictionaryFilePath newDict
+
     writeDictionary Constants.NewDictionaryFileName newDictionary
 
     // Also generate a template for input value generator based on the dictionary.

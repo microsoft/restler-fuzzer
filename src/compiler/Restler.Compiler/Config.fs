@@ -4,6 +4,7 @@
 module Restler.Config
 
 open System.IO
+open Newtonsoft.Json.Linq
 
 /// The 'type' of the resource is inferred based on the naming of its name and container as
 /// well as conventions for the API method (e.g. PUT vs. POST).
@@ -291,3 +292,11 @@ let DefaultConfig =
         TrackFuzzedParameterNames = false
         JsonPropertyMaxDepth = None
     }
+
+// A helper function to override defaults with user-specified config values 
+// when the user specifies only some of the properties
+let mergeWithDefaultConfig (userConfigAsString:string) =
+    let defaultConfig = Microsoft.FSharpLu.Json.Compact.serialize DefaultConfig
+    let newConfig = Restler.Utilities.JsonParse.mergeWithOverride defaultConfig userConfigAsString
+
+    Microsoft.FSharpLu.Json.Compact.deserialize<Config> newConfig
