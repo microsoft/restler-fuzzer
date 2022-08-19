@@ -256,14 +256,19 @@ def resolve_dynamic_primitives(values, candidate_values_pool):
             )
             if not isinstance(token_dict, dict):
                 raise Exception("Refreshable token was not specified as a setting, but a request was expecting it.")
-            token_refresh_interval = token_dict['token_refresh_interval']
-            token_refresh_cmd = token_dict['token_refresh_cmd']
-            if int(time.time()) - last_refresh > token_refresh_interval:
-                execute_token_refresh_cmd(token_refresh_cmd)
-                last_refresh = int(time.time())
-                #print("-{}-\n-{}-".format(repr(latest_token_value),
-                #                          repr(latest_shadow_token_value)))
-            values[i] = latest_token_value
+            if token_dict:
+                token_refresh_interval = token_dict['token_refresh_interval']
+                token_refresh_cmd = token_dict['token_refresh_cmd']
+                if int(time.time()) - last_refresh > token_refresh_interval:
+                    execute_token_refresh_cmd(token_refresh_cmd)
+                    last_refresh = int(time.time())
+                    #print("-{}-\n-{}-".format(repr(latest_token_value),
+                    #                          repr(latest_shadow_token_value)))
+                values[i] = latest_token_value
+            else:
+                # If the dictionary is empty, there is no authentication specified.
+                # Simply return the empty string.
+                values[i] = ""
 
     return values
 

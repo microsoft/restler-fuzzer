@@ -430,7 +430,13 @@ if __name__ == '__main__':
             }
         )
     else:
-        req_collection.remove_authentication_tokens()
+        req_collection.candidate_values_pool.set_candidate_values(
+            {
+                'restler_refreshable_authentication_token':
+                    {
+                    }
+            }
+        )
 
     # Initialize the fuzzing monitor
     monitor = fuzzing_monitor.FuzzingMonitor()

@@ -31,10 +31,6 @@ def get_python_grammar(grammar_name):
     grammar = importlib.import_module(grammar_name)
     req_collection = getattr(grammar, "req_collection")
 
-    # The line below is required to avoid key errors on the auth token
-    # TODO: remove this constraint from the code, so the token refresh grammar element
-    # can also be tested here.
-    req_collection.remove_authentication_tokens()
     return req_collection
 
 def set_grammar_schema(grammar_file_name, request_collection):
