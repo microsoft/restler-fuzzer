@@ -1477,13 +1477,18 @@ class Request(object):
                     auth_token_index = auth_tokens[0]
                     for idx in range(auth_token_index + 1, len(request.definition)-1):
                         if request.definition[idx] not in body_delim_patterns and\
-                                request.definition[idx][0] == primitives.STATIC_STRING:
+                                request.definition[idx][0] in [primitives.STATIC_STRING, primitives.FUZZABLE_OBJECT]:
                             if request.definition[idx][1].startswith("{"):
                                 dict_index = idx
                                 break
                             if request.definition[idx][1].startswith("["):
                                 array_index = idx
                                 break
+                    # If the body was not found using the above method, simply assume that the body starts
+                    # after the authentication token delimiter.  This is a best-effort workaround for the currently
+                    # unsupported case of non-json bodies.
+                    if dict_index == -1 and array_index == -1 and len(request.definition) > auth_token_index + 1:
+                        return auth_token_index + 2
             except Exception:
                 pass
 
@@ -1760,19 +1765,6 @@ class RequestCollection(object):
         self.candidate_values_pool.set_candidate_values(custom_mutations, per_endpoint_custom_mutations)
         if value_generators_file_path:
             self.candidate_values_pool.set_value_generators(value_generators_file_path)
-
-    def remove_authentication_tokens(self):
-        """ Removes the authentication token line from each request in the collection
-
-        @return: None
-        @rtype : None
-
-        """
-        for req in self._requests:
-            for line in req.definition:
-                if line[0] == primitives.REFRESHABLE_AUTHENTICATION_TOKEN:
-                    req._definition.remove(line)
-                    break
 
     @property
     def request_id_collection(self):
