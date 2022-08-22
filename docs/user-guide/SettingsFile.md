@@ -178,6 +178,8 @@ __max_examples__
 For request types where one or more examples are provided, this option limits
 the number of examples that will be tested.
 
+### max_sequence_length: int (default 100)
+The maximum length of fuzzed request sequences.
 
 ### add_fuzzable_dates: bool (default False)
 Set to True to generate additional dates
@@ -198,6 +200,39 @@ Filters the grammar to only use endpoints whose paths contain the given regex st
 Example: `(\w*)/virtualNetworks/(\w*)`
 
 Example: `disk|virtualNetwork`
+
+### include_requests: list (default empty list=No filtering)
+Filters the grammar to include only the specified endpoints and methods.  If no ```methods``` key is specified, all methods are included.
+Note: if the included request depends on pre-requisite resources that are created by other
+requests, all requests required to create the dependency will be exercised. For example, the endpoint
+below requires a ```postId``` that is obtained by executing ```POST /api/blog/posts``` - this request will
+also be executed, even though it is not included in the list below.  A future improvement will filter out
+such requests from fuzzing, but currently they will be fuzzed as well.
+
+```json
+  "include_requests": [
+    {
+      "endpoint": "/api/blog/posts/{postId}",
+    }
+  ]
+```
+
+### exclude_requests: list (default empty list=No filtering)
+Filters the grammar to exclude the specified endpoints and methods.
+
+Note: although the ```DELETE``` is excluded from fuzzing below, it will still be executed by the RESTler
+garbage collector to clean up the blog posts that were created in order to test the other requests with
+endpoint ```/api/blog/posts/{postId}```.  To completely exclude ```DELETE```s from running, you must filter them
+manually from grammar.py.
+
+```json
+  "exclude_requests": [
+    {
+      "endpoint": "/api/blog/posts/{postId}",
+      "methods": ["GET", "DELETE"]
+    }
+  ]
+```
 
 ### save_results_in_fixed_dirname: bool (default False)
 Save the results in a directory with a fixed name (skip the 'experiment\<pid\>' subdir).
@@ -425,7 +460,7 @@ value_generators = {
     "global_producer_timing_delay": 2,
     "dyn_objects_cache_size":20,
     "fuzzing_mode": "directed-smoke-test",
-    "path_regex": "(\\w*)/ddosProtectionPlans(\\w*)",
+    "path_regex": "(\\w*)/blog/posts(\\w*)",
     "per_resource_settings": {
         "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Network/dnsZones/{zoneName}/{recordType}/{relativeRecordSetName}": {
             "producer_timing_delay": 1,

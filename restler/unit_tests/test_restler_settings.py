@@ -459,6 +459,16 @@ class RestlerSettingsTest(unittest.TestCase):
         self.assertEqual(5, settings.get_producer_timing_delay(hex_def(request2)))
         self.assertEqual(2, settings.get_producer_timing_delay(hex_def("test_unknown_request_id")))
 
+        # Test that inclusion/exclusion is correctly determined based on a request endpoint and method
+        self.assertTrue(settings.include_request("/blog/included/1", "POST"))
+        self.assertTrue(settings.include_request("/blog/included/1", "PUT"))
+        self.assertTrue(settings.include_request("/blog/included/2", "PUT"))
+        self.assertFalse(settings.include_request("/blog/included/2", "POST"))
+
+        self.assertFalse(settings.include_request("/blog/excluded/1", "GET"))
+        self.assertFalse(settings.include_request("/blog/excluded/2", "GET"))
+        self.assertFalse(settings.include_request("/blog/included/1", "GET"))
+
         custom_dicts = settings.get_endpoint_custom_mutations_paths()
         self.assertEqual("c:\\restler\\custom_dict1.json", custom_dicts[hex_def(request1)])
         self.assertEqual("c:\\restler\\custom_dict2.json", custom_dicts[hex_def(request2)])
@@ -491,7 +501,7 @@ class RestlerSettingsTest(unittest.TestCase):
         self.assertFalse(settings.connection_settings.use_ssl)
         self.assertTrue(settings.connection_settings.disable_cert_validation)
         self.assertTrue(settings.no_tokens_in_logs)
-        self.assertEqual('(\w*)/ddosProtectionPlans(\w*)', settings.path_regex)
+        self.assertEqual('(\w*)/blog/posts(\w*)', settings.path_regex)
         self.assertEqual(500, settings.request_throttle_ms)
         self.assertEqual('100.100.100.100', settings.connection_settings.target_ip)
         self.assertEqual(500, settings.connection_settings.target_port)

@@ -59,7 +59,7 @@ def import_grammar(path):
 
     return req_collection
 
-def get_checker_list(req_collection, fuzzing_requests, enable_list, disable_list, set_enable_first, custom_checkers, enable_default_checkers=True):
+def get_checker_list(req_collection, fuzzing_requests, enable_list, disable_list, set_enable_first, custom_checkers):
     """ Initializes all of the checkers, sets the appropriate checkers
     as enabled/disabled, and returns a list of checker objects
 
@@ -98,10 +98,6 @@ def get_checker_list(req_collection, fuzzing_requests, enable_list, disable_list
     @type  set_enable_first: Bool
     @param custom_checkers: List of paths to custom checker python files
     @type  custom_checkers: List[str]
-    @param enable_default_checkers: If set to False, each checker will be disabled by default,
-                                    otherwise, checkers will be enabled/disabled based on their
-                                    default settings.
-    @type  enable_default_checkers: Bool
 
     @return: List of Checker objects to apply
     @rtype : List[Checker]
@@ -151,8 +147,6 @@ def get_checker_list(req_collection, fuzzing_requests, enable_list, disable_list
     # Iterate through each checker and search for its friendly name
     # in each list of enabled/disabled
     for checker in available_checkers:
-        if not enable_default_checkers:
-            checker.enabled = False
         if checker.friendly_name in first_list:
             checker.enabled = first_enable
         if checker.friendly_name in second_list:
@@ -487,7 +481,7 @@ if __name__ == '__main__':
         set_enable_first = args.enable_checkers is not None
 
     checkers = get_checker_list(req_collection, fuzzing_requests, args.enable_checkers or [], args.disable_checkers or [],\
-        set_enable_first, settings.custom_checkers, enable_default_checkers=args.fuzzing_mode != 'directed-smoke-test')
+        set_enable_first, settings.custom_checkers)
 
     # Initialize request count for each checker
     for checker in checkers:

@@ -545,7 +545,7 @@ class FunctionalityTests(unittest.TestCase):
         """
         Fuzz_Time = 0.1 # 6 minutes
         Num_Sequences = 300
-        settings_file_path = os.path.join(Test_File_Directory, "test_one_schema_settings.json")
+        settings_file_path = os.path.join(Test_File_Directory, "test_fuzz_settings.json")
 
         args = Common_Settings + [
             '--fuzzing_mode', 'bfs-cheap',
