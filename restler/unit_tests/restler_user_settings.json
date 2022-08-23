@@ -33,7 +33,7 @@
   "disable_cert_validation": true,
   "disable_logging": true,
   "no_tokens_in_logs": true,
-  "path_regex": "(\\w*)/ddosProtectionPlans(\\w*)",
+  "path_regex": "(\\w*)/blog/posts(\\w*)",
   "ignore_decoding_failures": true,
   "request_throttle_ms": 500,
   "custom_retry_settings": {
@@ -73,6 +73,24 @@
       }
     ]
   },
+  "include_requests": [
+    {
+      "endpoint": "/blog/included/1"
+    },
+    {
+      "endpoint": "/blog/included/2",
+      "methods": ["PUT"]
+    }
+  ],
+  "exclude_requests": [
+    {
+      "endpoint": "/blog/excluded/1"
+    },
+    {
+      "endpoint": "/blog/included/1",
+      "methods": ["GET"]
+    }
+  ],
   "checkers": {
     "namespacerule": {
       "mode": "exhaustive"

@@ -442,6 +442,11 @@ class RestlerSettings(object):
         self._no_tokens_in_logs = SettingsArg('no_tokens_in_logs', bool, True, user_args)
         ## Save the results in a dir with a fixed name (skip 'experiment<pid>' subdir)
         self._save_results_in_fixed_dirname = SettingsArg('save_results_in_fixed_dirname', bool, False, user_args)
+        ## Include only the specified requests
+        self._include_requests = SettingsArg('include_requests', list, [], user_args)
+        ## Exclude the specified requests
+        self._exclude_requests = SettingsArg('exclude_requests', list, [], user_args)
+
         ## Limit restler grammars only to endpoints whose paths contain a given substring
         self._path_regex = SettingsArg('path_regex', str, None, user_args)
         ## Custom value generator module file path
@@ -700,6 +705,35 @@ class RestlerSettings(object):
     @property
     def wait_for_async_resource_creation(self):
         return self._wait_for_async_resource_creation.val
+
+    def include_request(self, endpoint, method):
+        """"Returns whether the specified endpoint and method should be tested according to
+        the include/exclude settings
+        """
+        def contains_request(req_list):
+            for req in req_list:
+                if endpoint == req["endpoint"]:
+                    return "methods" not in req or method in req["methods"]
+            return False
+
+        def exclude_req():
+            return contains_request(self._exclude_requests.val)
+
+        def include_req():
+            return contains_request(self._include_requests.val)
+        # A request is included if
+        # - the include/exclude lists are not specified
+        # - only the include list is specified, and includes this request
+        # - only the exclude list is specified, and does not include this request
+        # - both lists are specified, the requst is in the include list and not in the exclude list
+        if not (self._include_requests.val or self._exclude_requests.val):
+            return True
+        elif not self._exclude_requests.val:
+            return include_req()
+        elif not self._include_requests.val:
+            return not exclude_req()
+        else:
+            return include_req() and not exclude_req()
 
     def get_cached_prefix_request_settings(self, endpoint, method):
         def get_settings():

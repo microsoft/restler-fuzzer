@@ -51,16 +51,26 @@ def create_fuzzing_req_collection(path_regex):
 
     """
     fuzz_reqs = fuzzing_requests.FuzzingRequestCollection()
-    if path_regex:
-        included_requests = []
-        for request in GrammarRequestCollection():
-            if re.findall(path_regex, request.endpoint):
-                reqs = driver.compute_request_goal_seq(
-                    request, GrammarRequestCollection())
-                for req in reqs:
-                    included_requests.append(req)
-    else:
+    included_requests= set()
+    included_all_reqs = True
+    for request in GrammarRequestCollection():
+        include_req = Settings().include_request(request.endpoint_no_dynamic_objects, request.method)
+        if include_req and path_regex:
+            include_req = re.findall(path_regex, request.endpoint_no_dynamic_objects)
+        if include_req:
+            reqs = driver.compute_request_goal_seq(
+                request, GrammarRequestCollection())
+            for req in reqs:
+                if req not in included_requests:
+                    included_requests.add(req)
+        else:
+            included_all_reqs = False
+    if included_all_reqs:
+        # TODO: For ordering backwards compatibility - once test baselines are updated,
+        # this should be removed.
         included_requests = list (GrammarRequestCollection()._requests)
+    else:
+        included_requests = list (included_requests)
 
     # Sort the request list by hex definition so the requests are
     # always traversed in the same order.
