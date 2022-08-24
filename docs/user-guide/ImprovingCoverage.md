@@ -4,6 +4,7 @@ This page outlines strategies and techniques for improving RESTler's API coverag
 
 There are several approaches for improving coverage.  The most efficient approach will depend on the size and complexity of the API, and the type of errors encountered.
 
+
 **Fixing errors with the most bug buckets**
 
 RESTler contains a 'Results analyzer' that parses the logs and bucketizes responses based on the status code and message text.   See [ResultsAnalyzer](ResultsAnalyzer.md) for more details.  The analyzer produces two files:
@@ -12,6 +13,13 @@ RESTler contains a 'Results analyzer' that parses the logs and bucketizes respon
 -  ```ResponseBuckets/errorBuckets.json```:  contains the bucket descriptions.
 
 When fixing errors to improve coverage, we recommend starting with errors that have the highest count.  Another approach is to quickly look over the ```errorBuckets.json``` and fix easy to address errors, based on domain knowledge for the particular API.  Note: since these files do not contain information about request sequences, you may still need to analyze RESTler's raw network logs to understand errors involving state (e.g. 'resource cannot be used because it is still being created').
+
+**Fixing errors one by one based on the coverage report**
+
+RESTler produces a coverage report (```speccov.json```), which lists every endpoint and method tested and the
+result details, including which pre-requisite requests failed if the current request was not tested.
+Using this report is convenient when focusing on fixing a specific request or group of requests.
+
 
 **Fixing errors sequentially**
 
