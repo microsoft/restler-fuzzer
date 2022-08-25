@@ -416,6 +416,21 @@ class FunctionalityTests(unittest.TestCase):
         except TestFailedException:
             self.fail("Smoke test failed: Garbage Collector")
 
+        testing_summary_file_path = os.path.join(experiments_dir, "logs", "testing_summary.json")
+
+        try:
+            with open(testing_summary_file_path, 'r') as file:
+                testing_summary = json.loads(file.read())
+                total_requests_sent = testing_summary["total_requests_sent"]["main_driver"]
+                total_gc_requests_sent = testing_summary["total_requests_sent"]["gc"]
+                total_object_creations = testing_summary["total_object_creations"]
+                self.assertLessEqual(total_requests_sent, 75)
+                self.assertLessEqual(total_object_creations, 50)
+                self.assertEqual(total_gc_requests_sent, 34)
+        except TestFailedException:
+            self.fail("Smoke test failed: testing summary.")
+
+
     def test_create_once(self):
         """ This checks that a directed smoke test, using create once endpoints,
         executes all of the expected requests in the correct order with correct
@@ -463,45 +478,68 @@ class FunctionalityTests(unittest.TestCase):
         bugs planted for each checker, and a main driver bug, will produce the
         appropriate bug buckets and the requests will be sent in the correct order.
         """
-        settings_file_path = os.path.join(Test_File_Directory, "test_one_schema_settings.json")
-        args = Common_Settings + [
-            '--fuzzing_mode', 'directed-smoke-test',
-            '--restler_grammar', f'{os.path.join(Test_File_Directory, "test_grammar_bugs.py")}',
-            '--enable_checkers', '*',
-            '--disable_checkers', 'invalidvalue',
-            '--settings', f'{settings_file_path}'
+        def test(settings_file_name):
+            settings_file_path = os.path.join(Test_File_Directory, settings_file_name)
+
+            args = Common_Settings + [
+                '--fuzzing_mode', 'directed-smoke-test',
+                '--restler_grammar', f'{os.path.join(Test_File_Directory, "test_grammar_bugs.py")}',
+                '--enable_checkers', '*',
+                '--disable_checkers', 'invalidvalue',
+                '--settings', f'{settings_file_path}'
+            ]
+
+            result = subprocess.run(args, capture_output=True)
+            if result.stderr:
+                self.fail(result.stderr)
+            try:
+                result.check_returncode()
+            except subprocess.CalledProcessError:
+                self.fail(f"Restler returned non-zero exit code: {result.returncode} {result.stdout}")
+
+            experiments_dir = self.get_experiments_dir()
+
+            try:
+                default_parser = FuzzingLogParser(os.path.join(Test_File_Directory, "checkers_testing_log.txt"))
+                test_parser = FuzzingLogParser(self.get_network_log_path(experiments_dir, logger.LOG_TYPE_TESTING))
+                self.assertTrue(default_parser.diff_log(test_parser))
+            except TestFailedException:
+                self.fail("Checkers failed: Fuzzing")
+
+            try:
+                default_parser = BugLogParser(os.path.join(Test_File_Directory, "checkers_bug_buckets.txt"))
+                test_parser = BugLogParser(os.path.join(experiments_dir, 'bug_buckets', 'bug_buckets.txt'))
+                self.assertTrue(default_parser.diff_log(test_parser))
+            except TestFailedException:
+                self.fail("Checkers failed: Bug Buckets")
+
+            try:
+                default_parser = GarbageCollectorLogParser(os.path.join(Test_File_Directory, "checkers_gc_log.txt"))
+                test_parser = GarbageCollectorLogParser(self.get_network_log_path(experiments_dir, logger.LOG_TYPE_GC))
+                self.assertTrue(default_parser.diff_log(test_parser))
+            except TestFailedException:
+                self.fail("Checkers failed: Garbage Collector")
+
+            try:
+                testing_summary_file_path = os.path.join(experiments_dir, "logs", "testing_summary.json")
+
+                with open(testing_summary_file_path, 'r') as file:
+                    testing_summary = json.loads(file.read())
+                    total_requests_sent = testing_summary["total_requests_sent"]["main_driver"]
+                    total_gc_requests_sent = testing_summary["total_requests_sent"]["gc"]
+                    total_object_creations = testing_summary["total_object_creations"]
+                    self.assertLessEqual(total_requests_sent, 40)
+                    self.assertLessEqual(total_object_creations, 102)
+                    self.assertEqual(total_gc_requests_sent, 51)
+            except TestFailedException:
+                self.fail("Smoke test failed: testing summary.")
+
+        settings_files = [
+            "test_one_schema_settings.json",
+            "test_gc_during_main_loop_settings.json"
         ]
-
-        result = subprocess.run(args, capture_output=True)
-        if result.stderr:
-            self.fail(result.stderr)
-        try:
-            result.check_returncode()
-        except subprocess.CalledProcessError:
-            self.fail(f"Restler returned non-zero exit code: {result.returncode} {result.stdout}")
-
-        experiments_dir = self.get_experiments_dir()
-
-        try:
-            default_parser = FuzzingLogParser(os.path.join(Test_File_Directory, "checkers_testing_log.txt"))
-            test_parser = FuzzingLogParser(self.get_network_log_path(experiments_dir, logger.LOG_TYPE_TESTING))
-            self.assertTrue(default_parser.diff_log(test_parser))
-        except TestFailedException:
-            self.fail("Checkers failed: Fuzzing")
-
-        try:
-            default_parser = BugLogParser(os.path.join(Test_File_Directory, "checkers_bug_buckets.txt"))
-            test_parser = BugLogParser(os.path.join(experiments_dir, 'bug_buckets', 'bug_buckets.txt'))
-            self.assertTrue(default_parser.diff_log(test_parser))
-        except TestFailedException:
-            self.fail("Checkers failed: Bug Buckets")
-
-        try:
-            default_parser = GarbageCollectorLogParser(os.path.join(Test_File_Directory, "checkers_gc_log.txt"))
-            test_parser = GarbageCollectorLogParser(self.get_network_log_path(experiments_dir, logger.LOG_TYPE_GC))
-            self.assertTrue(default_parser.diff_log(test_parser))
-        except TestFailedException:
-            self.fail("Checkers failed: Garbage Collector")
+        for settings_file_name in settings_files:
+            test(settings_file_name)
 
     def test_multi_dict(self):
         """ This checks that the directed smoke test executes all of the expected

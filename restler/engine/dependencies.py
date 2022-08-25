@@ -237,10 +237,10 @@ def set_saved_dynamic_objects():
 # when the resource has already been deleted during the fuzzing run
 DELETED_CODES = ['200', '202', '204', '404']
 
-class GarbageCollectorThread(threading.Thread):
+class GarbageCollector:
     """ Garbage collector class
     """
-    def __init__(self, req_collection, fuzzing_monitor, interval):
+    def __init__(self, req_collection, fuzzing_monitor):
         """ Uses requests from @param req_collection to garbage collect, i.e.,
         try to periodically try deleting dynamic objects.
 
@@ -248,17 +248,13 @@ class GarbageCollectorThread(threading.Thread):
         @type  req_collection: RequestCollection class object.
         @param fuzzing_monitor: The global monitor for the fuzzing run
         @type  fuzzing_monitor: FuzzingMonitor
-        @param interval: The interval after which to restart garbage collection.
-        @param interval: Int
 
         @return: None
         @rtype : None
 
         """
-        threading.Thread.__init__(self)
-
-        self._interval = interval
-        self._dyn_objects_cache_size = Settings().dyn_objects_cache_size
+        self._dyn_objects_cache_size = \
+            0 if Settings().run_gc_after_every_sequence else Settings().dyn_objects_cache_size
 
         self.req_collection = req_collection
         self.monitor = fuzzing_monitor
@@ -279,37 +275,56 @@ class GarbageCollectorThread(threading.Thread):
         # lifetime of fuzzing.
         self.overflowing = {}
         self._finishing = False
+        self._created_network_log = False
         self._cleanup_event = threading.Event()
+        self._cleanup_done_event = threading.Event()
+
+    @property
+    def cleanup_event(self):
+        return self._cleanup_event
+
+    @property
+    def cleanup_done_event(self):
+        return self._cleanup_done_event
+
+    def clean_all_objects(self):
+        """Signals the event that triggers cleanup, and
+        waits for the done event."""
+        self.cleanup_event.set()
+        self.cleanup_done_event.wait()
+        self.cleanup_done_event.clear()
 
     def run(self):
-        """ Thread entrance - periodically do garbage collection.
+        """ Do garbage collection.
 
         @return: None
         @rtype : None
 
         """
-        def _should_stop():
-            if self._finishing:
-                elapsed_time = time.time() - self._cleanup_start_time
-                return elapsed_time > self._max_cleanup_time or self._cache_empty()
+        if not self._created_network_log:
+            from utils.logger import create_network_log
+            from utils.logger import LOG_TYPE_GC
+            create_network_log(LOG_TYPE_GC)
+            self._created_network_log = True
+
+        try:
+            self.do_garbage_collection()
+        except Exception as error:
+            error_str = f"Exception during garbage collection: {error!s}"
+            print(error_str)
+            from utils.logger import garbage_collector_logging as CUSTOM_LOGGING
+            CUSTOM_LOGGING(error_str)
+            raise
+
+    def finish(self):
+        # Move the saved dynamic objects into the dynamic objects
+        # cache to be deleted
+        for name, val in self.saved_dyn_objects.items():
+            if name in self.dyn_objects_cache:
+                self.dyn_objects_cache[name].extend(val)
             else:
-                return False
-
-        from utils.logger import create_network_log
-        from utils.logger import LOG_TYPE_GC
-        create_network_log(LOG_TYPE_GC)
-
-        while not _should_stop():
-            # Sleep here for _interval unless the cleanup event has been set
-            self._cleanup_event.wait(self._interval)
-            try:
-                self.do_garbage_collection()
-            except Exception as error:
-                error_str = f"Exception during garbage collection: {error!s}"
-                print(error_str)
-                from utils.logger import garbage_collector_logging as CUSTOM_LOGGING
-                CUSTOM_LOGGING(error_str)
-                sys.exit(-1)
+                self.dyn_objects_cache[name] = val
+        self._dyn_objects_cache_size = 0
 
     def _cache_empty(self):
         """ Helper function that returns whether or not there are any more
@@ -324,32 +339,6 @@ class GarbageCollectorThread(threading.Thread):
                     len(self.dyn_objects_cache[type]) > 0:
                 return False
         return True
-
-    def finish(self, max_cleanup_time):
-        """ Begins the final cleanup of the garbage collector
-
-        @param max_cleanup_time: The amount of time to continue garbage
-                                 collection after this function call
-        @type  max_cleanup_time: Integer
-        @return: None
-        @rtype : None
-
-        """
-        # Move the saved dynamic objects into the dynamic objects
-        # cache to be deleted
-        for name, val in self.saved_dyn_objects.items():
-            if name in self.dyn_objects_cache:
-                self.dyn_objects_cache[name].extend(val)
-            else:
-                self.dyn_objects_cache[name] = val
-
-        self._finishing = True
-        self._interval = 0
-        self._dyn_objects_cache_size = 0
-        self._cleanup_start_time = time.time()
-        self._max_cleanup_time = max_cleanup_time
-        # Set the cleanup event flag to immediately stop the GC loop from waiting
-        self._cleanup_event.set()
 
     def do_garbage_collection(self):
         """ Implements the garbage collection logic.
@@ -496,3 +485,68 @@ class GarbageCollectorThread(threading.Thread):
             for value in deleted_list:
                 self.overflowing[type].remove(value)
             self.overflowing[type] = self.overflowing[type][-max_aged_objects:]
+
+
+class GarbageCollectorThread(threading.Thread):
+    """ Garbage collector thread class
+    """
+    def __init__(self, garbage_collector, interval):
+        """ Uses requests from @param req_collection to garbage collect, i.e.,
+        try to periodically try deleting dynamic objects.
+
+        @param garbage_collector: The garbage collector that will be used to clean up objects.
+        @type  garbage_collector: GarbageCollector class object.
+        @param interval: The interval after which to restart garbage collection.
+        @param interval: Int
+
+        @return: None
+        @rtype : None
+
+        """
+        threading.Thread.__init__(self)
+
+        self._garbage_collector = garbage_collector
+        self._finishing = False
+        self._interval = interval
+
+    def run(self):
+        """ Thread entrance - periodically do garbage collection.
+
+        @return: None
+        @rtype : None
+
+        """
+        def _should_stop():
+            if self._finishing:
+                elapsed_time = time.time() - self._cleanup_start_time
+                return elapsed_time > self._max_cleanup_time or self._garbage_collector._cache_empty()
+            else:
+                return False
+
+        while not _should_stop():
+            # Sleep here for _interval unless the cleanup event has been set
+            self._garbage_collector.cleanup_event.wait(self._interval)
+            self._garbage_collector.run()
+            self._garbage_collector.cleanup_event.clear()
+            self._garbage_collector.cleanup_done_event.set()
+
+
+    def finish(self, max_cleanup_time):
+        """ Begins the final cleanup of the garbage collector
+
+        @param max_cleanup_time: The amount of time to continue garbage
+                                 collection after this function call
+        @type  max_cleanup_time: Integer
+        @return: None
+        @rtype : None
+
+        """
+        self._garbage_collector.finish()
+
+        self._interval = 0
+        self._cleanup_start_time = time.time()
+        self._finishing = True
+        self._max_cleanup_time = max_cleanup_time
+        # Set the cleanup event flag to immediately stop the GC loop from waiting
+        self._garbage_collector.cleanup_event.set()
+

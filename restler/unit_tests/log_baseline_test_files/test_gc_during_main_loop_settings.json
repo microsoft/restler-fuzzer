@@ -1,0 +1,6 @@
+{
+  "test_combinations_settings": {
+    "max_schema_combinations":  1,
+    "run_gc_after_every_sequence":  true
+  }
+}

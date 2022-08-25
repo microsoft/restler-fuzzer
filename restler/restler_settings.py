@@ -403,6 +403,8 @@ class RestlerSettings(object):
         self._garbage_collection_interval = SettingsArg('garbage_collection_interval', int, None, user_args, minval=0)
         ## Length of time the garbage collector will attempt to cleanup remaining resources at the end of fuzzing (seconds)
         self._garbage_collector_cleanup_time = SettingsArg('garbage_collector_cleanup_time', int, MAX_GC_CLEANUP_TIME_SECONDS_DEFAULT, user_args, minval=0)
+        ## Perform garbage collection of all dynamic objects after each sequence
+        self._run_gc_after_every_sequence = SettingsArg('run_gc_after_every_sequence', bool, False, user_args)
         ## The time interval to wait after a resource-generating producer is executed (in seconds)
         self._global_producer_timing_delay = SettingsArg('global_producer_timing_delay', int, 0, None, minval=0)
         if self._global_producer_timing_delay.name in user_args:
@@ -549,6 +551,10 @@ class RestlerSettings(object):
     @property
     def garbage_collection_interval(self):
         return self._garbage_collection_interval.val
+
+    @property
+    def run_gc_after_every_sequence(self):
+        return self._run_gc_after_every_sequence.val
 
     @property
     def garbage_collector_cleanup_time(self):

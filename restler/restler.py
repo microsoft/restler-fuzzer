@@ -20,6 +20,7 @@ import restler_settings
 import traceback
 
 import utils.logger as logger
+import utils.formatting as formatting
 
 import engine.bug_bucketing as bug_bucketing
 import engine.dependencies as dependencies
@@ -34,6 +35,7 @@ from engine.errors import InvalidDictionaryException
 from engine.errors import NoTokenSpecifiedException
 from engine.primitives import InvalidDictPrimitiveException
 from engine.primitives import UnsupportedPrimitiveException
+from restler_settings import Settings
 
 MANAGER_HANDLE = None
 
@@ -519,20 +521,24 @@ if __name__ == '__main__':
     else:
         logger.write_to_main(f"Grammar schema file '{grammar_path}' does not exist.", print_to_console=True)
 
-    # Start fuzzing
-    fuzz_thread = fuzzer.FuzzingThread(fuzzing_requests, checkers, args.fuzzing_jobs)
-    fuzz_thread.name = 'Fuzzer'
-    fuzz_thread.daemon = True
-    fuzz_thread.start()
-
+    # Set up garbage collection
     gc_thread = None
-    # Start the GC thread if specified
-    if args.garbage_collection_interval:
-        print(f"Initializing: Garbage collection every {settings.garbage_collection_interval} seconds.")
-        gc_thread = dependencies.GarbageCollectorThread(req_collection, monitor, settings.garbage_collection_interval)
+    garbage_collector = dependencies.GarbageCollector(req_collection, monitor)
+
+    if args.garbage_collection_interval or Settings().run_gc_after_every_sequence:
+        gc_message = "after every test sequence. " \
+                        if Settings().run_gc_after_every_sequence else f"every {settings.garbage_collection_interval} seconds."
+        print(f"{formatting.timestamp()}: Initializing: Garbage collection {gc_message}")
+        gc_thread = dependencies.GarbageCollectorThread(garbage_collector, settings.garbage_collection_interval)
         gc_thread.name = 'Garbage Collector'
         gc_thread.daemon = True
         gc_thread.start()
+
+    # Start fuzzing
+    fuzz_thread = fuzzer.FuzzingThread(fuzzing_requests, checkers, args.fuzzing_jobs, garbage_collector)
+    fuzz_thread.name = 'Fuzzer'
+    fuzz_thread.daemon = True
+    fuzz_thread.start()
 
     THREAD_JOIN_WAIT_TIME_SECONDS = 1
     # Wait for the fuzzing job to end before continuing.
@@ -562,8 +568,8 @@ if __name__ == '__main__':
 
     # If garbage collection is on, deallocate everything possible.
     if gc_thread:
-        print("Terminating garbage collection. Waiting for max {} seconds.".\
-              format(settings.garbage_collector_cleanup_time))
+        print(f"{formatting.timestamp()}: Terminating garbage collection. "
+              f"Waiting for max {settings.garbage_collector_cleanup_time} seconds. ")
         gc_thread.finish(settings.garbage_collector_cleanup_time)
         # Wait for GC to complete
         # Loop in order to enable the signal handler to run,
