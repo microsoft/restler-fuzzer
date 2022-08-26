@@ -484,6 +484,7 @@ class RestlerSettingsTest(unittest.TestCase):
         self.assertEqual(90, settings.max_request_execution_time)
 
         self.assertEqual(False, settings.save_results_in_fixed_dirname)
+        self.assertEqual(True, settings.run_gc_after_every_sequence)
 
         self.assertEqual(True, hex_def(request1) in settings.create_once_endpoints)
         self.assertNotEqual(True, hex_def(request2) in settings.create_once_endpoints)

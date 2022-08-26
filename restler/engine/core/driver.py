@@ -4,6 +4,7 @@
 """ Implements core sequence generation logic. """
 from __future__ import print_function
 import sys, os
+import traceback
 import copy
 import time
 import random
@@ -154,7 +155,7 @@ def apply_checkers(checkers, renderings, global_lock):
             raise
 
 
-def render_one(seq_to_render, ith, checkers, generation, global_lock):
+def render_one(seq_to_render, ith, checkers, generation, global_lock, garbage_collector):
     """ Render the specified sequence.
 
     @param seq_to_render: The sequence to render.
@@ -168,6 +169,8 @@ def render_one(seq_to_render, ith, checkers, generation, global_lock):
     @type  generation: Int
     @param global_lock: Lock object used for sync of more than one fuzzing jobs.
     @type  global_lock: thread.Lock object
+    @param garbage_collector: Object used to clean up previously created resources.
+    @type  garbage_collector: GarbageCollector object
 
     @return: The list of sequences with valid renderings.
     @rtype : List
@@ -212,6 +215,11 @@ def render_one(seq_to_render, ith, checkers, generation, global_lock):
         if Settings().fuzzing_mode not in ['bfs-cheap', 'bfs-minimal']\
                 or renderings.valid or n_invalid_renderings < 1:
             apply_checkers(checkers, renderings, global_lock)
+
+        # If garbage collection must be done after every sequence, apply the garbage collector here.
+        # Note: this must be done after applying checkers, since they may re-use the state of the sequence.
+        if garbage_collector:
+            garbage_collector.clean_all_objects()
 
         # If renderings.sequence is None, it means there is nothing left to render or
         # there was an error that prevents further testing, such as an error sending the request.
@@ -273,6 +281,11 @@ def render_one(seq_to_render, ith, checkers, generation, global_lock):
             renderings = current_seq.render(candidate_values_pool, global_lock)
             apply_checkers(checkers, renderings, global_lock)
 
+            # If garbage collection must be done after every sequence, apply the garbage collector here.
+            # Note: this must be done after applying checkers, since they may re-use the state of the sequence.
+            if garbage_collector:
+                garbage_collector.clean_all_objects()
+
             # If in exhaustive test mode, log the spec coverage.
             if Settings().fuzzing_mode == 'test-all-combinations':
                 if renderings and renderings.sequence:
@@ -286,7 +299,7 @@ def render_one(seq_to_render, ith, checkers, generation, global_lock):
     dependencies.clear_saved_local_dyn_objects()
     return valid_renderings
 
-def render_parallel(seq_collection, fuzzing_pool, checkers, generation, global_lock):
+def render_parallel(seq_collection, fuzzing_pool, checkers, generation, global_lock, garbage_collector):
     """ Does rendering work in parallel by invoking "render_one" multiple
     times using a pool of python workers. For brevity we skip arguments and
     return types, since they are similar with "render_one".
@@ -300,7 +313,7 @@ def render_parallel(seq_collection, fuzzing_pool, checkers, generation, global_l
     prev_len = len(seq_collection)
     result = fuzzing_pool.starmap(render_one,
                                     [(seq_collection[ith], ith,
-                                      checkers, generation, global_lock
+                                      checkers, generation, global_lock, garbage_collector
                                      )\
                                     for ith in range(prev_len)])
     seq_collection = list(itertools.chain(*result))
@@ -312,14 +325,14 @@ def render_parallel(seq_collection, fuzzing_pool, checkers, generation, global_l
 
     return seq_collection
 
-def render_sequential(seq_collection, fuzzing_pool, checkers, generation, global_lock):
+def render_sequential(seq_collection, fuzzing_pool, checkers, generation, global_lock, garbage_collector):
     """ Does rendering work sequential by invoking "render_one" multiple
     times. For brevity we skip arguments and return types, since they are
     similar with "render_one".
     """
     prev_len = len(seq_collection)
     for ith in range(prev_len):
-        valid_renderings = render_one(seq_collection[ith], ith, checkers, generation, global_lock)
+        valid_renderings = render_one(seq_collection[ith], ith, checkers, generation, global_lock, garbage_collector)
 
         # Extend collection by adding all valid renderings
         seq_collection.extend(valid_renderings)
@@ -334,7 +347,7 @@ def render_sequential(seq_collection, fuzzing_pool, checkers, generation, global
 
     return seq_collection[prev_len:]
 
-def render_with_cache(seq_collection, fuzzing_pool, checkers, generation, global_lock, seq_rendering_cache):
+def render_with_cache(seq_collection, fuzzing_pool, checkers, generation, global_lock, seq_rendering_cache, garbage_collector):
     """Render sequences one by one, caching valid prefixes and re-using previously valid renderings if found.
        For brevity we skip arguments and return types, since they are
        similar with "render_one".
@@ -446,7 +459,7 @@ def render_with_cache(seq_collection, fuzzing_pool, checkers, generation, global
             for prefix_len in range(rendered_prefix_length + 1, sequence_to_render.length + 1):
                 prefix_seq_to_render = sequences.Sequence(sequence_to_render.requests[:prefix_len])
 
-                valid_renderings = render_one(prefix_seq_to_render, sequences_count, checkers, generation, global_lock)
+                valid_renderings = render_one(prefix_seq_to_render, sequences_count, checkers, generation, global_lock, garbage_collector)
                 sequences_count = sequences_count + 1
                 if valid_renderings:
                     # Remember that this sequence and all of its prefixes are valid.
@@ -556,7 +569,7 @@ def compute_request_goal_seq(request, req_collection):
                              f"\nbecause a sequence satisfying all dependencies was not found.\n", True)
     return req_list
 
-def generate_sequences(fuzzing_requests, checkers, fuzzing_jobs=1):
+def generate_sequences(fuzzing_requests, checkers, fuzzing_jobs=1, garbage_collector=None):
     """ Implements core restler algorithm.
 
     @param fuzzing_requests: The collection of requests that will be fuzzed
@@ -695,9 +708,12 @@ def generate_sequences(fuzzing_requests, checkers, fuzzing_jobs=1):
                 if seq_constraints_by_generation[generation]:
                     # This assignment of seq_collection is performed only for logging purposes.
                     # It will get reset on the next loop iteration.
-                    seq_collection = render_with_cache(seq_collection, fuzzing_pool, checkers, generation, global_lock, seq_rendering_cache)
+                    seq_collection = render_with_cache(seq_collection, fuzzing_pool, checkers,
+                                                       generation, global_lock, seq_rendering_cache,
+                                                       garbage_collector)
                 else:
-                    seq_collection = render(seq_collection, fuzzing_pool, checkers, generation, global_lock)
+                    seq_collection = render(seq_collection, fuzzing_pool, checkers, generation, global_lock,
+                                            garbage_collector)
 
             except TimeOutException:
                 logger.write_to_main("Timed out...")

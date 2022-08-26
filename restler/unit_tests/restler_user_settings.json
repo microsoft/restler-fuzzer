@@ -27,6 +27,7 @@
   "ignore_dependencies": true,
   "ignore_feedback": true,
   "include_user_agent": true,
+  "run_gc_after_every_sequence": true,
   "max_async_resource_creation_time": 45,
   "max_sequence_length": 11,
   "no_ssl": true,

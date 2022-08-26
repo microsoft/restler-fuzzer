@@ -38,7 +38,8 @@ The exact requests executed by RESTler and the service response are all logged i
 
 The file `speccov.json` is a machine-readable version of `main.txt`, which is easier to parse by other tools (for instance, for regression testing and automatically comparing coverage data).
 
-RESTler has a garbage-collector (gc) that attempts to delete all resources ever created by RESTler during a test run. The garbage-collector logs are in the file `garbage_collector.gc.<...>.txt` and the raw HTTP/S traffic from the gc is in `network.gc.<...>.txt`.
+RESTler has a garbage-collector (gc) that attempts to delete all resources ever created by RESTler during a test run.
+The garbage-collector logs are in the file `network.gc.<...>.txt` and the raw HTTP/S traffic from the gc is in `garbage_collector.gc.<...>.txt`.
 
 In this example, coverage is 5 / 6 and the only INVALID request is
 

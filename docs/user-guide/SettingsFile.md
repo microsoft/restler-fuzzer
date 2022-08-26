@@ -80,6 +80,10 @@ The fuzzing mode. Options are:
 ### garbage_collection_interval: int (default None)
 Length of time between garbage collection calls (seconds, None = no garbage collection)
 
+### run_gc_after_every_sequence: bool (default False)
+If True, clean up dynamic objects after every sequence, instead of asynchronously
+at every ```garbage_collection_interval```.
+
 ### garbage_collector_cleanup_time: int (default 300)
 Length of time the garbage collector will attempt to cleanup remaining resources
 at the end of fuzzing (seconds)
