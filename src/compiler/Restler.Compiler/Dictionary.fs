@@ -22,6 +22,9 @@ type MutationsDictionary =
         restler_fuzzable_date_unquoted : string list
         restler_fuzzable_uuid4 : string list
         restler_fuzzable_uuid4_unquoted : string list
+        restler_fuzzable_ipv4 : string list
+        restler_fuzzable_ipv4_unquoted : string list
+
 
         restler_fuzzable_int : string list
         restler_fuzzable_number : string list
@@ -207,6 +210,8 @@ let DefaultMutationsDictionary =
         restler_fuzzable_object = [DefaultPrimitiveValues.[PrimitiveType.Object]]
         restler_fuzzable_uuid4 = [DefaultPrimitiveValues.[PrimitiveType.Uuid]]
         restler_fuzzable_uuid4_unquoted = []
+        restler_fuzzable_ipv4 = [DefaultPrimitiveValues.[PrimitiveType.Ipv4]]
+        restler_fuzzable_ipv4_unquoted = []
         restler_custom_payload = Some (Map.empty<string, string list>)
         restler_custom_payload_unquoted = Some (Map.empty<string, string list>)
         restler_custom_payload_uuid4_suffix = Some (Map.empty<string, string>)

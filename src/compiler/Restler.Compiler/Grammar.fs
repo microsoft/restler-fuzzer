@@ -112,6 +112,7 @@ type PrimitiveType =
     | Bool
     | DateTime
     | Date
+    | Ipv4
     /// The enum type specifies the list of possible enum values
     /// and the default value, if specified.
     /// (tag, data type, possible values, default value if present)
@@ -535,6 +536,7 @@ let DefaultPrimitiveValues =
         PrimitiveType.Int, "1"
         PrimitiveType.Bool, "true"
         PrimitiveType.Object, "{ \"fuzz\": false }"
+        PrimitiveType.Ipv4, "193.63.0.0"
     ]
     |> Map.ofSeq
 
