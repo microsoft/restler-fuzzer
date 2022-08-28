@@ -306,7 +306,7 @@ MAX_EXAMPLES_DEFAULT = 20
 
 MAX_SEQUENCE_LENGTH_DEFAULT = 100
 TARGET_PORT_MAX = (1<<16)-1
-TIME_BUDGET_DEFAULT = 24.0*30 # ~1 month
+TIME_BUDGET_DEFAULT = 24.0*7 # ~1 week
 
 SEQ_RENDERING_SETTINGS_DEFAULT = {
     # While fuzzing HEAD and GET request combinations, only render the prefix once.

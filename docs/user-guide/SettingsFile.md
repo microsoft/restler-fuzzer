@@ -187,6 +187,7 @@ near the current date (e.g. one in the future) that will be used for fuzzable da
 the values specified in the dictionary.
 Since some API parameters require a current or future date,
 this setting can be used to generate those values, without having to modify the dictionary.
+When enabled, the date component of example values is also updated to be a future date.
 
 ### max_request_execution_time: float (default 120, max 600)
 The maximum amount of time, in seconds, to wait for a response after sending a request.
