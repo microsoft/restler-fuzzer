@@ -20,7 +20,7 @@ Generation-1: Rendering Sequence-1
 		- restler_static_string: '\r\n'
 		- restler_static_string: '{'
 		- restler_static_string: '"datetest":'
-		+ restler_fuzzable_datetime: ['"2020-1-1"', '"2021-01-08"', '"2020-12-07"']
+		+ restler_fuzzable_datetime: ['"2021-01-01"', '"2021-01-08"', '"2020-12-07"']
 		- restler_static_string: ',"id":'
 		- restler_static_string: '"/testparts/'
 		- restler_custom_payload: 'testcustompart'
@@ -28,7 +28,7 @@ Generation-1: Rendering Sequence-1
 		- restler_static_string: '}'
 		- restler_static_string: '\r\n'
 
-2020-12-08 18:32:11.515: Sending: 'PUT /item/itemName<test!>-a4a7104c22?location=centralus&date=2020-1-1 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 58\r\n\r\n{"datetest":"2020-1-1","id":"/testparts/testcustompart"}\r\n'
+2020-12-08 18:32:11.515: Sending: 'PUT /item/itemName<test!>-a4a7104c22?location=centralus&date=2021-01-01 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 58\r\n\r\n{"datetest":"2021-01-01","id":"/testparts/testcustompart"}\r\n'
 
 2020-12-08 18:32:11.531: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "itemName<test!>-a4a7104c22"}'
 
@@ -196,7 +196,7 @@ Generation-2: Rendering Sequence-1
 		- restler_static_string: '\r\n'
 		- restler_static_string: '{'
 		- restler_static_string: '"datetest":'
-		+ restler_fuzzable_datetime: ['"2020-1-1"', '"2021-01-08"', '"2020-12-07"']
+		+ restler_fuzzable_datetime: ['"2021-01-01"', '"2021-01-08"', '"2020-12-07"']
 		- restler_static_string: ',"id":'
 		- restler_static_string: '"/testparts/'
 		- restler_custom_payload: 'testcustompart'
@@ -219,11 +219,11 @@ Generation-2: Rendering Sequence-1
 		- restler_static_string: 'Content-Type: application/json\r\n'
 		- restler_static_string: '\r\n'
 
-2020-12-08 18:32:13.802: Sending: 'PUT /item/itemName<test!>-506b9117b6?location=centralus&date=2020-1-1 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 58\r\n\r\n{"datetest":"2020-1-1","id":"/testparts/testcustompart"}\r\n'
+2020-12-08 18:32:13.802: Sending: 'PUT /item/itemName<test!>-506b9117b6?location=centralus&date=2021-01-01 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 58\r\n\r\n{"datetest":"2021-01-01","id":"/testparts/testcustompart"}\r\n'
 
 2020-12-08 18:32:13.810: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "itemName<test!>-506b9117b6"}'
 
-2020-12-08 18:32:13.818: Sending: 'GET /item/itemName<test!>-506b9117b6?date=2020-1-1 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
+2020-12-08 18:32:13.818: Sending: 'GET /item/itemName<test!>-506b9117b6?date=2021-01-01 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n'
 
 2020-12-08 18:32:13.826: Received: 'HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{"name": "itemName<test!>-506b9117b6"}'
 
@@ -343,7 +343,7 @@ Generation-2: Rendering Sequence-1
 		- restler_static_string: '\r\n'
 		- restler_static_string: '{'
 		- restler_static_string: '"datetest":'
-		+ restler_fuzzable_datetime: ['"2020-1-1"', '"2021-01-08"', '"2020-12-07"']
+		+ restler_fuzzable_datetime: ['"2021-01-01"', '"2021-01-08"', '"2020-12-07"']
 		- restler_static_string: ',"id":'
 		- restler_static_string: '"/testparts/'
 		- restler_custom_payload: 'testcustompart'
@@ -363,7 +363,7 @@ Generation-2: Rendering Sequence-1
 		- restler_static_string: 'Content-Type: application/json\r\n'
 		- restler_static_string: '\r\n'
 
-2020-12-08 18:32:15.193: Sending: 'PUT /item/itemName<test!>-96fa615b2c?location=centralus&date=2020-1-1 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 58\r\n\r\n{"datetest":"2020-1-1","id":"/testparts/testcustompart"}\r\n'
+2020-12-08 18:32:15.193: Sending: 'PUT /item/itemName<test!>-96fa615b2c?location=centralus&date=2021-01-01 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 58\r\n\r\n{"datetest":"2021-01-01","id":"/testparts/testcustompart"}\r\n'
 
 2020-12-08 18:32:15.201: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "itemName<test!>-96fa615b2c"}'
 
@@ -807,7 +807,7 @@ Generation-3: Rendering Sequence-1
 		- restler_static_string: '\r\n'
 		- restler_static_string: '{'
 		- restler_static_string: '"datetest":'
-		+ restler_fuzzable_datetime: ['"2020-1-1"', '"2021-01-08"', '"2020-12-07"']
+		+ restler_fuzzable_datetime: ['"2021-01-01"', '"2021-01-08"', '"2020-12-07"']
 		- restler_static_string: ',"id":'
 		- restler_static_string: '"/testparts/'
 		- restler_custom_payload: 'testcustompart'
@@ -839,7 +839,7 @@ Generation-3: Rendering Sequence-1
 
 2020-12-08 18:32:21.229: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "cityName<test!>-5d07f151e3", "properties": {"population": "0", "area": "5000"}}'
 
-2020-12-08 18:32:21.245: Sending: 'PUT /item/itemName<test!>-69d1a44951?location=centralus&date=2020-1-1 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 58\r\n\r\n{"datetest":"2020-1-1","id":"/testparts/testcustompart"}\r\n'
+2020-12-08 18:32:21.245: Sending: 'PUT /item/itemName<test!>-69d1a44951?location=centralus&date=2021-01-01 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 58\r\n\r\n{"datetest":"2021-01-01","id":"/testparts/testcustompart"}\r\n'
 
 2020-12-08 18:32:21.245: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "itemName<test!>-69d1a44951"}'
 
@@ -1591,7 +1591,7 @@ Generation-4: Rendering Sequence-1
 		- restler_static_string: '\r\n'
 		- restler_static_string: '{'
 		- restler_static_string: '"datetest":'
-		+ restler_fuzzable_datetime: ['"2020-1-1"', '"2021-01-08"', '"2020-12-07"']
+		+ restler_fuzzable_datetime: ['"2021-01-01"', '"2021-01-08"', '"2020-12-07"']
 		- restler_static_string: ',"id":'
 		- restler_static_string: '"/testparts/'
 		- restler_custom_payload: 'testcustompart'
@@ -1635,7 +1635,7 @@ Generation-4: Rendering Sequence-1
 
 2020-12-08 18:32:29.343: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "cityName<test!>-3e3137d446", "properties": {"population": "0", "area": "5000"}}'
 
-2020-12-08 18:32:29.358: Sending: 'PUT /item/itemName<test!>-0df0732c01?location=centralus&date=2020-1-1 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 58\r\n\r\n{"datetest":"2020-1-1","id":"/testparts/testcustompart"}\r\n'
+2020-12-08 18:32:29.358: Sending: 'PUT /item/itemName<test!>-0df0732c01?location=centralus&date=2021-01-01 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 58\r\n\r\n{"datetest":"2021-01-01","id":"/testparts/testcustompart"}\r\n'
 
 2020-12-08 18:32:29.365: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "itemName<test!>-0df0732c01"}'
 
@@ -1793,7 +1793,7 @@ Generation-4: Rendering Sequence-1
 		- restler_static_string: '\r\n'
 		- restler_static_string: '{'
 		- restler_static_string: '"datetest":'
-		+ restler_fuzzable_datetime: ['"2020-1-1"', '"2021-01-08"', '"2020-12-07"']
+		+ restler_fuzzable_datetime: ['"2021-01-01"', '"2021-01-08"', '"2020-12-07"']
 		- restler_static_string: ',"id":'
 		- restler_static_string: '"/testparts/'
 		- restler_custom_payload: 'testcustompart'
@@ -1837,7 +1837,7 @@ Generation-4: Rendering Sequence-1
 
 2020-12-08 18:32:31.363: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "cityName<test!>-7fc5f73813", "properties": {"population": "0", "area": "5000"}}'
 
-2020-12-08 18:32:31.370: Sending: 'PUT /item/itemName<test!>-e39c4726f9?location=centralus&date=2020-1-1 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 58\r\n\r\n{"datetest":"2020-1-1","id":"/testparts/testcustompart"}\r\n'
+2020-12-08 18:32:31.370: Sending: 'PUT /item/itemName<test!>-e39c4726f9?location=centralus&date=2021-01-01 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nContent-Length: 58\r\n\r\n{"datetest":"2021-01-01","id":"/testparts/testcustompart"}\r\n'
 
 2020-12-08 18:32:31.386: Received: 'HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{"name": "itemName<test!>-e39c4726f9"}'
 

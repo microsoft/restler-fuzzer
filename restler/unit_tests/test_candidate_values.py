@@ -1,6 +1,7 @@
 import unittest
 import os
-
+import datetime
+from datetime import datetime as dt
 from engine.primitives import CandidateValues, CandidateValuesPool
 from restler_settings import RestlerSettings
 from engine.core.requests import Request
@@ -13,6 +14,8 @@ import typing
 
 
 class CandidateValuesTest(unittest.TestCase):
+    def tearDown(self):
+        RestlerSettings.TEST_DeleteInstance()
 
     def test_candidate_values(self):
 
@@ -92,3 +95,35 @@ class CandidateValuesTest(unittest.TestCase):
         tv = get_test_values(4, temp_req, user_dict, None, override_value_generators=override_value_gen)
         tv = list(tv)
         self.assertEqual(tv, ["1", "2"])
+
+    def test_date_examples(self):
+        """Test that adjusting date examples to make them current works"""
+        # Candidate pool creation requires the RestlerSettings() instance to be created
+        s = RestlerSettings({})
+        pool = CandidateValuesPool()
+        start = dt(2022, 8, 28)
+        end = start + datetime.timedelta(days = 7)
+
+        def test_dates(example_test_date, expected_new_date):
+            # test that these are updated correctly and are between [today, today + 7]
+            x = pool._get_current_date_from_example(example_test_date, end)
+            self.assertEqual(x, expected_new_date)
+
+        test_dates_with_expected = [
+            ("2018-01-01T12:10:00010Z", "2022-09-04T12:10:00010Z"),
+            ("2018-06-12T22:05:09Z", "2022-09-04T22:05:09Z"),
+            ("2018-01-01", "2022-09-04"),
+            ("12/09/2018", "09/04/2022"),
+            ("1/09/2019", "09/04/2022"),
+            ("1/8/2019", "09/04/2022"),
+            ("2/2/2020 8:34:47 PM","09/04/2022 8:34:47 PM"),
+            ("8/11/2017 9:05:00 PM", "09/04/2022 9:05:00 PM"),
+            ("8/2/2018 4:08:12 AM (UTC)", "09/04/2022 4:08:12 AM (UTC)")
+        ]
+        for (date, expected_date) in test_dates_with_expected:
+            test_dates(date, expected_date)
+
+        # Test example None is returned unmodified
+        x = pool._get_current_date_from_example(None, end)
+        self.assertTrue(x is None)
+        pass
