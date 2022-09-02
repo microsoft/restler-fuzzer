@@ -203,12 +203,13 @@ class InvalidValueChecker(CheckerBase):
         self._sequence = rendered_sequence.sequence
         last_request = self._sequence.last_request
         generation = self._sequence.length
-
+        (last_rendered_schema_request,_) = self._sequence.last_request._last_rendered_schema_request
         self._checker_log.checker_print(f"Testing request: {last_request.endpoint} {last_request.method}")
 
-        # Note: this hash must be the hex definition, so each of the different schema variations of the request
+        # Note: this hash should be the last rendered schema hex definition,
+        # so each of the different schema variations of the request
         # are fuzzed separately (since they may contain different parameters).
-        request_hash = last_request.hex_definition
+        request_hash = last_rendered_schema_request.hex_definition
         if InvalidValueChecker.generation_executed_requests.get(generation) is None:
             # This is the first time this checker has seen this generation, create empty set of requests
             InvalidValueChecker.generation_executed_requests[generation] = set()
@@ -229,7 +230,7 @@ class InvalidValueChecker(CheckerBase):
             req_primitive_type = req_block[0]
             return "_fuzzable_" in req_primitive_type or "_custom_" in req_primitive_type
 
-        fuzzable_parameter_value_blocks = list(map(lambda x : should_fuzz(x), last_request.definition))
+        fuzzable_parameter_value_blocks = list(map(lambda x : should_fuzz(x), last_rendered_schema_request.definition))
         num_fuzzable_blocks = len(list(filter(lambda x: x, fuzzable_parameter_value_blocks)))
         if num_fuzzable_blocks == 0:
             return
@@ -266,13 +267,12 @@ class InvalidValueChecker(CheckerBase):
 
         self._checker_log.checker_print(f"Budget: {param_budget} values per parameter.")
 
-
         for idx, is_fuzzable in enumerate(fuzzable_parameter_value_blocks):
             if not is_fuzzable:
                 continue
 
             # Save the original request block.
-            request_block = last_request.definition[idx]
+            request_block = last_rendered_schema_request.definition[idx]
             primitive_type = request_block[0]
 
             # Create a request with this block being the only part of its definition, and get the
@@ -294,7 +294,6 @@ class InvalidValueChecker(CheckerBase):
             logged_param = "" if field_name is None else f", name: {field_name}"
             self._checker_log.checker_print(f"Fuzzing request block {idx}, type: {primitive_type}{logged_param}")
 
-
             tv = get_test_values(param_budget, temp_req, self._custom_invalid_mutations,
                                  self._value_generators_file_path,
                                  random_seed=self._override_random_seed)
@@ -306,8 +305,9 @@ class InvalidValueChecker(CheckerBase):
                 for fuzzed_value in tv:
                     rendered_values[idx] = fuzzed_value
                     if not isinstance(fuzzed_value, str):
-                        print("not as tring!")
+                        print("not a string!")
                     rendered_data = "".join(rendered_values)
+                    self._checker_log.checker_print(f"+++payload: {rendered_data}.+++")
 
                     # Check time budget
                     if Monitor().remaining_time_budget <= 0:

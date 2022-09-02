@@ -256,6 +256,7 @@ class Request(object):
         self._create_once_requests = []
         self._tracked_parameters = {}
         self._rendered_values_cache = RenderedValuesCache()
+        self._last_rendered_schema_request = None
 
         # Check for empty request before assigning ids
         if self._definition:
@@ -1132,6 +1133,10 @@ class Request(object):
                     rendered_data = values
                 else:
                     rendered_data = "".join(values)
+
+                # Save the schema for this combination.
+                self._last_rendered_schema_request = (req, is_example)
+
                 yield rendered_data, parser, tracked_parameter_values
 
                 next_combination = next_combination + 1
