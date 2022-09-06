@@ -67,6 +67,8 @@ let usage() =
             Example: (\w*)/virtualNetworks/(\w*)
         --no_ssl
             When connecting to the service, do not use SSL.  The default is to connect with SSL.
+        --http2
+            When connecting to the service, use HTTP2.  The default is to connect with HTTP/1.1.
         --host <Host string>
             If specified, this string will set or override the Host in each request.
             Example: management.web.com
@@ -239,6 +241,7 @@ module Fuzz =
                 sprintf "--producer_timing_delay %d" parameters.producerTimingDelay
             else "")
             (if not parameters.useSsl then "--no_ssl" else "")
+            (if not parameters.useHTTP2 then "" else "--http2")
             (match parameters.host with
              | Some h -> sprintf "--host %s" h
              | None -> "")
@@ -636,6 +639,8 @@ let rec parseEngineArgs task (args:EngineParameters) = function
             usage()
     | "--no_ssl"::rest ->
         parseEngineArgs task { args with useSsl = false } rest
+    | "--http2"::rest ->
+        parseEngineArgs task { args with useHTTP2 = true} rest
     | "--host"::host::rest->
         parseEngineArgs task { args with host = Some host } rest
     | "--settings"::settingsFilePath::rest ->

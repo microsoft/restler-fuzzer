@@ -53,6 +53,9 @@ type EngineParameters =
         /// Specifies to use SSL when connecting to the server
         useSsl : bool
 
+        /// Specifies to use HTTP2 when connecting to the server
+        useHTTP2 : bool
+
         /// The string to use in overriding the Host for each request
         host : string option
 
@@ -86,6 +89,7 @@ let DefaultEngineParameters =
         searchStrategy = None
         producerTimingDelay = 0
         useSsl = true
+        useHTTP2 = false
         host = None
         settingsFilePath= ""
         checkerOptions = []
