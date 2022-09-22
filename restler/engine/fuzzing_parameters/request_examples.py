@@ -104,7 +104,7 @@ class RequestExamples():
                     query_list.append(query)
                 self._query_examples.append(query_list)
 
-    def _set_header_params(self, query_parameters):
+    def _set_header_params(self, header_parameters):
         """ Deserializes and populates the header parameters
 
         @param query_parameters: Header parameters from request schema
@@ -114,12 +114,23 @@ class RequestExamples():
         @rtype : None
 
         """
+        # Special case: 'DictionaryCustomPayload' may contain the 'Content-Type' parameter
+        content_type_headers = []
+        for header_parameter in header_parameters:
+            if header_parameter[0] == 'DictionaryCustomPayload':
+                # Save this and later append to every example parameter
+                for header in des_header_param(header_parameter[1]):
+                    content_type_headers.append(header)
+                break
+
         # Iterate through each collection of header parameters
-        for header_parameter in query_parameters:
+        for header_parameter in header_parameters:
             if header_parameter[0] == 'Examples':
                 header_list = HeaderList()
                 # Set each header parameter of the query
                 for header in des_header_param(header_parameter[1]):
+                    header_list.append(header)
+                for header in content_type_headers:
                     header_list.append(header)
                 self._header_examples.append(header_list)
 
