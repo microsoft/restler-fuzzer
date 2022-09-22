@@ -688,9 +688,10 @@ let generatePythonFromRequest (request:Request) includeOptionalParameters mergeS
                             [parameterList ; currentPList] |> Seq.concat)
                         Seq.empty
 
-    let getParameterListPayload (queryOrBodyParameters:(ParameterPayloadSource * RequestParametersPayload) list) =
-        let payloadSource, declaredPayload = getParameterPayload queryOrBodyParameters
-        let injectedPayload = getCustomParameterPayload queryOrBodyParameters
+    /// Gets the parameter list payload for query, header, or body parameters
+    let getParameterListPayload (parameters:(ParameterPayloadSource * RequestParametersPayload) list) =
+        let payloadSource, declaredPayload = getParameterPayload parameters
+        let injectedPayload = getCustomParameterPayload parameters
         payloadSource, ParameterList ([declaredPayload ; injectedPayload] |> Seq.concat)
 
     let getExamplePayload (queryOrBodyParameters:(ParameterPayloadSource * RequestParametersPayload) list) =
