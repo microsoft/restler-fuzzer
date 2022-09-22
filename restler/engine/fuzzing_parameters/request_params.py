@@ -13,7 +13,23 @@ TAG_SEPARATOR = '/'
 FUZZABLE_GROUP_TAG = "fuzzable_group_tag"
 
 
-class KeyValueParamBase():
+class ParamProperties:
+    """ Properties of request parameters
+    """
+    def __init__(self, is_required=True, is_readonly=False):
+        self._is_readonly = is_readonly
+        self._is_required = is_required
+
+    @property
+    def is_readonly(self):
+        return self._is_readonly
+
+    @property
+    def is_required(self):
+        return self._is_required
+
+
+class KeyValueParamBase:
     __metaclass__ = ABCMeta
 
     """ Abstract base class for parameters that are key-value pairs, such as query
@@ -38,6 +54,12 @@ class KeyValueParamBase():
         """ Is this a required parameter
         """
         return self.content.is_required
+
+    @property
+    def is_readonly(self):
+        """ Is this a readonly parameter
+        """
+        return self.content.is_readonly
 
     @property
     def is_dynamic_object(self):
@@ -148,17 +170,17 @@ class HeaderParam(KeyValueParamBase):
         else:
             return []
 
-class ParamBase():
+class ParamBase:
     """ Base class for all body parameters """
-    def __init__(self, is_required=True, dynamic_object=None, param_name=None, content_type=None, is_quoted=False):
+    def __init__(self, param_properties=None, dynamic_object=None, param_name=None, content_type=None, is_quoted=False):
         self._fuzzable = False
         self._example_values = []
         self._tag = ''
-        self._is_required = is_required
+        self._param_properties = param_properties
         self._dynamic_object = dynamic_object
         self._param_name = param_name
         self._content_type = content_type
-        self._is_quoted=is_quoted
+        self._is_quoted = is_quoted
 
     @property
     def tag(self):
@@ -188,7 +210,19 @@ class ParamBase():
         @rtype:  Bool
 
         """
-        return self._is_required
+        return self._param_properties.is_required
+
+    @property
+    def is_readonly(self):
+        """ Returns whether the param is readonly
+
+        @return: True if the parameter is readonly
+        @rtype:  Bool
+
+        """
+        return self._param_properties.is_readonly
+
+
 
     @property
     def example_values(self):
@@ -253,7 +287,7 @@ class ParamBase():
         self._fuzzable = src._fuzzable
         self._example_values = src._example_values
         self._tag = src._tag
-        self._is_required = src._is_required
+        self._param_properties = src._param_properties
         self._dynamic_object = src._dynamic_object
         self._content_type = src.content_type
         self._is_quoted = src.is_quoted
@@ -338,14 +372,14 @@ class ParamValue(ParamBase):
     """ Base class for value type parameters. Value can be Object, Array,
     String, Number, Boolean, ObjectLeaf, and Enum.
     """
-    def __init__(self, custom_payload_type=None, is_required=True, dynamic_object=None, is_quoted=False):
+    def __init__(self, custom_payload_type=None, param_properties=None, dynamic_object=None, is_quoted=False):
         """ Initialize a ParamValue.
 
         @return: None
         @rtype:  None
 
         """
-        ParamBase.__init__(self, is_required=is_required, dynamic_object=dynamic_object, is_quoted=is_quoted)
+        ParamBase.__init__(self, param_properties=param_properties, dynamic_object=dynamic_object, is_quoted=is_quoted)
         self._content = None
         self._custom_payload_type = custom_payload_type
 
@@ -454,10 +488,11 @@ class ParamValue(ParamBase):
         # Not relevant for this param type
         pass
 
+
 class ParamObject(ParamBase):
     """ Class for object type parameters """
 
-    def __init__(self, members, is_required=True, is_dynamic_object=False):
+    def __init__(self, members, param_properties=None):
         """ Initialize an object type parameter
 
         @param members: A list of members
@@ -467,7 +502,7 @@ class ParamObject(ParamBase):
         @rtype:  None
 
         """
-        ParamBase.__init__(self, is_required, is_dynamic_object)
+        ParamBase.__init__(self, param_properties=param_properties)
         self._members = members
 
     def __eq__(self, other):
@@ -667,10 +702,11 @@ class ParamObject(ParamBase):
         blocks.append(primitives.restler_static_string('}'))
         return blocks
 
+
 class ParamArray(ParamBase):
     """ Class for array type parameters """
 
-    def __init__(self, values, is_required=True, is_dynamic_object=False):
+    def __init__(self, values, param_properties=None):
         """ Initialize an array type parameter
 
         @param values: A list of array values
@@ -680,7 +716,7 @@ class ParamArray(ParamBase):
         @rtype:  None
 
         """
-        ParamBase.__init__(self, is_required, is_dynamic_object)
+        ParamBase.__init__(self, param_properties=param_properties)
         self._values = values
 
     @property
@@ -861,10 +897,11 @@ class ParamArray(ParamBase):
         blocks.append(primitives.restler_static_string(']'))
         return blocks
 
+
 class ParamString(ParamValue):
     """ Class for string type parameters """
 
-    def __init__(self, custom_payload_type=None, is_required=True, dynamic_object=None, is_quoted=True,
+    def __init__(self, custom_payload_type=None, param_properties=None, dynamic_object=None, is_quoted=True,
                  content_type="String"):
         """ Initialize a string type parameter
 
@@ -875,7 +912,7 @@ class ParamString(ParamValue):
         @rtype:  None
 
         """
-        ParamValue.__init__(self, is_required=is_required, dynamic_object=dynamic_object, is_quoted=is_quoted)
+        ParamValue.__init__(self, param_properties=param_properties, dynamic_object=dynamic_object, is_quoted=is_quoted)
 
         self._custom_payload_type=custom_payload_type
         self._content_type = content_type
@@ -1045,6 +1082,7 @@ class ParamString(ParamValue):
         """
         return fuzzer._fuzz_string(self)
 
+
 class ParamUuidSuffix(ParamString):
     """ Class for uuid suffix parameters """
 
@@ -1084,7 +1122,7 @@ class DynamicObject:
 
 class ParamNumber(ParamValue):
     """ Class for number type parameters """
-    def __init__(self, is_required=True, dynamic_object=None, is_quoted=False, number_type="Int"):
+    def __init__(self, param_properties=None, dynamic_object=None, is_quoted=False, number_type="Int"):
         """ Initialize a number type parameter
 
         @param custom: Whether or not this is a custom payload
@@ -1094,7 +1132,7 @@ class ParamNumber(ParamValue):
         @rtype:  None
 
         """
-        ParamValue.__init__(self, is_required=is_required, dynamic_object=dynamic_object, is_quoted=is_quoted)
+        ParamValue.__init__(self, param_properties=param_properties, dynamic_object=dynamic_object, is_quoted=is_quoted)
         self._number_type = number_type
 
     @property
@@ -1372,11 +1410,12 @@ class ParamObjectLeaf(ParamValue):
         """
         return fuzzer._fuzz_object_leaf(self)
 
+
 class ParamEnum(ParamValue):
     """ Class for Enum type parameters """
 
     def __init__(self, contents, content_type, is_quoted=False,
-                 is_required=True, body_param=True, is_dynamic_object=False,
+                 param_properties=None, body_param=True,
                  enum_name=FUZZABLE_GROUP_TAG):
         """ Initialize an Enum type parameter
 
@@ -1389,7 +1428,7 @@ class ParamEnum(ParamValue):
         @rtype:  None
 
         """
-        ParamBase.__init__(self, is_required, is_dynamic_object)
+        ParamBase.__init__(self, param_properties)
 
         self._contents = contents
         self._type = content_type
@@ -1499,7 +1538,7 @@ class ParamEnum(ParamValue):
 class ParamMember(ParamBase):
     """ Class for member type parameters """
 
-    def __init__(self, name, value, is_required=True, is_dynamic_object=False):
+    def __init__(self, name, value, param_properties=None):
         """ Initialize a member type parameter
 
         @param name: Member name
@@ -1511,7 +1550,7 @@ class ParamMember(ParamBase):
         @rtype:  None
 
         """
-        ParamBase.__init__(self, is_required, is_dynamic_object)
+        ParamBase.__init__(self, param_properties=param_properties)
         self._name = name
         self._value = value
 

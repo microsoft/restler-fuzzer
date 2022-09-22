@@ -335,7 +335,11 @@ let generatePythonParameter includeOptionalParameters parameterSource parameterK
             | PrimitiveType.Number ->
                 false
 
-        if p.isRequired || parameterSource = ParameterPayloadSource.Examples || includeOptionalParameters then
+        let includeProperty = 
+            // Exclude 'readonly' parameters
+            not p.isReadOnly && (p.isRequired || includeOptionalParameters)
+        // Parameters from an example payload are always included
+        if parameterSource = ParameterPayloadSource.Examples || includeProperty then
             let nameSeq =
                 if String.IsNullOrEmpty p.name then
                     if level = 0 && parameterKind = ParameterKind.Query then
@@ -410,7 +414,11 @@ let generatePythonParameter includeOptionalParameters parameterSource parameterK
             []
 
     let visitInner level (p:InnerProperty) (innerProperties: RequestPrimitiveType list seq) =
-        if p.isRequired || includeOptionalParameters then
+        let includeProperty = 
+            // Exclude 'readonly' parameters
+            not p.isReadOnly && (p.isRequired || includeOptionalParameters)
+        // Parameters from an example payload are always included
+        if parameterSource = ParameterPayloadSource.Examples || includeProperty then
             // Check for the custom payload
             let nameAndCustomPayloadSeq =
                 match p.payload with
