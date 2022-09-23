@@ -25,7 +25,7 @@ class AuthTokenChecker(CheckerBase):
     def __init__(self, req_collection, fuzzing_requests):
         CheckerBase.__init__(self, req_collection, fuzzing_requests)
 
-        self._test_missing_token = True
+        self._test_missing_token = None
         self._invalid_tokens = None
 
     def init_invalid_tokens(self):
@@ -60,6 +60,11 @@ class AuthTokenChecker(CheckerBase):
         if Monitor().remaining_time_budget <= 0:
             raise TimeOutException('Exceed Timeout')
 
+        if self._test_missing_token is None:
+            self._test_missing_token = Settings().get_checker_arg(self._friendly_name, 'test_missing_token')
+            if self._test_missing_token is None:
+                self._test_missing_token = True
+
         if self._invalid_tokens is None:
             self.init_invalid_tokens()
 
@@ -68,8 +73,6 @@ class AuthTokenChecker(CheckerBase):
 
         last_request = self._sequence.last_request
         generation = self._sequence.length
-
-        self._checker_log.checker_print(f"Testing request: {last_request.endpoint} {last_request.method}")
 
         # Just run this checker once for the endpoint and method
         request_hash = last_request.method_endpoint_hex_definition
@@ -101,6 +104,7 @@ class AuthTokenChecker(CheckerBase):
             self._checker_log.checker_print("No auth token found.")
             return
 
+        self._checker_log.checker_print(f"Testing request: {last_request.endpoint} {last_request.method}")
 
         req_async_wait = Settings().get_max_async_resource_creation_time(last_request.request_id)
         new_seq = self._execute_start_of_sequence()
@@ -155,7 +159,7 @@ class AuthTokenChecker(CheckerBase):
             if not token_data.startswith("Authorization"):
                 token_data = f"Authorization: Bearer {token_data}"
 
-            rendered_values[auth_token_idx] = token_data
+            rendered_values[auth_token_idx] = token_data + "\r\n"
             request_payload = "".join(rendered_values)
             self._checker_log.checker_print(f"+++payload: {request_payload}.+++")
             send_data_and_report_bug(request_payload)
@@ -179,6 +183,9 @@ class AuthTokenChecker(CheckerBase):
         @rtype : Bool
 
         """
+        if response.status_code is None:
+            # There is no response code in case of a connection error
+            return False
         # This is the default general rule for this checker.
         # If a 500 (server error) is returned then it is an obvious bug.
         # If a 20x is returned, it is an authorization bug since tokens are expected to be invalid
