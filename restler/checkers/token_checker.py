@@ -37,6 +37,9 @@ class AuthTokenChecker(CheckerBase):
             else:
                 self._invalid_tokens = json.load(open(invalid_tokens_file_path, encoding='utf-8'))
 
+            for idx in range(0, len(self._invalid_tokens)):
+                self._invalid_tokens[idx]["hash"] = request_utilities.str_to_hex_def(self._invalid_tokens[idx]["TokenName"])
+
         except Exception as error:
             print(f"Cannot import invalid tokens for checker: {error!s}")
             sys.exit(-1)
@@ -64,6 +67,7 @@ class AuthTokenChecker(CheckerBase):
             self._test_missing_token = Settings().get_checker_arg(self._friendly_name, 'test_missing_token')
             if self._test_missing_token is None:
                 self._test_missing_token = True
+            self._missing_token_hash = request_utilities.str_to_hex_def("missing token")
 
         if self._invalid_tokens is None:
             self.init_invalid_tokens()
@@ -127,7 +131,7 @@ class AuthTokenChecker(CheckerBase):
             rendered_values = checked_seq.resolve_dependencies(rendered_values)
 
         # Run the specified token tests
-        def send_data_and_report_bug(rendered_data):
+        def send_data_and_report_bug(rendered_data, token_name, token_hash):
             response = request_utilities.send_request_data(rendered_data)
             responses_to_parse, resource_error, _ = async_request_utilities.try_async_poll(
                 rendered_data, response, req_async_wait)
@@ -143,26 +147,33 @@ class AuthTokenChecker(CheckerBase):
                 checked_seq.replace_last_sent_request_data(rendered_data, parser, response,
                                                            max_async_wait_time=req_async_wait)
                 self._print_suspect_sequence(checked_seq, response)
+                # The bucket origin must include the specific token scenario.
+                # Otherwise, only the first type of token will be logged and the others
+                # will be considered duplicates.
+                bucket_type=f"{self.__class__.__name__}_{token_hash[:10]}"
                 BugBuckets.Instance().update_bug_buckets(checked_seq, response.status_code,
-                                                         origin=self.__class__.__name__)
+                                                         origin=bucket_type,
+                                                         additional_log_str=f"Token name: {token_name}")
 
         if self._test_missing_token:
             rendered_values[auth_token_idx] = ""
             request_payload = "".join(rendered_values)
             self._checker_log.checker_print(f"+++payload: {request_payload}.+++")
-            send_data_and_report_bug(request_payload)
+            send_data_and_report_bug(request_payload, "missing token", self._missing_token_hash)
 
         for invalid_token_json in self._invalid_tokens:
             # TODO: clean up and document format
             token_data = invalid_token_json["AccessToken"]
             token_name = invalid_token_json["TokenName"]
+            token_hash = invalid_token_json["hash"]
+            # TODO: generalize token prefix / add as setting
             if not token_data.startswith("Authorization"):
                 token_data = f"Authorization: Bearer {token_data}"
 
             rendered_values[auth_token_idx] = token_data + "\r\n"
             request_payload = "".join(rendered_values)
             self._checker_log.checker_print(f"+++payload: {request_payload}.+++")
-            send_data_and_report_bug(request_payload)
+            send_data_and_report_bug(request_payload, token_name, token_hash)
 
         self._checker_log.checker_print(f"Tested request"
                                         f"{last_request.endpoint} {last_request.method}, combination "
