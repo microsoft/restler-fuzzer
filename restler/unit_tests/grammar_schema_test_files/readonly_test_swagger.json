@@ -1,0 +1,88 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "Simple Swagger with readonly body parameters",
+    "version": "1"
+  },
+  "paths": {
+    "/resource": {
+      "post": {
+        "operationId": "create_resource",
+        "parameters": [
+          {
+            "name": "body",
+            "required": true,
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/Resource"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Resource"
+            }
+          }
+        }
+      }
+    },
+    "/resource/{resourceId}": {
+      "get": {
+        "operationId": "get_resource",
+        "parameters": [
+          {
+            "name": "resourceId",
+            "required": true,
+            "in": "path",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Resource"
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "Resource": {
+      "properties": {
+        "id": {
+          "type": "string",
+          "readonly": true
+        },
+        "person": {
+          "$ref": "#/definitions/Person"
+        }
+      }
+    },
+    "Person": {
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "address": {
+          "type": "object"
+        }
+      },
+      "required": [
+        "name",
+        "address"
+      ]
+    }
+  },
+  "parameters": {
+    "ApiVersionParameter": {
+      "name": "api-version",
+      "in": "query",
+      "type": "string",
+      "required": true
+    }
+  }
+}

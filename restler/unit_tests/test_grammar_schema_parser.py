@@ -353,3 +353,29 @@ class SchemaParserTest(unittest.TestCase):
             test_required = "demo_server" not in grammar_name
             test_grammar(grammar_name, dict_file_name, all_params_required=test_required)
 
+    def test_schema_with_readonly_parameters(self):
+        """Regression test for readonly parameters.  They should be filtered out when RESTler is
+        generating combinations, but should not be filtered from example payloads (where all
+        specified parameters should be included)."""
+        self.setup()
+        grammar_name = "readonly_test_grammar"
+        schema_json_file_name = f"{grammar_name}.json"
+
+        request_collection = get_python_grammar(grammar_name)
+
+        set_grammar_schema(schema_json_file_name, request_collection)
+        req_with_body = next(iter(request_collection))
+        print(f"req{req_with_body.endpoint} {req_with_body.method}")
+
+        combinations_count = 0
+        for x, is_example in req_with_body.get_schema_combinations(use_grammar_py_schema=False):
+            rendered_data,_,_ = next(x.render_iter(request_collection.candidate_values_pool))
+            self.assertTrue("\"id\"" not in rendered_data)
+            self.assertTrue("\"person\"" in rendered_data)
+            self.assertTrue("\"name\"" in rendered_data)
+            self.assertTrue("\"address\"" in rendered_data)
+            combinations_count += 1
+
+        # Confirm both all parameters and only required parameters were tested.
+        # This also tests that the required parameters are correctly not filtered out
+        self.assertEqual(combinations_count, 2)

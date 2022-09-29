@@ -176,14 +176,25 @@ class JsonBodySchemaFuzzerBase:
         @return: A list of member variants
         @rtype:  List [ParamMember]
         """
-        include_param_member = self._filter_fn is None or self._filter_fn(param_member)
+        # If the member has children that have already been included, do not filter it out
+        has_children = False
+        for x in fuzzed_value:
+            if isinstance(x, ParamObject) and x.members:
+                has_children = True
+                break
+        if has_children:
+            include_param_member = True
+        else:
+            include_param_member = self._filter_fn is None or self._filter_fn(param_member)
         if not include_param_member:
             return []
 
         fuzzed_members = []
         # compose
         for new_value in fuzzed_value:
-            new_member = ParamMember(param_member.name, new_value, param_member.is_required)
+            new_member_properties = ParamProperties(is_required=param_member.is_required,
+                                                    is_readonly=param_member.is_readonly)
+            new_member = ParamMember(param_member.name, new_value, param_properties=new_member_properties)
             new_member.meta_copy(param_member)
             fuzzed_members.append(new_member)
 
@@ -394,8 +405,11 @@ def get_body_param_combinations(req, param_combinations_setting, body_schema):
 
     schema_generator = JsonBodySchemaFuzzerBase()
 
+    # Always filter out readonly parameters
     if param_kind == "optional":
-        schema_generator.set_filter_fn(lambda x: x.is_required)
+        schema_generator.set_filter_fn(lambda x: x.is_required and not x.is_readonly)
+    else:
+        schema_generator.set_filter_fn(lambda x: not x.is_readonly)
 
     schema_pool = schema_generator.run(body_schema)
     for new_schema in schema_pool:

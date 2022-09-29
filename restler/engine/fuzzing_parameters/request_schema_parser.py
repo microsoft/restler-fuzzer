@@ -111,6 +111,7 @@ def des_param_payload(param_payload_json, tag='', body_param=True):
     """
     param = None
     STRING_CONTENT_TYPES = ['String', 'Uuid', 'DateTime', 'Date']
+    param_properties = None
 
     if 'InternalNode' in param_payload_json:
         internal_node = param_payload_json['InternalNode']
@@ -124,6 +125,12 @@ def des_param_payload(param_payload_json, tag='', body_param=True):
         else:
             is_required = True
 
+        if 'isReadOnly' in internal_info: # check for backwards compatibility of old schemas
+            is_readonly = internal_info['isReadOnly']
+        else:
+            is_readonly = False
+
+        param_properties = ParamProperties(is_required=is_required, is_readonly=is_readonly)
         if tag:
             next_tag = tag + '_' + name
         else:
@@ -163,7 +170,7 @@ def des_param_payload(param_payload_json, tag='', body_param=True):
 
             value = des_param_payload(internal_data[0], next_tag)
 
-            param = ParamMember(name, value, is_required)
+            param = ParamMember(name, value, param_properties=param_properties)
 
         # others
         else:
@@ -178,6 +185,12 @@ def des_param_payload(param_payload_json, tag='', body_param=True):
             is_required = leaf_node['isRequired']
         else:
             is_required = True
+
+        if 'isReadOnly' in leaf_node: # check for backwards compatibility of old schemas
+            is_readonly = leaf_node['isReadOnly']
+        else:
+            is_readonly = False
+        param_properties = ParamProperties(is_required=is_required, is_readonly=is_readonly)
 
         # payload is a dictionary (or member) with size 1
         if len(payload) != 1:
@@ -236,22 +249,22 @@ def des_param_payload(param_payload_json, tag='', body_param=True):
             if custom_payload_type == "UuidSuffix":
                 # Set as unknown for payload body fuzzing purposes.
                 # This will be fuzzed as a string.
-                value = ParamUuidSuffix(is_required=is_required, dynamic_object=dynamic_object,
+                value = ParamUuidSuffix(param_properties=param_properties, dynamic_object=dynamic_object,
                                         is_quoted=is_quoted,
                                         content_type=content_type)
                 value.set_unknown()
             else:
-                value = ParamString(custom_payload_type=custom_payload_type, is_required=is_required,
+                value = ParamString(custom_payload_type=custom_payload_type, param_properties=param_properties,
                                     dynamic_object=dynamic_object, is_quoted=is_quoted, content_type=content_type)
 
         elif content_type == 'Int':
-            value = ParamNumber(is_required=is_required, dynamic_object=dynamic_object, number_type=content_type)
+            value = ParamNumber(param_properties=param_properties, dynamic_object=dynamic_object, number_type=content_type)
         elif content_type == 'Number':
-            value = ParamNumber(is_required=is_required, dynamic_object=dynamic_object, number_type=content_type)
+            value = ParamNumber(param_properties=param_properties, dynamic_object=dynamic_object, number_type=content_type)
         elif content_type == 'Bool':
-            value = ParamBoolean(is_required=is_required, dynamic_object=dynamic_object)
+            value = ParamBoolean(param_properties=param_properties, dynamic_object=dynamic_object)
         elif content_type == 'Object':
-            value = ParamObjectLeaf(is_required=is_required, dynamic_object=dynamic_object)
+            value = ParamObjectLeaf(param_properties=param_properties, dynamic_object=dynamic_object)
         elif 'Enum' in content_type:
             # unique case for Enums, as they are defined as
             # "fuzzable" types in the schema, but are not fuzzable
@@ -277,7 +290,7 @@ def des_param_payload(param_payload_json, tag='', body_param=True):
                 else:
                     is_quoted = False
                 value = ParamEnum(contents, enum_content_type, is_quoted=is_quoted,
-                                  is_required=is_required, body_param=body_param, enum_name=enum_name)
+                                  param_properties=param_properties, body_param=body_param, enum_name=enum_name)
             else:
                 logger.write_to_main(f'Unexpected enum schema {name}')
         else:
@@ -300,7 +313,7 @@ def des_param_payload(param_payload_json, tag='', body_param=True):
 
         # create the param node
         if name:
-            param = ParamMember(name, value, is_required=is_required)
+            param = ParamMember(name, value, param_properties=param_properties)
         else:
             # when a LeafNode represent a standard type, e.g.,
             # string, the name will be empty
