@@ -62,6 +62,9 @@ request = requests.Request([
     primitives.restler_static_string("\r\n"),
     primitives.restler_static_string("{"),
     primitives.restler_static_string("""
+    "id":"""),
+    primitives.restler_fuzzable_string("fuzzstring", quoted=True),
+    primitives.restler_static_string(""",
     "person":
         {
             "name":"""),
@@ -69,7 +72,13 @@ request = requests.Request([
     primitives.restler_static_string(""",
             "address":"""),
     primitives.restler_fuzzable_object("{ \"fuzz\": false }"),
+    primitives.restler_static_string(""",
+            "previous_addresses":
+            [
+                """),
+    primitives.restler_fuzzable_string("fuzzstring", quoted=True),
     primitives.restler_static_string("""
+            ]
         }
     }"""),
     primitives.restler_static_string("\r\n"),

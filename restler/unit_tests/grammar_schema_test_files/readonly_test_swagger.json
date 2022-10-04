@@ -69,11 +69,19 @@
         },
         "address": {
           "type": "object"
+        },
+        "previous_addresses": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         }
+
       },
       "required": [
         "name",
-        "address"
+        "address",
+        "previous_addresses"
       ]
     }
   },
