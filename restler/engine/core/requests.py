@@ -30,6 +30,8 @@ import engine.dependencies as dependencies
 import engine.mime.multipart_formdata as multipart_formdata
 from enum import Enum
 from engine.transport_layer import messaging
+from urllib.parse import quote_plus as url_quote_plus
+
 
 class EmptyRequestException(Exception):
     pass
@@ -1129,6 +1131,15 @@ class Request(object):
                 if cached_values:
                     self._rendered_values_cache.add_fuzzable_values(next_combination, cached_values)
 
+                # Encode the path and query parameters
+                url_encode_start, url_encode_end = req.get_path_and_query_start_end()
+                for url_idx in range(url_encode_start, url_encode_end):
+                    # Only encode the parameter values, not static strings
+                    if req.definition[url_idx][0] not in [primitives.STATIC_STRING,
+                                                          primitives.REFRESHABLE_AUTHENTICATION_TOKEN,
+                                                          primitives.CUSTOM_PAYLOAD_UUID4_SUFFIX]:
+                        values[url_idx] = url_quote_plus(values[url_idx], safe="/")
+
                 if value_list:
                     rendered_data = values
                 else:
@@ -1606,6 +1617,33 @@ class Request(object):
         # so bug replay logs will include the necessary create once request data.
         new_request._create_once_requests = old_request._create_once_requests
         return new_request
+
+    def get_path_and_query_start_end(self):
+        """ Get the start and end of the path, including the query if it exists
+
+        @param request: The target request
+        @type  request: Request
+
+        @return: A tuple containing the start and end index
+        @rtype : Tuple(int, int) or (-1, -1) on failure
+
+        """
+        request = self
+        path_start_index = None
+        query_end_str = ' HTTP'
+
+        for idx, line in enumerate(request.definition):
+            if line[0] == primitives.STATIC_STRING and line[1].startswith("/"):
+                path_start_index = idx
+                break
+        if path_start_index is None:
+            return -1, -1
+
+        for idx, line in enumerate(request.definition):
+            if line[1].startswith(query_end_str):
+                query_end_index = idx
+                return path_start_index, query_end_index
+        return -1, -1
 
 
 def GrammarRequestCollection():
