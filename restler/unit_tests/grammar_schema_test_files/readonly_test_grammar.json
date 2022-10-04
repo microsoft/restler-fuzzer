@@ -95,6 +95,31 @@
                                       "isRequired": true,
                                       "isReadOnly": false
                                     }
+                                  },
+                                  {
+                                    "InternalNode": [
+                                      {
+                                        "name": "previous_addresses",
+                                        "propertyType": "Array",
+                                        "isRequired": true,
+                                        "isReadOnly": false
+                                      },
+                                      [
+                                        {
+                                          "LeafNode": {
+                                            "name": "",
+                                            "payload": {
+                                              "Fuzzable": {
+                                                "primitiveType": "String",
+                                                "defaultValue": "fuzzstring"
+                                              }
+                                            },
+                                            "isRequired": true,
+                                            "isReadOnly": false
+                                          }
+                                        }
+                                      ]
+                                    ]
                                   }
                                 ]
                               ]

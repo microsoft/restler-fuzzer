@@ -143,10 +143,10 @@ def des_param_payload(param_payload_json, tag='', body_param=True):
                 value = des_param_payload(data, next_tag)
                 values.append(value)
 
-            array = ParamArray(values)
+            array = ParamArray(values, param_properties=param_properties)
 
             if body_param and name:
-                param = ParamMember(name, array, is_required)
+                param = ParamMember(name, array, param_properties=param_properties)
             else:
                 param = array
 
@@ -159,7 +159,7 @@ def des_param_payload(param_payload_json, tag='', body_param=True):
                 member = des_param_payload(member_json, tag)
                 members.append(member)
 
-            param = ParamObject(members)
+            param = ParamObject(members, param_properties=param_properties)
 
             param.tag = f'{next_tag}_object'
 
