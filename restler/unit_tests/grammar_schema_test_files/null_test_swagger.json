@@ -12,7 +12,7 @@
             "null example": {
               "parameters": {
               "api-version": "zzz",
-              "schema-version": "zzz",
+              "schema-version": "{\"Revision\":0,\"ContainsBreakingChange\":false}",
               "body": {
                 "id": "zzz",
                 "Person": {

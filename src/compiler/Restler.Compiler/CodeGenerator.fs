@@ -1066,8 +1066,8 @@ let getRequests(requests:Request list) includeOptionalParameters =
                 else s, "'"
             // Special case already escaped quoted strings (this will be the case for example values).
             // Assume the entire string is quoted in this case.
-            else if s.StartsWith("\\\"") then
-                s, "\""
+            else if s.Contains("\\\"") then
+                s, "\"\"\""
             else if s.Contains("\"") then
                 s.Replace("\"", "\\\""), "\""
             else s, "\""
