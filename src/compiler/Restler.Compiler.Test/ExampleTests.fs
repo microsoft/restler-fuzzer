@@ -190,7 +190,7 @@ module Examples =
             Assert.False(grammar.Contains("primitives.restler_static_string(\"computerName: \")"))
             Assert.True(grammar.Contains("primitives.restler_static_string(\"computerDimensions: \")"))
             // primitives.restler_fuzzable_string("fuzzstring", quoted=False, examples=["\"quotedString\""]),
-            Assert.True(grammar.Contains("primitives.restler_fuzzable_string(\"fuzzstring\", quoted=False, examples=[\"\\\"quotedString\\\"\"])"))
+            Assert.True(grammar.Contains("primitives.restler_fuzzable_string(\"fuzzstring\", quoted=False, examples=[\"\"\"\\\"quotedString\\\"\"\"\"])"))
 
             // The grammar should contain the array items from the example
             Assert.True(grammar.Contains("1.11"))
