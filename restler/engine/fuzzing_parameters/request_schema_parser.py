@@ -210,7 +210,7 @@ def des_param_payload(param_payload_json, tag='', body_param=True):
             if 'exampleValue' in payload['Fuzzable']:
                 # Workaround for the way null values are serialized to the example
                 example_value = payload['Fuzzable']['exampleValue']
-                if 'Some' in example_value and example_value['Some'] == None:
+                if isinstance(example_value, dict) and 'Some' in example_value.keys() and example_value['Some'] is None:
                     example_value = None
                 example_values = [example_value]
             if 'dynamicObject' in payload['Fuzzable']:
