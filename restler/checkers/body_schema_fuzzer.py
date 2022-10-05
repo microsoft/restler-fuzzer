@@ -160,7 +160,10 @@ class BodySchemaStructuralFuzzer(JsonBodySchemaFuzzerBase):
 
         # compose
         for new_value in fuzzed_value:
-            new_member = ParamMember(param_member.name, new_value, param_member.is_required)
+            param_properties = ParamProperties(is_required=param_member.is_required,
+                                               is_readonly=param_member.is_readonly)
+
+            new_member = ParamMember(param_member.name, new_value, param_properties=param_properties)
             new_member.meta_copy(param_member)
             fuzzed_members.append(new_member)
 
