@@ -43,6 +43,12 @@ def get_posts(page: int = Query(default=10), per_page: int = Query(default=5),
     query = select(BlogPost).offset(page).limit(per_page)
 
     items = session.exec(query).all()
+    # PLANTED_BUG: unhandled exception when per_page is too high
+    # Note: the above query sporadically throws a real exception in this case, so this
+    # statement is added for cases when it is not thrown to get consistent test results.
+    if per_page > 100000:
+        raise HTTPException(status_code=500, detail=f"per_page is too large")
+
     return PageOfResults(page=page, per_page=per_page, items=items, total=len(items))
 
 
