@@ -344,6 +344,7 @@ class SchemaParserTest(unittest.TestCase):
             "simple_swagger_all_param_data_types_local_examples_grammar",
             "simple_swagger_with_annotations_grammar",
             "demo_server_grammar",
+            "substitute_body_regression_test_grammar"
              # TODO: enable this after abstracting uuid suffix in the equivalence check
              # "simple_swagger_annotations_uuid4_suffix" # todo rename 'grammar'
         ]

@@ -1272,10 +1272,11 @@ class Request(object):
         # These special headers are not fuzzed, and should not be replaced
         skipped_headers_str = ["Accept", "Host"]
         required_header_blocks = []
+        auth_token = []
         append_header = False
         for line in old_request.definition[header_start_index : header_end_index]:
             if line[0] == "restler_refreshable_authentication_token":
-                required_header_blocks.append(line)
+                auth_token.append(line)
                 continue
             if append_header:
                 required_header_blocks.append(line)
@@ -1288,9 +1289,15 @@ class Request(object):
                         # Continue to append
                         append_header = True
 
+        # Note: currently, the required header blocks must be placed at the end, since the auth primitive is being
+        # used as a delimiter.
         # Make sure there is still a delimiter between headers and the remainder of the payload
-        new_header_blocks.append(primitives.restler_static_string("\r\n"))
-        new_definition = old_request.definition[:header_start_index] + required_header_blocks + new_header_blocks + old_request.definition[header_end_index:]
+        new_definition = old_request.definition[:header_start_index] +\
+                         required_header_blocks +\
+                         new_header_blocks +\
+                         auth_token +\
+                         [ primitives.restler_static_string("\r\n") ] +\
+                         old_request.definition[header_end_index:]
         new_definition += [old_request.metadata.copy()]
         new_request = Request(new_definition)
         # Update the new Request object with the create once requests data of the old Request,
