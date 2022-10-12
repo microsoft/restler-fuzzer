@@ -184,8 +184,12 @@ class HttpSock(object):
             return header + message[_get_start_of_body(message):]
 
         if "Content-Length: " not in message:
-            contentlen = len(message[_get_start_of_body(message):])
-            message = _append_to_header(message, f"Content-Length: {contentlen}")
+            try:
+                contentlen = len(message[_get_start_of_body(message):])
+                message = _append_to_header(message, f"Content-Length: {contentlen}")
+            except Exception as error:
+                RAW_LOGGING(f'Failed to append Content-Length header to message: {message!r}\n')
+                raise error
         if self.connection_settings.include_user_agent:
             message = _append_to_header(message, f"User-Agent: restler/{Settings().version}")
 
