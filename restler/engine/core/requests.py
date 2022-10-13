@@ -1131,12 +1131,16 @@ class Request(object):
                 if cached_values:
                     self._rendered_values_cache.add_fuzzable_values(next_combination, cached_values)
 
-                # Encode the path and query parameters
+                # Encode the path and query parameters, except custom payloads which are expected
+                # to be used exactly as-is
                 url_encode_start, url_encode_end = req.get_path_and_query_start_end()
                 for url_idx in range(url_encode_start, url_encode_end):
                     # Only encode the parameter values, not static strings
                     if req.definition[url_idx][0] not in [primitives.STATIC_STRING,
                                                           primitives.REFRESHABLE_AUTHENTICATION_TOKEN,
+                                                          primitives.CUSTOM_PAYLOAD,
+                                                          primitives.CUSTOM_PAYLOAD_HEADER,
+                                                          primitives.CUSTOM_PAYLOAD_QUERY,
                                                           primitives.CUSTOM_PAYLOAD_UUID4_SUFFIX]:
                         values[url_idx] = url_quote_plus(values[url_idx], safe="/")
 
