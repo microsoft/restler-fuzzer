@@ -11,6 +11,7 @@ from importlib import util
 import h2.connection
 import h2.events
 import h2.config
+from http.client import responses
 
 from utils.logger import raw_network_logging as RAW_LOGGING
 from engine.errors import TransportLayerException
@@ -350,9 +351,19 @@ class Http20Sock(object):
                         received_bytes += event.data
                     if isinstance(event, h2.events.ResponseReceived):
                         if event.stream_id == self._stream_id:
-                            for tuples in event.headers:
-                                header += decode_buf(tuples[0]) + ': ' + decode_buf(tuples[1]) + ' \r\n'
-                            header += DELIM
+                            header = 'HTTP/2.0 '
+                            amount_header_fields = len(event.headers)
+                            for i, tuples in enumerate(event.headers):
+                                header_field = decode_buf(tuples[0])
+                                header_value = decode_buf(tuples[1])
+                                if header_field == ':status':
+                                    header += header_value + ' ' + responses[int(header_value)]
+                                else:
+                                    header += decode_buf(tuples[0]) + ': ' + decode_buf(tuples[1])
+                                if i == amount_header_fields - 1:
+                                    header += DELIM
+                                else:
+                                    header += '\r\n'
                     if isinstance(event, h2.events.StreamEnded):
                         if event.stream_id == self._stream_id:
                             response_stream_ended = True
