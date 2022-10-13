@@ -218,7 +218,7 @@ def render_one(seq_to_render, ith, checkers, generation, global_lock, garbage_co
 
         # If garbage collection must be done after every sequence, apply the garbage collector here.
         # Note: this must be done after applying checkers, since they may re-use the state of the sequence.
-        if garbage_collector:
+        if Settings().run_gc_after_every_sequence:
             garbage_collector.clean_all_objects()
 
         # If renderings.sequence is None, it means there is nothing left to render or
@@ -283,7 +283,7 @@ def render_one(seq_to_render, ith, checkers, generation, global_lock, garbage_co
 
             # If garbage collection must be done after every sequence, apply the garbage collector here.
             # Note: this must be done after applying checkers, since they may re-use the state of the sequence.
-            if garbage_collector:
+            if Settings().run_gc_after_every_sequence:
                 garbage_collector.clean_all_objects()
 
             # If in exhaustive test mode, log the spec coverage.
@@ -756,7 +756,9 @@ def generate_sequences(fuzzing_requests, checkers, fuzzing_jobs=1, garbage_colle
             if timeout_reached or seq_collection_exhausted:
                 if timeout_reached:
                     should_stop = True
-                print("seq collection exhausted")
+                    print("timeout reached")
+                else:
+                    print("seq collection exhausted")
                 break
 
         logger.write_to_main("\nTesting completed -- below are the final stats:\n")

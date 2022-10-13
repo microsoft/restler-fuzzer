@@ -84,6 +84,11 @@ Length of time between garbage collection calls (seconds, None = no garbage coll
 If True, clean up dynamic objects after every sequence, instead of asynchronously
 at every ```garbage_collection_interval```.
 
+### max_objects_per_resource_type: int (default None)
+If specified, RESTler checks how many objects of each resource type
+are left after each garbage collection and fails if the count for any resource type
+exceeds the maximum.
+
 ### garbage_collector_cleanup_time: int (default 300)
 Length of time the garbage collector will attempt to cleanup remaining resources
 at the end of fuzzing (seconds)

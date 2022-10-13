@@ -548,7 +548,7 @@ if __name__ == '__main__':
     while fuzz_thread.is_alive():
         if gc_thread and not gc_thread.is_alive():
             logger.write_to_main(
-                "Garbage collector thread has terminated prematurely", print_to_console=True
+                f"{formatting.timestamp()}: Garbage collector thread has terminated prematurely", print_to_console=True
             )
             # Terminate the fuzzing thread
             monitor.terminate_fuzzing()
