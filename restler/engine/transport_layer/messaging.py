@@ -354,7 +354,8 @@ class Http20Sock(object):
                                 header += decode_buf(tuples[0]) + ': ' + decode_buf(tuples[1]) + ' \r\n'
                             header += DELIM
                     if isinstance(event, h2.events.StreamEnded):
-                        response_stream_ended = True
+                        if event.stream_id == self._stream_id:
+                            response_stream_ended = True
                     if isinstance(event, h2.events.StreamReset):
                         if event.stream_id == self._stream_id:
                             return ''
