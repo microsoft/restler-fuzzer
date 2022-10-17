@@ -12,6 +12,12 @@ let usage() =
     let sampleConfig = Json.Compact.serialize SampleConfig
     printfn "Sample config:\n %s" sampleConfig
 
+// Make sure NewtOnSoft.Json is loaded with a higher than default MaxDepth limit, which
+// is required by some OpenAPI specifications
+open Newtonsoft.Json
+JsonConvert.DefaultSettings <- fun () -> JsonSerializerSettings(MaxDepth = 128)
+
+
 [<EntryPoint>]
 let main argv =
 
