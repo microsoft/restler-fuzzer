@@ -14,6 +14,9 @@ from multiprocessing.dummy import Pool as ThreadPool
 import utils.formatting as formatting
 from restler_settings import Settings
 
+class ResourceTypeQuotaExceededException(Exception):
+    pass
+
 threadLocal = threading.local()
 # Keep TLS tlb to enforce mutual exclusion when using >1 fuzzing jobs.
 threadLocal.tlb = {}
@@ -278,6 +281,7 @@ class GarbageCollector:
         self._created_network_log = False
         self._cleanup_event = threading.Event()
         self._cleanup_done_event = threading.Event()
+        self._cleanup_done_event_timeout = 3600 # 1 hour
 
     @property
     def cleanup_event(self):
@@ -291,7 +295,7 @@ class GarbageCollector:
         """Signals the event that triggers cleanup, and
         waits for the done event."""
         self.cleanup_event.set()
-        self.cleanup_done_event.wait()
+        self.cleanup_done_event.wait(self._cleanup_done_event_timeout)
         self.cleanup_done_event.clear()
 
     def run(self):
@@ -310,7 +314,7 @@ class GarbageCollector:
         try:
             self.do_garbage_collection()
         except Exception as error:
-            error_str = f"Exception during garbage collection: {error!s}"
+            error_str = f"{formatting.timestamp()}: Exception during garbage collection: {error!s}"
             print(error_str)
             from utils.logger import garbage_collector_logging as CUSTOM_LOGGING
             CUSTOM_LOGGING(error_str)
@@ -484,7 +488,17 @@ class GarbageCollector:
             # Remove deleted items from the to-delete cache
             for value in deleted_list:
                 self.overflowing[type].remove(value)
-            self.overflowing[type] = self.overflowing[type][-max_aged_objects:]
+
+            # Check how many objects are left in the overflowing list
+            # If there are more than the allowed number of objects, terminate the run
+            if Settings().max_objects_per_resource_type is not None:
+                obj_count = len(self.overflowing[type])
+                if obj_count > Settings().max_objects_per_resource_type:
+                    raise ResourceTypeQuotaExceededException(f"Limit exceeded for objects of type {type} "
+                                                             f"({obj_count} > {Settings().max_objects_per_resource_type}).")
+                # Since resource limits are being tracked, do not remove any objects from overflowing
+            else:
+                self.overflowing[type] = self.overflowing[type][-max_aged_objects:]
 
 
 class GarbageCollectorThread(threading.Thread):
@@ -526,9 +540,16 @@ class GarbageCollectorThread(threading.Thread):
         while not _should_stop():
             # Sleep here for _interval unless the cleanup event has been set
             self._garbage_collector.cleanup_event.wait(self._interval)
-            self._garbage_collector.run()
-            self._garbage_collector.cleanup_event.clear()
-            self._garbage_collector.cleanup_done_event.set()
+            try:
+                self._garbage_collector.run()
+            except Exception as error:
+                # Set the cleanup event timeout to a short interval so the Fuzzer thread does not wait
+                # after the GC thread is terminated
+                self._garbage_collector._cleanup_done_event_timeout = 1
+                raise
+            finally:
+                self._garbage_collector.cleanup_event.clear()
+                self._garbage_collector.cleanup_done_event.set()
 
 
     def finish(self, max_cleanup_time):

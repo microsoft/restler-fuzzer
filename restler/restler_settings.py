@@ -405,6 +405,8 @@ class RestlerSettings(object):
         self._garbage_collector_cleanup_time = SettingsArg('garbage_collector_cleanup_time', int, MAX_GC_CLEANUP_TIME_SECONDS_DEFAULT, user_args, minval=0)
         ## Perform garbage collection of all dynamic objects after each sequence
         self._run_gc_after_every_sequence = SettingsArg('run_gc_after_every_sequence', bool, False, user_args)
+        ## Fail if more than this limit of objects per resource type are left after any garbage collection
+        self._max_objects_per_resource_type = SettingsArg('max_objects_per_resource_type', int, None, user_args, minval=0)
         ## The time interval to wait after a resource-generating producer is executed (in seconds)
         self._global_producer_timing_delay = SettingsArg('global_producer_timing_delay', int, 0, None, minval=0)
         if self._global_producer_timing_delay.name in user_args:
@@ -555,6 +557,10 @@ class RestlerSettings(object):
     @property
     def run_gc_after_every_sequence(self):
         return self._run_gc_after_every_sequence.val
+
+    @property
+    def max_objects_per_resource_type(self):
+        return self._max_objects_per_resource_type.val
 
     @property
     def garbage_collector_cleanup_time(self):
