@@ -22,9 +22,9 @@ from engine.transport_layer.messaging import UTF8
 from engine.transport_layer.messaging import HttpSock
 
 last_refresh = 0
-NO_TOKEN_SPECIFIED = 'NO-TOKEN-SPECIFIED'
+NO_TOKEN_SPECIFIED = 'NO-TOKEN-SPECIFIED\r\n'
 latest_token_value = NO_TOKEN_SPECIFIED
-NO_SHADOW_TOKEN_SPECIFIED = 'NO-SHADOW-TOKEN-SPECIFIED'
+NO_SHADOW_TOKEN_SPECIFIED = 'NO-SHADOW-TOKEN-SPECIFIED\r\n'
 latest_shadow_token_value = NO_SHADOW_TOKEN_SPECIFIED
 
 HOST_PREFIX = 'Host: '

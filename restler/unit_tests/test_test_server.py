@@ -65,7 +65,7 @@ class TestServerTest(unittest.TestCase):
             {'city-123': {'name': 'city-123', 'properties': {'population': 5000}},
             'city-456': {'name': 'city-456', 'properties': {}}},
             'farm': {}, 'item': {}, 'group': {},
-            'A': {},'B': {},'C': {}, 'D': {}, 'E': {}
+            'A': {},'B': {},'C': {}, 'D': {}, 'E': {}, 'large-resource': {}
             }
         self.assertDictEqual(test_dict, data)
 
@@ -88,7 +88,7 @@ class TestServerTest(unittest.TestCase):
         test_dict = {'city' :
             {'city-456': {'name': 'city-456', 'properties': {}}},
             'farm': {}, 'item': {}, 'group': {},
-             'A': {},'B': {},'C': {}, 'D': {}, 'E': {}
+             'A': {},'B': {},'C': {}, 'D': {}, 'E': {}, 'large-resource': {}
             }
         self.assertDictEqual(test_dict, data)
 
@@ -303,5 +303,28 @@ class TestServerTest(unittest.TestCase):
         req = f'GET /city HTTP/1.1\r\nContent-Length: 0\r\nAuthorization: valid_unit_test_token\r\n\r\n'
         sock.sendall(req.encode(UTF8))
         self.assertTrue('city-124' in sock.recv().body)
+
+        sock._server._reset_resources()
+
+
+    def test_failing_delete(self):
+        """ Test that the test server contains a case of async deletions and failures to delete, for which there
+            is specific logic in RESTler that should be covered.
+        """
+        sock = TestSocket('unit_test')
+
+        for x in range(1, 5):
+            req = f"PUT /large-resource/{x} HTTP/1.1\r\nContent-Length: 0\r\nAuthorization: valid_unit_test_token\r\n\r\n"
+            sock.sendall(req.encode(UTF8))
+            self.assertEqual('201', sock.recv().status_code)
+
+        for x in range(1, 5):
+            req = f"DELETE /large-resource/{x} HTTP/1.1\r\nContent-Length: 0\r\nAuthorization: valid_unit_test_token\r\n\r\n"
+            sock.sendall(req.encode(UTF8))
+            self.assertEqual('202', sock.recv().status_code)
+
+            req = f"DELETE /large-resource/{x} HTTP/1.1\r\nContent-Length: 0\r\nAuthorization: valid_unit_test_token\r\n\r\n"
+            sock.sendall(req.encode(UTF8))
+            self.assertEqual('404', sock.recv().status_code)
 
         sock._server._reset_resources()

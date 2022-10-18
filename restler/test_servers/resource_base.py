@@ -33,6 +33,12 @@ class FailedToCreateResource(Exception):
     """
     pass
 
+class FailedToDeleteResource(Exception):
+    """ To be raised when a resource deletion failed.
+    Intended to be used primarily for garbage collection testing.
+    """
+    pass
+
 class InvalidBody(Exception):
     """ To be raised when a request body is invalid or malformed.
     Example use is for a malformed body (invalid json).

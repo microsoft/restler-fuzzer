@@ -61,8 +61,10 @@ class FunctionalityTests(unittest.TestCase):
         """
         return glob.glob(os.path.join(dir, 'logs', f'network.{log_type}.*.1.txt'))[0]
 
-    def run_restler_engine(self, args):
+    def run_restler_engine(self, args, failure_expected=False):
         result = subprocess.run(args, capture_output=True)
+        if failure_expected:
+            return
         if result.stderr:
             self.fail(result.stderr)
         try:
@@ -70,7 +72,8 @@ class FunctionalityTests(unittest.TestCase):
         except subprocess.CalledProcessError:
             self.fail(f"Restler returned non-zero exit code: {result.returncode} {result.stdout}")
 
-    def run_abc_smoke_test(self, test_file_dir, grammar_file_name, fuzzing_mode, settings_file=None, dictionary_file_name=None):
+    def run_abc_smoke_test(self, test_file_dir, grammar_file_name, fuzzing_mode, settings_file=None, dictionary_file_name=None,
+                           failure_expected=False):
         grammar_file_path = os.path.join(test_file_dir, grammar_file_name)
         if dictionary_file_name is None:
             dictionary_file_name = "abc_dict.json"
@@ -83,7 +86,7 @@ class FunctionalityTests(unittest.TestCase):
         if settings_file:
             settings_file_path = os.path.join(test_file_dir, settings_file)
             args = args + ['--settings', f'{settings_file_path}']
-        self.run_restler_engine(args)
+        self.run_restler_engine(args, failure_expected=failure_expected)
 
     def tearDown(self):
         try:
@@ -603,11 +606,9 @@ class FunctionalityTests(unittest.TestCase):
             self.fail(f"Restler returned non-zero exit code: {result.returncode}, Stdout: {result.stdout}")
 
         experiments_dir = self.get_experiments_dir()
-        #experiments_dir = "D:\git\restler-fuzzer\restler\RestlerResults\experiment31916"
         try:
             default_parser = FuzzingLogParser(os.path.join(Test_File_Directory, "fuzz_testing_log.txt"), max_seq=Num_Sequences)
             test_parser = FuzzingLogParser(self.get_network_log_path(experiments_dir, logger.LOG_TYPE_TESTING), max_seq=Num_Sequences)
-            #test_parser = FuzzingLogParser("D:\\git\\restler-fuzzer\\restler\\RestlerResults\\experiment31916\\logs\\network.testing.23496.1.txt", max_seq=Num_Sequences)
             self.assertTrue(default_parser.diff_log(test_parser))
         except TestFailedException:
             self.fail("Fuzz failed: Fuzzing")
@@ -865,3 +866,67 @@ class FunctionalityTests(unittest.TestCase):
             self.assertTrue(default_parser.diff_log(test_parser))
         except TestFailedException:
             self.fail("Smoke test failed: Fuzzing")
+
+    def test_gc_limits(self):
+        """ This test checks that RESTler exits after N objects cannot be deleted according
+        to the settings.  It also tests that async resource deletion is being performed.
+        """
+        def run_test(max_objects, run_gc_after_every_test):
+            settings_file_name = "gc_test_settings.json"
+            temp_settings_file_name = "tmp_gc_test_settings.json"
+            try:
+                settings_file_path = os.path.join(Test_File_Directory, settings_file_name)
+                temp_settings_file_path = os.path.join(Test_File_Directory, temp_settings_file_name)
+                settings = json.load(open(settings_file_path, encoding='utf-8'))
+                settings["garbage_collector_cleanup_time"] = 20
+                if max_objects:
+                    settings["max_objects_per_resource_type"] = max_objects
+                json.dump(settings, open(temp_settings_file_path, "w", encoding='utf-8'))
+                self.run_abc_smoke_test(Test_File_Directory, "gc_test_grammar.py", "test-all-combinations",
+                                        settings_file=temp_settings_file_name,
+                                        dictionary_file_name="gc_test_dict.json",
+                                        failure_expected=True)
+            finally:
+                if os.path.exists(temp_settings_file_name):
+                    os.remove(temp_settings_file_name)
+
+        def check_gc_error(max_objects):
+            experiments_dir = self.get_experiments_dir()
+
+            # Expected: Exception during garbage collection: Limit exceeded for objects of type _post_large_resource (4 > 3).
+            gc_file_path = glob.glob(os.path.join(experiments_dir, 'logs', f'garbage_collector.gc.*.1.txt'))[0]
+            with open(gc_file_path) as file:
+                gc_log = file.readlines()
+                expected_has_error = max_objects is not None
+                actual_has_error = "Limit exceeded for objects of type _post_large_resource (4 > 3)" in gc_log[-1]
+                self.assertEqual(expected_has_error, actual_has_error)
+
+
+        def check_gc_stats(max_objects):
+            experiments_dir = self.get_experiments_dir()
+
+            gc_stats_file_path = os.path.join(experiments_dir, "logs", "gc_summary.json")
+            with open(gc_stats_file_path) as file:
+                gc_log = json.loads(file.read())
+                if max_objects is None:
+                    # 7 objects are expected to be created in Gen-1 and Gen-2.
+                    # 5 of these are successful (per test server implementation), and the rest exit with 409
+                    successful_creates = 5 * 2
+                    self.assertGreaterEqual(gc_log["delete_stats"]["_post_large_resource"]["202"], successful_creates)
+                    self.assertGreaterEqual(gc_log["delete_stats"]["_post_large_resource"]["409"], 14 - successful_creates)
+                else:
+                    successful_creates = max_objects * 2
+                    self.assertGreaterEqual(gc_log["delete_stats"]["_post_large_resource"]["202"], successful_creates)
+                    self.assertGreaterEqual(gc_log["delete_stats"]["_post_large_resource"]["409"], 14 - successful_creates)
+
+        run_test(3, True)
+        check_gc_error(3)
+        check_gc_stats(3)
+
+        run_test(3, False)
+        check_gc_error(3)
+        check_gc_stats(3)
+
+        run_test(None, False)
+        check_gc_error(None)
+        check_gc_stats(None)

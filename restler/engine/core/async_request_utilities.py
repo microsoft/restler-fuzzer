@@ -42,10 +42,13 @@ def get_polling_request(response):
     LocationSearchStr = "Location: "
     AzureAsyncSearchStr = "Azure-AsyncOperation: "
     response_str = response.to_str
-    if response.status_code in ['202', '201'] and LocationSearchStr in response_str:
-        url = response_str.split(LocationSearchStr)[1]
+    if response.status_code in ['202', '201'] and (LocationSearchStr in response_str or LocationSearchStr.lower() in response_str):
+        if LocationSearchStr in response_str:
+            url = response_str.split(LocationSearchStr)[1]
+        elif LocationSearchStr.lower() in response_str:
+            url = response_str.split(LocationSearchStr.lower())[1]
         data_in_poll_response = True
-    elif AzureAsyncSearchStr in response_str:
+    elif (AzureAsyncSearchStr in response_str):
         url = response_str.split(AzureAsyncSearchStr)[1]
     else:
         return None, False
@@ -60,7 +63,7 @@ def get_polling_request(response):
         hostname = url_part[0]
         url = url_part[1] + url_part[2]
         token_value = request_utilities.get_latest_token_value()
-        if token_value is None:
+        if token_value is None or token_value == request_utilities.NO_TOKEN_SPECIFIED:
             token_value = ''
         # Create the GET request to poll the url
         req_data = 'GET ' + url.split('\r\n')[0] +\
@@ -123,7 +126,7 @@ def try_parse_GET_request(request_data):
         return get_response
     return None
 
-def try_async_poll(request_data, response, max_async_wait_time):
+def try_async_poll(request_data, response, max_async_wait_time, poll_delete_status=False):
     """ Helper that will poll the server until a certain resource
     becomes available.
 
@@ -162,14 +165,14 @@ def try_async_poll(request_data, response, max_async_wait_time):
     resource_error = False
     async_waited = False
     if  Settings().wait_for_async_resource_creation and max_async_wait_time > 0\
-    and (request_data.startswith("PUT") or request_data.startswith("POST")):
+    and (request_data.startswith("PUT") or request_data.startswith("POST") or (poll_delete_status and request_data.startswith("DELETE"))):
         # Get the request used for polling the resource availability
         data, data_in_poll_response = get_polling_request(response)
         if data:
+            RAW_LOGGING(f"Waiting for resource to be available... max_async_wait_time: {max_async_wait_time} seconds.")
             async_waited = True
             poll_wait_seconds = 1
             start_time = time.time()
-            RAW_LOGGING(f"Waiting for resource to be available... max_async_wait_time: {max_async_wait_time} seconds.")
             while (time.time() - start_time) < max_async_wait_time:
                 try:
                     # Send the polling request
@@ -180,19 +183,19 @@ def try_async_poll(request_data, response, max_async_wait_time):
                         # Otherwise, continue to poll as the resource has not yet been created. These types will
                         # return a '202 - Accepted' while the resource is still being created.
                         if poll_response.status_code in ['200' ,'201']:
-                            LOG_RESULTS(request_data,
-                                f"Resource creation succeeded after {time_str} seconds.")
-
                             responses_to_parse.append(poll_response)
-                            # Also, attempt to execute a GET request corresponding to this resource and
-                            # return the response.  This is used in case all of the expected properties are
-                            # not present in the async response.
-                            RAW_LOGGING("Attempting to get resources from GET request...")
-                            get_response = try_parse_GET_request(request_data)
-                            if get_response:
-                                # Use response from the GET request for parsing. If the GET request failed,
-                                # the caller will know to try and use the original PUT response for parsing
-                                responses_to_parse.insert(0, get_response)
+                            if not poll_delete_status:
+                                LOG_RESULTS(request_data,
+                                    f"Resource creation succeeded after {time_str} seconds.")
+                                # Also, attempt to execute a GET request corresponding to this resource and
+                                # return the response.  This is used in case all of the expected properties are
+                                # not present in the async response.
+                                RAW_LOGGING("Attempting to get resources from GET request...")
+                                get_response = try_parse_GET_request(request_data)
+                                if get_response:
+                                    # Use response from the GET request for parsing. If the GET request failed,
+                                    # the caller will know to try and use the original PUT response for parsing
+                                    responses_to_parse.insert(0, get_response)
                             # Break and return the responses to be parsed
                             break
                     else:
@@ -229,6 +232,8 @@ def try_async_poll(request_data, response, max_async_wait_time):
                     if not poll_response.status_code.startswith('2'):
                         LOG_RESULTS(request_data, f"Resource creation failed after {time_str} seconds"
                                                 f" because status code '{poll_response.status_code}' was received.")
+                        # When an error is received in a polling response, the resource may still be created -
+                        # This should be checked with a GET request.
                         break
                 except Exception as err:
                     LOG_RESULTS(request_data,
@@ -240,11 +245,14 @@ def try_async_poll(request_data, response, max_async_wait_time):
                 LOG_RESULTS(request_data,
                     f"Failed to create resource in {max_async_wait_time} seconds.")
                 RAW_LOGGING("Attempting to get resources from GET request...")
-                get_response = try_parse_GET_request(request_data)
-                if get_response:
-                    # Use response from the GET request for parsing. If the GET request failed,
-                    # the caller will know to try and use the original PUT response for parsing
-                    responses_to_parse.append(get_response)
+                # Do not use a GET to obtain the status for a DELETE request.
+                # A resource with the same ID may have been re-created.
+                if not request_data.startswith("DELETE"):
+                    get_response = try_parse_GET_request(request_data)
+                    if get_response:
+                        # Use response from the GET request for parsing. If the GET request failed,
+                        # the caller will know to try and use the original PUT response for parsing
+                        responses_to_parse.append(get_response)
 
     if len(responses_to_parse) == 0:
         responses_to_parse.append(response)

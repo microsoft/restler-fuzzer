@@ -83,6 +83,13 @@ class TestServerBase:
                                body={"error": f"Method, {method}, not supported"})
         return HttpResponse(response_str)
 
+    def _409(self, body: dict) -> HttpResponse:
+        response_str = self._get_response_str('409',
+                                description='Conflict',
+                                body=body)
+        return HttpResponse(response_str)
+
+
     def _500(self, message="") -> HttpResponse:
         response_str = self._get_response_str('500',
                                 description='Internal Server Error',

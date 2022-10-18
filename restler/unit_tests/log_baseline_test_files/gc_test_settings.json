@@ -1,0 +1,6 @@
+{
+    "max_combinations": 20,
+    "run_gc_after_every_sequence": true,
+    "max_schema_combinations":  1,
+    "garbage_collector_cleanup_time": 20
+}
