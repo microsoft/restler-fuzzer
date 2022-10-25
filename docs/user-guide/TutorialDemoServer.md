@@ -2,7 +2,7 @@
 
 Let's try RESTler on a simple example of REST API and service.
 
-The directory `restler\demo_server` in this repo contains a self-contained example of service you can run locally on your machine. See the [README.md](/demo_server/README.md) file in that directory to install and start this demo_server service. Make sure your demo server is running before starting this tutorial.
+The directory `restler\demo_server` in this repo contains a self-contained example of service you can run locally on your machine. See the [README.md](/demo_server/README.md) file in that directory to install and start this demo_server service. **Make sure your demo server is running before starting this tutorial.**
 
 Let's create a fresh directory `C:\demo-server-test` where will run RESTler on this example. Let's cd into that dir: `cd C:\demo-server-test`.
 
