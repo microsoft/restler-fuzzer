@@ -457,7 +457,7 @@ class GarbageCollector:
 
             # Iterate in reverse to give priority to newest resources
             for value in reversed(self.overflowing[type]):
-                rendered_data, _ , _ = destructor.\
+                rendered_data, _ , _, _ = destructor.\
                     render_current(self.req_collection.candidate_values_pool)
 
                 # replace dynamic parameters

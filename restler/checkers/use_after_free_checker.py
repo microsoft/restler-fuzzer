@@ -109,7 +109,7 @@ class UseAfterFreeChecker(CheckerBase):
 
         """
         request = seq.last_request
-        for rendered_data, parser,_ in\
+        for rendered_data, parser,_,updated_writer_variables in\
             request.render_iter(self._req_collection.candidate_values_pool,
                                 skip=request._current_combination_id):
             # Hold the lock (because other workers may be rendering the same
@@ -132,7 +132,14 @@ class UseAfterFreeChecker(CheckerBase):
             rendered_data = seq.resolve_dependencies(rendered_data)
 
             response = self._send_request(parser, rendered_data)
-            request_utilities.call_response_parser(parser, response)
+
+            rendering_is_valid = response.has_valid_code()
+            if rendering_is_valid:
+                for name,v in updated_writer_variables.items():
+                    dependencies.set_variable(name, v)
+
+
+
             # Append the rendered data to the sent list as we will not be rendering
             # with the sequence's render function
             seq.append_data_to_sent_list(rendered_data, parser, response)

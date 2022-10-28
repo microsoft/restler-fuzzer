@@ -58,7 +58,8 @@ class InvalidDynamicObjectChecker(CheckerBase):
         InvalidDynamicObjectChecker.generation_executed_requests[generation].add(last_request.hex_definition)
 
         # Get the current rendering of the sequence, which will be the valid rendering of the last request
-        last_rendering, last_request_parser, tracked_parameters = last_request.render_current(self._req_collection.candidate_values_pool)
+        last_rendering, last_request_parser, tracked_parameters, updated_writer_variables =\
+            last_request.render_current(self._req_collection.candidate_values_pool)
 
         # Execute the sequence up until the last request
         new_seq = self._execute_start_of_sequence()
@@ -70,6 +71,9 @@ class InvalidDynamicObjectChecker(CheckerBase):
         for data in self._prepare_invalid_requests(last_rendering):
             self._checker_log.checker_print(repr(data))
             response = self._send_request(last_request_parser, data)
+            if response.has_valid_code():
+                for name,v in updated_writer_variables.items():
+                    dependencies.set_variable(name, v)
             request_utilities.call_response_parser(last_request_parser, response)
             if response and self._rule_violation(new_seq, response):
                 # Append the data that we just sent to the sequence's sent list

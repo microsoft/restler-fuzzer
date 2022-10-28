@@ -375,7 +375,7 @@ class Sequence(object):
             for i in range(len(self.requests) - 1):
                 last_tested_request_idx = i
                 prev_request = self.requests[i]
-                prev_rendered_data, prev_parser, tracked_parameters =\
+                prev_rendered_data, prev_parser, tracked_parameters, updated_writer_variables =\
                     prev_request.render_current(candidate_values_pool,
                     preprocessing=preprocessing, use_last_cached_rendering=True)
 
@@ -390,6 +390,10 @@ class Sequence(object):
                 prev_producer_timing_delay = Settings().get_producer_timing_delay(prev_request.request_id)
 
                 prev_response = request_utilities.send_request_data(prev_rendered_data)
+                if prev_response.has_valid_code():
+                    for name,v in updated_writer_variables.items():
+                        dependencies.set_variable(name, v)
+
                 prev_responses_to_parse, resource_error, async_waited = async_request_utilities.try_async_poll(
                     prev_rendered_data, prev_response, prev_req_async_wait)
                 prev_parser_threw_exception = False
@@ -499,7 +503,7 @@ class Sequence(object):
         datetime_format = "%Y-%m-%d %H:%M:%S"
         response_datetime_str = None
         timestamp_micro = None
-        for rendered_data, parser, tracked_parameters in\
+        for rendered_data, parser, tracked_parameters, updated_writer_variables in\
                 request.render_iter(candidate_values_pool,
                                     skip=request._current_combination_id,
                                     preprocessing=preprocessing):
@@ -555,6 +559,10 @@ class Sequence(object):
             req_async_wait = Settings().get_max_async_resource_creation_time(request.request_id)
 
             response = request_utilities.send_request_data(rendered_data)
+            if response.has_valid_code():
+                for name,v in updated_writer_variables.items():
+                    dependencies.set_variable(name, v)
+
             responses_to_parse, resource_error, _ = async_request_utilities.try_async_poll(
                 rendered_data, response, req_async_wait)
             parser_exception_occurred = False

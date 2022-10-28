@@ -1108,6 +1108,7 @@ class Request(object):
                     len(value_generators) == len(value_gen_tracker):
                         break
 
+                dynamic_object_variables_to_update = {}
                 for val_idx, val in enumerate(values):
                     (writer_variable, writer_is_quoted) = writer_variables[val_idx]
                     if writer_variable is not None:
@@ -1115,7 +1116,7 @@ class Request(object):
                         # It will be quoted again at the time it is used, if needed
                         if writer_is_quoted:
                             val = val[1:-1]
-                        dependencies.set_variable(writer_variable, val)
+                        dynamic_object_variables_to_update[writer_variable] = val
 
                 tracked_parameter_values = {}
                 for (k, idx_list) in tracked_parameters.items():
@@ -1152,7 +1153,7 @@ class Request(object):
                 # Save the schema for this combination.
                 self._last_rendered_schema_request = (req, is_example)
 
-                yield rendered_data, parser, tracked_parameter_values
+                yield rendered_data, parser, tracked_parameter_values, dynamic_object_variables_to_update
 
                 next_combination = next_combination + 1
                 remaining_combinations_count = remaining_combinations_count - 1

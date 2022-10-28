@@ -21,6 +21,7 @@ from engine.primitives import CandidateValuesPool
 from engine.errors import TimeOutException
 from engine.errors import InvalidDictionaryException
 from engine.core.requests import FailureInformation
+import engine.dependencies as dependencies
 
 
 def get_test_values(max_values: int, req: Request, static_dict=None,
@@ -246,7 +247,7 @@ class InvalidValueChecker(CheckerBase):
 
         # Render the current request combination, but get the list of primitive
         # values before they are concatenated.
-        rendered_values, parser, tracked_parameters = \
+        rendered_values, parser, tracked_parameters, updated_writer_variables = \
             next(last_request.render_iter(self._req_collection.candidate_values_pool,
                                            skip=last_request._current_combination_id - 1,
                                            preprocessing=False,
@@ -315,6 +316,10 @@ class InvalidValueChecker(CheckerBase):
 
                     fuzzed_combinations += 1
                     response = request_utilities.send_request_data(rendered_data)
+                    if response.has_valid_code():
+                        for name,v in updated_writer_variables.items():
+                            dependencies.set_variable(name, v)
+
                     responses_to_parse, resource_error, _ = async_request_utilities.try_async_poll(
                         rendered_data, response, req_async_wait)
                     parser_exception_occurred = False

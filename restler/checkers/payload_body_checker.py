@@ -1122,7 +1122,7 @@ class PayloadBodyChecker(CheckerBase):
         cnt = 0
 
         # iterate through different value combinations
-        for rendered_data, parser,_ in new_request.render_iter(
+        for rendered_data, parser,_,updated_writer_variables in new_request.render_iter(
             self._req_collection.candidate_values_pool
         ):
             # check time budget
@@ -1204,6 +1204,10 @@ class PayloadBodyChecker(CheckerBase):
 
             # send out the request and parse the response
             response = self._send_request(parser, rendered_data)
+            if response.has_valid_code():
+                for name,v in updated_writer_variables.items():
+                    dependencies.set_variable(name, v)
+
             async_wait = Settings().get_max_async_resource_creation_time(request.request_id)
             responses_to_parse, _, _ = async_request_utilities.try_async_poll(
                 rendered_data, response, async_wait)
