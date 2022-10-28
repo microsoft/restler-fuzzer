@@ -16,6 +16,7 @@ from restler_settings import Settings
 from engine.errors import ResponseParsingException
 from engine.errors import TransportLayerException
 from engine.core.fuzzing_monitor import Monitor
+import engine.dependencies as dependencies
 
 from utils.logger import raw_network_logging as RAW_LOGGING
 
@@ -118,9 +119,13 @@ class CheckerBase:
         @rtype : Tuple(HttpResponse, HttpResponse)
 
         """
-        rendered_data, parser, tracked_parameters = request.render_current(self._req_collection.candidate_values_pool)
+        rendered_data, parser, tracked_parameters, updated_writer_variables = request.render_current(self._req_collection.candidate_values_pool)
         rendered_data = seq.resolve_dependencies(rendered_data)
         response = self._send_request(parser, rendered_data)
+        if response.has_valid_code():
+            for name,v in updated_writer_variables.items():
+                dependencies.set_variable(name, v)
+
         response_to_parse = response
         async_wait = Settings().get_max_async_resource_creation_time(request.request_id)
 

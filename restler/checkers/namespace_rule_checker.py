@@ -74,11 +74,15 @@ class NameSpaceRuleChecker(CheckerBase):
         self._checker_log.checker_print("\nRe-rendering start of original sequence")
 
         for request in seq.requests[:-1]:
-            rendered_data, parser, tracked_parameters = request.render_current(
+            rendered_data, parser, tracked_parameters, updated_writer_variables = request.render_current(
                 self._req_collection.candidate_values_pool
             )
             rendered_data = seq.resolve_dependencies(rendered_data)
             response = self._send_request(parser, rendered_data)
+            if response.has_valid_code():
+                for name,v in updated_writer_variables.items():
+                    dependencies.set_variable(name, v)
+
             request_utilities.call_response_parser(parser, response)
 
     def _namespace_rule(self):
@@ -102,7 +106,7 @@ class NameSpaceRuleChecker(CheckerBase):
         # Check if last request contains any trigger_object
 
         last_request = self._sequence.last_request
-        last_rendering, last_parser, _ = last_request.render_current(self._req_collection.candidate_values_pool)
+        last_rendering, last_parser, _, _ = last_request.render_current(self._req_collection.candidate_values_pool)
 
         last_request_contains_a_trigger_object = False
         for obj in self._trigger_objects:
@@ -202,13 +206,17 @@ class NameSpaceRuleChecker(CheckerBase):
 
         """
         self._checker_log.checker_print("Hijack request rendering")
-        rendered_data, parser, tracked_parameters = req.render_current(
+        rendered_data, parser, tracked_parameters, updated_writer_variables = req.render_current(
             self._req_collection.candidate_values_pool
         )
         rendered_data = self._sequence.resolve_dependencies(rendered_data)
         rendered_data = self._change_user_identity(rendered_data)
 
         response = self._send_request(parser, rendered_data)
+        if response.has_valid_code():
+            for name,v in updated_writer_variables.items():
+                dependencies.set_variable(name, v)
+
         request_utilities.call_response_parser(parser, response)
         if response and self._rule_violation(self._sequence, response):
             self._print_suspect_sequence(self._sequence, response)

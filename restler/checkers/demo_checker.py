@@ -9,7 +9,7 @@ from checkers.checker_base import *
 from engine.bug_bucketing import BugBuckets
 import engine.core.sequences as sequences
 from engine.errors import TimeOutException
-
+import engine.dependencies as dependencies
 
 class DemoChecker(CheckerBase):
     """ A simple checker that runs after every request, and reports 2 bugs. """
@@ -74,7 +74,7 @@ class DemoChecker(CheckerBase):
         checked_seq.append_data_to_sent_list("GET /", None,  HttpResponse(), max_async_wait_time=req_async_wait)
 
         # Render the current request combination
-        rendered_data, parser, tracked_parameters = \
+        rendered_data, parser, tracked_parameters, updated_writer_variables = \
             next(last_request.render_iter(self._req_collection.candidate_values_pool,
                                           skip=last_request._current_combination_id - 1,
                                           preprocessing=False))
@@ -89,6 +89,10 @@ class DemoChecker(CheckerBase):
 
         # Send the request and get a response
         response = request_utilities.send_request_data(rendered_data)
+        if response.has_valid_code():
+            for name,v in updated_writer_variables.items():
+                dependencies.set_variable(name, v)
+
         responses_to_parse, resource_error, _ = async_request_utilities.try_async_poll(
             rendered_data, response, req_async_wait)
 
