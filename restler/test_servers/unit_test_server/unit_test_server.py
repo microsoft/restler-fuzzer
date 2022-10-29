@@ -160,14 +160,23 @@ class UnitTestServer(TestServerBase):
                 # a specific object and not an entire 'type'
                 self._response = self._400(f"Invalid resource: {dyn_objects[-1]}")
                 return
+
             if num == 2:
                 # deleting a first level resource, so just delete from root
-                UnitTestServer._resources.delete_resource(dyn_objects[0], dyn_objects[1])
+                obj_type = dyn_objects[0]
+                obj_name = dyn_objects[1]
+                UnitTestServer._resources.delete_resource(obj_type, obj_name)
             else:
                 # deleting deeper into the tree, so get the parent of a dynamic object
                 resource = UnitTestServer._resources.get_resource_object(dyn_objects[:-2])
-                resource.delete_resource(dyn_objects[-2], dyn_objects[-1])
-            self._response = self._202(dyn_objects[-1])
+                obj_type = dyn_objects[-2]
+                obj_name = dyn_objects[-1]
+                resource.delete_resource(obj_type, obj_name)
+
+            self._response = self._202(obj_name)
+        except FailedToDeleteResource as resource:
+            # Simulate failures to delete because the resource is in a transitioning state
+            self._response = self._409(obj_name)
         except ResourceDoesNotExist as resource:
             self._response = self._404(resource)
         except Exception as error:

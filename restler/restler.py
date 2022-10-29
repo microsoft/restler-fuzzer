@@ -580,6 +580,9 @@ if __name__ == '__main__':
     # Print the end of the run generation stats
     logger.print_generation_stats(req_collection, monitor, None, final=True)
 
+    # Print the garbage collection stats
+    logger.print_gc_summary(garbage_collector)
+
     if fuzz_thread.exception is not None:
         print(fuzz_thread.exception)
         sys.exit(-1)

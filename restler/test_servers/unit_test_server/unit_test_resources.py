@@ -73,6 +73,9 @@ class UnitTestResource(ResourceBase):
         @return: None
 
         """
+        if type == "large-resource" and int(name) > 5:
+            raise FailedToDeleteResource()
+
         if type in self._children and\
         name in self._children[type]:
             # If testing useafterfreechecker, don't delete the resource
@@ -116,6 +119,10 @@ class ResourceFactory(object):
         if type == "D":
             return D(name, body)
 
+        # GC tests
+        if type == "large-resource":
+            return LargeResource(name, body)
+
         # Checker tests
         if type == "leakageruletest":
             resource = LeakageRuleTester(name, body)
@@ -145,7 +152,8 @@ class ResourcePool(UnitTestResource):
             "B": None,
             "C": None,
             "D": None,
-            "E": None
+            "E": None,
+            "large-resource": None
         }
 
         for test in Root_Test_Resource_Types:
@@ -214,6 +222,10 @@ class B(UnitTestResource):
         super().__init__(name)
 
 class D(UnitTestResource):
+    def __init__(self, name: str, body: dict):
+        super().__init__(name)
+
+class LargeResource(UnitTestResource):
     def __init__(self, name: str, body: dict):
         super().__init__(name)
 

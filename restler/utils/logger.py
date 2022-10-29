@@ -824,6 +824,16 @@ def print_generation_stats(req_collection, fuzzing_monitor, global_lock, final=F
         with open(os.path.join(LOGS_DIR, "testing_summary.json"), "w+", encoding='utf-8') as summary_json:
             json.dump(testing_summary, summary_json, indent=4)
 
+
+def print_gc_summary(garbage_collector):
+    """ Prints the summary of garbage collection statistics.
+    """
+    gc_summary = OrderedDict()
+    gc_summary['delete_stats'] = garbage_collector.gc_stats
+    with open(os.path.join(LOGS_DIR, "gc_summary.json"), "w+", encoding='utf-8') as summary_json:
+        json.dump(gc_summary, summary_json, indent=4)
+
+
 def format_request_block(request_id, request_block, candidate_values_pool):
     primitive = request_block[0]
     if primitive == primitives.FUZZABLE_GROUP:
