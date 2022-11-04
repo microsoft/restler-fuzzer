@@ -776,58 +776,6 @@ let getConfigValue key =
     | s ->
         Some (s.ToString())
 
-let getDataFromTestingSummary taskWorkingDirectory =
-    let bugBucketCounts, specCoverageCounts =
-        // Read the bug buckets file
-        let bugBucketsFiles = Directory.GetFiles(taskWorkingDirectory, "testing_summary.json", SearchOption.AllDirectories)
-        match bugBucketsFiles |> Seq.tryHead with
-        | None ->
-            Logging.logInfo <| "Testing summary was not found."
-            [], []
-        | Some testingSummaryFilePath ->
-            let testingSummary =
-                Microsoft.FSharpLu.Json.Compact.deserializeFile<Engine.TestingSummary> testingSummaryFilePath
-
-            Logging.logInfo <| sprintf "Request coverage (successful / total): %s" testingSummary.final_spec_coverage
-            Logging.logInfo <| sprintf "Attempted requests: %s" testingSummary.rendered_requests
-
-            let bugBuckets = testingSummary.bug_buckets
-                                |> Seq.map (fun kvp -> kvp.Key, sprintf "%A" kvp.Value)
-                                |> Seq.toList
-            if bugBuckets.Length > 0 then
-                Logging.logInfo <| "Bugs were found!"
-                Logging.logInfo <| "Bug buckets:"
-                let bugBucketsFormatted =
-                    bugBuckets
-                    |> List.fold (fun str (x,y) -> str + (sprintf "\n%s: %s" x y)) ""
-
-                Logging.logInfo <| sprintf "%s" bugBucketsFormatted
-            else
-                Logging.logInfo <| "No bugs were found."
-
-            let coveredRequests, totalRequests =
-                let finalCoverageValues =
-                    testingSummary.final_spec_coverage.Split("/")
-                                        |> Array.map (fun x -> x.Trim())
-                Int32.Parse(finalCoverageValues.[0]),
-                Int32.Parse(finalCoverageValues.[1])
-            let totalMainDriverRequestsSent =
-                match testingSummary.total_requests_sent.TryGetValue("main_driver") with
-                | (true, v ) -> v
-                | (false, _ ) -> 0
-
-            let requestStats =
-                [
-                    "total_executed_requests_main_driver", totalMainDriverRequestsSent
-                    "covered_spec_requests", coveredRequests
-                    "total_spec_requests", totalRequests
-                ]
-                |> List.map (fun (x,y) -> x, sprintf "%A" y)
-            (requestStats, bugBuckets)
-    {|
-        bugBucketCounts = bugBucketCounts
-        specCoverageCounts = specCoverageCounts
-    |}
 
 let tryRecreateDir dirPath =
     if Directory.Exists dirPath then
@@ -923,6 +871,7 @@ let main argv =
                         |}
                 | Test, EngineParameters p
                 | FuzzLean, EngineParameters p ->
+
                     let! result = Fuzz.runSmokeTest taskWorkingDirectory p args.pythonFilePath
                     let! analyzerResult = async {
                         if p.runResultsAnalyzer then
@@ -936,11 +885,20 @@ let main argv =
                             EngineErrorCode
                         else
                             result.ExitCode
+
                     let testingSummary =
                         if exitCode = 0 then
-                            getDataFromTestingSummary taskWorkingDirectory |> Some
+                            TaskResults.getDataFromTestingSummary taskWorkingDirectory |> Some
                         else None
 
+                    match testingSummary with
+                    | None -> ()
+                    | Some ts ->
+                        let coverage = ts.specCoverageCounts |> Map.ofList
+                        let coveragePct = Double.Parse(coverage.["covered_spec_requests"]) /
+                                            (Double.Parse(coverage.["total_spec_requests"]))
+                        if coveragePct < 1 then
+                            TaskResults.generateApiCoverageReport taskWorkingDirectory
                     return
                         {|
                             taskResult = exitCode
@@ -964,7 +922,7 @@ let main argv =
                             result.ExitCode
                     let testingSummary =
                         if exitCode = 0 then
-                            getDataFromTestingSummary taskWorkingDirectory |> Some
+                            TaskResults.getDataFromTestingSummary taskWorkingDirectory |> Some
                         else None
 
                     return

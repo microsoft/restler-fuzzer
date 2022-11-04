@@ -18,6 +18,8 @@
     <Compile Include="Files.fs" />
     <Compile Include="LogCollection.fs" />
     <Compile Include="Telemetry.fs" />
+    <Compile Include="SpecCoverage.fs" />
+    <Compile Include="TaskResults.fs" />
     <Compile Include="Program.fs" />
     <Content Include="packages.lock.json" />
   </ItemGroup>

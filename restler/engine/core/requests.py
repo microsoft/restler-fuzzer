@@ -65,6 +65,9 @@ class RenderedRequestStats(object):
         self.response_headers = None
         self.response_body = None
 
+        self.request_str = None
+        self.response_str = None
+
     def set_request_stats(self, request_text):
         """ Helper to set the request statistics from the text.
             Parses the request text and initializes headers, uri, and body
@@ -74,6 +77,7 @@ class RenderedRequestStats(object):
         @rtype : None
 
         """
+        self.request_str = request_text
         try:
             split_body = request_text.split(messaging.DELIM)
             split_headers = split_body[0].split("\r\n")
@@ -104,18 +108,18 @@ class RenderedRequestStats(object):
         @rtype : None
 
         """
+        self.response_str = final_request_response.to_str
         self.response_status_code = final_request_response.status_code
         self.response_status_text = final_request_response.status_text
         self.response_headers = final_request_response.headers
         self.response_body = final_request_response.body
         self.response_received_timestamp = final_response_datetime
 
-
 class SmokeTestStats(object):
     """ Class used for logging stats during directed-smoke-test """
     def __init__(self):
         self.request_order = -1
-        self.matching_prefix = {} # {"id": <prefix_hex>, "valid": <0/1>}
+        self.matching_prefix = [] # [{"id": <prefix_hex>, "valid": <0/1>}, ...]
         self.valid = 0
         self.has_valid_rendering = 0
         self.failure = None
@@ -128,17 +132,56 @@ class SmokeTestStats(object):
         self.sequence_failure_sample_request = None
         self.tracked_parameters = {}
 
-    def set_matching_prefix(self, sequence_prefix):
+    def set_matching_prefix(self, rendered_sequence=None, failed_prefix=None):
         # Set the prefix of the request, if it exists.
-        if len(sequence_prefix.requests) > 0:
+        if rendered_sequence is not None and failed_prefix is not None:
+            raise Exception("Either a sequence or failed prefix should be provided, but not both.")
+
+        prefix_ids = []
+        if rendered_sequence:
+            sequence_prefix = rendered_sequence.prefix
+
+            if len(sequence_prefix.requests) > 0:
+                num_requests_sent = len(rendered_sequence.sent_request_data_list)
+
+                prefix_length = rendered_sequence.prefix.length
+                req_i = 1
+                for c in sequence_prefix.current_combination_id:
+                    prefix_id = {}
+                    prefix_id["id"] = c
+                    if rendered_sequence._used_cached_prefix:
+                        prefix_id["valid"] = 1
+                    elif req_i < num_requests_sent:
+                        # Valid because more requests were sent
+                        prefix_id["valid"] = 1
+                    elif req_i == num_requests_sent:
+                        if num_requests_sent < prefix_length:
+                            # sequence failure
+                            prefix_id["valid"] = 0
+                        else:
+                            prefix_id["valid"] = 1
+                    else:
+                        # The request was skipped because there was an earier sequence failure
+                        pass
+
+                    prefix_ids.append(prefix_id)
+                    req_i = req_i + 1
+
+        elif failed_prefix:
             prefix_ids = []
-            for c in sequence_prefix.current_combination_id:
+            req_i = 1
+            for c in failed_prefix.current_combination_id:
                 prefix_id = {}
                 prefix_id["id"] = c
-                if self.valid:
-                    prefix_id["valid"] = self.valid
+                # The failed prefix was rendered, so all but the last request are valid
+                if req_i < failed_prefix.length:
+                    prefix_id["valid"] = 1
+                else:
+                    prefix_id["valid"] = 0
                 prefix_ids.append(prefix_id)
-            self.matching_prefix = prefix_ids
+                req_i = req_i + 1
+
+        self.matching_prefix = prefix_ids
 
     def set_all_stats(self, renderings):
 
@@ -150,7 +193,7 @@ class SmokeTestStats(object):
         # Get the last rendered request.  The corresponding response should be
         # the last received response.
         if renderings.sequence:
-            self.set_matching_prefix(renderings.sequence.prefix)
+            self.set_matching_prefix(rendered_sequence=renderings.sequence)
             if self.failure == FailureInformation.SEQUENCE:
                 self.sequence_failure_sample_request = RenderedRequestStats()
                 self.sequence_failure_sample_request.set_request_stats(

@@ -1,4 +1,7 @@
-﻿namespace Restler.Driver
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
+namespace Restler.Driver
 
 open System
 open System.IO

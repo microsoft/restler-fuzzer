@@ -15,6 +15,7 @@ import time
 import subprocess
 import shutil
 import glob
+import json
 from pathlib import Path
 from threading import Thread
 
@@ -65,6 +66,56 @@ def test_test_task(restler_working_dir, swagger_path, restler_drop_dir):
     ]
     check_output_errors(output)
     check_expected_output(restler_working_dir, expected_strings, output, "Test")
+
+
+def test_test_task_low_coverage(restler_working_dir, swagger_path, restler_drop_dir):
+    # Mutate the specification so there are coverage errors
+    def mutate_spec(new_swagger_path):
+        new_swagger_spec = json.load(open(swagger_path, encoding='utf-8'))
+        # Modify the example, which will cause the POST request to fail
+        new_swagger_spec['components']['schemas']['BlogPostPublicInput']['example']['id'] = 1
+
+        json.dump(new_swagger_spec,  open(new_swagger_path, "w", encoding='utf-8'), indent=2)
+
+    new_swagger_path = os.path.join(Path(swagger_path).parent, "mutated_swagger_low_coverage.json")
+
+    try:
+        mutate_spec(new_swagger_path)
+
+        # Run the quick start script
+        output = subprocess.run(
+            f'python ./restler-quick-start.py --api_spec_path {new_swagger_path} --restler_drop_dir {restler_drop_dir} --task test',
+            shell=True, capture_output=True
+        )
+        expected_strings = [
+            'Request coverage (successful / total): 2 / 6',
+            'Attempted requests: 3 / 6',
+            'No bugs were found.',
+            'Task Test succeeded.'
+        ]
+        check_output_errors(output)
+        check_expected_output(restler_working_dir, expected_strings, output, "Test")
+
+        baseline_coverage_txt_path = os.path.join(restler_working_dir, "..", "restler",
+                                                  "end_to_end_tests", "baselines",
+                                                  "mutated_swagger_coverage_failures.txt")
+        actual_coverage_txt_path = os.path.join(restler_working_dir, "Test", "coverage_failures_to_investigate.txt")
+        def result_filter(line):
+            return "Request:" in line or "Number of blocked dependent requests" in line
+
+        with open(baseline_coverage_txt_path, "r") as bf, open(actual_coverage_txt_path, "r") as af:
+            expected_lines = list(filter(result_filter, bf.readlines()))
+            actual_lines = list(filter(result_filter, af.readlines()))
+
+            if actual_lines != expected_lines:
+                raise QuickStartFailedException(f"Failing because coverage txt baselines do not match.")
+            else:
+                print("Coverage txt baselines match.")
+    finally:
+        # Delete the mutated spec
+        if os.path.exists(new_swagger_path):
+            os.remove(new_swagger_path)
+
 
 def test_fuzzlean_task(restler_working_dir, swagger_path, restler_drop_dir):
     # Run the quick start script
@@ -183,6 +234,9 @@ if __name__ == '__main__':
         print("+++++++++++++++++++++++++++++test...")
         test_test_task(restler_working_dir, swagger_path, restler_drop_dir)
 
+        print("+++++++++++++++++++++++++++++test with coverage errors...")
+        test_test_task_low_coverage(restler_working_dir, swagger_path, restler_drop_dir)
+
         print("+++++++++++++++++++++++++++++fuzzlean...")
         test_fuzzlean_task(restler_working_dir, swagger_path, restler_drop_dir)
 
@@ -193,7 +247,7 @@ if __name__ == '__main__':
         #print("+++++++++++++++++++++++++++++fuzz...")
         #test_fuzz_task(restler_working_dir, swagger_path, restler_drop_dir)
 
-    except Exception:
+    except Exception as exn:
         test_failed = True
         raise
     finally:

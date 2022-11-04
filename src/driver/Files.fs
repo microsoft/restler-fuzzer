@@ -1,4 +1,7 @@
-﻿module Restler.Driver.Files
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
+module Restler.Driver.Files
 
 open System
 open System.IO
