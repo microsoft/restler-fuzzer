@@ -45,7 +45,7 @@ def compile_spec(api_spec_path, restler_dll_path):
 def add_common_settings(ip, port, host, use_ssl, use_http2, command):
     if not use_ssl:
         command = f"{command} --no_ssl"
-    if use_http2 is not None:
+    if use_http2:
         command = f"{command} --http2"
     if ip is not None:
         command = f"{command} --target_ip {ip}"
@@ -112,7 +112,7 @@ def test_spec(ip, port, host, use_ssl, use_http2, restler_dll_path, task):
         )
         print(f"command: {command}\n")
         command = add_common_settings(ip, port, host, use_ssl, use_http2, command)
-
+        print(f"command: {command}\n")
         subprocess.run(command, shell=True)
 
 if __name__ == '__main__':
