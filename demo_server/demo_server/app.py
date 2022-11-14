@@ -1,6 +1,9 @@
+from typing import Any
 from fastapi import FastAPI, HTTPException, Depends
 
-import uvicorn
+from hypercorn.config import Config
+from hypercorn.asyncio import serve
+import asyncio, signal
 import os, binascii
 
 from sqlmodel import create_engine, SQLModel, Session
@@ -21,6 +24,10 @@ app.include_router(doc.router)
 def on_startup():
     SQLModel.metadata.create_all(engine)
 
+shutdown_event = asyncio.Event()
+def _signal_handler(*_: Any) -> None:
+        shutdown_event.set()
+
 
 if __name__ == "__main__":
 
@@ -34,5 +41,11 @@ if __name__ == "__main__":
     if app_host is None:
         app_host = "0.0.0.0"
 
-    uvicorn.run("app:app", reload=True, host=app_host, port=app_port)
+    #uvicorn.run("app:app", reload=True, host=app_host, port=app_port)
+    config = Config()
+    config.bind = [app_host + ":" + str(app_port)]
+    loop = asyncio.get_event_loop()
+    loop.add_signal_handler(signal.SIGTERM, _signal_handler)
+    loop.run_until_complete(serve(app, config, shutdown_trigger=shutdown_event.wait))
+
 
