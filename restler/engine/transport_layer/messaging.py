@@ -233,17 +233,26 @@ class Http20Sock(object):
             return segment
 
         def _create_h2_header(message):
+
+            h11_request_header = message[message.index('\r\n')+2:_get_end_of_header(message)] # we only want the header fields, e.g. Accept: ..., Host: ..., ...
+
+            def _get_host_header_from_message(h11_request_header):
+                for line in h11_request_header.split('\r\n'):
+                    key, _ = line.split(': ', 1)
+                    if key == 'Host':
+                        return line
+
             h2_request_header = [ #special headers must appear at the start of the header block
                 (':method', self._get_method_from_message(message)),
-                (':authority', self.connection_settings.target_ip or Settings().host),
+                (':authority', _get_host_header_from_message(h11_request_header) or Settings().host),
                 (':scheme', self._scheme),
                 (':path', _get_uri_segment_from_message(message))
             ]
             
-            original_header = message[message.index('\r\n')+2:_get_end_of_header(message)] #we only want the header fields e.g. Accept: ..., 
-            for line in original_header.split('\r\n'):
-                key, value = line.split(':')
-                h2_request_header.append((key, value))
+            for line in h11_request_header.split('\r\n'):
+                key, value = line.split(': ', 1)
+                if key != "Host":
+                    h2_request_header.append((key, value))
             
             return h2_request_header
 
