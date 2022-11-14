@@ -138,7 +138,7 @@ def test_replay_task(restler_working_dir, task_output_dir, restler_drop_dir, use
     with open(network_log) as rf, open(original_bug_buckets_file_path) as of:
         orig_buckets = of.read()
         log_contents = rf.read()
-        if 'HTTP/1.1 500 Internal Server Error' not in log_contents:
+        if 'HTTP/1.1 500 Internal Server Error' not in log_contents and 'HTTP/2.0 500 Internal Server Error' not in log_contents:
             raise QuickStartFailedException(f"Failing because bug buckets {orig_buckets} were not reproduced.  Replay log: {log_contents}.")
         else:
             print("500 error was reproduced.")
