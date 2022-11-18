@@ -166,7 +166,11 @@ if __name__ == '__main__':
     else:
         creationflags = 0
 
-    demo_server_process = subprocess.Popen([sys.executable, demo_server_path],
+    use_http2 = ""
+    if len(sys.argv) > 2:
+        use_http2 = sys.argv[2]
+    
+    demo_server_process = subprocess.Popen([sys.executable, demo_server_path, use_http2],
                                             stdout=subprocess.PIPE,
                                             stderr=subprocess.STDOUT,
                                             creationflags=creationflags)
@@ -178,9 +182,6 @@ if __name__ == '__main__':
     swagger_path = Path('demo_server', 'swagger.json')
     # argv 1 = path to RESTler drop
     restler_drop_dir = sys.argv[1]
-    use_http2 = ""
-    if len(sys.argv) > 2:
-        use_http2 = sys.argv[2]
     restler_working_dir = os.path.join(curr, RESTLER_WORKING_DIR)
     test_failed = False
     try:
