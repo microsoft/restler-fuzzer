@@ -1,4 +1,4 @@
 fastapi==0.78.0
 hypercorn==0.14.3
+uvicorn==0.18.1
 sqlmodel==0.0.6
-typing-extensions==4.4.0
