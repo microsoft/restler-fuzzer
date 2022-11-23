@@ -10,6 +10,9 @@ import ast
 import uuid
 import types
 import threading
+import importlib
+import os
+
 
 from engine.errors import ResponseParsingException
 from engine.errors import TransportLayerException
@@ -20,6 +23,7 @@ from engine.transport_layer.response import HttpResponse
 from engine.transport_layer.response import RESTLER_BUG_CODES
 from engine.transport_layer.messaging import UTF8
 from engine.transport_layer.messaging import HttpSock
+from engine.core.retry_handler import RetryHandler
 
 last_refresh = 0
 NO_TOKEN_SPECIFIED = 'NO-TOKEN-SPECIFIED\r\n'
@@ -50,56 +54,71 @@ def str_to_hex_def(val_str):
     """
     return hashlib.sha1(val_str.encode(UTF8)).hexdigest()
 
-def execute_token_refresh_cmd(cmd):
-    """ Forks a subprocess to execute @param cmd to refresh token.
 
-    @param cmd: The user-provided command to refresh the token.
-    @type  cmd: Str
-
-    @return: The result of the command
-    @rtype : Str
-
-    """
+def execute_token_refresh(token_dict):
     global latest_token_value, latest_shadow_token_value
-    _RAW_LOGGING(f"Will refresh token: {cmd}")
-
-    MAX_RETRIES = 5
-    RETRY_SLEEP_TIME_SEC = 2
     ERROR_VAL_STR = 'ERROR\r\n'
-    retry_count = 0
-    while retry_count < MAX_RETRIES:
-        try:
-            if sys.platform.startswith('win'):
-                cmd_result = subprocess.getoutput(str(cmd).split(' '))
-            else:
-                cmd_result = subprocess.getoutput([cmd])
+    result = None
+    token_auth_method = token_dict["token_auth_method"]
 
-            _RAW_LOGGING(f"New value: {cmd_result}")
-            _, latest_token_value, latest_shadow_token_value = parse_authentication_tokens(cmd_result)
-            _RAW_LOGGING(f"Successfully obtained the latest token")
+    retry_handler = RetryHandler()
+
+    while retry_handler.can_retry():
+        try:
+            if token_auth_method == "location":
+                result = execute_location_token_refresh(token_dict["location"])
+            elif token_auth_method == "cmd":
+                result = execute_token_refresh_cmd(token_dict["token_refresh_cmd"])
+            elif token_auth_method == "module":
+                result = execute_token_refresh_module(token_dict["token_module_file"], token_dict["token_module_method"], token_dict["token_module_data"])
             break
-        except subprocess.CalledProcessError:
-            error_str = f"Authentication failed when refreshing token:\n\nCommand that failed: \n{cmd}"
-            print(f'\n{error_str}')
-            latest_token_value = ERROR_VAL_STR
-            latest_shadow_token_value = ERROR_VAL_STR
-            _RAW_LOGGING(error_str)
-            retry_count = retry_count + 1
-            time.sleep(RETRY_SLEEP_TIME_SEC)
         except EmptyTokenException:
             error_str = "Error: Authentication token was empty."
             print(error_str)
             _RAW_LOGGING(error_str)
             sys.exit(-1)
         except Exception as error:
-            error_str = f"Exception refreshing token with cmd {cmd}.  Error: {error}"
-            print(error_str)
+            error_str = f"Authentication failed when refreshing token:\n\nUsing Token authentication method: \n{token_auth_method} \n with error {error}"
+            print(f'\n{error_str}')
+            latest_token_value = ERROR_VAL_STR
+            latest_shadow_token_value = ERROR_VAL_STR
             _RAW_LOGGING(error_str)
-            sys.exit(-1)
-    else:
-        _RAW_LOGGING(f"\nMaximum number of retries ({MAX_RETRIES}) exceeded. Exiting program.")
-        sys.exit(-1)
+            retry_handler.wait_for_next_retry()
+    _, latest_token_value, latest_shadow_token_value = parse_authentication_tokens(result)
 
+def execute_location_token_refresh(location):
+    f = open(location,"r")
+    token_result = f.read() ## TODO: double check this 
+    f.close()
+    return token_result
+
+def execute_token_refresh_module(module_path, method, data):
+    module_name = os.path.basename(module_path)
+    spec = importlib.util.spec_from_file_location(module_name, module_path)
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[module_name] = module
+    spec.loader.exec_module(module)
+    token_refresh_method = getattr(module, method) 
+    token_result = token_refresh_method(data)
+    return token_result
+
+def execute_token_refresh_cmd(cmd):
+    """ Forks a subprocess to execute @param cmd to refresh token.
+
+    @param cmd: The user-provided command to refresh the token.
+    @type  cmd: Str
+ 
+    @return: The result of the command
+    @rtype : Str
+
+    """
+    global latest_token_value, latest_shadow_token_value
+    _RAW_LOGGING(f"Will refresh token: {cmd}")
+    if sys.platform.startswith('win'):
+        cmd_result = subprocess.getoutput(str(cmd).split(' '))
+    else:
+        cmd_result = subprocess.getoutput([cmd])
+    return cmd_result
 def parse_authentication_tokens(cmd_result):
     """ Parses the output @param cmd_result from token scripts to refresh tokens.
 
@@ -256,11 +275,10 @@ def resolve_dynamic_primitives(values, candidate_values_pool):
             )
             if not isinstance(token_dict, dict):
                 raise Exception("Refreshable token was not specified as a setting, but a request was expecting it.")
-            if token_dict:
+            if  "token_auth_method" in token_dict and token_dict["token_auth_method"]:
                 token_refresh_interval = token_dict['token_refresh_interval']
-                token_refresh_cmd = token_dict['token_refresh_cmd']
                 if int(time.time()) - last_refresh > token_refresh_interval:
-                    execute_token_refresh_cmd(token_refresh_cmd)
+                    execute_token_refresh(token_dict)
                     last_refresh = int(time.time())
                     #print("-{}-\n-{}-".format(repr(latest_token_value),
                     #                          repr(latest_shadow_token_value)))
