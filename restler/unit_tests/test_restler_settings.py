@@ -319,6 +319,41 @@ class RestlerSettingsTest(unittest.TestCase):
         with self.assertRaises(OptionValidationError):
             settings.validate_options()
 
+    def test_refresh_module_no_interval(self):
+        user_args = {'target_port': 500,
+                     'target_ip': '192.168.0.1',
+                     'authentication': {
+                        'token':
+                        {
+                            'OneOf':
+                            {
+                                'module': {
+                                    'file': 'some_module.py',
+                                    'data': {}
+                                }
+                            }
+                        }
+                     }}
+        settings = RestlerSettings(user_args)
+        with self.assertRaises(OptionValidationError):
+            settings.validate_options()
+
+    def test_refresh_location_no_interval(self):
+        user_args = {'target_port': 500,
+                     'target_ip': '192.168.0.1',
+                     'authentication': {
+                        'token':
+                        {
+                            'OneOf':
+                            {
+                                'location': "//some_location"
+                            }
+                        }
+                     }}
+        settings = RestlerSettings(user_args)
+        with self.assertRaises(OptionValidationError):
+            settings.validate_options()
+
     def test_refresh_interval_no_cmd(self):
         user_args = {'target_port': 500,
                      'target_ip': '192.168.0.1',
