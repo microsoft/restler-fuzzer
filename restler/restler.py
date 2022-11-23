@@ -415,23 +415,33 @@ if __name__ == '__main__':
                             print_to_console=True)
         sys.exit(-1)
 
-    if settings.token_refresh_cmd:
-        req_collection.candidate_values_pool.set_candidate_values(
-            {
-                'restler_refreshable_authentication_token':
-                    {
-                        'token_refresh_cmd': settings.token_refresh_cmd,
-                        'token_refresh_interval': settings.token_refresh_interval
-                    }
-            }
-        )
-    else:
-        req_collection.candidate_values_pool.set_candidate_values(
-            {
-                'restler_refreshable_authentication_token':
-                    {
-                    }
-            }
+    ## Support existing authentication schema
+    token_auth_method = settings.token_authentication_method
+    restler_refreshable_authentication_token = {
+        "token_auth_method": token_auth_method,
+        "token_refresh_interval": settings.token_refresh_interval,
+    }
+    if token_auth_method == 'cmd':
+        restler_refreshable_authentication_token.update({
+            "token_refresh_cmd": settings.token_refresh_cmd,
+        })
+    elif token_auth_method == 'module':
+        restler_refreshable_authentication_token.update({
+            "token_module_file": settings.token_module_file,
+            "token_module_method": settings.token_module_method,
+            "token_module_data": settings.token_module_data,
+        })
+    elif token_auth_method == 'location':
+        restler_refreshable_authentication_token.update({
+            "token_module_file": settings.token_module_file,
+            "token_module_method": settings.token_module_method,
+            "token_module_data": settings.token_module_data,
+        })
+
+    req_collection.candidate_values_pool.set_candidate_values(
+        {
+            'restler_refreshable_authentication_token': restler_refreshable_authentication_token
+        }
         )
 
     # Initialize the fuzzing monitor

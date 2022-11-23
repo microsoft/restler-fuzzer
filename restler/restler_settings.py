@@ -485,6 +485,8 @@ class RestlerSettings(object):
         self._token_refresh_cmd = SettingsArg('token_refresh_cmd', str, None, user_args)
         ## Interval to periodically refresh the authentication token (seconds)
         self._token_refresh_interval = SettingsArg('token_refresh_interval', int, None, user_args)
+        ## New format for specifying authentication settings 
+        self._authentication_settings = SettingsArg('authentication', dict, {}, user_args)
         ## Restler's version
         self._version = SettingsArg('set_version', str, DEFAULT_VERSION, user_args)
         ## If set, poll for async resource creation before continuing
@@ -512,11 +514,23 @@ class RestlerSettings(object):
 
     @property
     def client_certificate_path(self):
-        return self._client_certificate_path.val
+        if self._client_certificate_path:
+            return self._client_certificate_path.val
+        else:
+            try:
+                return self._authentication_settings.val['certificate']['OneOf']['certlocation']
+            except TypeError:
+                return None
 
     @property
     def client_certificate_key_path(self):
-        return self._client_certificate_key_path.val
+        if self._client_certificate_key_path:
+            return self._client_certificate_key_path.val
+        else:
+            try:
+                return self._authentication_settings.val['certificate']['OneOf']['keylocation']
+            except TypeError:
+                return None
 
     @property
     def connection_settings(self):
@@ -704,12 +718,64 @@ class RestlerSettings(object):
 
     @property
     def token_refresh_cmd(self):
-        return self._token_refresh_cmd.val
+        if self._token_refresh_cmd.get_val():
+            return self._token_refresh_cmd.get_val()
+        else:
+            try:
+                return self._authentication_settings.val['token']['OneOf']['cmd']
+            except KeyError:
+                return None
+            except TypeError:
+                return None
 
     @property
     def token_refresh_interval(self):
-        return self._token_refresh_interval.val
+        if self._token_refresh_interval.get_val():
+            return self._token_refresh_interval.get_val()
+        else:
+            try:
+                return self._authentication_settings.val['token']['token_refresh_interval']
+            except KeyError:
+                return None
+            except TypeError:
+                return None
+    @property
+    def token_location(self):
+        try:
+            return self._authentication_settings.val['token']['OneOf']['location']
+        except KeyError:
+            return None
+        except TypeError:
+            return None
 
+    @property
+    def token_module_file(self):
+        try:
+            return self._authentication_settings.val['token']['OneOf']['module']['file']
+        except KeyError:
+            return None
+        except TypeError:
+            return None
+
+    @property
+    def token_module_method(self):
+        try:
+            return self._authentication_settings.val['token']['OneOf']['module']['method']
+        except KeyError:
+            return 'acquire_token'
+        except TypeError:
+            return 'acquire_token'
+
+    @property
+    def token_module_data(self):
+        try:
+            return self._authentication_settings.val['token']['OneOf']['module']['data']
+        except KeyError:
+            return None
+        except TypeError:
+            return None
+
+            
     @property
     def version(self):
         return self._version.val
@@ -747,6 +813,17 @@ class RestlerSettings(object):
         else:
             return include_req() and not exclude_req()
 
+    @property 
+    def token_authentication_method(self):
+        ## TODO: Verify OneOf?
+        if self.token_module_file:
+            return 'module'
+        elif self.token_refresh_cmd:
+            return 'cmd'
+        elif self.token_location:
+            return 'location'
+        else:
+            return None
     def get_cached_prefix_request_settings(self, endpoint, method):
         def get_settings():
             if 'create_prefix_once' in self._seq_rendering_settings.val:
@@ -909,10 +986,12 @@ class RestlerSettings(object):
         if self.fuzzing_mode == 'random-walk' and self.max_sequence_length != 100:
             raise OptionValidationError("Should not provide maximum sequence length"
                                         " for random walk method")
-        if self.token_refresh_interval and not self.token_refresh_cmd:
-            raise OptionValidationError("Must specify command to refresh token")
-        if self.token_refresh_cmd and not self.token_refresh_interval:
+        if self.token_refresh_interval and not self.token_authentication_method:
+            raise OptionValidationError("Must specify token refresh method")
+        if self.token_authentication_method and not self.token_refresh_interval:
             raise OptionValidationError("Must specify refresh period in seconds")
+        if self.token_authentication_method == 'module' and not self.token_module_file:
+            raise OptionValidationError("Must specify token module file")         
         if self.request_throttle_ms and self.fuzzing_jobs != 1:
             raise OptionValidationError("Request throttling not available for multiple fuzzing jobs")
         if self.custom_bug_codes and self.custom_non_bug_codes:
