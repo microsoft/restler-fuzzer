@@ -518,7 +518,7 @@ class RestlerSettings(object):
             return self._client_certificate_path.val
         else:
             try:
-                return self._authentication_settings.val['certificate']['OneOf']['certlocation']
+                return self._authentication_settings.val['certificate']['certlocation']
             except TypeError:
                 return None
 
@@ -528,7 +528,7 @@ class RestlerSettings(object):
             return self._client_certificate_key_path.val
         else:
             try:
-                return self._authentication_settings.val['certificate']['OneOf']['keylocation']
+                return self._authentication_settings.val['certificate']['keylocation']
             except TypeError:
                 return None
 
@@ -722,7 +722,7 @@ class RestlerSettings(object):
             return self._token_refresh_cmd.get_val()
         else:
             try:
-                return self._authentication_settings.val['token']['OneOf']['cmd']
+                return self._authentication_settings.val['token']['cmd']
             except KeyError:
                 return None
             except TypeError:
@@ -742,7 +742,7 @@ class RestlerSettings(object):
     @property
     def token_location(self):
         try:
-            return self._authentication_settings.val['token']['OneOf']['location']
+            return self._authentication_settings.val['token']['location']
         except KeyError:
             return None
         except TypeError:
@@ -751,7 +751,7 @@ class RestlerSettings(object):
     @property
     def token_module_file(self):
         try:
-            return self._authentication_settings.val['token']['OneOf']['module']['file']
+            return self._authentication_settings.val['token']['module']['file']
         except KeyError:
             return None
         except TypeError:
@@ -760,7 +760,7 @@ class RestlerSettings(object):
     @property
     def token_module_method(self):
         try:
-            return self._authentication_settings.val['token']['OneOf']['module']['method']
+            return self._authentication_settings.val['token']['module']['method']
         except KeyError:
             return 'acquire_token'
         except TypeError:
@@ -769,7 +769,7 @@ class RestlerSettings(object):
     @property
     def token_module_data(self):
         try:
-            return self._authentication_settings.val['token']['OneOf']['module']['data']
+            return self._authentication_settings.val['token']['module']['data']
         except KeyError:
             return None
         except TypeError:
