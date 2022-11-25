@@ -325,12 +325,9 @@ class RestlerSettingsTest(unittest.TestCase):
                      'authentication': {
                         'token':
                         {
-                            'OneOf':
-                            {
-                                'module': {
-                                    'file': 'some_module.py',
-                                    'data': {}
-                                }
+                            'module': {
+                                'file': 'some_module.py',
+                                'data': {}
                             }
                         }
                      }}
@@ -344,10 +341,7 @@ class RestlerSettingsTest(unittest.TestCase):
                      'authentication': {
                         'token':
                         {
-                            'OneOf':
-                            {
-                                'location': "//some_location"
-                            }
+                            'location': "//some_location"
                         }
                      }}
         settings = RestlerSettings(user_args)
