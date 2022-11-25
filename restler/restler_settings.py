@@ -516,22 +516,18 @@ class RestlerSettings(object):
     def client_certificate_path(self):
         if self._client_certificate_path:
             return self._client_certificate_path.val
+        elif 'certificate' in self._authentication_settings.val and 'certlocation' in self._authentication_settings.val['certificate']:
+            return self._authentication_settings.val['certificate']['certlocation']
         else:
-            try:
-                return self._authentication_settings.val['certificate']['certlocation']
-            except TypeError:
-                return None
-
+            return None
     @property
     def client_certificate_key_path(self):
         if self._client_certificate_key_path:
             return self._client_certificate_key_path.val
+        elif 'certificate' in self._authentication_settings.val and 'keylocation' in self._authentication_settings.val['certificate']:
+            return self._authentication_settings.val['certificate']['keylocation']
         else:
-            try:
-                return self._authentication_settings.val['certificate']['keylocation']
-            except TypeError:
-                return None
-
+            return None
     @property
     def connection_settings(self):
         return self._connection_settings
@@ -718,63 +714,46 @@ class RestlerSettings(object):
 
     @property
     def token_refresh_cmd(self):
-        if self._token_refresh_cmd.get_val():
-            return self._token_refresh_cmd.get_val()
+        if self._token_refresh_cmd.val:
+            return self._token_refresh_cmd.val
+        elif 'token' in self._authentication_settings.val and 'cmd' in self._authentication_settings.val['token']:
+            return self._authentication_settings.val['token']['cmd']
         else:
-            try:
-                return self._authentication_settings.val['token']['cmd']
-            except KeyError:
-                return None
-            except TypeError:
-                return None
+            return None
 
     @property
     def token_refresh_interval(self):
-        if self._token_refresh_interval.get_val():
-            return self._token_refresh_interval.get_val()
+        if self._token_refresh_interval.val:
+            return self._token_refresh_interval.val
+        elif 'token' in self._authentication_settings.val and 'token_refresh_interval' in self._authentication_settings.val['token']:
+            return self._authentication_settings.val['token']['token_refresh_interval']
         else:
-            try:
-                return self._authentication_settings.val['token']['token_refresh_interval']
-            except KeyError:
-                return None
-            except TypeError:
-                return None
+            return None
     @property
     def token_location(self):
-        try:
+        if 'token' in self._authentication_settings.val and 'location' in self._authentication_settings.val['token']:
             return self._authentication_settings.val['token']['location']
-        except KeyError:
+        else:
             return None
-        except TypeError:
-            return None
-
     @property
     def token_module_file(self):
-        try:
+        if 'token' in self._authentication_settings.val and 'module' in self._authentication_settings.val['token'] and 'file' in self._authentication_settings.val['token']['module']:
             return self._authentication_settings.val['token']['module']['file']
-        except KeyError:
+        else:
             return None
-        except TypeError:
-            return None
-
     @property
     def token_module_method(self):
-        try:
+        if 'token' in self._authentication_settings.val and 'module' in self._authentication_settings.val['token'] and 'method' in self._authentication_settings.val['token']['module']:
             return self._authentication_settings.val['token']['module']['method']
-        except KeyError:
-            return 'acquire_token'
-        except TypeError:
+        else:
             return 'acquire_token'
 
     @property
     def token_module_data(self):
-        try:
+        if 'token' in self._authentication_settings.val and 'module' in self._authentication_settings.val['token'] and 'data' in self._authentication_settings.val['token']['module']:
             return self._authentication_settings.val['token']['module']['data']
-        except KeyError:
+        else:
             return None
-        except TypeError:
-            return None
-
             
     @property
     def version(self):
