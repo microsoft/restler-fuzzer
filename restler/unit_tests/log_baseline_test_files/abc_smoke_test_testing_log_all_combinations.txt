@@ -1,4 +1,4 @@
-2022-02-15 00:06:07.651: Will refresh token: python D:\git\restler-fuzzer\restler\unit_tests\log_baseline_test_files\unit_test_server_auth.py
+2022-02-15 00:06:07.651: Will refresh token: python D:\git\restler-fuzzer\restler\unit_tests\authentication_test_files\unit_test_server_auth.py
 2022-02-15 00:06:07.715: New value: {'user1':{}, 'user2':{}}
 Authorization: valid_unit_test_token
 Authorization: shadow_unit_test_token

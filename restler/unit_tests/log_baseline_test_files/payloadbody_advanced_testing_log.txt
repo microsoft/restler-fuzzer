@@ -1,4 +1,4 @@
-2020-12-24 16:29:56.111: Will refresh token: python restler\unit_tests\log_baseline_test_files\unit_test_server_auth.py
+2020-12-24 16:29:56.111: Will refresh token: python restler\unit_tests\authentication_test_files\unit_test_server_auth.py
 2020-12-24 16:29:56.229: New value: {'user1':{}, 'user2':{}}
 Authorization: valid_unit_test_token
 Authorization: shadow_unit_test_token

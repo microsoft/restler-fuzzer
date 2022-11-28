@@ -25,13 +25,17 @@ Test_File_Directory = os.path.join(
     os.path.dirname(__file__), 'log_baseline_test_files'
 )
 
+Authentication_Test_File_Directory = os.path.join(
+    os.path.dirname(__file__), 'authentication_test_files'
+)
+
 Restler_Path = os.path.join(os.path.dirname(__file__), '..', 'restler.py')
 
 Common_Settings = [
     "python", "-B", Restler_Path, "--use_test_socket",
     '--custom_mutations', f'{os.path.join(Test_File_Directory, "test_dict.json")}',
     "--garbage_collection_interval", "30", "--host", "unittest",
-    "--token_refresh_cmd", f'python {os.path.join(Test_File_Directory, "unit_test_server_auth.py")}',
+    "--token_refresh_cmd", f'python {os.path.join(Authentication_Test_File_Directory, "unit_test_server_auth.py")}',
     "--token_refresh_interval", "10"
 ]
 
