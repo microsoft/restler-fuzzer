@@ -19,8 +19,8 @@ module Examples =
                              GrammarOutputDirectoryPath = Some ctx.testRootDirPath
                              ResolveBodyDependencies = true
                              UseBodyExamples = Some false
-                             SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, @"swagger\example_demo1.json"))]
-                             CustomDictionaryFilePath = Some (Path.Combine(Environment.CurrentDirectory, @"swagger\example_demo_dictionary.json"))
+                             SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, "swagger", "example_demo1.json"))]
+                             CustomDictionaryFilePath = Some (Path.Combine(Environment.CurrentDirectory, "swagger", "example_demo_dictionary.json"))
                          }
             Restler.Workflow.generateRestlerGrammar None config
             let grammarFilePath = Path.Combine(ctx.testRootDirPath, "grammar.py")
@@ -37,7 +37,7 @@ module Examples =
 
         [<Fact>]
         let ``example config file test`` () =
-            let exampleConfigFilePath = Path.Combine(Environment.CurrentDirectory, @"swagger\example_config_file.json")
+            let exampleConfigFilePath = Path.Combine(Environment.CurrentDirectory, "swagger", "example_config_file.json")
             let x = Restler.Examples.tryDeserializeExampleConfigFile exampleConfigFilePath
             Assert.True(x.IsSome)
             Assert.True(x.Value.paths |> List.exists (fun x -> x.path = "/vm"))
@@ -55,8 +55,8 @@ module Examples =
                              UseBodyExamples = Some true
                              UseQueryExamples = Some true
                              DataFuzzing = true
-                             SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, @"swagger\array_example.json"))]
-                             CustomDictionaryFilePath = Some (Path.Combine(Environment.CurrentDirectory, @"swagger\example_demo_dictionary.json"))
+                             SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, "swagger", "array_example.json"))]
+                             CustomDictionaryFilePath = Some (Path.Combine(Environment.CurrentDirectory, "swagger", "example_demo_dictionary.json"))
                          }
             // Run the example test using the Swagger example and using the external example.
             let runTest testConfig =
@@ -64,7 +64,7 @@ module Examples =
                 // Read the baseline and make sure it matches the expected one
                 //
                 let expectedGrammarFilePath = Path.Combine(Environment.CurrentDirectory,
-                                                           @"baselines\exampleTests\array_example_grammar.py")
+                                                           "baselines", "exampleTests", "array_example_grammar.py")
                 let actualGrammarFilePath = Path.Combine(grammarDirectoryPath,
                                                          Restler.Workflow.Constants.DefaultRestlerGrammarFileName)
                 let grammarDiff = getLineDifferences expectedGrammarFilePath actualGrammarFilePath
@@ -75,10 +75,10 @@ module Examples =
             // Also test this scenario when 'DataFuzzing' is false.  This tests the case where
             // only examples are used for the schema.
             runTest { config with DataFuzzing = false }
-            let exampleConfigFile = Path.Combine(Environment.CurrentDirectory, "swagger\example_config_file.json")
+            let exampleConfigFile = Path.Combine(Environment.CurrentDirectory, "swagger", "example_config_file.json")
             let config =
                  { config with
-                        SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, @"swagger\array_example_external.json"))]
+                        SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, "swagger", "array_example_external.json"))]
                         ExampleConfigFilePath = Some exampleConfigFile }
             runTest config
 
@@ -90,8 +90,8 @@ module Examples =
                              GrammarOutputDirectoryPath = Some grammarDirectoryPath
                              ResolveBodyDependencies = false
                              UseBodyExamples = Some true
-                             SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, @"swagger\array_example.json"))]
-                             AnnotationFilePath = Some (Path.Combine(Environment.CurrentDirectory, @"swagger\array_example_annotations.json"))
+                             SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, "swagger", "array_example.json"))]
+                             AnnotationFilePath = Some (Path.Combine(Environment.CurrentDirectory, "swagger", "array_example_annotations.json"))
                          }
             Restler.Workflow.generateRestlerGrammar None config
             let grammarFilePath = Path.Combine(grammarDirectoryPath,
@@ -110,8 +110,8 @@ module Examples =
                              GrammarOutputDirectoryPath = Some grammarDirectoryPath
                              ResolveBodyDependencies = false
                              UseBodyExamples = Some true
-                             SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, @"swagger\object_example.json"))]
-                             CustomDictionaryFilePath = Some (Path.Combine(Environment.CurrentDirectory, @"swagger\example_demo_dictionary.json"))
+                             SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, "swagger", "object_example.json"))]
+                             CustomDictionaryFilePath = Some (Path.Combine(Environment.CurrentDirectory, "swagger", "example_demo_dictionary.json"))
                          }
             Restler.Workflow.generateRestlerGrammar None config
             let grammarFilePath = Path.Combine(grammarDirectoryPath,
@@ -129,8 +129,8 @@ module Examples =
                              GrammarOutputDirectoryPath = Some ctx.testRootDirPath
                              ResolveBodyDependencies = false
                              UseBodyExamples = Some true
-                             SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, @"swagger\secgroup_example.json"))]
-                             CustomDictionaryFilePath = Some (Path.Combine(Environment.CurrentDirectory, @"swagger\dict_secgroup_example.json"))
+                             SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, "swagger", "secgroup_example.json"))]
+                             CustomDictionaryFilePath = Some (Path.Combine(Environment.CurrentDirectory, "swagger", "dict_secgroup_example.json"))
                          }
             Restler.Workflow.generateRestlerGrammar None config
 
@@ -139,7 +139,7 @@ module Examples =
             let swaggerSpecConfig =
                   {
                       SpecFilePath =
-                         (Path.Combine(Environment.CurrentDirectory, @"swagger\empty_array_example.json"))
+                         (Path.Combine(Environment.CurrentDirectory, "swagger", "empty_array_example.json"))
                       Dictionary = None
                       DictionaryFilePath = None
                       AnnotationFilePath = None
@@ -178,8 +178,8 @@ module Examples =
                              IncludeOptionalParameters = true
                              GrammarOutputDirectoryPath = Some grammarOutputDirectoryPath
                              UseHeaderExamples = Some true
-                             SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, @"swagger\headers.json"))]
-                             CustomDictionaryFilePath = Some (Path.Combine(Environment.CurrentDirectory, @"swagger\headers_dict.json"))
+                             SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, "swagger", "headers.json"))]
+                             CustomDictionaryFilePath = Some (Path.Combine(Environment.CurrentDirectory, "swagger", "headers_dict.json"))
                          }
             Restler.Workflow.generateRestlerGrammar None config
             let grammarFilePath = Path.Combine(grammarOutputDirectoryPath, "grammar.py")
@@ -213,8 +213,8 @@ module Examples =
                                  ResolveBodyDependencies = false
                                  UseBodyExamples = Some true
                                  SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory,
-                                                                           sprintf @"swagger\example_demo1%s" extension))]
-                                 CustomDictionaryFilePath = Some (Path.Combine(Environment.CurrentDirectory, @"swagger\example_demo_dictionary.json"))
+                                                                            "swagger", sprintf "example_demo1%s" extension))]
+                                 CustomDictionaryFilePath = Some (Path.Combine(Environment.CurrentDirectory, "swagger", "example_demo_dictionary.json"))
                              }
                 Restler.Workflow.generateRestlerGrammar None config
                 let grammarFilePath = Path.Combine(ctx.testRootDirPath, "grammar.py")
@@ -237,8 +237,8 @@ module Examples =
                              ResolveBodyDependencies = true
                              UseBodyExamples = Some true
                              DiscoverExamples = true
-                             SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, @"swagger\example_demo1.json"))]
-                             CustomDictionaryFilePath = Some (Path.Combine(Environment.CurrentDirectory, @"swagger\example_demo_dictionary.json"))
+                             SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, "swagger", "example_demo1.json"))]
+                             CustomDictionaryFilePath = Some (Path.Combine(Environment.CurrentDirectory, "swagger", "example_demo_dictionary.json"))
                          }
             Restler.Workflow.generateRestlerGrammar None config
             let grammarFilePath = Path.Combine(ctx.testRootDirPath, "grammar.py")
@@ -264,8 +264,8 @@ module Examples =
                              GrammarOutputDirectoryPath = Some ctx.testRootDirPath
                              ResolveBodyDependencies = true
                              UseBodyExamples = Some true
-                             SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, @"swagger\example_demo.json"))]
-                             CustomDictionaryFilePath = Some (Path.Combine(Environment.CurrentDirectory, @"swagger\example_demo_dictionary.json"))
+                             SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, "swagger", "example_demo.json"))]
+                             CustomDictionaryFilePath = Some (Path.Combine(Environment.CurrentDirectory, "swagger", "example_demo_dictionary.json"))
                          }
             Restler.Workflow.generateRestlerGrammar None config
             let grammarFilePath = Path.Combine(ctx.testRootDirPath, "grammar.py")
@@ -295,7 +295,7 @@ module Examples =
                             ResolveQueryDependencies = true
                             UseBodyExamples = Some true
                             DataFuzzing = true  // TODO: also test with false, dependencies here should work in both cases.
-                            SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, @"swagger\dependencyTests\subnet_id.json"))]
+                            SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, "swagger", "dependencyTests", "subnet_id.json"))]
                             CustomDictionaryFilePath = None
                          }
             Restler.Workflow.generateRestlerGrammar None config
@@ -324,7 +324,7 @@ module Examples =
                             ResolveBodyDependencies = true
                             ResolveQueryDependencies = true
                             UseBodyExamples = Some true
-                            SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, @"swagger\dependencyTests\nested_objects_naming.json"))]
+                            SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, "swagger", "dependencyTests", "nested_objects_naming.json"))]
                             CustomDictionaryFilePath = None
                          }
             Restler.Workflow.generateRestlerGrammar None config
@@ -395,7 +395,7 @@ module Examples =
                             ResolveBodyDependencies = true
                             ResolveQueryDependencies = true
                             UseBodyExamples = Some true
-                            SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, @"swagger\dependencyTests\frontend_port_id.json"))]
+                            SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, "swagger", "dependencyTests", "frontend_port_id.json"))]
                             CustomDictionaryFilePath = None
                          }
             Restler.Workflow.generateRestlerGrammar None config
@@ -444,7 +444,7 @@ module Examples =
                             ResolveBodyDependencies = true
                             ResolveQueryDependencies = true
                             UseBodyExamples = Some true
-                            SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, @"swagger\DependencyTests\ip_configurations_get.json"))]
+                            SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, "swagger", "DependencyTests", "ip_configurations_get.json"))]
                             CustomDictionaryFilePath = None
                          }
             Restler.Workflow.generateRestlerGrammar None config
@@ -462,7 +462,7 @@ module Examples =
                              UseQueryExamples = None
                              UseBodyExamples = None
                              GrammarOutputDirectoryPath = Some grammarOutputDirectoryPath
-                             SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, @"swagger\inline_examples.json"))]
+                             SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, "swagger", "inline_examples.json"))]
                              CustomDictionaryFilePath = None
                          }
             Restler.Workflow.generateRestlerGrammar None config
@@ -490,11 +490,11 @@ module Examples =
                              UseBodyExamples = Some true
                              UseQueryExamples = Some true
                              DataFuzzing = true
-                             SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, @"swagger\exactCopy\array_example.json"))]
+                             SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, "swagger", "exactCopy", "array_example.json"))]
                          }
 
             let exampleConfigFile = {
-                filePath = Path.Combine(Environment.CurrentDirectory, @"swagger\exactCopy\examples.json")
+                filePath = Path.Combine(Environment.CurrentDirectory, "swagger", "exactCopy", "examples.json")
                 exactCopy = true
             }
 
@@ -524,11 +524,11 @@ module Examples =
                              ResolveBodyDependencies = false
                              UseQueryExamples = Some true
                              DataFuzzing = true
-                             SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, @"swagger\exampleTests\optional_params.json"))]
+                             SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, "swagger", "exampleTests", "optional_params.json"))]
                          }
 
             let exampleConfigFile = {
-                filePath = Path.Combine(Environment.CurrentDirectory, @"swagger\exampleTests\optional_params_example.json")
+                filePath = Path.Combine(Environment.CurrentDirectory, "swagger", "exampleTests", "optional_params_example.json")
                 exactCopy = false
             }
 
@@ -553,11 +553,11 @@ module Examples =
                              UseBodyExamples = Some true
                              UseQueryExamples = Some true
                              DataFuzzing = true
-                             SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, @"swagger\exampleTests\body_param.json"))]
+                             SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, "swagger", "exampleTests", "body_param.json"))]
                          }
 
             let exampleConfigFile = {
-                filePath = Path.Combine(Environment.CurrentDirectory, @"swagger\exampleTests\body_param_example.json")
+                filePath = Path.Combine(Environment.CurrentDirectory, "swagger", "exampleTests", "body_param_example.json")
                 exactCopy = true
             }
 
@@ -565,7 +565,7 @@ module Examples =
             Restler.Workflow.generateRestlerGrammar None testConfig
 
             let expectedGrammarFilePath = Path.Combine(Environment.CurrentDirectory,
-                                                        @"baselines\exampleTests\body_param_exactCopy_grammar.py")
+                                                        "baselines", "exampleTests", "body_param_exactCopy_grammar.py")
             let actualGrammarFilePath = Path.Combine(grammarOutputDirectoryPath,
                                                      Restler.Workflow.Constants.DefaultRestlerGrammarFileName)
             let grammarDiff = getLineDifferences expectedGrammarFilePath actualGrammarFilePath

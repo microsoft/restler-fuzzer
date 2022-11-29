@@ -21,13 +21,13 @@ module Dictionary =
                              ResolveQueryDependencies = true
                              UseBodyExamples = Some false
                              UseQueryExamples = Some false
-                             SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, @"swagger\dictionaryTests\customPayloadSwagger.json"))]
-                             CustomDictionaryFilePath = Some (Path.Combine(Environment.CurrentDirectory, @"swagger\dictionaryTests\customPayloadDict.json"))
+                             SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, "swagger", "dictionaryTests", "customPayloadSwagger.json"))]
+                             CustomDictionaryFilePath = Some (Path.Combine(Environment.CurrentDirectory, "swagger", "dictionaryTests", "customPayloadDict.json"))
                          }
             Restler.Workflow.generateRestlerGrammar None config
 
             let expectedGrammarFilePath = Path.Combine(Environment.CurrentDirectory,
-                                                       @"baselines\dictionaryTests\quoted_primitives_grammar.py")
+                                                       "baselines", "dictionaryTests", "quoted_primitives_grammar.py")
             let actualGrammarFilePath = Path.Combine(grammarOutputDirPath,
                                                      Restler.Workflow.Constants.DefaultRestlerGrammarFileName)
             let grammarDiff = getLineDifferences expectedGrammarFilePath actualGrammarFilePath
@@ -45,8 +45,8 @@ module Dictionary =
                              ResolveQueryDependencies = true
                              UseBodyExamples = Some false
                              UseQueryExamples = Some false
-                             SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, @"swagger\dictionaryTests\multipleIdenticalUuidSuffix.json"))]
-                             CustomDictionaryFilePath = Some (Path.Combine(Environment.CurrentDirectory, @"swagger\dictionaryTests\multipleIdenticalUuidSuffixDict.json"))
+                             SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, "swagger", "dictionaryTests", "multipleIdenticalUuidSuffix.json"))]
+                             CustomDictionaryFilePath = Some (Path.Combine(Environment.CurrentDirectory, "swagger", "dictionaryTests", "multipleIdenticalUuidSuffixDict.json"))
                          }
             Restler.Workflow.generateRestlerGrammar None config
 
@@ -74,8 +74,8 @@ module Dictionary =
                              ResolveQueryDependencies = true
                              UseBodyExamples = Some false
                              UseQueryExamples = Some false
-                             SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, @"swagger\dictionaryTests\no_params.json"))]
-                             CustomDictionaryFilePath = Some (Path.Combine(Environment.CurrentDirectory, @"swagger\dictionaryTests\inject_custom_payloads_dict.json"))
+                             SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, "swagger", "dictionaryTests", "no_params.json"))]
+                             CustomDictionaryFilePath = Some (Path.Combine(Environment.CurrentDirectory, "swagger", "dictionaryTests", "inject_custom_payloads_dict.json"))
 
                          }
 
@@ -136,8 +136,8 @@ module Dictionary =
                              ResolveQueryDependencies = true
                              UseBodyExamples = Some false
                              UseQueryExamples = Some false
-                             SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, @"swagger\dictionaryTests\customPayloadSwagger.json"))]
-                             CustomDictionaryFilePath = Some (Path.Combine(Environment.CurrentDirectory, @"swagger\dictionaryTests\customPayloadRequestTypeDict.json"))
+                             SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, "swagger", "dictionaryTests", "customPayloadSwagger.json"))]
+                             CustomDictionaryFilePath = Some (Path.Combine(Environment.CurrentDirectory, "swagger", "dictionaryTests", "customPayloadRequestTypeDict.json"))
                          }
             Restler.Workflow.generateRestlerGrammar None config
 
@@ -160,13 +160,13 @@ module Dictionary =
                              ResolveQueryDependencies = true
                              UseBodyExamples = Some false
                              UseQueryExamples = Some false
-                             SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, @"swagger\dictionaryTests\customPayloadSwagger.json"))]
-                             CustomDictionaryFilePath = Some (Path.Combine(Environment.CurrentDirectory, @"swagger\dictionaryTests\customPayloadDict.json"))
+                             SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, "swagger", "dictionaryTests", "customPayloadSwagger.json"))]
+                             CustomDictionaryFilePath = Some (Path.Combine(Environment.CurrentDirectory, "swagger", "dictionaryTests", "customPayloadDict.json"))
                          }
             Restler.Workflow.generateRestlerGrammar None config
 
             let expectedValueGenTemplatePath = Path.Combine(Environment.CurrentDirectory,
-                                                            @"baselines\dictionaryTests\customPayloadDict_ValueGeneratorTemplate.py")
+                                                            @"baselines", "dictionaryTests", "customPayloadDict_ValueGeneratorTemplate.py")
             let actualValueGenTemplatePath = Path.Combine(grammarOutputDirPath,
                                                           Restler.Workflow.Constants.CustomValueGeneratorTemplateFileName)
             let valueGenDiff = getLineDifferences expectedValueGenTemplatePath actualValueGenTemplatePath
