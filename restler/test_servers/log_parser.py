@@ -180,6 +180,22 @@ class FuzzingLogParser(LogParser):
 
         return True
 
+    def validate_auth_tokens(self, tokens):
+        """ Validate that every request header is in the set of valid tokens
+
+        @param other: Set of valid tokens
+        @type  other: Set
+
+        @return: True if all tokens in the request sequence are in the set of valid tokens
+        @rtype : Bool
+
+        """
+        for seq in self._seq_list:
+            for request in seq.requests:
+                if not request.authorization_token in tokens:
+                    return False
+        return True
+
     def _parse(self, max_seq):
         """ Parses the fuzzing log to populate the seq list
 
