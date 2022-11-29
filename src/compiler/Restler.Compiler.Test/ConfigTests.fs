@@ -24,31 +24,31 @@ module Config =
             let multiDictConfig =
                 {   Restler.Config.SampleConfig with
                         SwaggerSpecFilePath = None
-                        CustomDictionaryFilePath = Some (Path.Combine(Environment.CurrentDirectory, @"swagger\configTests\maindict.json"))
+                        CustomDictionaryFilePath = Some (Path.Combine(Environment.CurrentDirectory, "swagger", "configTests", "maindict.json"))
                         UseBodyExamples = Some false
                         ResolveBodyDependencies = true
                         SwaggerSpecConfig =
                             Some [
                                 {
-                                    SpecFilePath = (Path.Combine(Environment.CurrentDirectory, @"swagger\configTests\swagger1.json"))
-                                    DictionaryFilePath = Some (Path.Combine(Environment.CurrentDirectory, @"swagger\configTests\dict1.json"))
+                                    SpecFilePath = (Path.Combine(Environment.CurrentDirectory, "swagger", "configTests", "swagger1.json"))
+                                    DictionaryFilePath = Some (Path.Combine(Environment.CurrentDirectory, "swagger", "configTests", "dict1.json"))
                                     Dictionary = None
                                     AnnotationFilePath = None
                                 }
                                 {
-                                    SpecFilePath = (Path.Combine(Environment.CurrentDirectory, @"swagger\configTests\swagger2.json"))
-                                    DictionaryFilePath = Some (Path.Combine(Environment.CurrentDirectory, @"swagger\configTests\dict2.json"))
+                                    SpecFilePath = (Path.Combine(Environment.CurrentDirectory, "swagger", "configTests", "swagger2.json"))
+                                    DictionaryFilePath = Some (Path.Combine(Environment.CurrentDirectory, "swagger", "configTests", "dict2.json"))
                                     Dictionary = None
                                     AnnotationFilePath = None
                                 }
                                 {
-                                    SpecFilePath = (Path.Combine(Environment.CurrentDirectory, @"swagger\configTests\swagger3.json"))
+                                    SpecFilePath = (Path.Combine(Environment.CurrentDirectory, "swagger", "configTests", "swagger3.json"))
                                     DictionaryFilePath = None
                                     Dictionary = None
                                     AnnotationFilePath = None
                                 }
                             ]
-                        EngineSettingsFilePath = Some (Path.Combine(Environment.CurrentDirectory, @"swagger\configTests\restlerEngineSettings.json"))
+                        EngineSettingsFilePath = Some (Path.Combine(Environment.CurrentDirectory, "swagger", "configTests", "restlerEngineSettings.json"))
                         GrammarOutputDirectoryPath = Some grammarOutputDirectoryPath
                 }
 
@@ -127,7 +127,7 @@ module Config =
                              GrammarOutputDirectoryPath = Some grammarOutputDirectoryPath
                              ResolveBodyDependencies = true
                              UseBodyExamples = Some false
-                             SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, @"swagger\annotationTests\pathAnnotation.json"))]
+                             SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, "swagger", "annotationTests", "pathAnnotation.json"))]
                              CustomDictionaryFilePath = None
                          }
             let externalConfig =
@@ -136,16 +136,16 @@ module Config =
                         SwaggerSpecConfig =
                             Some [
                                 {
-                                    SpecFilePath = (Path.Combine(Environment.CurrentDirectory, @"swagger\annotationTests\pathAnnotationInSeparateFile.json"))
+                                    SpecFilePath = (Path.Combine(Environment.CurrentDirectory, "swagger", "annotationTests", "pathAnnotationInSeparateFile.json"))
                                     DictionaryFilePath = None
                                     Dictionary = None
-                                    AnnotationFilePath = Some (Path.Combine(Environment.CurrentDirectory, @"swagger\annotationTests\globalAnnotations.json"))
+                                    AnnotationFilePath = Some (Path.Combine(Environment.CurrentDirectory, "swagger", "annotationTests", "globalAnnotations.json"))
                                 }
                             ]
                 }
             let noAnnotationsConfig =
                 {   config with
-                        SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, @"swagger\annotationTests\pathAnnotationInSeparateFile.json"))]
+                        SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, "swagger", "annotationTests", "pathAnnotationInSeparateFile.json"))]
                 }
 
             let grammarFilePath = Path.Combine(grammarOutputDirectoryPath, Restler.Workflow.Constants.DefaultRestlerGrammarFileName)
@@ -189,10 +189,10 @@ module Config =
             // With 'exactCopy' set to false, the first example should filter out "door" and contain just "window".
             // With 'exactCopy' set to true, the second example should contain "wood".
             let config = { Restler.Config.SampleConfig with
-                             SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, @"swagger\configTests\exampleConfigTestPut.json"))]
+                             SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, "swagger", "configTests", "exampleConfigTestPut.json"))]
                              ExampleConfigFiles = Some [
-                                                         { exactCopy = false ; filePath = @"swagger\configTests\exampleConfigTestConfig1.json" }
-                                                         { exactCopy = true ; filePath = @"swagger\configTests\exampleConfigTestConfig2.json" }
+                                                         { exactCopy = false ; filePath = Path.Combine("swagger", "configTests", "exampleConfigTestConfig1.json") }
+                                                         { exactCopy = true ; filePath = Path.Combine("swagger", "configTests", "exampleConfigTestConfig2.json") }
                                                        ]
                              UseBodyExamples = Some true
                              GrammarOutputDirectoryPath = Some grammarOutputDirectoryPath

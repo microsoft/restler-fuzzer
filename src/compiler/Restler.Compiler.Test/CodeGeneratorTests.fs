@@ -124,8 +124,8 @@ module CodeGenerator =
                              GrammarOutputDirectoryPath = Some grammarDirectoryPath
                              ResolveBodyDependencies = true
                              UseBodyExamples = Some false
-                             SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, @"swagger\example_demo1.json"))]
-                             CustomDictionaryFilePath = Some (Path.Combine(Environment.CurrentDirectory, @"swagger\example_demo_dictionary.json"))
+                             SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, "swagger" , "example_demo1.json"))]
+                             CustomDictionaryFilePath = Some (Path.Combine(Environment.CurrentDirectory, "swagger", "example_demo_dictionary.json"))
                          }
             Restler.Workflow.generateRestlerGrammar None config
             let grammarFilePath = Path.Combine(grammarDirectoryPath, "grammar.py")

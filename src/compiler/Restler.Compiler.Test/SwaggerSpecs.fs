@@ -16,7 +16,7 @@ module SwaggerSpecs =
         [
             ("demo_server",
                 { DefaultConfig with
-                    SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, @"swagger\demo_server.json")) ]
+                    SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, @"swagger", "demo_server.json")) ]
                     IncludeOptionalParameters = true
                 })
         ] |> Map.ofSeq

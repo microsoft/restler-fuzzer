@@ -15,7 +15,7 @@ module References =
     type ReferencesTests(ctx:Fixtures.TestSetupAndCleanup, output:Xunit.Abstractions.ITestOutputHelper) =
 
         let testReferenceTypes specFileName (expectedGrammarLines: string list) =
-            let filePath = Path.Combine(Environment.CurrentDirectory, sprintf @"swagger\referencesTests\%s" specFileName)
+            let filePath = Path.Combine(Environment.CurrentDirectory, "swagger", "referencesTests", sprintf "%s" specFileName)
             let grammarOutputDirectoryPath = Some ctx.testRootDirPath
             let config = { Restler.Config.SampleConfig with
                              IncludeOptionalParameters = true

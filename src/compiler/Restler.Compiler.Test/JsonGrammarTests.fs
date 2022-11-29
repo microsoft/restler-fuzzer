@@ -23,7 +23,7 @@ module GrammarTests =
                              GrammarOutputDirectoryPath = Some grammarOutputDirectoryPath
                              ResolveBodyDependencies = false
                              UseBodyExamples = Some true
-                             SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, @"swagger\grammarTests\required_params.json"))]
+                             SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, "swagger", "grammarTests", "required_params.json"))]
                          }
 
             // Confirm the baselines match for grammar.json and grammar.py
@@ -37,7 +37,7 @@ module GrammarTests =
                         if extension = ".json" || includeOptionalParameters then "required_params_grammar"
                         else "required_params_grammar_requiredonly"
                     let expectedGrammarFilePath = Path.Combine(Environment.CurrentDirectory,
-                                                               sprintf @"baselines\grammarTests\%s%s" expectedGrammarFileName extension)
+                                                               "baselines", "grammarTests", sprintf "%s%s" expectedGrammarFileName extension)
                     let actualGrammarFilePath = Path.Combine(grammarOutputDirectoryPath,
                                                              actualGrammarFileName + extension)
                     let grammarDiff = getLineDifferences expectedGrammarFilePath actualGrammarFilePath

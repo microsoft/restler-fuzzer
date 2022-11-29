@@ -37,14 +37,14 @@ module ApiSpecSchema =
 
         [<Fact>]
         let ``required header is parsed successfully`` () =
-            compileSpec @"swagger\schemaTests\requiredHeader.yml"
+            compileSpec (Path.Combine("swagger", "schemaTests", "requiredHeader.yml"))
 
         [<Fact>]
         let ``spec with x-ms-paths is parsed successfully`` () =
-            let specFilePath = Path.Combine(Environment.CurrentDirectory, @"swagger\schemaTests\xMsPaths.json")
-            let dictionaryFilePath = Path.Combine(Environment.CurrentDirectory, @"swagger\schemaTests\xMsPaths_dict.json")
-            let annotationsFilePath = Path.Combine(Environment.CurrentDirectory, @"swagger\schemaTests\xMsPaths_annotations.json")
-            let exampleConfigFilePath = Path.Combine(Environment.CurrentDirectory, @"swagger\schemaTests\xMsPaths_examples.json")
+            let specFilePath = Path.Combine(Environment.CurrentDirectory, "swagger", "schemaTests", "xMsPaths.json")
+            let dictionaryFilePath = Path.Combine(Environment.CurrentDirectory, "swagger", "schemaTests", "xMsPaths_dict.json")
+            let annotationsFilePath = Path.Combine(Environment.CurrentDirectory, "swagger", "schemaTests", "xMsPaths_annotations.json")
+            let exampleConfigFilePath = Path.Combine(Environment.CurrentDirectory, "swagger", "schemaTests", "xMsPaths_examples.json")
             let config = { Restler.Config.SampleConfig with
                              IncludeOptionalParameters = true
                              GrammarOutputDirectoryPath = Some ctx.testRootDirPath
@@ -61,20 +61,20 @@ module ApiSpecSchema =
             let grammarDiff =
                 getLineDifferences
                     (config.GrammarOutputDirectoryPath.Value ++ Restler.Workflow.Constants.DefaultRestlerGrammarFileName)
-                    (Path.Combine(Environment.CurrentDirectory, @"baselines\schemaTests\xMsPaths_grammar.py"))
+                    (Path.Combine(Environment.CurrentDirectory, "baselines", "schemaTests", "xMsPaths_grammar.py"))
             let message = sprintf "grammar.py does not match baseline.  First difference: %A" grammarDiff
             Assert.True(grammarDiff.IsNone, message)
 
             let grammarDiff =
                 getLineDifferences
                     (config.GrammarOutputDirectoryPath.Value ++ Restler.Workflow.Constants.DefaultJsonGrammarFileName)
-                    (Path.Combine(Environment.CurrentDirectory, @"baselines\schemaTests\xMsPaths_grammar.json"))
+                    (Path.Combine(Environment.CurrentDirectory, "baselines", "schemaTests", "xMsPaths_grammar.json"))
             let message = sprintf "grammar.json does not match baseline.  First difference: %A" grammarDiff
             Assert.True(grammarDiff.IsNone, message)
 
         [<Fact>]
         let ``path parameter is read from the global parameters`` () =
-            let specFilePath = Path.Combine(Environment.CurrentDirectory, @"swagger\schemaTests\global_path_parameters.json")
+            let specFilePath = Path.Combine(Environment.CurrentDirectory, "swagger", "schemaTests", "global_path_parameters.json")
             let config = { Restler.Config.SampleConfig with
                              IncludeOptionalParameters = true
                              GrammarOutputDirectoryPath = Some ctx.testRootDirPath
@@ -89,7 +89,7 @@ module ApiSpecSchema =
 
         [<Fact>]
         let ``swagger escape characters is parsed successfully`` () =
-            let specFilePath = Path.Combine(Environment.CurrentDirectory, @"swagger\schemaTests\swagger_escape_characters.json")
+            let specFilePath = Path.Combine(Environment.CurrentDirectory, "swagger", "schemaTests", "swagger_escape_characters.json")
             let config = { Restler.Config.SampleConfig with
                              IncludeOptionalParameters = true
                              GrammarOutputDirectoryPath = Some ctx.testRootDirPath
@@ -107,7 +107,7 @@ module ApiSpecSchema =
 
         [<Fact>]
         let ``openapi3 requestBody`` () =
-            let specFilePath = Path.Combine(Environment.CurrentDirectory, @"swagger\schemaTests\openapi3_requestbody.json")
+            let specFilePath = Path.Combine(Environment.CurrentDirectory, "swagger", "schemaTests", "openapi3_requestbody.json")
             let config = { Restler.Config.SampleConfig with
                                 IncludeOptionalParameters = true
                                 GrammarOutputDirectoryPath = Some ctx.testRootDirPath
@@ -125,7 +125,7 @@ module ApiSpecSchema =
 
         [<Fact>]
         let ``json depth limit test`` () =
-            let specFilePath = Path.Combine(Environment.CurrentDirectory, @"swagger\schemaTests\large_json_body.json")
+            let specFilePath = Path.Combine(Environment.CurrentDirectory, "swagger", "schemaTests", "large_json_body.json")
             let config = { Restler.Config.SampleConfig with
                              IncludeOptionalParameters = true
                              GrammarOutputDirectoryPath = Some ctx.testRootDirPath
@@ -155,7 +155,7 @@ module ApiSpecSchema =
 
         [<Fact>]
         let ``additionalProperties schema`` () =
-            let specFilePath = Path.Combine(Environment.CurrentDirectory, @"swagger\schemaTests\additionalProperties.yml")
+            let specFilePath = Path.Combine(Environment.CurrentDirectory, "swagger", "schemaTests", "additionalProperties.yml")
             let config = { Restler.Config.SampleConfig with
                                 IncludeOptionalParameters = true
                                 GrammarOutputDirectoryPath = Some ctx.testRootDirPath
@@ -172,7 +172,7 @@ module ApiSpecSchema =
 
         [<Fact>]
         let ``openapi3 examples`` () =
-            let specFilePath = Path.Combine(Environment.CurrentDirectory, @"swagger\schemaTests\openapi3_examples.json")
+            let specFilePath = Path.Combine(Environment.CurrentDirectory, "swagger", "schemaTests", "openapi3_examples.json")
             let config = { Restler.Config.SampleConfig with
                                 IncludeOptionalParameters = true
                                 GrammarOutputDirectoryPath = Some ctx.testRootDirPath
