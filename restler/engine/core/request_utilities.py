@@ -13,7 +13,6 @@ import threading
 import importlib
 import os
 
-
 from engine.errors import ResponseParsingException
 from engine.errors import TransportLayerException
 from restler_settings import Settings
