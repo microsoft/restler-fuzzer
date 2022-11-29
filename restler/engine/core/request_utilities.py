@@ -66,7 +66,7 @@ def execute_token_refresh(token_dict):
     while retry_handler.can_retry():
         try:
             if token_auth_method == "location":
-                result = execute_location_token_refresh(token_dict["location"])
+                result = execute_location_token_refresh(token_dict["token_location"])
             elif token_auth_method == "cmd":
                 result = execute_token_refresh_cmd(token_dict["token_refresh_cmd"])
             elif token_auth_method == "module":
