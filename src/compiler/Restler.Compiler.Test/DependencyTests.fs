@@ -111,6 +111,38 @@ module Dependencies =
             //
             Assert.True(true)
 
+        [<Fact>]
+        let ``Get dependency from OpenAPI v3 links`` () =
+            let grammarOutputDirectoryPath = ctx.testRootDirPath
+            let config = { Restler.Config.SampleConfig with
+                             IncludeOptionalParameters = true
+                             GrammarOutputDirectoryPath = Some grammarOutputDirectoryPath
+                             ResolveBodyDependencies = true
+                             UseBodyExamples = Some true
+                             SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, "swagger", "linksTests", "soft_delete.json"))]
+                             AnnotationFilePath = Some (Path.Combine(Environment.CurrentDirectory, "swagger", "linksTests", "annotations.json"))
+                             CustomDictionaryFilePath = None
+                             AllowGetProducers = true
+                         }
+            Restler.Workflow.generateRestlerGrammar None config
+            let grammarFilePath = Path.Combine(grammarOutputDirectoryPath, "grammar.py")
+            let grammar = File.ReadAllText(grammarFilePath)
+
+            // Compiling with the REST API definition with OpenAPI links should give the same grammar
+            let config2 = { Restler.Config.SampleConfig with
+                             IncludeOptionalParameters = true
+                             GrammarOutputDirectoryPath = Some grammarOutputDirectoryPath
+                             ResolveBodyDependencies = true
+                             UseBodyExamples = Some true
+                             SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, "swagger", "linksTests", "soft_delete_with_links.json"))]
+                             AnnotationFilePath = None
+                             CustomDictionaryFilePath = None
+                             AllowGetProducers = true
+                         }
+            Restler.Workflow.generateRestlerGrammar None config2
+            let grammar2 = File.ReadAllText(grammarFilePath)
+            Assert.True((grammar = grammar2))
+
         /// Test that a full path annotation only to a specified body parameter works.
         [<Fact>]
         let ``path annotation to body parameter`` () =

@@ -1,0 +1,148 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "version": "1.0",
+    "title": "Soft Delete"
+  },
+  "paths": {
+    "/configurationStores/{configStoreName}": {
+      "delete": {
+        "description": "Deletes a configuration store.",
+        "operationId": "ConfigurationStores_Delete",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ConfigStoreNameParameter"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content - the specified resource was deleted."
+          },
+          "default": {
+            "description": "Error response describing why the operation failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/deletedConfigurationStores/{configStoreName}": {
+      "get": {
+        "operationId": "ConfigurationStores_GetDeleted",
+        "description": "Gets a deleted configuration store.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ConfigStoreNameParameter"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Retrieved information about the deleted configuration store.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeletedConfigurationStore"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error response describing why the operation failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "description": "Test operation with no operationId",
+        "responses": {
+          "200": {
+            "description": "The service is healthy."
+          },
+          "default": {
+            "description": "Error response describing why the operation failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "servers": [
+    {
+      "url": "https://management.azure.com"
+    }
+  ],
+  "components": {
+    "parameters": {
+      "ConfigStoreNameParameter": {
+        "name": "configStoreName",
+        "in": "path",
+        "description": "The name of the configuration store.",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      }
+    },
+    "schemas": {
+      "ErrorDetails": {
+        "description": "The details of the error.",
+        "properties": {
+          "code": {
+            "description": "Error code.",
+            "type": "string"
+          },
+          "message": {
+            "description": "Error message indicating why the operation failed.",
+            "type": "string"
+          }
+        }
+      },
+      "ErrorResponse": {
+        "description": "Error response.",
+        "type": "object",
+        "properties": {
+          "error": {
+            "$ref": "#/components/schemas/ErrorDetails"
+          }
+        }
+      },
+      "DeletedConfigurationStore": {
+        "type": "object",
+        "description": "Deleted configuration store.",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "The resource ID for the deleted configuration store."
+          },
+          "name": {
+            "type": "string",
+            "description": "The name of the configuration store."
+          },
+          "type": {
+            "type": "string",
+            "description": "The resource type of the configuration store."
+          }
+        }
+      }
+    }
+  }
+}
