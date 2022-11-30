@@ -211,7 +211,7 @@ class FunctionalityTests(unittest.TestCase):
 
     def test_cmd_auth(self):
         """ This test is equivalent to test_abc_minimal_smoke_test except we use the token cmd authentication mechanism 
-            and validate that RESTler uses the MODULE_AUTHORIZATION_TOKEN
+            and validate that RESTler uses the CMD_AUTHORIZATION_TOKEN
         """
         settings_file_path = os.path.join(Authentication_Test_File_Directory, "token_cmd_authentication_settings.json")
         ## Create a new, temporary settings file with reference to full path to token location
