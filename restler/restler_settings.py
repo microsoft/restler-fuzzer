@@ -485,7 +485,7 @@ class RestlerSettings(object):
         self._token_refresh_cmd = SettingsArg('token_refresh_cmd', str, None, user_args)
         ## Interval to periodically refresh the authentication token (seconds)
         self._token_refresh_interval = SettingsArg('token_refresh_interval', int, None, user_args)
-        ## New format for specifying authentication settings 
+        ## Set the authentication options 
         self._authentication_settings = SettingsArg('authentication', dict, {}, user_args)
         ## Restler's version
         self._version = SettingsArg('set_version', str, DEFAULT_VERSION, user_args)
