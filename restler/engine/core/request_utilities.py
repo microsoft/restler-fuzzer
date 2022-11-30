@@ -70,6 +70,8 @@ def execute_token_refresh(token_dict):
                 result = execute_token_refresh_cmd(token_dict["token_refresh_cmd"])
             elif token_auth_method == "module":
                 result = execute_token_refresh_module(token_dict["token_module_file"], token_dict["token_module_method"], token_dict["token_module_data"])
+
+            _, latest_token_value, latest_shadow_token_value = parse_authentication_tokens(result)
             break
         except EmptyTokenException:
             error_str = "Error: Authentication token was empty."
@@ -83,23 +85,41 @@ def execute_token_refresh(token_dict):
             latest_shadow_token_value = ERROR_VAL_STR
             _RAW_LOGGING(error_str)
             retry_handler.wait_for_next_retry()
-    _, latest_token_value, latest_shadow_token_value = parse_authentication_tokens(result)
 
 def execute_location_token_refresh(location):
-    f = open(location,"r")
-    token_result = f.read() ## TODO: double check this 
-    f.close()
-    return token_result
+    try:
+        with open(location,"r") as f:
+            token_result = f.read()  
+            return token_result
+    except FileNotFoundError:
+        error_str = f"Could not find token file at {location}. Please ensure that you've passed a valid path"
+        _RAW_LOGGING(error_str)
+        raise EmptyTokenException(error_str)
 
 def execute_token_refresh_module(module_path, method, data):
-    module_name = os.path.basename(module_path)
-    spec = importlib.util.spec_from_file_location(module_name, module_path)
-    module = importlib.util.module_from_spec(spec)
-    sys.modules[module_name] = module
-    spec.loader.exec_module(module)
-    token_refresh_method = getattr(module, method) 
-    token_result = token_refresh_method(data)
-    return token_result
+    try:
+        module_name = os.path.basename(module_path)
+        spec = importlib.util.spec_from_file_location(module_name, module_path)
+        module = importlib.util.module_from_spec(spec)
+        sys.modules[module_name] = module
+        spec.loader.exec_module(module)
+    except FileNotFoundError: 
+        error_str = f"Could not find token module file at {module_path}/{module_name}. Please ensure that you've passed a valid path"
+        _RAW_LOGGING(error_str)
+        raise EmptyTokenException(error_str)
+    except AttributeError:
+        error_str = f"Could not load token module file at {module_path}/{module_name}. Please ensure that you've passed a valid python module"
+        _RAW_LOGGING(error_str)
+        raise EmptyTokenException(error_str)
+    try:
+        token_refresh_method = getattr(module, method) 
+        token_result = token_refresh_method(data)
+        return token_result
+    except AttributeError:
+        error_str = f"Could not execute token refresh method {method} in module {module}. Please ensure that you've passed a valid method"
+        _RAW_LOGGING(error_str)
+        raise EmptyTokenException(error_str)
+
 
 def execute_token_refresh_cmd(cmd):
     """ Forks a subprocess to execute @param cmd to refresh token.
