@@ -514,20 +514,12 @@ class RestlerSettings(object):
 
     @property
     def client_certificate_path(self):
-        if self._client_certificate_path:
-            return self._client_certificate_path.val
-        elif 'certificate' in self._authentication_settings.val and 'certlocation' in self._authentication_settings.val['certificate']:
-            return self._authentication_settings.val['certificate']['certlocation']
-        else:
-            return None
+        return self._client_certificate_path.val
+        
     @property
     def client_certificate_key_path(self):
-        if self._client_certificate_key_path:
-            return self._client_certificate_key_path.val
-        elif 'certificate' in self._authentication_settings.val and 'keylocation' in self._authentication_settings.val['certificate']:
-            return self._authentication_settings.val['certificate']['keylocation']
-        else:
-            return None
+        return self._client_certificate_key_path.val
+
     @property
     def connection_settings(self):
         return self._connection_settings
