@@ -257,7 +257,7 @@ class FunctionalityTests(unittest.TestCase):
                 self.assertTrue(test_parser.validate_auth_tokens(CMD_AUTHORIZATION_TOKEN))
 
         except TestFailedException:
-            self.fail("Smoke test with token module auth failed")
+            self.fail("Smoke test with token cmd auth failed")
 
 
 
