@@ -515,7 +515,7 @@ class RestlerSettings(object):
     @property
     def client_certificate_path(self):
         return self._client_certificate_path.val
-        
+
     @property
     def client_certificate_key_path(self):
         return self._client_certificate_key_path.val
@@ -746,6 +746,13 @@ class RestlerSettings(object):
             return self._authentication_settings.val['token']['module']['data']
         else:
             return None
+
+    @property
+    def token_module_logging_enabled(self):
+        if 'token' in self._authentication_settings.val and 'module' in self._authentication_settings.val['token'] and 'logging_enabled' in self._authentication_settings.val['token']['module']:
+            return self._authentication_settings.val['token']['module']['logging_enabled']
+        else:
+            return False
             
     @property
     def version(self):

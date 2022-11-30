@@ -69,7 +69,7 @@ def execute_token_refresh(token_dict):
             elif token_auth_method == "cmd":
                 result = execute_token_refresh_cmd(token_dict["token_refresh_cmd"])
             elif token_auth_method == "module":
-                result = execute_token_refresh_module(token_dict["token_module_file"], token_dict["token_module_method"], token_dict["token_module_data"])
+                result = execute_token_refresh_module(token_dict["token_module_file"], token_dict["token_module_method"], token_dict["token_module_data"], token_dict["token_module_logging_enabled"])
 
             _, latest_token_value, latest_shadow_token_value = parse_authentication_tokens(result)
             break
@@ -96,7 +96,7 @@ def execute_location_token_refresh(location):
         _RAW_LOGGING(error_str)
         raise EmptyTokenException(error_str)
 
-def execute_token_refresh_module(module_path, method, data):
+def execute_token_refresh_module(module_path, method, data, logging_enabled):
     try:
         module_name = os.path.basename(module_path)
         spec = importlib.util.spec_from_file_location(module_name, module_path)
@@ -113,7 +113,11 @@ def execute_token_refresh_module(module_path, method, data):
         raise EmptyTokenException(error_str)
     try:
         token_refresh_method = getattr(module, method) 
-        token_result = token_refresh_method(data)
+        token_result = None
+        if logging_enabled:
+            token_result = token_refresh_method(data, _AUTH_LOGGING)
+        else:
+            token_result = token_refresh_method(data)
         return token_result
     except AttributeError:
         error_str = f"Could not execute token refresh method {method} in module {module}. Please ensure that you've passed a valid method"
@@ -457,3 +461,7 @@ def _RAW_LOGGING(log_str):
     """
     from utils.logger import raw_network_logging as RAW_LOGGING
     RAW_LOGGING(log_str)
+
+def _AUTH_LOGGING(log_str):
+    from utils.logger import auth_logging as AUTH_LOGGING
+    AUTH_LOGGING(log_str)
