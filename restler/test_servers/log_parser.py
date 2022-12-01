@@ -181,7 +181,7 @@ class FuzzingLogParser(LogParser):
         return True
 
     def validate_auth_tokens(self, tokens):
-        """ Validate that every request header is in the set of valid tokens
+        """ Validate that every token request header is in the set of valid tokens
 
         @param other: Set of valid tokens
         @type  other: Set
