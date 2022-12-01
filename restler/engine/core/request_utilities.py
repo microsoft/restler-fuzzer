@@ -10,7 +10,6 @@ import ast
 import uuid
 import types
 import threading
-import importlib
 import os
 
 from engine.errors import ResponseParsingException
@@ -23,6 +22,8 @@ from engine.transport_layer.response import RESTLER_BUG_CODES
 from engine.transport_layer.messaging import UTF8
 from engine.transport_layer.messaging import HttpSock
 from engine.core.retry_handler import RetryHandler
+from utils import import_utilities
+
 
 last_refresh = 0
 NO_TOKEN_SPECIFIED = 'NO-TOKEN-SPECIFIED\r\n'
@@ -37,9 +38,11 @@ threadLocal = threading.local()
 class EmptyTokenException(Exception):
     pass
 
+
 def get_latest_token_value():
     global latest_token_value
     return latest_token_value
+
 
 def str_to_hex_def(val_str):
     """ Creates a hex definition from a specified string
@@ -55,6 +58,13 @@ def str_to_hex_def(val_str):
 
 
 def execute_token_refresh(token_dict):
+    """ Executes token refresh based on parameters in token_dict.
+    @param token_dict: Dictionary containing data required to fetch token
+    @type: token_dict: Dict
+
+    @return: None. Updates global latest_token_value and latest_shadow_token_value
+    @type: None:
+    """
     global latest_token_value, latest_shadow_token_value
     ERROR_VAL_STR = 'ERROR\r\n'
     result = None
@@ -65,13 +75,20 @@ def execute_token_refresh(token_dict):
     while retry_handler.can_retry():
         try:
             if token_auth_method == "location":
-                result = execute_location_token_refresh(token_dict["token_location"])
+                result = execute_location_token_refresh(
+                    token_dict["token_location"])
             elif token_auth_method == "cmd":
-                result = execute_token_refresh_cmd(token_dict["token_refresh_cmd"])
+                result = execute_token_refresh_cmd(
+                    token_dict["token_refresh_cmd"])
             elif token_auth_method == "module":
-                result = execute_token_refresh_module(token_dict["token_module_file"], token_dict["token_module_method"], token_dict["token_module_data"], token_dict["token_module_logging_enabled"])
+                result = execute_token_refresh_module(
+                    token_dict["token_module_file"],
+                    token_dict["token_module_method"],
+                    token_dict["token_module_data"],
+                    token_dict["token_module_logging_enabled"])
 
-            _, latest_token_value, latest_shadow_token_value = parse_authentication_tokens(result)
+            _, latest_token_value, latest_shadow_token_value = parse_authentication_tokens(
+                result)
             break
         except EmptyTokenException:
             error_str = "Error: Authentication token was empty."
@@ -87,6 +104,13 @@ def execute_token_refresh(token_dict):
             retry_handler.wait_for_next_retry()
 
 def execute_location_token_refresh(location):
+    """ Executes token refresh by attempting to read a token from a file path.
+    @param location: File path to a text file containing token
+    @type: location: string (filepath)
+
+    @return: token
+    @type: Str:
+    """
     try:
         with open(location,"r") as f:
             token_result = f.read()  
@@ -97,12 +121,25 @@ def execute_location_token_refresh(location):
         raise EmptyTokenException(error_str)
 
 def execute_token_refresh_module(module_path, method, data, logging_enabled):
+    """ Executes token refresh by attempting to execute a user provided auth module
+    @param: module_path: Path to auth module
+    @type:  module_path: Str (filepath)
+
+    @param: method: Method to call in auth module to retrieve a token
+    @type:  method: Str
+
+    @param: data: Data to pass to authentication module
+    @type:  data: Dict
+
+    @param: logging_enabled: Data to pass to authentication module
+    @type:  logging_enabled: Bool
+
+    @return: token
+    @type: string:
+    """
     try:
         module_name = os.path.basename(module_path)
-        spec = importlib.util.spec_from_file_location(module_name, module_path)
-        module = importlib.util.module_from_spec(spec)
-        sys.modules[module_name] = module
-        spec.loader.exec_module(module)
+        import_utilities.load_module(module_name, module_path)
     except FileNotFoundError: 
         error_str = f"Could not find token module file at {module_path}/{module_name}. Please ensure that you've passed a valid path"
         _RAW_LOGGING(error_str)
@@ -112,7 +149,7 @@ def execute_token_refresh_module(module_path, method, data, logging_enabled):
         _RAW_LOGGING(error_str)
         raise EmptyTokenException(error_str)
     try:
-        token_refresh_method = getattr(module, method) 
+        token_refresh_method = import_utilities.import_attr(module_path, method)
         token_result = None
         if logging_enabled:
             token_result = token_refresh_method(data, _AUTH_LOGGING)
@@ -120,7 +157,7 @@ def execute_token_refresh_module(module_path, method, data, logging_enabled):
             token_result = token_refresh_method(data)
         return token_result
     except AttributeError:
-        error_str = f"Could not execute token refresh method {method} in module {module}. Please ensure that you've passed a valid method"
+        error_str = f"Could not execute token refresh method {method} in module {module_path}. Please ensure that you've passed a valid method"
         _RAW_LOGGING(error_str)
         raise EmptyTokenException(error_str)
 
@@ -142,6 +179,8 @@ def execute_token_refresh_cmd(cmd):
     else:
         cmd_result = subprocess.getoutput([cmd])
     return cmd_result
+
+
 def parse_authentication_tokens(cmd_result):
     """ Parses the output @param cmd_result from token scripts to refresh tokens.
 
