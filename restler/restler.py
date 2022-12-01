@@ -415,7 +415,6 @@ if __name__ == '__main__':
                             print_to_console=True)
         sys.exit(-1)
 
-    ## Support existing authentication schema
     token_auth_method = settings.token_authentication_method
     restler_refreshable_authentication_token = {
         "token_auth_method": token_auth_method,
