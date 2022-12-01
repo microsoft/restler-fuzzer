@@ -708,8 +708,8 @@ class RestlerSettings(object):
     def token_refresh_cmd(self):
         if self._token_refresh_cmd.val:
             return self._token_refresh_cmd.val
-        elif 'token' in self._authentication_settings.val and 'cmd' in self._authentication_settings.val['token']:
-            return self._authentication_settings.val['token']['cmd']
+        elif 'token' in self._authentication_settings.val and 'token_refresh_cmd' in self._authentication_settings.val['token']:
+            return self._authentication_settings.val['token']['token_refresh_cmd']
         else:
             return None
 
@@ -793,7 +793,6 @@ class RestlerSettings(object):
 
     @property 
     def token_authentication_method(self):
-        ## TODO: Verify OneOf?
         if self.token_module_file:
             return 'module'
         elif self.token_refresh_cmd:
@@ -961,17 +960,28 @@ class RestlerSettings(object):
         Raises OptionValidationError if any validation fails.
 
         """
+
         if self.fuzzing_mode == 'random-walk' and self.max_sequence_length != 100:
             raise OptionValidationError("Should not provide maximum sequence length"
                                         " for random walk method")
-        if self.token_refresh_interval and not self.token_authentication_method:
-            raise OptionValidationError("Must specify token refresh method")
-        if self.token_authentication_method and not self.token_refresh_interval:
-            raise OptionValidationError("Must specify refresh period in seconds")
-        if self.token_authentication_method == 'module' and not self.token_module_file:
-            raise OptionValidationError("Must specify token module file")         
         if self.request_throttle_ms and self.fuzzing_jobs != 1:
             raise OptionValidationError("Request throttling not available for multiple fuzzing jobs")
         if self.custom_bug_codes and self.custom_non_bug_codes:
             raise OptionValidationError("Both custom_bug_codes and custom_non_bug_codes lists were specified. "
                                         "Specifying both lists is not allowed.")
+        def validate_auth_options():
+            if self.token_refresh_interval and not self.token_authentication_method:
+                raise OptionValidationError("Must specify token refresh method")
+            if self.token_authentication_method and not self.token_refresh_interval:
+                raise OptionValidationError("Must specify refresh period in seconds")
+            if self.token_authentication_method == 'module' and not self.token_module_file:
+                raise OptionValidationError("Must specify token module file")    
+
+            token_auth_options = [self.token_module_file, self.token_refresh_cmd, self.token_location]
+            user_provided_token_auth_options = [option for option in token_auth_options if option != None]
+            if len(user_provided_token_auth_options) > 1:
+                raise OptionValidationError(f"Must specify only one token authentication mechanism - received {user_provided_token_auth_options}")
+
+        validate_auth_options()
+
+

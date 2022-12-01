@@ -335,6 +335,25 @@ class RestlerSettingsTest(unittest.TestCase):
         with self.assertRaises(OptionValidationError):
             settings.validate_options()
 
+    def test_multiple_auth_options(self):
+        user_args = {'target_port': 500,
+                     'target_ip': '192.168.0.1',
+                     'authentication': {
+                        'token':
+                        {
+                            'module': {
+                                'file': 'some_module.py',
+                                'data': {}
+                            },
+                            'token_refresh_cmd': 'some command',
+                            'location': "//some_location",
+                            'token_refresh_interval': 10
+                        },
+                     }}
+        settings = RestlerSettings(user_args)
+        with self.assertRaises(OptionValidationError):
+            settings.validate_options()
+
     def test_refresh_location_no_interval(self):
         user_args = {'target_port': 500,
                      'target_ip': '192.168.0.1',
