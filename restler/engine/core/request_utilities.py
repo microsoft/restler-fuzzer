@@ -151,10 +151,14 @@ def execute_token_refresh_module(module_path, method, data, logging_enabled):
     try:
         token_refresh_method = import_utilities.import_attr(module_path, method)
         token_result = None
-        if logging_enabled:
+        if logging_enabled and data:
             token_result = token_refresh_method(data, _AUTH_LOGGING)
-        else:
+        elif logging_enabled:
+            token_result = token_refresh_method(_AUTH_LOGGING)
+        elif data:
             token_result = token_refresh_method(data)
+        else:
+            token_result = token_refresh_method
         return token_result
     except AttributeError:
         error_str = f"Could not execute token refresh method {method} in module {module_path}. Please ensure that you've passed a valid method"
