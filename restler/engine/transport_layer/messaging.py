@@ -236,15 +236,15 @@ class Http20Sock(object):
 
             h11_request_header = message[message.index('\r\n')+2:_get_end_of_header(message)] # we only want the header fields, e.g. Accept: ..., Host: ..., ...
 
-            def _get_host_header_from_message(h11_request_header):
+            def _get_host_header_value_from_message(h11_request_header):
                 for line in h11_request_header.split('\r\n'):
-                    key, _ = line.split(': ', 1)
+                    key, value = line.split(': ', 1)
                     if key == 'Host':
-                        return line
+                        return value
 
             h2_request_header = [ #special headers must appear at the start of the header block
                 (':method', self._get_method_from_message(message)),
-                (':authority', _get_host_header_from_message(h11_request_header) or Settings().host),
+                (':authority', _get_host_header_value_from_message(h11_request_header) or Settings().host),
                 (':scheme', self._scheme),
                 (':path', _get_uri_segment_from_message(message))
             ]
