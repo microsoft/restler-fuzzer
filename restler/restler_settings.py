@@ -708,52 +708,61 @@ class RestlerSettings(object):
     def token_refresh_cmd(self):
         if self._token_refresh_cmd.val:
             return self._token_refresh_cmd.val
-        elif 'token' in self._authentication_settings.val and 'token_refresh_cmd' in self._authentication_settings.val['token']:
-            return self._authentication_settings.val['token']['token_refresh_cmd']
-        else:
-            return None
+        elif 'token' in self._authentication_settings.val:
+            if 'token_refresh_cmd' in self._authentication_settings.val['token']:
+                return self._authentication_settings.val['token']['token_refresh_cmd']
+        return None
 
     @property
     def token_refresh_interval(self):
         if self._token_refresh_interval.val:
             return self._token_refresh_interval.val
-        elif 'token' in self._authentication_settings.val and 'token_refresh_interval' in self._authentication_settings.val['token']:
-            return self._authentication_settings.val['token']['token_refresh_interval']
-        else:
-            return None
+        elif 'token' in self._authentication_settings.val:
+            if 'token_refresh_interval' in self._authentication_settings.val['token']:
+                return self._authentication_settings.val['token']['token_refresh_interval']
+        return None
+
     @property
     def token_location(self):
-        if 'token' in self._authentication_settings.val and 'location' in self._authentication_settings.val['token']:
-            return self._authentication_settings.val['token']['location']
+        if 'token' in self._authentication_settings.val:
+            if 'location' in self._authentication_settings.val['token']:
+                return self._authentication_settings.val['token']['location']
         else:
             return None
+
     @property
     def token_module_file(self):
-        if 'token' in self._authentication_settings.val and 'module' in self._authentication_settings.val['token'] and 'file' in self._authentication_settings.val['token']['module']:
-            return self._authentication_settings.val['token']['module']['file']
-        else:
-            return None
+        if 'token' in self._authentication_settings.val:
+            if 'module' in self._authentication_settings.val['token']:
+                if 'file' in self._authentication_settings.val['token']['module']:
+                    return self._authentication_settings.val['token']['module']['file']
+        return None
+
     @property
     def token_module_method(self):
-        if 'token' in self._authentication_settings.val and 'module' in self._authentication_settings.val['token'] and 'method' in self._authentication_settings.val['token']['module']:
-            return self._authentication_settings.val['token']['module']['method']
-        else:
-            return 'acquire_token'
+        if 'token' in self._authentication_settings.val:
+            if 'module' in self._authentication_settings.val['token']:
+                if 'method' in self._authentication_settings.val['token']['module']:
+                    return self._authentication_settings.val['token']['module']['method']
+                else:
+                    return 'acquire_token'
+        return None
 
     @property
     def token_module_data(self):
-        if 'token' in self._authentication_settings.val and 'module' in self._authentication_settings.val['token'] and 'data' in self._authentication_settings.val['token']['module']:
-            return self._authentication_settings.val['token']['module']['data']
-        else:
-            return None
+        if 'token' in self._authentication_settings.val:
+            if 'module' in self._authentication_settings.val['token']:
+                if 'data' in self._authentication_settings.val['token']['module']:
+                    return self._authentication_settings.val['token']['module']['data']
+        return None
 
     @property
     def token_module_logging_enabled(self):
-        if 'token' in self._authentication_settings.val and 'module' in self._authentication_settings.val['token'] and 'logging_enabled' in self._authentication_settings.val['token']['module']:
-            return self._authentication_settings.val['token']['module']['logging_enabled']
-        else:
-            return False
-            
+        if 'token' in self._authentication_settings.val and 'module' in self._authentication_settings.val['token']:
+            if 'logging_enabled' in self._authentication_settings.val['token']['module']:
+                return self._authentication_settings.val['token']['module']['logging_enabled']
+        return False
+
     @property
     def version(self):
         return self._version.val
