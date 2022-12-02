@@ -219,7 +219,7 @@ class FunctionalityTests(unittest.TestCase):
         try:
             with open(settings_file_path, 'r') as file:
                 settings = json.loads(file.read())
-                settings["authentication"]["token"]["cmd"] = f'python {os.path.join(Authentication_Test_File_Directory, "unit_test_server_auth.py")}'
+                settings["authentication"]["token"]["token_refresh_cmd"] = f'python {os.path.join(Authentication_Test_File_Directory, "unit_test_server_auth.py")}'
                 json_settings = json.dumps(settings)
     
                 with open(new_settings_file_path, "w") as outfile:

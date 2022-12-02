@@ -1,7 +1,7 @@
 {
     "authentication": {
         "token": {
-            "cmd": "unit_test_server_auth.py",
+            "token_refresh_cmd": "python unit_test_server_auth.py",
             "token_refresh_interval": 600
         }
     }
