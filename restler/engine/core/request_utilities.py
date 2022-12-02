@@ -83,7 +83,7 @@ def execute_token_refresh(token_dict):
             elif token_auth_method == "module":
                 result = execute_token_refresh_module(
                     token_dict["token_module_file"],
-                    token_dict["token_module_method"],
+                    token_dict["token_module_function"],
                     token_dict["token_module_data"],
                     token_dict["token_module_logging_enabled"])
 
@@ -337,7 +337,7 @@ def resolve_dynamic_primitives(values, candidate_values_pool):
             )
             if not isinstance(token_dict, dict):
                 raise Exception("Refreshable token was not specified as a setting, but a request was expecting it.")
-            if  "token_auth_method" in token_dict and token_dict["token_auth_method"]:
+            if "token_auth_method" in token_dict and token_dict["token_auth_method"]:
                 token_refresh_interval = token_dict['token_refresh_interval']
                 if int(time.time()) - last_refresh > token_refresh_interval:
                     execute_token_refresh(token_dict)

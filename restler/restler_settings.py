@@ -739,7 +739,7 @@ class RestlerSettings(object):
         return None
 
     @property
-    def token_module_method(self):
+    def token_module_function(self):
         if 'token' in self._authentication_settings.val:
             if 'module' in self._authentication_settings.val['token']:
                 if 'method' in self._authentication_settings.val['token']['module']:
