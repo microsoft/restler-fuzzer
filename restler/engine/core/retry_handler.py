@@ -1,7 +1,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-
 import time
 import sys
 
@@ -37,4 +36,4 @@ class RetryHandler:
         elif self.type.lower() == "exponential":
             sleep = min(self.max_delay, self.delay * 2 ** self.__num_retries)
             time.sleep(sleep)
-        self.__num_retries+=1
+        self.__num_retries += 1
