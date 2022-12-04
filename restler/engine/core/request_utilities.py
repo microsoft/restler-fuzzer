@@ -120,13 +120,13 @@ def execute_location_token_refresh(location):
         _RAW_LOGGING(error_str)
         raise EmptyTokenException(error_str)
 
-def execute_token_refresh_module(module_path, method, data, logging_enabled):
+def execute_token_refresh_module(module_path, function, data, logging_enabled):
     """ Executes token refresh by attempting to execute a user provided auth module
     @param: module_path: Path to auth module
     @type:  module_path: Str (filepath)
 
-    @param: method: Method to call in auth module to retrieve a token
-    @type:  method: Str
+    @param: function: function to call in auth module to retrieve a token
+    @type:  function: Str
 
     @param: data: Data to pass to authentication module
     @type:  data: Dict
@@ -149,19 +149,19 @@ def execute_token_refresh_module(module_path, method, data, logging_enabled):
         _RAW_LOGGING(error_str)
         raise EmptyTokenException(error_str)
     try:
-        token_refresh_method = import_utilities.import_attr(module_path, method)
+        token_refresh_function = import_utilities.import_attr(module_path, function)
         token_result = None
         if logging_enabled and data:
-            token_result = token_refresh_method(data, _AUTH_LOGGING)
+            token_result = token_refresh_function(data, _AUTH_LOGGING)
         elif logging_enabled:
-            token_result = token_refresh_method(_AUTH_LOGGING)
+            token_result = token_refresh_function(_AUTH_LOGGING)
         elif data:
-            token_result = token_refresh_method(data)
+            token_result = token_refresh_function(data)
         else:
-            token_result = token_refresh_method
+            token_result = token_refresh_function
         return token_result
     except AttributeError:
-        error_str = f"Could not execute token refresh method {method} in module {module_path}. Please ensure that you've passed a valid method"
+        error_str = f"Could not execute token refresh function {function} in module {module_path}. Please ensure that you've passed a valid function"
         _RAW_LOGGING(error_str)
         raise EmptyTokenException(error_str)
 

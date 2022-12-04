@@ -742,8 +742,8 @@ class RestlerSettings(object):
     def token_module_function(self):
         if 'token' in self._authentication_settings.val:
             if 'module' in self._authentication_settings.val['token']:
-                if 'method' in self._authentication_settings.val['token']['module']:
-                    return self._authentication_settings.val['token']['module']['method']
+                if 'function' in self._authentication_settings.val['token']['module']:
+                    return self._authentication_settings.val['token']['module']['function']
                 else:
                     return 'acquire_token'
         return None
@@ -987,7 +987,7 @@ class RestlerSettings(object):
                 raise OptionValidationError("Must specify token module file")    
 
             token_auth_options = [self.token_module_file, self.token_refresh_cmd, self.token_location]
-            user_provided_token_auth_options = [option for option in token_auth_options if option != None]
+            user_provided_token_auth_options = [option for option in token_auth_options if option is not None]
             if len(user_provided_token_auth_options) > 1:
                 raise OptionValidationError(f"Must specify only one token authentication mechanism - received {user_provided_token_auth_options}")
 
