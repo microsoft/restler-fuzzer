@@ -27,15 +27,50 @@ Checkers' Friendly Names:
 * PayloadBody
 * Examples
 
-### client_certificate_path: str (default None)
-Path to your X.509 certificate file in PEM format.
 
-If provided and valid, RESTler will attempt to use it during the SSL handshake.
+### Authentication settings dict (default empty)
 
-### client_certificate_key_path: str (default None)
-Path to your key file in a txt file.
+-  Token: Can optionally provide one of {location, token_refresh_cmd, module} See Authentication.md for details
+    - location str (Default None): File path to a text file containing a token 
+    - token_refresh_cmd str (Default None): The command to execute in order to refresh the authentication token.
+    - module json (Default None): Dict containing One Of
+      - file str (Default None): File path to python file containing function that returns a token
+      - function str (Default "acquire_token"): Name of function in file that returns a token.
+      - data json (Default None): Optional data payload to provide to function. If data is included, RESTler will attempt to call function with data as an argument.
+      - logging_enabled bool (Default None): If logging is enabled, RESTler will attempt to call function with a logging method as an argument. This function will write strings to a text file.
 
-If provided and valid, RESTler will attempt to use it during the SSL handshake.
+    - token_refresh_interval int (Default None): Required parameter if using token authentication. The interval between periodic refreshes of the authentication token, in seconds.
+
+  - Certificate: Can optionally provide certificate for SSL handshake
+
+    - certificate:
+      - client_certificate_path str (Default None): Path to your X.509 certificate file in PEM format. If provided and valid, RESTler will attempt to use it during the SSL handshake.
+
+      - client_certificate_key_path str (Default None):  Path to your key file in a txt file. If provided and valid, RESTler will attempt to use it during the SSL handshake.
+
+Ex:
+```json
+"authentication": {
+    "token": {
+        "OneOf": [
+            "location": // File path to flie containing token
+            "token_refresh_cmd": // Cmd to execute to print token
+            "module": { //<import this python module and invoke function with user-specified arguments>
+                "file": // .py file 
+                "function": // function to call in module - defaults to acquire_token
+                "data": { // - JSON data, RESTler will call function to acquire token passing these as a dict
+                },
+            }
+        ],
+      "token_refresh_interval": , // Interval in seconds for RESTler to refresh the token 
+    }
+    "certificate": {
+          "client_certificate_path": // Path to client certificate
+          "client_certificate_key_path": // Path to client certificate key 
+    }
+}
+```
+
 
 ### custom_bug_codes: list(str)
 List of status codes that will be flagged as bugs.
