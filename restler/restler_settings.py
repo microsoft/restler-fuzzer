@@ -712,21 +712,17 @@ class RestlerSettings(object):
 
     @property
     def token_refresh_cmd(self):
-        if self._token_refresh_cmd.val:
-            return self._token_refresh_cmd.val
-        elif 'token' in self._authentication_settings.val:
+        if 'token' in self._authentication_settings.val:
             if 'token_refresh_cmd' in self._authentication_settings.val['token']:
                 return self._authentication_settings.val['token']['token_refresh_cmd']
-        return None
+        return self._token_refresh_cmd.val
 
     @property
     def token_refresh_interval(self):
-        if self._token_refresh_interval.val:
-            return self._token_refresh_interval.val
-        elif 'token' in self._authentication_settings.val:
+        if 'token' in self._authentication_settings.val:
             if 'token_refresh_interval' in self._authentication_settings.val['token']:
                 return self._authentication_settings.val['token']['token_refresh_interval']
-        return None
+        return self._token_refresh_interval.val
 
     @property
     def token_location(self):
