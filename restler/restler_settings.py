@@ -3,9 +3,16 @@
 
 """ Holds user-defined settings data """
 from __future__ import print_function
+from enum import Enum
 import json
 import sys
 import re
+
+class TokenAuthMethod(Enum):
+    """ Enum of token auth methods """
+    LOCATION = 0
+    CMD = 1
+    MODULE = 2
 
 class NewSingletonError(Exception):
     pass
@@ -805,11 +812,11 @@ class RestlerSettings(object):
     @property 
     def token_authentication_method(self):
         if self.token_module_file:
-            return 'module'
+            return TokenAuthMethod.MODULE
         elif self.token_refresh_cmd:
-            return 'cmd'
+            return TokenAuthMethod.CMD
         elif self.token_location:
-            return 'location'
+            return TokenAuthMethod.LOCATION
         else:
             return None
     def get_cached_prefix_request_settings(self, endpoint, method):

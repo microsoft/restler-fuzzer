@@ -15,6 +15,7 @@ import os
 from engine.errors import ResponseParsingException
 from engine.errors import TransportLayerException
 from restler_settings import Settings
+from restler_settings import TokenAuthMethod
 import engine.primitives as primitives
 import engine.dependencies as dependencies
 from engine.transport_layer.response import HttpResponse
@@ -74,13 +75,13 @@ def execute_token_refresh(token_dict):
 
     while retry_handler.can_retry():
         try:
-            if token_auth_method == "location":
+            if token_auth_method == TokenAuthMethod.LOCATION:
                 result = execute_location_token_refresh(
                     token_dict["token_location"])
-            elif token_auth_method == "cmd":
+            elif token_auth_method == TokenAuthMethod.CMD:
                 result = execute_token_refresh_cmd(
                     token_dict["token_refresh_cmd"])
-            elif token_auth_method == "module":
+            elif token_auth_method == TokenAuthMethod.MODULE:
                 result = execute_token_refresh_module(
                     token_dict["token_module_file"],
                     token_dict["token_module_function"],
