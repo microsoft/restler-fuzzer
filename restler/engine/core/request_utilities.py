@@ -39,6 +39,8 @@ threadLocal = threading.local()
 class EmptyTokenException(Exception):
     pass
 
+class InvalidTokenAuthMethodException(Exception):
+    pass
 
 def get_latest_token_value():
     global latest_token_value
@@ -96,6 +98,11 @@ def execute_token_refresh(token_dict):
             print(error_str)
             _RAW_LOGGING(error_str)
             sys.exit(-1)
+        except InvalidTokenAuthMethodException as exc:
+            error_str = f"Error: Invalid token authentication mechanism. \n Failed with {exc}"
+            print(error_str)
+            _RAW_LOGGING(error_str)
+            sys.exit(-1)
         except Exception as error:
             error_str = f"Authentication failed when refreshing token:\n\nUsing Token authentication method: \n{token_auth_method} \n with error {error}"
             print(f'\n{error_str}')
@@ -119,7 +126,7 @@ def execute_location_token_refresh(location):
     except FileNotFoundError:
         error_str = f"Could not find token file at {location}. Please ensure that you've passed a valid path"
         _RAW_LOGGING(error_str)
-        raise EmptyTokenException(error_str)
+        raise InvalidTokenAuthMethodException(error_str)
 
 def execute_token_refresh_module(module_path, function, data, logging_enabled):
     """ Executes token refresh by attempting to execute a user provided auth module
@@ -144,11 +151,11 @@ def execute_token_refresh_module(module_path, function, data, logging_enabled):
     except FileNotFoundError: 
         error_str = f"Could not find token module file at {module_path}/{module_name}. Please ensure that you've passed a valid path"
         _RAW_LOGGING(error_str)
-        raise EmptyTokenException(error_str)
+        raise InvalidTokenAuthMethodException(error_str)
     except AttributeError:
         error_str = f"Could not load token module file at {module_path}/{module_name}. Please ensure that you've passed a valid python module"
         _RAW_LOGGING(error_str)
-        raise EmptyTokenException(error_str)
+        raise InvalidTokenAuthMethodException(error_str)
     try:
         token_refresh_function = import_utilities.import_attr(module_path, function)
         token_result = None
@@ -164,7 +171,7 @@ def execute_token_refresh_module(module_path, function, data, logging_enabled):
     except AttributeError:
         error_str = f"Could not execute token refresh function {function} in module {module_path}. Please ensure that you've passed a valid function"
         _RAW_LOGGING(error_str)
-        raise EmptyTokenException(error_str)
+        raise InvalidTokenAuthMethodException(error_str)
 
 
 def execute_token_refresh_cmd(cmd):
