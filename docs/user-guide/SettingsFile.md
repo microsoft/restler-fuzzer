@@ -27,6 +27,15 @@ Checkers' Friendly Names:
 * PayloadBody
 * Examples
 
+### client_certificate_path: str (default None)
+Path to your X.509 certificate file in PEM format.
+
+If provided and valid, RESTler will attempt to use it during the SSL handshake.
+
+### client_certificate_key_path: str (default None)
+Path to your key file in a txt file.
+
+If provided and valid, RESTler will attempt to use it during the SSL handshake.
 
 ### Authentication settings dict (default empty)
 
