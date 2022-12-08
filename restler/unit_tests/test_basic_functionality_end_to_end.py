@@ -18,7 +18,7 @@ import subprocess
 import json
 import utils.logger as logger
 from collections import namedtuple
-
+from pathlib import Path
 from test_servers.log_parser import *
 
 Test_File_Directory = os.path.join(
@@ -87,18 +87,21 @@ class FunctionalityTests(unittest.TestCase):
             self.fail(f"Restler returned non-zero exit code: {result.returncode} {result.stdout}")
 
     def run_abc_smoke_test(self, test_file_dir, grammar_file_name, fuzzing_mode, settings_file=None, dictionary_file_name=None,
-                           failure_expected=False):
+                           failure_expected=False, common_settings=Common_Settings):
         grammar_file_path = os.path.join(test_file_dir, grammar_file_name)
         if dictionary_file_name is None:
             dictionary_file_name = "abc_dict.json"
         dict_file_path = os.path.join(test_file_dir, dictionary_file_name)
-        args = Common_Settings + [
+        args = common_settings + [
         '--fuzzing_mode', f"{fuzzing_mode}",
         '--restler_grammar', f'{grammar_file_path}',
         '--custom_mutations', f'{dict_file_path}'
         ]
         if settings_file:
-            settings_file_path = os.path.join(test_file_dir, settings_file)
+            if Path(settings_file).exists():
+                settings_file_path = settings_file
+            else:
+                settings_file_path = os.path.join(test_file_dir, settings_file)
             args = args + ['--settings', f'{settings_file_path}']
         self.run_restler_engine(args, failure_expected=failure_expected)
 
@@ -121,18 +124,9 @@ class FunctionalityTests(unittest.TestCase):
                 settings = json.loads(file.read())
                 settings["authentication"]["token"]["location"] = os.path.join(Authentication_Test_File_Directory, settings["authentication"]["token"]["location"])
                 json_settings = json.dumps(settings)
-    
                 with open(new_settings_file_path, "w") as outfile:
                     outfile.write(json_settings)
-
-            args = Common_Settings_No_Auth + [
-            '--fuzzing_mode', "directed-smoke-test",
-            '--restler_grammar', f'{os.path.join(Test_File_Directory, "abc_test_grammar.py")}',
-            '--custom_mutations', f'{os.path.join(Test_File_Directory, "abc_dict.json")}',
-            '--settings', new_settings_file_path
-            ]
-
-            self.run_restler_engine(args)
+            self.run_abc_smoke_test(Test_File_Directory, "abc_test_grammar.py", "directed-smoke-test", settings_file=new_settings_file_path, common_settings=Common_Settings_No_Auth)
         finally:
             ## Clean up temporary settings file 
             if os.path.exists(new_settings_file_path):
@@ -151,7 +145,7 @@ class FunctionalityTests(unittest.TestCase):
                 total_requests_sent = testing_summary["total_requests_sent"]["main_driver"]
                 num_fully_valid = testing_summary["num_fully_valid"]
                 self.assertEqual(num_fully_valid, 5)
-                self.assertLessEqual(total_requests_sent, 22)
+                self.assertLessEqual(total_requests_sent, 14)
                 test_parser = FuzzingLogParser(self.get_network_log_path(experiments_dir, logger.LOG_TYPE_TESTING))
                 ## Validate that LOCATION_AUTHORIZATION_TOKEN is used in request headers
                 self.assertTrue(test_parser.validate_auth_tokens(LOCATION_AUTHORIZATION_TOKEN))
@@ -173,15 +167,7 @@ class FunctionalityTests(unittest.TestCase):
     
                 with open(new_settings_file_path, "w") as outfile:
                     outfile.write(json_settings)
-
-            args = Common_Settings_No_Auth + [
-            '--fuzzing_mode', "directed-smoke-test",
-            '--restler_grammar', f'{os.path.join(Test_File_Directory, "abc_test_grammar.py")}',
-            '--custom_mutations', f'{os.path.join(Test_File_Directory, "abc_dict.json")}',
-            '--settings', new_settings_file_path
-            ]
-
-            self.run_restler_engine(args)
+            self.run_abc_smoke_test(Test_File_Directory, "abc_test_grammar.py", "directed-smoke-test", settings_file=new_settings_file_path, common_settings=Common_Settings_No_Auth)
         finally:
             ## Clean up temporary settings file 
             if os.path.exists(new_settings_file_path):
@@ -200,7 +186,7 @@ class FunctionalityTests(unittest.TestCase):
                 total_requests_sent = testing_summary["total_requests_sent"]["main_driver"]
                 num_fully_valid = testing_summary["num_fully_valid"]
                 self.assertEqual(num_fully_valid, 5)
-                self.assertLessEqual(total_requests_sent, 22)
+                self.assertLessEqual(total_requests_sent, 14)
                 test_parser = FuzzingLogParser(self.get_network_log_path(experiments_dir, logger.LOG_TYPE_TESTING))
                 ## Validate that MODULE_AUTHORIZATION_TOKEN is used in request headers
                 self.assertTrue(test_parser.validate_auth_tokens(MODULE_AUTHORIZATION_TOKEN))
@@ -224,15 +210,7 @@ class FunctionalityTests(unittest.TestCase):
     
                 with open(new_settings_file_path, "w") as outfile:
                     outfile.write(json_settings)
-
-            args = Common_Settings_No_Auth + [
-            '--fuzzing_mode', "directed-smoke-test",
-            '--restler_grammar', f'{os.path.join(Test_File_Directory, "abc_test_grammar.py")}',
-            '--custom_mutations', f'{os.path.join(Test_File_Directory, "abc_dict.json")}',
-            '--settings', new_settings_file_path
-            ]
-
-            self.run_restler_engine(args)
+            self.run_abc_smoke_test(Test_File_Directory, "abc_test_grammar.py", "directed-smoke-test", settings_file=new_settings_file_path, common_settings=Common_Settings_No_Auth)
         finally:
             ## Clean up temporary settings file 
             if os.path.exists(new_settings_file_path):
@@ -251,15 +229,14 @@ class FunctionalityTests(unittest.TestCase):
                 total_requests_sent = testing_summary["total_requests_sent"]["main_driver"]
                 num_fully_valid = testing_summary["num_fully_valid"]
                 self.assertEqual(num_fully_valid, 5)
-                self.assertLessEqual(total_requests_sent, 22)
+                self.assertLessEqual(total_requests_sent, 14)
                 test_parser = FuzzingLogParser(self.get_network_log_path(experiments_dir, logger.LOG_TYPE_TESTING))
                 ## Validate that CMD_AUTHORIZATION_TOKEN is used in request headers
                 self.assertTrue(test_parser.validate_auth_tokens(CMD_AUTHORIZATION_TOKEN))
 
         except TestFailedException:
             self.fail("Smoke test with token cmd auth failed")
-
-
+            
 
     def test_abc_invalid_b_smoke_test(self):
         self.run_abc_smoke_test(Test_File_Directory, "abc_test_grammar_invalid_b.py", "directed-smoke-test", settings_file="test_one_schema_settings.json")
