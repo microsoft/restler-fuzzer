@@ -5,8 +5,7 @@
             "file": "unit_test_server_auth_module.py",
             "function": "acquire_token",
             "data": {
-            },
-            "logging_enabled": "true"
+            }
           },
         "token_refresh_interval": 600
       }

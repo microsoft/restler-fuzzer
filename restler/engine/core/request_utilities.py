@@ -87,8 +87,7 @@ def execute_token_refresh(token_dict):
                 result = execute_token_refresh_module(
                     token_dict["token_module_file"],
                     token_dict["token_module_function"],
-                    token_dict["token_module_data"],
-                    token_dict["token_module_logging_enabled"])
+                    token_dict["token_module_data"])
 
             _, latest_token_value, latest_shadow_token_value = parse_authentication_tokens(
                 result)
@@ -128,7 +127,7 @@ def execute_location_token_refresh(location):
         _RAW_LOGGING(error_str)
         raise InvalidTokenAuthMethodException(error_str)
 
-def execute_token_refresh_module(module_path, function, data, logging_enabled):
+def execute_token_refresh_module(module_path, function, data):
     """ Executes token refresh by attempting to execute a user provided auth module
     @param: module_path: Path to auth module
     @type:  module_path: Str (filepath)
@@ -138,9 +137,6 @@ def execute_token_refresh_module(module_path, function, data, logging_enabled):
 
     @param: data: Data to pass to authentication module
     @type:  data: Dict
-
-    @param: logging_enabled: Data to pass to authentication module
-    @type:  logging_enabled: Bool
 
     @return: token
     @type: string:
@@ -158,15 +154,7 @@ def execute_token_refresh_module(module_path, function, data, logging_enabled):
         raise InvalidTokenAuthMethodException(error_str)
     try:
         token_refresh_function = import_utilities.import_attr(module_path, function)
-        token_result = None
-        if logging_enabled and data:
-            token_result = token_refresh_function(data, _AUTH_LOGGING)
-        elif logging_enabled:
-            token_result = token_refresh_function(_AUTH_LOGGING)
-        elif data:
-            token_result = token_refresh_function(data)
-        else:
-            token_result = token_refresh_function
+        token_result = token_refresh_function(data, _AUTH_LOGGING)
         return token_result
     except AttributeError:
         error_str = f"Could not execute token refresh function {function} in module {module_path}. Please ensure that you've passed a valid function"

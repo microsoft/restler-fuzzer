@@ -44,9 +44,8 @@ If provided and valid, RESTler will attempt to use it during the SSL handshake.
     - token_refresh_cmd str (Default None): The command to execute in order to refresh the authentication token.
     - module json (Default None): Dict containing One Of
       - file str (Default None): File path to python file containing function that returns a token
-      - function str (Default "acquire_token"): Name of function in file that returns a token.
+      - function str (Default "acquire_token"): Name of function in file that returns a token. The function must accept two parameters "data", a Dictionary containing the json payload specified under data, and "log" a method that will write any logs to a network auth text file. 
       - data json (Default None): Optional data payload to provide to function. If data is included, RESTler will attempt to call function with data as an argument.
-      - logging_enabled bool (Default None): If logging is enabled, RESTler will attempt to call function with a logging method as an argument. This function will write strings to a text file.
 
     - token_refresh_interval int (Default None): Required parameter if using token authentication. The interval between periodic refreshes of the authentication token, in seconds.
 

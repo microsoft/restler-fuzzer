@@ -1,7 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-def acquire_token(log):
+def acquire_token(data, log):
     log("Returning a valid token")
     token_lines = [
         "{'user1':{}, 'user2':{}}",
