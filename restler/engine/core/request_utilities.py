@@ -66,7 +66,7 @@ def execute_token_refresh(token_dict):
     @type: token_dict: Dict
 
     @return: None. Updates global latest_token_value and latest_shadow_token_value
-    @type: None:
+    @type: None
     """
     global latest_token_value, latest_shadow_token_value
     ERROR_VAL_STR = 'ERROR\r\n'
