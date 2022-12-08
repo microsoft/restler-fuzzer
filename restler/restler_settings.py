@@ -766,13 +766,6 @@ class RestlerSettings(object):
         return None
 
     @property
-    def token_module_logging_enabled(self):
-        if 'token' in self._authentication_settings.val and 'module' in self._authentication_settings.val['token']:
-            if 'logging_enabled' in self._authentication_settings.val['token']['module']:
-                return self._authentication_settings.val['token']['module']['logging_enabled']
-        return False
-
-    @property
     def version(self):
         return self._version.val
 

@@ -9,7 +9,7 @@ The user has three options for providing token based authentication; Module, Loc
 
 **Module**
 
-The user must provide the path to a python module (.py) that implements a function to acquire a token, and the name of the function (default: "acquire_token"). RESTler will import the module and call the function. Additionally, a user can opt to add "data", which will be converted into a dictionary and passed to their function. They may also choose to set "logging_enabled" to true, in which case their function should accept a method which will write strings to a network_auth text file.
+The user must provide the path to a python module (.py) that implements a function to acquire a token, and the name of the function (default: "acquire_token"). RESTler will import the module and call the function. Additionally, a user can opt to add "data", which will be converted into a dictionary and passed to their function. The function must accept two parameters "data", a Dictionary containing the json payload specified under data, and "log" a method that will write any logs to a network auth text file. 
 
 **Location**
 

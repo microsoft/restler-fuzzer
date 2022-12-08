@@ -430,7 +430,6 @@ if __name__ == '__main__':
             "token_module_file": settings.token_module_file,
             "token_module_function": settings.token_module_function,
             "token_module_data": settings.token_module_data,
-            "token_module_logging_enabled": settings.token_module_logging_enabled
         })
     elif token_auth_method == TokenAuthMethod.LOCATION:
         restler_refreshable_authentication_token.update({
