@@ -152,7 +152,7 @@ class FunctionalityTests(unittest.TestCase):
         except TestFailedException:
             self.fail("Smoke test with token location auth failed")
 
-    def test_module_auth(self):
+    def test_module_no_data_auth(self):
         """ This test is equivalent to test_abc_minimal_smoke_test except we use the token module authentication mechanism 
             and validate that RESTler uses the MODULE_AUTHORIZATION_TOKEN
         """
@@ -190,6 +190,54 @@ class FunctionalityTests(unittest.TestCase):
                 test_parser = FuzzingLogParser(self.get_network_log_path(experiments_dir, logger.LOG_TYPE_TESTING))
                 ## Validate that MODULE_AUTHORIZATION_TOKEN is used in request headers
                 self.assertTrue(test_parser.validate_auth_tokens(MODULE_AUTHORIZATION_TOKEN))
+
+        except TestFailedException:
+            self.fail("Smoke test with token module auth failed")
+
+    def test_module_with_data_auth(self):
+        """ This test is equivalent to test_abc_minimal_smoke_test except we use the token module authentication mechanism 
+            and validate that RESTler uses the MODULE_AUTHORIZATION_TOKEN
+        """
+        settings_file_path = os.path.join(Authentication_Test_File_Directory, "token_module_authentication_data_settings.json")
+        ## Create a new, temporary settings file with reference to full path to token location
+        new_settings_file_path = os.path.join(Authentication_Test_File_Directory, "tmp_token_module_authentication_data_settings.json")
+        try:
+            with open(settings_file_path, 'r') as file:
+                settings = json.loads(file.read())
+                settings["authentication"]["token"]["module"]["file"] = os.path.join(Authentication_Test_File_Directory, settings["authentication"]["token"]["module"]["file"])
+                data = str(settings["authentication"]["token"]["module"]["data"])
+                json_settings = json.dumps(settings)
+    
+                with open(new_settings_file_path, "w") as outfile:
+                    outfile.write(json_settings)
+            self.run_abc_smoke_test(Test_File_Directory, "abc_test_grammar.py", "directed-smoke-test", settings_file=new_settings_file_path, common_settings=Common_Settings_No_Auth)
+        finally:
+            ## Clean up temporary settings file 
+            if os.path.exists(new_settings_file_path):
+                os.remove(new_settings_file_path)
+
+        experiments_dir = self.get_experiments_dir()
+        
+        ## Make sure all requests were successfully rendered.  This is because the comparisons below do not
+        ## take status codes into account
+        ## Make sure the right number of requests was sent.
+        testing_summary_file_path = os.path.join(experiments_dir, "logs", "testing_summary.json")
+        
+        try:
+            with open(testing_summary_file_path, 'r') as file:
+                testing_summary = json.loads(file.read())
+                total_requests_sent = testing_summary["total_requests_sent"]["main_driver"]
+                num_fully_valid = testing_summary["num_fully_valid"]
+                self.assertEqual(num_fully_valid, 5)
+                self.assertLessEqual(total_requests_sent, 14)
+                test_parser = FuzzingLogParser(self.get_network_log_path(experiments_dir, logger.LOG_TYPE_TESTING))
+                ## Validate that MODULE_AUTHORIZATION_TOKEN is used in request headers
+                self.assertTrue(test_parser.validate_auth_tokens(MODULE_AUTHORIZATION_TOKEN))
+
+                ## Validate that data is logged in auth log
+                with open(self.get_network_log_path(experiments_dir, logger.LOG_TYPE_AUTH), "r") as auth_log:
+                    self.assertTrue(data in auth_log.read())
+        
 
         except TestFailedException:
             self.fail("Smoke test with token module auth failed")
@@ -236,7 +284,7 @@ class FunctionalityTests(unittest.TestCase):
 
         except TestFailedException:
             self.fail("Smoke test with token cmd auth failed")
-            
+
 
     def test_abc_invalid_b_smoke_test(self):
         self.run_abc_smoke_test(Test_File_Directory, "abc_test_grammar_invalid_b.py", "directed-smoke-test", settings_file="test_one_schema_settings.json")
