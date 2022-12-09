@@ -9,20 +9,34 @@ The user has three options for providing token based authentication; Module, Loc
 
 **Module**
 
-The user must provide the path to a python module (.py) that implements a function to acquire a token, and the name of the function (default: "acquire_token"). RESTler will import the module and call the function. Additionally, a user can opt to add "data", which will be converted into a dictionary and passed to their function. The function must accept two parameters "data", a Dictionary containing the json payload specified under data, and "log" a method that will write any logs to a network auth text file. 
+The user must provide the path to a python module (.py) that implements a function that returns a token, and the name of the function (default: ```acquire_token```). RESTler will import the module and call the function to obtain tokens. 
+
+Additionally, a user can opt to add data (e.g. with additional authentication-related parameters specific to the service under test) to pass to this function. The function signature must be as follows:
+
+```python
+def acquire_token(data, log):
+    ## Return token
+```
+
+Where
+
+- data is a dictionary containing the json payload specified in the corresponding engine setting (see SettingsFile.md)
+- log is a function that may be used to write logs to a network auth text file that will be saved in the RESTler results directory next to the network logs.
+
 
 **Location**
 
-The user must provide the full path to a text file containing a token.
+The user must provide the full path to a text file containing a token. RESTler will read this text file to obtain tokens.
 
-**CMD**
+**Command**
 
 The user must provide a separate program to generate tokens, which implements the authentication method required by the API.  This will be invoked in a separate process by RESTler to obtain tokens.
 
 `>my_gettoken.exe <args to my_gettoken>`
 
 **Token Formatting**
-All token-based authentication mechanisms require tokens to be specified in the following manner - metadata about the tokens on the first line, followed by each token and the required token header on a separate line for each application.  For example:
+
+All token-based authentication mechanisms require tokens to be specified as follows - metadata about the tokens on the first line, followed by each token and the required token header on a separate line for each application.  For example:
 
 ```
 {u'app1': {<any additional metadata you'd like to print. currently only used for troubleshooting. >}, u'app2':{}}
