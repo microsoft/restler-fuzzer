@@ -40,36 +40,36 @@ If provided and valid, RESTler will attempt to use it during the SSL handshake.
 ### authentication: dict (default empty)
 Settings for specifying authentication. See Authentication.md for details
 
-__Token__: Can optionally provide one of {```location```, ```token_refresh_cmd```, ```module```}
+#### _token_ dict (default empty): Can optionally provide one of {```location```, ```token_refresh_cmd```, ```module```}
 
-__location str (Default None)__: File path to a text file containing a token
+__location__ str (Default None): File path to a text file containing a token
 
 ```json
 "authentication": {
     "token": {
-      "location":, "/authentication_token.txt"
+      "location":, "/path/to/authentication_token.txt"
       "token_refresh_interval":  300
     }
 }
 ```
 
-__token_refresh_cmd str (Default None)__: The command to execute in order to refresh the authentication token
+__token_refresh_cmd__ str (Default None): The command to execute in order to refresh the authentication token
 
 ```json
 "authentication": {
     "token": {
-      "token_refresh_cmd": "python unit_test_server_auth.py"
+      "token_refresh_cmd": "python /path/to/unit_test_server_auth.py"
       "token_refresh_interval": 300
     }
 }
 ```
 
-__module json (Default None)__: Dictionary containing settings for RESTler to invoke user-specified module to refresh the authentication token
+__module__ dict (Default None): Dictionary containing settings for RESTler to invoke user-specified module to refresh the authentication token
 ```json
 "authentication": {
     "token": {
       "module": {
-        "file": "/unit_test_server_auth_module.py",
+        "file": "/path/to/unit_test_server_auth_module.py",
         "function": "acquire_token_data",
         "data": {
             "client_id": "client_id"
@@ -80,25 +80,25 @@ __module json (Default None)__: Dictionary containing settings for RESTler to in
 }
 ```
 
-```file``` str (Default None): File path to python file containing function that returns a token
+```file``` str (default None): File path to python file containing function that returns a token
 
-```function``` str (Default "acquire_token"): Name of function in file that returns a token. The function must accept two parameters "data", a Dictionary containing the json payload specified under data, and "log" a method that will write any logs to a network auth text file
+```function``` str (default "acquire_token"): Name of function in file that returns a token. The function must accept two parameters "data", a Dictionary containing the json payload specified under data, and "log" a method that will write any logs to a network auth text file
 
-```data``` json (Default None): Optional data payload to provide to function. If data is included, RESTler will attempt to call function with data as an argument
+```data``` dict (Default None): Optional data payload to provide to function. If data is included, RESTler will attempt to call function with data as an argument
 
-__token_refresh_interval int (Default None)__: Required parameter if using token authentication. The interval between periodic refreshes of the authentication token, in seconds
+__token_refresh_interval__ int (default None): Required parameter if using token authentication. The interval between periodic refreshes of the authentication token, in seconds
 
-__Certificate__: Can optionally provide certificate for SSL handshake
+#### _certificate_ dict (Default empty): Can optionally provide certificate for SSL handshake
 
-```client_certificate_path``` str (Default None): Path to your X.509 certificate file in PEM format. If provided and valid, RESTler will attempt to use it during the SSL handshake
+__client_certificate_path__ str (default None): Path to your X.509 certificate file in PEM format. If provided and valid, RESTler will attempt to use it during the SSL handshake
 
-```client_certificate_key_path``` str (Default None):  Path to your key file in a txt file. If provided and valid, RESTler will attempt to use it during the SSL handshake
+__client_certificate_key_path__ str (default None):  Path to your key file in a txt file. If provided and valid, RESTler will attempt to use it during the SSL handshake
 
 ```json
 "authentication": {
     "certificate": {
-          "client_certificate_path": "/file.pem",
-          "client_certificate_key_path": "/file.key" 
+          "client_certificate_path": "/path/to/file.pem",
+          "client_certificate_key_path": "/path/to/file.key" 
     }
 }
 ```
