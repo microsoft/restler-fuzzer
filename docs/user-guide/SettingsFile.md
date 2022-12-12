@@ -47,7 +47,7 @@ __location__ str (Default None): File path to a text file containing a token
 ```json
 "authentication": {
     "token": {
-      "location":, "/path/to/authentication_token.txt"
+      "location": "/path/to/authentication_token.txt",
       "token_refresh_interval":  300
     }
 }
@@ -58,7 +58,7 @@ __token_refresh_cmd__ str (Default None): The command to execute in order to ref
 ```json
 "authentication": {
     "token": {
-      "token_refresh_cmd": "python /path/to/unit_test_server_auth.py"
+      "token_refresh_cmd": "python unit_test_server_auth.py",
       "token_refresh_interval": 300
     }
 }
