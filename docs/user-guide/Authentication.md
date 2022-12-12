@@ -5,11 +5,11 @@ RESTler supports token-based and certificate based authentication.
 **Token based authentication**
 
 
-The user has three options for providing token based authentication; Module, Location, and CMD.
+The user has three options for providing token based authentication; Module, Location, and CMD. For details on the format of these options, please see SettingsFile.md.
 
 **Module**
 
-The user must provide the path to a python module (.py) that implements a function that returns a token, and the name of the function (default: ```acquire_token```). RESTler will import the module and call the function to obtain tokens. 
+The user must provide the path to a python module (.py) that implements a function that returns a token, and the name of the function (default: `acquire_token`). RESTler will import the module and call the function to obtain tokens. 
 
 Additionally, a user can opt to add data (e.g. with additional authentication-related parameters specific to the service under test) to pass to this function. The function signature must be as follows:
 
@@ -20,8 +20,8 @@ def acquire_token(data, log):
 
 Where
 
-- data is a dictionary containing the json payload specified in the corresponding engine setting (see SettingsFile.md)
-- log is a function that may be used to write logs to a network auth text file that will be saved in the RESTler results directory next to the network logs.
+- `data` is a dictionary containing the json payload specified in the corresponding engine setting (see SettingsFile.md)
+- `log` is a function that may be used to write logs to a network auth text file that will be saved in the RESTler results directory next to the network logs.
 
 
 **Location**
