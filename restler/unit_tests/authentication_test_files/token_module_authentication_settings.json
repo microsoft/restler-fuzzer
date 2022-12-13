@@ -1,0 +1,13 @@
+{
+    "authentication": {
+      "token": {
+          "module": {
+            "file": "unit_test_server_auth_module.py",
+            "function": "acquire_token_no_data",
+            "data": {
+            }
+          },
+        "token_refresh_interval": 600
+      }
+    }
+}

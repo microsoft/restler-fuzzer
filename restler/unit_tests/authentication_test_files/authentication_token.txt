@@ -1,0 +1,3 @@
+{'user1':{}, 'user2':{}}
+Authorization: valid_location_unit_test_token
+Authorization: shadow_unit_test_token

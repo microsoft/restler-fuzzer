@@ -3,9 +3,16 @@
 
 """ Holds user-defined settings data """
 from __future__ import print_function
+from enum import Enum
 import json
 import sys
 import re
+
+class TokenAuthMethod(Enum):
+    """ Enum of token auth methods """
+    LOCATION = 0
+    CMD = 1
+    MODULE = 2
 
 class NewSingletonError(Exception):
     pass
@@ -485,6 +492,8 @@ class RestlerSettings(object):
         self._token_refresh_cmd = SettingsArg('token_refresh_cmd', str, None, user_args)
         ## Interval to periodically refresh the authentication token (seconds)
         self._token_refresh_interval = SettingsArg('token_refresh_interval', int, None, user_args)
+        ## Set the authentication options 
+        self._authentication_settings = SettingsArg('authentication', dict, {}, user_args)
         ## Restler's version
         self._version = SettingsArg('set_version', str, DEFAULT_VERSION, user_args)
         ## If set, poll for async resource creation before continuing
@@ -512,10 +521,16 @@ class RestlerSettings(object):
 
     @property
     def client_certificate_path(self):
+        if 'certificate' in self._authentication_settings.val:
+            if 'client_certificate_path' in self._authentication_settings.val['certificate']:
+                return self._authentication_settings.val['certificate']['client_certificate_path']
         return self._client_certificate_path.val
 
     @property
     def client_certificate_key_path(self):
+        if 'certificate' in self._authentication_settings.val:
+            if 'client_certificate_key_path' in self._authentication_settings.val['certificate']:
+                return self._authentication_settings.val['certificate']['client_certificate_key_path']
         return self._client_certificate_key_path.val
 
     @property
@@ -704,11 +719,51 @@ class RestlerSettings(object):
 
     @property
     def token_refresh_cmd(self):
+        if 'token' in self._authentication_settings.val:
+            if 'token_refresh_cmd' in self._authentication_settings.val['token']:
+                return self._authentication_settings.val['token']['token_refresh_cmd']
         return self._token_refresh_cmd.val
 
     @property
     def token_refresh_interval(self):
+        if 'token' in self._authentication_settings.val:
+            if 'token_refresh_interval' in self._authentication_settings.val['token']:
+                return self._authentication_settings.val['token']['token_refresh_interval']
         return self._token_refresh_interval.val
+
+    @property
+    def token_location(self):
+        if 'token' in self._authentication_settings.val:
+            if 'location' in self._authentication_settings.val['token']:
+                return self._authentication_settings.val['token']['location']
+        else:
+            return None
+
+    @property
+    def token_module_file(self):
+        if 'token' in self._authentication_settings.val:
+            if 'module' in self._authentication_settings.val['token']:
+                if 'file' in self._authentication_settings.val['token']['module']:
+                    return self._authentication_settings.val['token']['module']['file']
+        return None
+
+    @property
+    def token_module_function(self):
+        if 'token' in self._authentication_settings.val:
+            if 'module' in self._authentication_settings.val['token']:
+                if 'function' in self._authentication_settings.val['token']['module']:
+                    return self._authentication_settings.val['token']['module']['function']
+                else:
+                    return 'acquire_token'
+        return None
+
+    @property
+    def token_module_data(self):
+        if 'token' in self._authentication_settings.val:
+            if 'module' in self._authentication_settings.val['token']:
+                if 'data' in self._authentication_settings.val['token']['module']:
+                    return self._authentication_settings.val['token']['module']['data']
+        return None
 
     @property
     def version(self):
@@ -747,6 +802,16 @@ class RestlerSettings(object):
         else:
             return include_req() and not exclude_req()
 
+    @property 
+    def token_authentication_method(self):
+        if self.token_module_file:
+            return TokenAuthMethod.MODULE
+        elif self.token_refresh_cmd:
+            return TokenAuthMethod.CMD
+        elif self.token_location:
+            return TokenAuthMethod.LOCATION
+        else:
+            return None
     def get_cached_prefix_request_settings(self, endpoint, method):
         def get_settings():
             if 'create_prefix_once' in self._seq_rendering_settings.val:
@@ -906,15 +971,28 @@ class RestlerSettings(object):
         Raises OptionValidationError if any validation fails.
 
         """
+
         if self.fuzzing_mode == 'random-walk' and self.max_sequence_length != 100:
             raise OptionValidationError("Should not provide maximum sequence length"
                                         " for random walk method")
-        if self.token_refresh_interval and not self.token_refresh_cmd:
-            raise OptionValidationError("Must specify command to refresh token")
-        if self.token_refresh_cmd and not self.token_refresh_interval:
-            raise OptionValidationError("Must specify refresh period in seconds")
         if self.request_throttle_ms and self.fuzzing_jobs != 1:
             raise OptionValidationError("Request throttling not available for multiple fuzzing jobs")
         if self.custom_bug_codes and self.custom_non_bug_codes:
             raise OptionValidationError("Both custom_bug_codes and custom_non_bug_codes lists were specified. "
                                         "Specifying both lists is not allowed.")
+        def validate_auth_options():
+            if self.token_refresh_interval and not self.token_authentication_method:
+                raise OptionValidationError("Must specify token refresh method")
+            if self.token_authentication_method and not self.token_refresh_interval:
+                raise OptionValidationError("Must specify refresh period in seconds")
+            if self.token_authentication_method == 'module' and not self.token_module_file:
+                raise OptionValidationError("Must specify token module file")    
+
+            token_auth_options = [self.token_module_file, self.token_refresh_cmd, self.token_location]
+            user_provided_token_auth_options = [option for option in token_auth_options if option is not None]
+            if len(user_provided_token_auth_options) > 1:
+                raise OptionValidationError(f"Must specify only one token authentication mechanism - received {user_provided_token_auth_options}")
+
+        validate_auth_options()
+
+

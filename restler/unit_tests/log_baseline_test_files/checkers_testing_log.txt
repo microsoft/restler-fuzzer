@@ -1,4 +1,4 @@
-2020-12-16 15:03:33.401: Will refresh token: python C:\RESTlerRepo\restler-fuzzer\restler\unit_tests\log_baseline_test_files\unit_test_server_auth.py
+2020-12-16 15:03:33.401: Will refresh token: python C:\RESTlerRepo\restler-fuzzer\restler\unit_tests\authentication_test_files\unit_test_server_auth.py
 2020-12-16 15:03:33.471: New value: {'user1':{}, 'user2':{}}
 Authorization: valid_unit_test_token
 Authorization: shadow_unit_test_token
@@ -1238,7 +1238,7 @@ Generation-2: Rendering Sequence-1
 2020-12-16 15:03:44.111: NameSpaceRuleChecker 
 Re-rendering start of original sequence
 2020-12-16 15:03:44.122: Re-rendering start of original sequence
-2020-12-16 15:03:44.131: Will refresh token: python C:\RESTlerRepo\restler-fuzzer\restler\unit_tests\log_baseline_test_files\unit_test_server_auth.py
+2020-12-16 15:03:44.131: Will refresh token: python C:\RESTlerRepo\restler-fuzzer\restler\unit_tests\authentication_test_files\unit_test_server_auth.py
 2020-12-16 15:03:44.200: New value: {'user1':{}, 'user2':{}}
 Authorization: valid_unit_test_token
 Authorization: shadow_unit_test_token
@@ -2371,7 +2371,7 @@ Generation-3: Rendering Sequence-1
 		+ restler_refreshable_authentication_token: ['token_refresh_cmd', 'token_refresh_interval']
 		- restler_static_string: '\r\n'
 
-2020-12-16 15:03:55.230: Will refresh token: python C:\RESTlerRepo\restler-fuzzer\restler\unit_tests\log_baseline_test_files\unit_test_server_auth.py
+2020-12-16 15:03:55.230: Will refresh token: python C:\RESTlerRepo\restler-fuzzer\restler\unit_tests\authentication_test_files\unit_test_server_auth.py
 2020-12-16 15:03:55.310: New value: {'user1':{}, 'user2':{}}
 Authorization: valid_unit_test_token
 Authorization: shadow_unit_test_token

@@ -7,7 +7,7 @@ from test_servers.parsed_requests import *
 
 import traceback
 
-VALID_UNIT_TEST_TOKEN = 'valid_unit_test_token'
+VALID_UNIT_TEST_TOKENS = {'valid_unit_test_token', 'valid_location_unit_test_token', 'valid_module_unit_test_token'}
 
 class UnitTestServer(TestServerBase):
     PRINT_DEBUG = False
@@ -42,7 +42,7 @@ class UnitTestServer(TestServerBase):
 
         """
         if NAMESPACE_RULE_RESOURCE not in dyn_objects:
-            if auth_token is not None and auth_token == VALID_UNIT_TEST_TOKEN:
+            if auth_token is not None and auth_token in VALID_UNIT_TEST_TOKENS:
                 return True
             return False
         return True

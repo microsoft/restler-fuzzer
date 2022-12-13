@@ -18,22 +18,36 @@ import subprocess
 import json
 import utils.logger as logger
 from collections import namedtuple
-
+from pathlib import Path
 from test_servers.log_parser import *
 
 Test_File_Directory = os.path.join(
     os.path.dirname(__file__), 'log_baseline_test_files'
 )
 
+Authentication_Test_File_Directory = os.path.join(
+    os.path.dirname(__file__), 'authentication_test_files'
+)
+
 Restler_Path = os.path.join(os.path.dirname(__file__), '..', 'restler.py')
 
-Common_Settings = [
+
+Common_Settings_No_Auth = [
     "python", "-B", Restler_Path, "--use_test_socket",
     '--custom_mutations', f'{os.path.join(Test_File_Directory, "test_dict.json")}',
     "--garbage_collection_interval", "30", "--host", "unittest",
-    "--token_refresh_cmd", f'python {os.path.join(Test_File_Directory, "unit_test_server_auth.py")}',
-    "--token_refresh_interval", "10"
 ]
+
+Common_Settings = Common_Settings_No_Auth + [
+     "--token_refresh_cmd", f'python {os.path.join(Authentication_Test_File_Directory, "unit_test_server_auth.py")}',
+     "--token_refresh_interval", "10"
+]
+
+## TODO: Share constants with unit_test_server?
+LOCATION_AUTHORIZATION_TOKEN = 'valid_location_unit_test_token'
+MODULE_AUTHORIZATION_TOKEN = 'valid_module_unit_test_token'
+CMD_AUTHORIZATION_TOKEN = 'valid_unit_test_token'
+
 
 class FunctionalityTests(unittest.TestCase):
     def get_experiments_dir(self):
@@ -73,18 +87,21 @@ class FunctionalityTests(unittest.TestCase):
             self.fail(f"Restler returned non-zero exit code: {result.returncode} {result.stdout}")
 
     def run_abc_smoke_test(self, test_file_dir, grammar_file_name, fuzzing_mode, settings_file=None, dictionary_file_name=None,
-                           failure_expected=False):
+                           failure_expected=False, common_settings=Common_Settings):
         grammar_file_path = os.path.join(test_file_dir, grammar_file_name)
         if dictionary_file_name is None:
             dictionary_file_name = "abc_dict.json"
         dict_file_path = os.path.join(test_file_dir, dictionary_file_name)
-        args = Common_Settings + [
+        args = common_settings + [
         '--fuzzing_mode', f"{fuzzing_mode}",
         '--restler_grammar', f'{grammar_file_path}',
         '--custom_mutations', f'{dict_file_path}'
         ]
         if settings_file:
-            settings_file_path = os.path.join(test_file_dir, settings_file)
+            if Path(settings_file).exists():
+                settings_file_path = settings_file
+            else:
+                settings_file_path = os.path.join(test_file_dir, settings_file)
             args = args + ['--settings', f'{settings_file_path}']
         self.run_restler_engine(args, failure_expected=failure_expected)
 
@@ -94,6 +111,180 @@ class FunctionalityTests(unittest.TestCase):
         except Exception as err:
             print(f"tearDown function failed: {err!s}.\n"
                   "Experiments directory was not deleted.")
+
+    def test_location_auth_test(self):
+        """ This test is equivalent to test_abc_minimal_smoke_test except we use the token location authentication mechanism 
+            and validate that RESTler uses the LOCATION_AUTHORIZATION_TOKEN
+        """
+        settings_file_path = os.path.join(Authentication_Test_File_Directory, "token_location_authentication_settings.json")
+        ## Create a new, temporary settings file with reference to full path to token location
+        new_settings_file_path = os.path.join(Authentication_Test_File_Directory, "tmp_token_location_authentication_settings.json")
+        try:
+            with open(settings_file_path, 'r') as file:
+                settings = json.loads(file.read())
+                settings["authentication"]["token"]["location"] = os.path.join(Authentication_Test_File_Directory, settings["authentication"]["token"]["location"])
+                json_settings = json.dumps(settings)
+                with open(new_settings_file_path, "w") as outfile:
+                    outfile.write(json_settings)
+            self.run_abc_smoke_test(Test_File_Directory, "abc_test_grammar.py", "directed-smoke-test", settings_file=new_settings_file_path, common_settings=Common_Settings_No_Auth)
+        finally:
+            ## Clean up temporary settings file 
+            if os.path.exists(new_settings_file_path):
+                os.remove(new_settings_file_path)
+
+        experiments_dir = self.get_experiments_dir()
+
+        ## Make sure all requests were successfully rendered.  This is because the comparisons below do not
+        ## take status codes into account
+        ## Make sure the right number of requests was sent.
+        testing_summary_file_path = os.path.join(experiments_dir, "logs", "testing_summary.json")
+
+        try:
+            with open(testing_summary_file_path, 'r') as file:
+                testing_summary = json.loads(file.read())
+                total_requests_sent = testing_summary["total_requests_sent"]["main_driver"]
+                num_fully_valid = testing_summary["num_fully_valid"]
+                self.assertEqual(num_fully_valid, 5)
+                self.assertLessEqual(total_requests_sent, 14)
+                test_parser = FuzzingLogParser(self.get_network_log_path(experiments_dir, logger.LOG_TYPE_TESTING))
+                ## Validate that LOCATION_AUTHORIZATION_TOKEN is used in request headers
+                self.assertTrue(test_parser.validate_auth_tokens(LOCATION_AUTHORIZATION_TOKEN))
+        except TestFailedException:
+            self.fail("Smoke test with token location auth failed")
+
+    def test_module_no_data_auth(self):
+        """ This test is equivalent to test_abc_minimal_smoke_test except we use the token module authentication mechanism 
+            and validate that RESTler uses the MODULE_AUTHORIZATION_TOKEN
+        """
+        settings_file_path = os.path.join(Authentication_Test_File_Directory, "token_module_authentication_settings.json")
+        ## Create a new, temporary settings file with reference to full path to token location
+        new_settings_file_path = os.path.join(Authentication_Test_File_Directory, "tmp_token_module_authentication_settings.json")
+        try:
+            with open(settings_file_path, 'r') as file:
+                settings = json.loads(file.read())
+                settings["authentication"]["token"]["module"]["file"] = os.path.join(Authentication_Test_File_Directory, settings["authentication"]["token"]["module"]["file"])
+                json_settings = json.dumps(settings)
+    
+                with open(new_settings_file_path, "w") as outfile:
+                    outfile.write(json_settings)
+            self.run_abc_smoke_test(Test_File_Directory, "abc_test_grammar.py", "directed-smoke-test", settings_file=new_settings_file_path, common_settings=Common_Settings_No_Auth)
+        finally:
+            ## Clean up temporary settings file 
+            if os.path.exists(new_settings_file_path):
+                os.remove(new_settings_file_path)
+
+        experiments_dir = self.get_experiments_dir()
+        
+        ## Make sure all requests were successfully rendered.  This is because the comparisons below do not
+        ## take status codes into account
+        ## Make sure the right number of requests was sent.
+        testing_summary_file_path = os.path.join(experiments_dir, "logs", "testing_summary.json")
+
+        try:
+            with open(testing_summary_file_path, 'r') as file:
+                testing_summary = json.loads(file.read())
+                total_requests_sent = testing_summary["total_requests_sent"]["main_driver"]
+                num_fully_valid = testing_summary["num_fully_valid"]
+                self.assertEqual(num_fully_valid, 5)
+                self.assertLessEqual(total_requests_sent, 14)
+                test_parser = FuzzingLogParser(self.get_network_log_path(experiments_dir, logger.LOG_TYPE_TESTING))
+                ## Validate that MODULE_AUTHORIZATION_TOKEN is used in request headers
+                self.assertTrue(test_parser.validate_auth_tokens(MODULE_AUTHORIZATION_TOKEN))
+
+        except TestFailedException:
+            self.fail("Smoke test with token module auth failed")
+
+    def test_module_with_data_auth(self):
+        """ This test is equivalent to test_abc_minimal_smoke_test except we use the token module authentication mechanism 
+            and validate that RESTler uses the MODULE_AUTHORIZATION_TOKEN
+        """
+        settings_file_path = os.path.join(Authentication_Test_File_Directory, "token_module_authentication_data_settings.json")
+        ## Create a new, temporary settings file with reference to full path to token location
+        new_settings_file_path = os.path.join(Authentication_Test_File_Directory, "tmp_token_module_authentication_data_settings.json")
+        try:
+            with open(settings_file_path, 'r') as file:
+                settings = json.loads(file.read())
+                settings["authentication"]["token"]["module"]["file"] = os.path.join(Authentication_Test_File_Directory, settings["authentication"]["token"]["module"]["file"])
+                data = str(settings["authentication"]["token"]["module"]["data"])
+                json_settings = json.dumps(settings)
+    
+                with open(new_settings_file_path, "w") as outfile:
+                    outfile.write(json_settings)
+            self.run_abc_smoke_test(Test_File_Directory, "abc_test_grammar.py", "directed-smoke-test", settings_file=new_settings_file_path, common_settings=Common_Settings_No_Auth)
+        finally:
+            ## Clean up temporary settings file 
+            if os.path.exists(new_settings_file_path):
+                os.remove(new_settings_file_path)
+
+        experiments_dir = self.get_experiments_dir()
+        
+        ## Make sure all requests were successfully rendered.  This is because the comparisons below do not
+        ## take status codes into account
+        ## Make sure the right number of requests was sent.
+        testing_summary_file_path = os.path.join(experiments_dir, "logs", "testing_summary.json")
+        
+        try:
+            with open(testing_summary_file_path, 'r') as file:
+                testing_summary = json.loads(file.read())
+                total_requests_sent = testing_summary["total_requests_sent"]["main_driver"]
+                num_fully_valid = testing_summary["num_fully_valid"]
+                self.assertEqual(num_fully_valid, 5)
+                self.assertLessEqual(total_requests_sent, 14)
+                test_parser = FuzzingLogParser(self.get_network_log_path(experiments_dir, logger.LOG_TYPE_TESTING))
+                ## Validate that MODULE_AUTHORIZATION_TOKEN is used in request headers
+                self.assertTrue(test_parser.validate_auth_tokens(MODULE_AUTHORIZATION_TOKEN))
+
+                ## Validate that data is logged in auth log
+                with open(self.get_network_log_path(experiments_dir, logger.LOG_TYPE_AUTH), "r") as auth_log:
+                    self.assertTrue(data in auth_log.read())
+        
+
+        except TestFailedException:
+            self.fail("Smoke test with token module auth failed")
+
+
+    def test_cmd_auth(self):
+        """ This test is equivalent to test_abc_minimal_smoke_test except we use the token cmd authentication mechanism 
+            and validate that RESTler uses the CMD_AUTHORIZATION_TOKEN
+        """
+        settings_file_path = os.path.join(Authentication_Test_File_Directory, "token_cmd_authentication_settings.json")
+        ## Create a new, temporary settings file with reference to full path to token location
+        new_settings_file_path = os.path.join(Authentication_Test_File_Directory, "tmp_token_cmd_authentication_settings.json")
+        try:
+            with open(settings_file_path, 'r') as file:
+                settings = json.loads(file.read())
+                settings["authentication"]["token"]["token_refresh_cmd"] = f'python {os.path.join(Authentication_Test_File_Directory, "unit_test_server_auth.py")}'
+                json_settings = json.dumps(settings)
+    
+                with open(new_settings_file_path, "w") as outfile:
+                    outfile.write(json_settings)
+            self.run_abc_smoke_test(Test_File_Directory, "abc_test_grammar.py", "directed-smoke-test", settings_file=new_settings_file_path, common_settings=Common_Settings_No_Auth)
+        finally:
+            ## Clean up temporary settings file 
+            if os.path.exists(new_settings_file_path):
+                os.remove(new_settings_file_path)
+
+        experiments_dir = self.get_experiments_dir()
+        
+        ## Make sure all requests were successfully rendered.  This is because the comparisons below do not
+        ## take status codes into account
+        ## Make sure the right number of requests was sent.
+        testing_summary_file_path = os.path.join(experiments_dir, "logs", "testing_summary.json")
+
+        try:
+            with open(testing_summary_file_path, 'r') as file:
+                testing_summary = json.loads(file.read())
+                total_requests_sent = testing_summary["total_requests_sent"]["main_driver"]
+                num_fully_valid = testing_summary["num_fully_valid"]
+                self.assertEqual(num_fully_valid, 5)
+                self.assertLessEqual(total_requests_sent, 14)
+                test_parser = FuzzingLogParser(self.get_network_log_path(experiments_dir, logger.LOG_TYPE_TESTING))
+                ## Validate that CMD_AUTHORIZATION_TOKEN is used in request headers
+                self.assertTrue(test_parser.validate_auth_tokens(CMD_AUTHORIZATION_TOKEN))
+
+        except TestFailedException:
+            self.fail("Smoke test with token cmd auth failed")
+
 
     def test_abc_invalid_b_smoke_test(self):
         self.run_abc_smoke_test(Test_File_Directory, "abc_test_grammar_invalid_b.py", "directed-smoke-test", settings_file="test_one_schema_settings.json")

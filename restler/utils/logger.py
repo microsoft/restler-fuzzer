@@ -65,6 +65,9 @@ LOG_TYPE_TESTING = 'testing'
 LOG_TYPE_GC = 'gc'
 LOG_TYPE_PREPROCESSING = 'preprocessing'
 LOG_TYPE_REPLAY = 'replay'
+LOG_TYPE_AUTH = 'auth'
+
+Network_Auth_Log = None
 
 class NetworkLog(object):
     """ Implements logic for creating, chunking, and writing to network logs """
@@ -441,6 +444,13 @@ def raw_network_logging(data):
 
     network_log = Network_Logs[thread_id]
     network_log.write(f"{formatting.timestamp()}: {data}")
+
+def auth_logging(data):
+    global Network_Auth_Log
+    if Network_Auth_Log is None:
+        thread_id = threading.current_thread().ident
+        Network_Auth_Log = NetworkLog(LOG_TYPE_AUTH, thread_id)
+    Network_Auth_Log.write(f"{formatting.timestamp()}: {data}")
 
 def custom_network_logging(sequence, candidate_values_pool, **kwargs):
     """ Helper to log (in a more civilized manner) the template of the request

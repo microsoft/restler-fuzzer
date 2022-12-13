@@ -1,4 +1,4 @@
-2022-08-16 16:46:34.370: Will refresh token: python d:\git\restler-fuzzer\restler\unit_tests\log_baseline_test_files\unit_test_server_auth.py
+2022-08-16 16:46:34.370: Will refresh token: python d:\git\restler-fuzzer\restler\unit_tests\authentication_test_files\unit_test_server_auth.py
 2022-08-16 16:46:34.440: New value: {'user1':{}, 'user2':{}}
 Authorization: valid_unit_test_token
 Authorization: shadow_unit_test_token
@@ -7095,7 +7095,7 @@ Generation-2: Rendering Sequence-2
 		+ restler_refreshable_authentication_token: [token_refresh_cmd, token_refresh_interval, ...]
 		- restler_static_string: '\r\n'
 
-2022-08-16 16:46:45.087: Will refresh token: python d:\git\restler-fuzzer\restler\unit_tests\log_baseline_test_files\unit_test_server_auth.py
+2022-08-16 16:46:45.087: Will refresh token: python d:\git\restler-fuzzer\restler\unit_tests\authentication_test_files\unit_test_server_auth.py
 2022-08-16 16:46:45.159: New value: {'user1':{}, 'user2':{}}
 Authorization: valid_unit_test_token
 Authorization: shadow_unit_test_token

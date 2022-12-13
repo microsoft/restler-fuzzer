@@ -3054,7 +3054,7 @@
 
 2022-08-16 16:46:55.998: Received: "HTTP/1.1 404 Not Found\r\nRestler Test\r\n\r\n{'Resource': ResourceDoesNotExist()}"
 
-2022-08-16 16:46:56.001: Will refresh token: python d:\git\restler-fuzzer\restler\unit_tests\log_baseline_test_files\unit_test_server_auth.py
+2022-08-16 16:46:56.001: Will refresh token: python d:\git\restler-fuzzer\restler\unit_tests\authentication_test_files\unit_test_server_auth.py
 2022-08-16 16:46:56.094: New value: {'user1':{}, 'user2':{}}
 Authorization: valid_unit_test_token
 Authorization: shadow_unit_test_token

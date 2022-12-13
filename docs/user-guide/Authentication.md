@@ -4,9 +4,39 @@ RESTler supports token-based and certificate based authentication.
 
 **Token based authentication**
 
-The user must provide a separate program to generate tokens, which implements the authentication method required by the API.  This will be invoked in a separate process by RESTler to obtain and regularly refresh tokens.  When invoked, this program must print metadata about the tokens on the first line, followed by each token and the required token header on a separate line for each application.  For example:
+
+The user has three options for providing token based authentication; Module, Location, and CMD. For details on the format of these options, please see SettingsFile.md.
+
+**Module**
+
+The user must provide the path to a python module (.py) that implements a function that returns a token, and the name of the function (default: `acquire_token`). RESTler will import the module and call the function to obtain tokens. 
+
+Additionally, a user can opt to add data (e.g. with additional authentication-related parameters specific to the service under test) to pass to this function. The function signature must be as follows:
+
+```python
+def acquire_token(data, log):
+    ## Return token
+```
+
+Where
+
+- `data` is a dictionary containing the json payload specified in the corresponding engine setting (see SettingsFile.md)
+- `log` is a function that may be used to write logs to a network auth text file that will be saved in the RESTler results directory next to the network logs.
+
+
+**Location**
+
+The user must provide the full path to a text file containing a token. RESTler will read this text file to obtain tokens.
+
+**Command**
+
+The user must provide a separate program to generate tokens, which implements the authentication method required by the API.  This will be invoked in a separate process by RESTler to obtain tokens.
 
 `>my_gettoken.exe <args to my_gettoken>`
+
+**Token Formatting**
+
+All token-based authentication mechanisms require tokens to be specified as follows - metadata about the tokens on the first line, followed by each token and the required token header on a separate line for each application.  For example:
 
 ```
 {u'app1': {<any additional metadata you'd like to print. currently only used for troubleshooting. >}, u'app2':{}}
@@ -29,6 +59,11 @@ RESTler will obtain new tokens by invoking the token generation script with the 
 
 
 Note: in the above example, there are two different applications.  This is only required by the 'namespace' checker (off by default).  This checker is used to detect unauthorized access by one user/app to the data of another user/app.  To have this checker work as intended to find bugs, you should specify two users that do not have access to each other's private resources (for example, two different accounts with private data to each).​
+
+**Token Refresh Interval**
+
+All token-based authentication mechanisms require the user to provide "token_refresh_interval" an interval in seconds after which RESTler will attempt to refresh the token by executing the specified token authentication mechanism.
+
 
 **Token values in logs**
 
