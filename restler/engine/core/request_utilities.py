@@ -120,7 +120,7 @@ def execute_location_token_refresh(location):
     """
     try:
         with open(location,"r") as f:
-            token_result = f.read()  
+            token_result = f.read()
             return token_result
     except FileNotFoundError:
         error_str = f"Could not find token file at {location}. Please ensure that you've passed a valid path"
@@ -146,7 +146,7 @@ def execute_token_refresh_module(module_path, function, data):
         token_refresh_function = import_utilities.import_attr(module_path, function)
         token_result = token_refresh_function(data, _AUTH_LOGGING)
         return token_result
-    except FileNotFoundError: 
+    except FileNotFoundError:
         error_str = f"Could not find token module file at {module_path}/{module_name}. Please ensure that you've passed a valid path"
         _RAW_LOGGING(error_str)
         raise InvalidTokenAuthMethodException(error_str)
@@ -161,7 +161,7 @@ def execute_token_refresh_cmd(cmd):
 
     @param cmd: The user-provided command to refresh the token.
     @type  cmd: Str
- 
+
     @return: The result of the command
     @rtype : Str
 
@@ -281,10 +281,6 @@ def resolve_dynamic_primitives(values, candidate_values_pool):
                 values[i] = f'"{val}"'
             else:
                 values[i] = val
-            ## Check if a writer is present.  If so, assign the value generated above
-            ## to the dynamic object variable.
-            if writer_variable is not None:
-                dependencies.set_variable(writer_variable, values[i])
 
         elif isinstance(values[i], tuple)\
         and values[i][0] == primitives.CUSTOM_PAYLOAD_UUID4_SUFFIX:
@@ -301,10 +297,6 @@ def resolve_dynamic_primitives(values, candidate_values_pool):
                 values[i] = f'"{current_uuid_suffixes[current_uuid_type_name]}"'
             else:
                 values[i] = current_uuid_suffixes[current_uuid_type_name]
-            # Check if a writer is present.  If so, assign the value generated above
-            # to the dynamic object variable.
-            if writer_variable is not None:
-                dependencies.set_variable(writer_variable, values[i])
 
         elif isinstance(values[i], tuple)\
         and isinstance(values[i][0], types.GeneratorType):
@@ -319,10 +311,6 @@ def resolve_dynamic_primitives(values, candidate_values_pool):
                 values[i] = f'"{val}"'
             else:
                 values[i] = val
-            ## Check if a writer is present.  If so, assign the value generated above
-            ## to the dynamic object variable.
-            if writer_variable is not None:
-                dependencies.set_variable(writer_variable, values[i])
 
         elif isinstance(values[i], types.FunctionType)\
         and values[i] == primitives.restler_refreshable_authentication_token:

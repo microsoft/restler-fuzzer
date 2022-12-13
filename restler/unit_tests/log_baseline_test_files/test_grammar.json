@@ -120,7 +120,12 @@
               "payloadType": "UuidSuffix",
               "primitiveType": "String",
               "payloadValue": "cityName",
-              "isObject": false
+              "isObject": false,
+              "dynamicObject": {
+                "primitiveType": "String",
+                "variableName": "__containerName__restype_container_put_containerName_path",
+                "isWriter": false
+              }
             }
           }
         ],

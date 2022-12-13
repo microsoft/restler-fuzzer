@@ -259,6 +259,7 @@ class Request(object):
         self._tracked_parameters = {}
         self._rendered_values_cache = RenderedValuesCache()
         self._last_rendered_schema_request = None
+        self._is_resource_generator = None
 
         # Check for empty request before assigning ids
         if self._definition:
@@ -281,7 +282,6 @@ class Request(object):
 
         """
         self._hex_definition = str_to_hex_def(str(self.definition))
-
         request_id_component = requestId if requestId is not None else self.endpoint
         self._request_id = str_to_hex_def(request_id_component)
         self._method_endpoint_hex_definition = str_to_hex_def(self.method + request_id_component)
@@ -580,16 +580,31 @@ class Request(object):
         """ Checks whether the current request object instance is a producer that
             is likely to create a new resource.
 
-        @return: True, if the current request is a producer and executes a POST method.
+        @return: True, if the current request is a producer and executes a POST or PUT method.
         method.
         @rtype : Bool
 
         """
+        if self._is_resource_generator is not None:
+            return self._is_resource_generator
+
         if 'POST' in self.method or 'PUT' in self.method:
-            if bool(self.metadata) and 'post_send' in self.metadata\
-            and 'parser' in self.metadata['post_send']:
-                return True
-        return False
+            if bool(self.metadata) and 'post_send' in self.metadata:
+                if 'parser' in self.metadata['post_send']:
+                    self._is_resource_generator = True
+                if 'dependencies' in self.metadata['post_send']:
+                    # Check whether there is a writer in the request that matches the
+                    # one in the dependency
+                    # In this case, assume it is a resource creation with an input producer (no parser)
+                    writer_variables = Request.get_writer_variables(self.definition)
+
+                    all_dependencies = self.metadata['post_send']['dependencies']
+                    for writer in writer_variables:
+                        if writer in all_dependencies:
+                            self._is_resource_generator = True
+                            break
+
+        return self._is_resource_generator
 
     def set_id_values_for_create_once_dynamic_objects(self, dynamic_object_values, rendered_sequence):
         """ Sets the ID values for specified dynamic object values in the request definition.
@@ -790,6 +805,26 @@ class Request(object):
                 "param_kind": "optional"
             }
             yield self.get_parameters_from_schema(param_schema_combinations), False
+
+    @staticmethod
+    def get_writer_variables(req_definition):
+        writer_variables=[]
+        for request_block in req_definition:
+            primitive_type = request_block[0]
+            writer_variable = None
+
+            if primitive_type == primitives.FUZZABLE_GROUP:
+                writer_variable = request_block[6]
+            elif primitive_type in [ primitives.CUSTOM_PAYLOAD,
+                                     primitives.CUSTOM_PAYLOAD_HEADER,
+                                     primitives.CUSTOM_PAYLOAD_QUERY,
+                                     primitives.CUSTOM_PAYLOAD_UUID4_SUFFIX ]:
+                writer_variable = request_block[5]
+            else:
+                writer_variable = request_block[5]
+            if writer_variable:
+                writer_variables.append(writer_variable)
+        return writer_variables
 
     def init_fuzzable_values(self, req_definition, candidate_values_pool, preprocessing=False, log_dict_err_to_main=True):
         def _raise_dict_err(type, tag):
@@ -1392,7 +1427,7 @@ class Request(object):
             is_valid = (num_payloads == 0 or num_payloads == total_payloads)
 
             if not is_valid:
-                error_message=f"""ERROR: ill-formed {payload_kind} example for {self.method} {self.endpoint}.
+                error_message=f"""ERROR: ill-formed {payload_kind} example for {self.method} {self.endpoint_no_dynamic_objects}.
                                   Number of examples: {num_payloads}, total: {total_payloads}."""
                 logger.write_to_main(error_message)
                 raise Exception(error_message)

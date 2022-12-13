@@ -214,7 +214,7 @@ request = requests.Request([
     primitives.restler_static_string("/"),
     primitives.restler_static_string("city"),
     primitives.restler_static_string("/"),
-    primitives.restler_custom_payload_uuid4_suffix("cityName"),
+    primitives.restler_custom_payload_uuid4_suffix("cityName", writer= _city_put_name.writer()),
     primitives.restler_static_string(" HTTP/1.1\r\n"),
     primitives.restler_static_string("Accept: application/json\r\n"),
     primitives.restler_static_string("Host: restler.unit.test.server.com\r\n"),
@@ -237,7 +237,6 @@ request = requests.Request([
     {
         'post_send':
         {
-            'parser': parse_cityNamePut,
             'dependencies':
             [
                 _city_put_name.writer()
