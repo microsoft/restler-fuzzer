@@ -27,7 +27,6 @@ def import_attrs(module_file_path, attr_names):
     # Import the object
     sys.path.append(os.path.dirname(module_file_path))
     imported_module = load_module(module_name, module_file_path)
-    
     imported_attrs = []
     for attr_name in attr_names:
         imported_attr = getattr(imported_module, attr_name, None)
