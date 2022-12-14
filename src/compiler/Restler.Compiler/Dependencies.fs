@@ -782,6 +782,7 @@ module private PropertyAccessPaths =
 
 // Any parameter or property value may be a consumer
 let findAnnotation globalAnnotations
+                   linkAnnotations
                    (parameterMap:Map<RequestId, RequestData>)
                    (requestId:RequestId)
                    (resourceName:string)
@@ -833,10 +834,21 @@ let findAnnotation globalAnnotations
                 printfn "WARNING: found more than one matching annotation.  Only the first found will be used."
             g |> Seq.tryHead
 
-    // Local annotation takes precedence
-    match (localAnnotation, globalAnnotation) with
-    | (Some l, _) -> Some l
-    | (None, g) -> g
+    let linkAnnotation =
+        match linkAnnotations
+              |> Seq.filter (fun a -> annotationMatches a.consumerId a.consumerParameter resourceName resourceAccessPath a.exceptConsumerId
+                             ) with
+        | g when g |> Seq.isEmpty -> None
+        | g ->
+            if g |> Seq.length > 1 then
+                printfn "WARNING: found more than one matching annotation.  Only the first found will be used."
+            g |> Seq.tryHead
+
+    // Local annotation takes precedence, then global, then link
+    match (localAnnotation, globalAnnotation, linkAnnotation) with
+    | (Some l, _, _) -> Some l
+    | (None, Some g, _) -> Some g
+    | (None, None, l) -> l
 
 let getPayloadPrimitiveType (payload:FuzzingPayload) =
     match payload with
@@ -904,8 +916,14 @@ let getParameterDependencies parameterKind globalAnnotations
     let parameterName, parameterPayload = requestParameter.name, requestParameter.payload
     let consumerList = new List<Consumer>()
     let annotatedRequests = requestData
-                            |> Seq.filter (fun (_, reqData) -> reqData.localAnnotations |> Seq.length > 0)
+                            |> Seq.filter (fun (_, reqData) -> reqData.localAnnotations |> Seq.length > 0
+                                                                          || reqData.linkAnnotations |> Seq.length > 0 )
                             |> Map.ofSeq
+    let linkAnnotations = annotatedRequests
+                          |> Map.toSeq
+                          |> Seq.collect (fun (requestId, requestData) ->
+                              requestData.linkAnnotations
+                          )
     let getConsumer (resourceName:string) (resourceAccessPath:string list) (primitiveType:PrimitiveType option) =
         if String.IsNullOrEmpty resourceName then
             failwith "[getConsumer] invalid usage"
@@ -933,7 +951,7 @@ let getParameterDependencies parameterKind globalAnnotations
                 id = ApiResource(requestId, resourceReference,
                                  namingConvention,
                                  if primitiveType.IsSome then primitiveType.Value else PrimitiveType.String)
-                annotation = findAnnotation globalAnnotations annotatedRequests requestId resourceName { path = resourceAccessPath |> List.toArray }
+                annotation = findAnnotation globalAnnotations linkAnnotations annotatedRequests requestId resourceName { path = resourceAccessPath |> List.toArray }
                 parameterKind = parameterKind
         }
 
@@ -1247,10 +1265,7 @@ let extractDependencies (requestData:(RequestId*RequestData)[])
     logTimingInfo "Getting producers..."
 
     requestData
-    // Only include POST, PUT, PATCH, and GET requests.  Others are never producers.
-    |> Array.filter (fun (r, _) -> [ OperationMethod.Post ; OperationMethod.Put; OperationMethod.Patch ;
-                                     OperationMethod.Get ]
-                                    |> List.contains r.method)
+    // Don't filter on request method -- any operation can be a producer from inputs (in particular Delete)
     |> Microsoft.FSharp.Collections.Array.Parallel.iter
             (fun (r, rd) ->
                 match rd.responseProperties with
@@ -1286,7 +1301,15 @@ let extractDependencies (requestData:(RequestId*RequestData)[])
                                     if ip.IsSome then
                                         let resourceName, producer = ip.Value
                                         producers.addInputOnlyProducer(resourceName, producer)
+                            )
 
+                rd.linkAnnotations
+                |> Seq.iter (fun a ->
+                                if a.producerParameter.IsSome then
+                                    let ip = createInputOnlyProducerFromAnnotation a pathConsumers queryConsumers bodyConsumers headerConsumers
+                                    if ip.IsSome then
+                                        let resourceName, producer = ip.Value
+                                        producers.addInputOnlyProducer(resourceName, producer)
                             )
                 )
 
