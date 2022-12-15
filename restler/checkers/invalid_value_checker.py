@@ -317,7 +317,12 @@ class InvalidValueChecker(CheckerBase):
                     fuzzed_combinations += 1
                     response = request_utilities.send_request_data(rendered_data)
                     if response.has_valid_code():
+                        fuzzed_writer_variables = Request.get_writer_variables(temp_req.definition)
                         for name,v in updated_writer_variables.items():
+                            # If the writer variable is being fuzzed, the fuzzed value must be
+                            # specified.
+                            if fuzzed_writer_variables and fuzzed_writer_variables[0] == name:
+                                v = fuzzed_value
                             dependencies.set_variable(name, v)
 
                     responses_to_parse, resource_error, _ = async_request_utilities.try_async_poll(
