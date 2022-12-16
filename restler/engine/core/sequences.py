@@ -358,7 +358,7 @@ class Sequence(object):
 
             last_req = self.requests[-1]
 
-            self.create_prefix_once, self.re_render_prefix_on_success = Settings().get_cached_prefix_request_settings(last_req.endpoint, last_req.method)
+            self.create_prefix_once, self.re_render_prefix_on_success = Settings().get_cached_prefix_request_settings(last_req.endpoint_no_dynamic_objects, last_req.method)
 
             # Clean up internal state
             self.status_codes = []
