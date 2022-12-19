@@ -11,6 +11,7 @@ RUN python3 -m ensurepip
 RUN pip3 install --upgrade pip
 RUN pip3 install requests
 RUN pip3 install applicationinsights
+RUN pip3 install h2
 COPY ./engine /RESTler/engine
 RUN python3 -m compileall -b /RESTler/engine
 COPY ./resultsAnalyzer /RESTler/resultsAnalyzer

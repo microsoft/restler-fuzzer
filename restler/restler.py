@@ -257,6 +257,9 @@ if __name__ == '__main__':
     parser.add_argument('--no_ssl',
                         help='Set this flag if you do not want to use SSL validation for the socket',
                         action='store_true')
+    parser.add_argument('--http2',
+                        help='Set this flag if you would like to use HTTP2',
+                        action='store_true')
     parser.add_argument('--include_user_agent',
                         help='Set this flag if you would like to add User-Agent to the request headers',
                         action='store_true')

@@ -7,6 +7,7 @@ Verifies expected console output and deletes working directory
 created during quick start test.
 
 To call: python ./test_quick_start.py <path_to_restler_drop_directory>
+To call with HTTP/2: python ./test_quick_start.py <path_to_restler_drop_directory> --use_http2
 """
 import sys
 import os
@@ -51,10 +52,10 @@ def check_expected_output(restler_working_dir, expected_strings, output, task_di
                 net_log = nf.read()
             raise QuickStartFailedException(f"Failing because expected output '{expected_str}' was not found:\n{stdout}{out}{err}{net_log}")
 
-def test_test_task(restler_working_dir, swagger_path, restler_drop_dir):
+def test_test_task(restler_working_dir, swagger_path, restler_drop_dir, use_http2):
     # Run the quick start script
     output = subprocess.run(
-        f'python ./restler-quick-start.py --api_spec_path {swagger_path} --restler_drop_dir {restler_drop_dir} --task test',
+        f'python ./restler-quick-start.py --api_spec_path {swagger_path} --restler_drop_dir {restler_drop_dir} --task test {use_http2}',
         shell=True, capture_output=True
     )
     expected_strings = [
@@ -66,10 +67,10 @@ def test_test_task(restler_working_dir, swagger_path, restler_drop_dir):
     check_output_errors(output)
     check_expected_output(restler_working_dir, expected_strings, output, "Test")
 
-def test_fuzzlean_task(restler_working_dir, swagger_path, restler_drop_dir):
+def test_fuzzlean_task(restler_working_dir, swagger_path, restler_drop_dir, use_http2):
     # Run the quick start script
     output = subprocess.run(
-        f'python ./restler-quick-start.py --api_spec_path {swagger_path} --restler_drop_dir {restler_drop_dir} --task fuzz-lean',
+        f'python ./restler-quick-start.py --api_spec_path {swagger_path} --restler_drop_dir {restler_drop_dir} --task fuzz-lean {use_http2}',
         shell=True, capture_output=True
     )
     expected_strings = [
@@ -85,7 +86,7 @@ def test_fuzzlean_task(restler_working_dir, swagger_path, restler_drop_dir):
     check_output_errors(output)
     check_expected_output(restler_working_dir, expected_strings, output, "FuzzLean")
 
-def test_fuzz_task(restler_working_dir, swagger_path, restler_drop_dir):
+def test_fuzz_task(restler_working_dir, swagger_path, restler_drop_dir, use_http2):
     import json
     compile_dir = Path(restler_working_dir, f'Compile')
     settings_file_path = compile_dir.joinpath('engine_settings.json')
@@ -105,17 +106,17 @@ def test_fuzz_task(restler_working_dir, swagger_path, restler_drop_dir):
         'Task Fuzz succeeded.'
     ]
     output = subprocess.run(
-        f'python ./restler-quick-start.py --api_spec_path {swagger_path} --restler_drop_dir {restler_drop_dir} --task fuzz',
+        f'python ./restler-quick-start.py --api_spec_path {swagger_path} --restler_drop_dir {restler_drop_dir} --task fuzz {use_http2}',
         shell=True, capture_output=True
     )
     check_output_errors(output)
     # check_expected_output(restler_working_dir, expected_strings, output)
 
-def test_replay_task(restler_working_dir, task_output_dir, restler_drop_dir):
+def test_replay_task(restler_working_dir, task_output_dir, restler_drop_dir, use_http2):
     # Run the quick start script
     print(f"Testing replay for bugs found in task output dir: {task_output_dir}")
     output = subprocess.run(
-        f'python ./restler-quick-start.py --replay_bug_buckets_dir {task_output_dir} --restler_drop_dir {restler_drop_dir} --task replay',
+        f'python ./restler-quick-start.py --replay_bug_buckets_dir {task_output_dir} --restler_drop_dir {restler_drop_dir} --task replay {use_http2}',
         shell=True, capture_output=True
     )
     check_output_errors(output)
@@ -137,7 +138,7 @@ def test_replay_task(restler_working_dir, task_output_dir, restler_drop_dir):
     with open(network_log) as rf, open(original_bug_buckets_file_path) as of:
         orig_buckets = of.read()
         log_contents = rf.read()
-        if 'HTTP/1.1 500 Internal Server Error' not in log_contents:
+        if 'HTTP/1.1 500 Internal Server Error' not in log_contents and 'HTTP/2.0 500 Internal Server Error' not in log_contents:
             raise QuickStartFailedException(f"Failing because bug buckets {orig_buckets} were not reproduced.  Replay log: {log_contents}.")
         else:
             print("500 error was reproduced.")
@@ -165,7 +166,11 @@ if __name__ == '__main__':
     else:
         creationflags = 0
 
-    demo_server_process = subprocess.Popen([sys.executable, demo_server_path],
+    use_http2 = ""
+    if len(sys.argv) > 2:
+        use_http2 = sys.argv[2]
+    
+    demo_server_process = subprocess.Popen([sys.executable, demo_server_path, use_http2],
                                             stdout=subprocess.PIPE,
                                             stderr=subprocess.STDOUT,
                                             creationflags=creationflags)
@@ -181,17 +186,17 @@ if __name__ == '__main__':
     test_failed = False
     try:
         print("+++++++++++++++++++++++++++++test...")
-        test_test_task(restler_working_dir, swagger_path, restler_drop_dir)
+        test_test_task(restler_working_dir, swagger_path, restler_drop_dir, use_http2)
 
         print("+++++++++++++++++++++++++++++fuzzlean...")
-        test_fuzzlean_task(restler_working_dir, swagger_path, restler_drop_dir)
+        test_fuzzlean_task(restler_working_dir, swagger_path, restler_drop_dir, use_http2)
 
         print("+++++++++++++++++++++++++++++replay...")
         fuzzlean_task_dir = os.path.join(curr, RESTLER_WORKING_DIR, 'FuzzLean')
-        test_replay_task(restler_working_dir, fuzzlean_task_dir, restler_drop_dir)
+        test_replay_task(restler_working_dir, fuzzlean_task_dir, restler_drop_dir, use_http2)
 
         #print("+++++++++++++++++++++++++++++fuzz...")
-        #test_fuzz_task(restler_working_dir, swagger_path, restler_drop_dir)
+        #test_fuzz_task(restler_working_dir, swagger_path, restler_drop_dir, use_http2)
 
     except Exception:
         test_failed = True
