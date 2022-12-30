@@ -287,4 +287,4 @@ let getAnnotationsFromOpenapiLinks (producerRequestId:RequestId) (links:IDiction
     if isNull links then
         Seq.empty
     else
-        links |> Seq.choose (fun (KeyValue(k,v)) -> parseLink(v))
+        links |> Seq.choose (fun (KeyValue(k,v)) -> parseLink(v.ActualLink))

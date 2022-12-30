@@ -1,0 +1,196 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+      "title": "Widget Service",
+      "description": "A service for managing widgets.",
+      "version": "1.0.0",
+      "contact": {
+        "name": "John Doe",
+        "email": "johndoe@widgets.com"
+      }
+    },
+    "x-restler-global-annotations": [
+      {
+        "producer_endpoint": "/widgets/{id}",
+        "producer_method": "GET",
+        "producer_resource_name": "etag",
+        "consumer_endpoint": "/widgets/{id}",
+        "consumer_method": "PATCH",
+        "consumer_param": "if-match"
+      }
+    ],
+    "servers": [
+      {
+        "url": "https://widgets.com/v1"
+      }
+    ],
+    "tags": [
+      {
+        "name": "Widgets"
+      }
+    ],
+    "paths": {
+      "/widgets/{id}": {
+        "get": {
+          "tags": [
+            "Widgets"
+          ],
+          "operationId": "Widgets_read",
+          "parameters": [
+            {
+              "name": "id",
+              "in": "path",
+              "required": true,
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "The request has succeeded.",
+              "headers": {
+                "etag": {
+                  "required": true,
+                  "schema": {
+                    "type": "string"
+                  }
+                }
+              },
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Widget"
+                  }
+                }
+              }
+            },
+            "4XX": {
+              "description": "An unexpected error response.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Error"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "patch": {
+          "tags": [
+            "Widgets"
+          ],
+          "operationId": "Widgets_update",
+          "parameters": [
+            {
+              "$ref": "#/components/parameters/Widget.id"
+            },
+            {
+              "$ref": "#/components/parameters/IfMatchParam"
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "The request has succeeded.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Widget"
+                  }
+                }
+              }
+            },
+            "4XX": {
+              "description": "An unexpected error response.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Error"
+                  }
+                }
+              }
+            }
+          },
+          "requestBody": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WidgetProperties"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "components": {
+      "parameters": {
+        "Widget.id": {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        "IfMatchParam": {
+          "name": "if-match",
+          "in": "header",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      },
+      "schemas": {
+        "WidgetProperties": {
+          "type": "object",
+          "properties": {
+            "weight": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "color": {
+              "type": "string"
+            }
+          }
+        },
+        "Widget": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            }
+          },
+          "allOf": [
+            {
+            "$ref": "#/components/schemas/WidgetProperties"
+            }
+          ],
+          "required": [
+            "id",
+            "weight",
+            "color"
+          ]
+        },
+        "Error": {
+          "type": "object",
+          "properties": {
+            "code": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "message": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "code",
+            "message"
+          ]
+        }
+      }
+    }
+  }
+  

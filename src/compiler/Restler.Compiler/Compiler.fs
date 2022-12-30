@@ -835,7 +835,7 @@ let generateRequestPrimitives (requestId:RequestId)
             requestParameter, false
 
     // Generate header parameters.
-    // Do not compute dependencies for header parameters.
+    // Do not compute dependencies for header parameters unless resolveHeaderDependencies (from config) is true.
     let requestHeaderParameters =
         let headersSpecifiedAsCustomPayloads = dictionary.getCustomPayloadHeaderParameterNames()
         match requestParameters.header with
