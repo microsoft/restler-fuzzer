@@ -161,6 +161,30 @@ module Dependencies =
             let message = sprintf "Grammar Does not match baseline.  First difference: %A" grammarDiff
             Assert.True(grammarDiff.IsNone, message)
 
+        /// Test that local annotations work the same as global annotations.
+        [<Fact>]
+        let ``local annotations to body properties`` () =
+            let grammarOutputDirectoryPath = ctx.testRootDirPath
+            let config = { Restler.Config.SampleConfig with
+                             IncludeOptionalParameters = true
+                             GrammarOutputDirectoryPath = Some grammarOutputDirectoryPath
+                             ResolveBodyDependencies = true
+                             UseBodyExamples = Some true
+                             SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, "swagger", "annotationTests", "localAnnotations.json"))]
+                             CustomDictionaryFilePath = None
+                             AllowGetProducers = true
+                         }
+            Restler.Workflow.generateRestlerGrammar None config
+
+            // Read the baseline and make sure it matches the expected one
+            let expectedGrammarFilePath = Path.Combine(Environment.CurrentDirectory,
+                                                       "baselines", "dependencyTests", "path_annotation_grammar.py")
+            let actualGrammarFilePath = Path.Combine(grammarOutputDirectoryPath,
+                                                     Restler.Workflow.Constants.DefaultRestlerGrammarFileName)
+            let grammarDiff = getLineDifferences expectedGrammarFilePath actualGrammarFilePath
+            let message = sprintf "Grammar Does not match baseline.  First difference: %A" grammarDiff
+            Assert.True(grammarDiff.IsNone, message)
+
         /// Regression test for cycles created from body dependencies
         [<Fact>]
         let ``no dependencies when the same body is used in unrelated requests`` () =
