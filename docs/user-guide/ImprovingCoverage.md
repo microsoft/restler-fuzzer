@@ -72,16 +72,18 @@ try adding its endpoint to *per_resource_producer_timing_delay* in the *per_reso
 
 ## How to make updates to improve coverage
 
-Once the problem that causes a request to fail in the Test phase is identified, there are several places in the RESTler workflow that a fix can be made.  The preferred way to fix any error is to fix the inputs to the 'compile' phase, namely the Swagger/OpenAPI specification or a configuration file (e.g., dictionary, annotations, or engine settings).  The reason for this is that such fixes are likely to continue to work when unrelated parts of the API specification are modified, while patching the grammars manually will require maintaining those patches with every change to the API specification.
+Once the problem that causes a request to fail in the Test phase is identified, there are several places in the RESTler workflow that a fix can be made.  The preferred way to fix any error is to fix the inputs to the 'compile' phase, namely the OpenAPI/Swagger specification or a configuration file (e.g., dictionary, annotations, or engine settings).  The reason for this is that such fixes are likely to continue to work when unrelated parts of the API specification are modified, while patching the grammars manually will require maintaining those patches with every change to the API specification.
 
 **Preferred order of updates**
 
-1. Swagger Spec
-   - Fix any obvious swagger issues first.
+1. API specification
+   - Fix any obvious issues in the API specification first.
      For example, if response schemas are missing,
      RESTler will not be able to infer producer-consumer dependencies
      and you will see many 'fuzzstring' parameter values as a result.
-
+   - Add "links" to an OpenAPI v3 API specification to explicitly define
+     producer-consumer dependencies between operations.
+     See [Links](Links.md) for more information.
 2. API Examples
    - Adding examples can help RESTler fill in required specific constants (i.e. "magic values")
 3. Custom Annotations
@@ -89,7 +91,8 @@ Once the problem that causes a request to fail in the Test phase is identified, 
      specifying different paths for existing producer-consumer relationships,
      or excluding certain endpoints from analysis ("the 'except' feature")
 4. Fuzzing Dictionary (pre-compilation)
-   - Add custom payloads to the dictionary prior to compilation to populate any values not handled by the swagger or examples.
+   - Add custom payloads to the dictionary prior to compilation to populate any values not handled
+     by the API specification or examples.
 5. Grammar.json
    - Although created by compilation, this can be edited and recompiled into a new grammar.py.
      Make any quick-and-dirty grammar updates here instead of grammar.py, so they stay in sync.
@@ -128,9 +131,9 @@ In most cases, the grammar does not need to be modified directly to fix the issu
   even the ones not included in the example.
   If there are many such parameters,
   we recommend adding an example payload and starting with very few parameters to get the request to succeed
-  (Note: this can be done outside the Swagger definition via a RESTler-only local examples.json settings file).
+  (Note: this can be done outside the API definition via a RESTler-only local examples.json settings file).
   For a very quick change, in grammar.json, you can carefully delete the unnecessary parameters,
-  but remember this change is not persisted on recompilation of the swagger.
+  but remember this change is not persisted on recompilation of the API specification.
 * You want to consume a value from a non-producing response (like a GET)
   * Create a restler-annotation with the correct producer/consumer relationship
 

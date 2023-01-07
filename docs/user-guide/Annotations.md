@@ -2,6 +2,8 @@
 
 RESTler allows the user to provide annotations with information about producer-consumer dependencies between requests.  This is helpful when RESTler cannot automatically infer such dependencies, which can happen for a variety of reasons (most often, because of very generic or inconsistent naming in the specification, or if the naming convention is not implemented in RESTler).
 
+RESTLer can also use dependency information expressed in OpenAPI v3 links.  See [Using OpenAPI v3 links to define dependencies](Links.md) for more information.
+
 ## Annotation format
 
 Annotations are supported either globally (apply to all requests) or locally (apply only to a single request).  They may be specified inline in the OpenAPI definition (preferred if generated from the code, to evolve with the API) or outside in a separate file,
