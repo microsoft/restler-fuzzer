@@ -83,6 +83,7 @@
       "methods": ["PUT"]
     }
   ],
+  "max_logged_request_combinations": 5,
   "exclude_requests": [
     {
       "endpoint": "/blog/excluded/1"

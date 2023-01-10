@@ -1,0 +1,38 @@
+This file contains the failing requests, ordered by the number of blocked dependent requests.
+To improve coverage, fix the failing requests in the order listed in this file.
+
+Note: some requests are labeled as 'sequence failure'.
+This means the request depends on another request that is failing intermittently.
+For example, a DELETE request for a resource may be skipped because the resource
+PUT request failed due to exceeding quota.  The same PUT request succeeded earlier (and may
+succeed later depending on the resource clean-up behavior in the service), so it is
+considered an intermittent failure.
+
+-----------------------------------------------
+Request: Post /api/blog/posts
+Number of blocked dependent requests: 3
+
+	+++ Combination 1 +++:
+	Request sequence: 
+	> POST /api/blog/posts HTTP/1.1\r\nAccept: application/json\r\nHost: localhost:8888\r\nContent-Type: application/json\r\n\r\n{\n    "id":1,\n    "body":"my first blog post"}\r\n
+	< HTTP/1.1 400 Bad Request\r\ndate: Mon, 09 Jan 2023 22:04:02 GMT\r\nserver: uvicorn\r\ncontent-length: 34\r\ncontent-type: application/json\r\n\r\n{"detail":"ID must be at least 1"}
+
+
+	+++ Combination 2 +++:
+	Request sequence: 
+	> POST /api/blog/posts HTTP/1.1\r\nAccept: application/json\r\nHost: localhost:8888\r\nContent-Type: application/json\r\n\r\n{\n    "id":1,\n    "body":"fuzzstring"}\r\n
+	< HTTP/1.1 400 Bad Request\r\ndate: Mon, 09 Jan 2023 22:04:02 GMT\r\nserver: uvicorn\r\ncontent-length: 34\r\ncontent-type: application/json\r\n\r\n{"detail":"ID must be at least 1"}
+
+
+	+++ Combination 3 +++:
+	Request sequence: 
+	> POST /api/blog/posts HTTP/1.1\r\nAccept: application/json\r\nHost: localhost:8888\r\nContent-Type: application/json\r\n\r\n{"id":1,"body":"my first blog post"}
+	< HTTP/1.1 400 Bad Request\r\ndate: Mon, 09 Jan 2023 22:04:02 GMT\r\nserver: uvicorn\r\ncontent-length: 34\r\ncontent-type: application/json\r\n\r\n{"detail":"ID must be at least 1"}
+
+
+	+++ Combination 4 +++:
+	Request sequence: 
+	> POST /api/blog/posts HTTP/1.1\r\nAccept: application/json\r\nHost: localhost:8888\r\nContent-Type: application/json\r\n\r\n{"id":1,"body":"fuzzstring"}
+	< HTTP/1.1 400 Bad Request\r\ndate: Mon, 09 Jan 2023 22:04:02 GMT\r\nserver: uvicorn\r\ncontent-length: 34\r\ncontent-type: application/json\r\n\r\n{"detail":"ID must be at least 1"}
+
+

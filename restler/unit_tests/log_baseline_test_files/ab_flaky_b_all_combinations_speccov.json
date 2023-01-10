@@ -4,7 +4,7 @@
         "endpoint": "/A/{A}",
         "verb_endpoint": "PUT /A/{A}",
         "valid": 1,
-        "matching_prefix": "None",
+        "matching_prefix": [],
         "invalid_due_to_sequence_failure": 0,
         "invalid_due_to_resource_failure": 0,
         "invalid_due_to_parser_failure": 0,
@@ -15,7 +15,7 @@
         "request_order": 0,
         "sample_request": {
             "request_sent_timestamp": null,
-            "response_received_timestamp": "2021-08-28 04:35:43",
+            "response_received_timestamp": "2022-12-13 20:46:48",
             "request_verb": "PUT",
             "request_uri": "/A/A",
             "request_headers": [
@@ -43,7 +43,7 @@
         "endpoint": "/A/{A}",
         "verb_endpoint": "PUT /A/{A}",
         "valid": 0,
-        "matching_prefix": "None",
+        "matching_prefix": [],
         "invalid_due_to_sequence_failure": 0,
         "invalid_due_to_resource_failure": 0,
         "invalid_due_to_parser_failure": 0,
@@ -54,7 +54,7 @@
         "request_order": 0,
         "sample_request": {
             "request_sent_timestamp": null,
-            "response_received_timestamp": "2021-08-28 04:35:43",
+            "response_received_timestamp": "2022-12-13 20:46:48",
             "request_verb": "PUT",
             "request_uri": "/A/A",
             "request_headers": [
@@ -98,7 +98,7 @@
         "request_order": 1,
         "sample_request": {
             "request_sent_timestamp": null,
-            "response_received_timestamp": "2021-08-28 04:35:43",
+            "response_received_timestamp": "2022-12-13 20:46:48",
             "request_verb": "GET",
             "request_uri": "/A/A",
             "request_headers": [
@@ -131,7 +131,8 @@
         "valid": 0,
         "matching_prefix": [
             {
-                "id": "44414ad093616e18a9e2f845ae9d453eb6e4c8bc_1"
+                "id": "44414ad093616e18a9e2f845ae9d453eb6e4c8bc_1",
+                "valid": 1
             }
         ],
         "invalid_due_to_sequence_failure": 1,
@@ -144,7 +145,7 @@
         "request_order": 1,
         "sequence_failure_sample_request": {
             "request_sent_timestamp": null,
-            "response_received_timestamp": "2021-08-28 04:35:43",
+            "response_received_timestamp": "2022-12-13 20:46:48",
             "request_verb": "PUT",
             "request_uri": "/A/A",
             "request_headers": [

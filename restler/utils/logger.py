@@ -11,6 +11,8 @@ import time
 import statistics
 import json
 import types
+import copy
+import itertools
 from collections import OrderedDict
 from shutil import copyfile
 from collections import namedtuple
@@ -136,14 +138,15 @@ class SpecCoverageLog(object):
         self._renderings_logged = {}
 
         # create the spec coverage file
-        file_path = os.path.join(LOGS_DIR, 'speccov.json')
+        file_path = os.path.join(LOGS_DIR, 'speccov-all-combinations.json')
         if not os.path.exists(file_path):
             with open(file_path, 'w', encoding='utf-8') as file:
                file.write("{}")
 
         SpecCoverageLog.__instance = self
 
-    def _get_request_coverage_summary_stats(self, rendered_request, req_hash, log_tracked_parameters=False):
+    def _get_request_coverage_summary_stats(self, rendered_request, req_hash, log_tracked_parameters=False,
+                                            log_raw_requests=False):
         """ Constructs a json object with the coverage information for a request
         from the rendered request.  This info will be reported in a spec coverage file.
 
@@ -165,12 +168,24 @@ class SpecCoverageLog(object):
         req_spec = coverage_data[req_hash]
         req_spec['verb'] = req.method
         req_spec['endpoint'] = req.endpoint_no_dynamic_objects
+        if req.stats.matching_prefix:
+            matching_prefix = req.stats.matching_prefix
+        else:
+            matching_prefix = []
+
+        if log_raw_requests:
+            req_spec['valid'] = req.stats.valid
+            req_spec['matching_prefix'] = matching_prefix
+
+            if req.stats.sample_request:
+                req_spec['request'] = req.stats.sample_request.request_str
+                req_spec['response'] = req.stats.sample_request.response_str
+            return coverage_data
+
         req_spec['verb_endpoint'] = f"{req.method} {req.endpoint_no_dynamic_objects}"
         req_spec['valid'] = req.stats.valid
-        if req.stats.matching_prefix:
-            req_spec['matching_prefix'] = req.stats.matching_prefix
-        else:
-            req_spec['matching_prefix'] = 'None'
+        req_spec['matching_prefix'] = matching_prefix
+
         req_spec['invalid_due_to_sequence_failure'] = 0
         req_spec['invalid_due_to_resource_failure'] = 0
         req_spec['invalid_due_to_parser_failure'] = 0
@@ -190,10 +205,14 @@ class SpecCoverageLog(object):
         req_spec['error_message'] = req.stats.error_msg
         req_spec['request_order'] = req.stats.request_order
         if req.stats.sample_request:
-            req_spec['sample_request'] = vars(req.stats.sample_request)
+            req_spec['sample_request'] = copy.copy(vars(req.stats.sample_request))
+            # Remove the raw request-response pair, as they are only logged when 'log_raw_requests' is true
+            del req_spec['sample_request']['request_str']
+            del req_spec['sample_request']['response_str']
         if req.stats.sequence_failure_sample_request:
-            req_spec['sequence_failure_sample_request'] = vars(req.stats.sequence_failure_sample_request)
-
+            req_spec['sequence_failure_sample_request'] = copy.copy(vars(req.stats.sequence_failure_sample_request))
+            del req_spec['sequence_failure_sample_request']['request_str']
+            del req_spec['sequence_failure_sample_request']['response_str']
         if log_tracked_parameters:
             req_spec['tracked_parameters'] = {}
             for k, v in req.stats.tracked_parameters.items():
@@ -201,19 +220,55 @@ class SpecCoverageLog(object):
 
         return coverage_data
 
-    def log_request_coverage_incremental(self, request=None, rendered_sequence=None, log_rendered_hash=True):
+    def log_request_coverage_incremental(self, request=None, rendered_sequence=None, log_rendered_hash=True,
+                                         log_raw_requests=True):
         """ Prints the coverage information for a request to the spec
-        coverage file.  Pre-requisite: the file contains a json dictionary with
+        coverage file.
+        If 'log_raw_requests' is set to 'True', prints an abbreviated summary of the coverage information
+        that includes whether the request passed or failed and the request and response text.
+
+        Pre-requisite: the file contains a json dictionary with
         zero or more elements.  The json object will be written into the
         top-level object.
 
+        @param request: The request, for cases when a sequence could not be rendered due to dependency failures.
+        @type  rendered_sequence: Request
+
         @param rendered_sequence: The rendered sequence
         @type  rendered_sequence: RenderedSequence
+
+        @param log_rendered_hash: Log the hash including the rendered combination.
+                                  If 'False', logs only the request hash.
+        @type  log_raw_requests: Bool
+
+        @param log_raw_requests: The rendered sequence
+        @type  log_raw_requests: Bool
 
         @return: None
         @rtype : None
 
         """
+
+        def write_incremental_coverage(file_path, req_coverage):
+            if not os.path.exists(file_path):
+                with open(file_path, 'w', encoding='utf-8') as file:
+                    file.write("{}")
+
+            coverage_as_json = json.dumps(req_coverage, indent=4)
+            # remove the start and end brackets, since they will already be present
+            # also remove the end newline
+            coverage_as_json = coverage_as_json[1:len(coverage_as_json) - 2]
+
+            with open(file_path, 'r+', encoding='utf-8') as file:
+                pos = file.seek(0, os.SEEK_END)
+                file_size = file.tell()
+                pos = file.seek(file_size - 1, 0)
+
+                if file_size > 2:
+                    file.write(",")
+                file.write(coverage_as_json)
+                file.write("}")
+
         if Settings().disable_logging:
             return
 
@@ -224,10 +279,6 @@ class SpecCoverageLog(object):
             if not request:
                 raise Exception("Either the rendered sequence or request must be specified.")
             req = request
-        file_path = os.path.join(LOGS_DIR, 'speccov.json')
-        if not os.path.exists(file_path):
-            with open(file_path, 'w', encoding='utf-8') as file:
-               file.write("{}")
 
         # For uniqueness, the rendered request hash should include
         # the current combination IDs of every request in the sequence.
@@ -240,25 +291,59 @@ class SpecCoverageLog(object):
 
         if req_hash in self._renderings_logged:
             # Duplicate spec coverage should not be logged.
-            write_to_main("ERROR: spec coverage is being logged twice for the same rendering.", True)
-            return
+            raise Exception(f"ERROR: spec coverage is being logged twice for the same rendering: {req_hash}.")
 
         req_coverage = self._get_request_coverage_summary_stats(req, req_hash, log_tracked_parameters=log_rendered_hash)
         self._renderings_logged[req_hash] = req_coverage[req_hash]['valid']
 
-        coverage_as_json = json.dumps(req_coverage, indent=4)
-        # remove the start and end brackets, since they will already be present
-        # also remove the end newline
-        coverage_as_json = coverage_as_json[1:len(coverage_as_json)-2]
-        with open(file_path, 'r+', encoding='utf-8') as file:
-            pos = file.seek(0, os.SEEK_END)
-            file_size = file.tell()
-            pos = file.seek(file_size - 1, 0)
+        file_path = os.path.join(LOGS_DIR, 'speccov-all-combinations.json')
+        write_incremental_coverage(file_path, req_coverage)
 
-            if file_size > 2:
-                file.write(",")
-            file.write(coverage_as_json)
-            file.write("}")
+        req_coverage = self._get_request_coverage_summary_stats(req, req_hash, log_tracked_parameters=log_rendered_hash,
+                                                                log_raw_requests=True)
+        file_path = os.path.join(LOGS_DIR, 'speccov-min.json')
+        write_incremental_coverage(file_path, req_coverage)
+
+    def generate_summary_speccov(self):
+        """ Generate a speccov file that contains one entry for each request, which contains whether the request
+            is valid and a sample request.
+        """
+        file_path = os.path.join(LOGS_DIR, 'speccov-all-combinations.json')
+        new_file_path = os.path.join(LOGS_DIR, 'speccov.json')
+
+        if Settings().fuzzing_mode == 'test-all-combinations':
+            shutil.copyfile(file_path, new_file_path)
+            return
+            # The speccov file has the same content as speccov-all-combinations.  Simply copy it.
+
+        try:
+            full_speccov = json.load(open(file_path, encoding='utf-8'))
+        except Exception as error:
+            print(f"Cannot load {file_path}: {error!s}.")
+            sys.exit(-1)
+
+        def get_verb_endpoint(item):
+            (k, v) = item
+            return v['verb_endpoint']
+
+        def is_valid(item):
+            (k, v) = item
+            return v['valid']
+
+        new_speccov = {}
+        for key, group in itertools.groupby(full_speccov.items(), get_verb_endpoint):
+            req_type_results = [x for x in group]
+
+            valid_results = list(filter(is_valid, req_type_results))
+            if len(valid_results) > 0:
+                (k, v) = valid_results[0]
+            else:
+                # Record the first result in the spec coverage file
+                # This is helpful when example payloads are used, since they are attempted first
+                (k, v) = req_type_results[0]
+            new_speccov[k] = v
+
+        json.dump(new_speccov, open(new_file_path, 'w', encoding='utf-8'), indent=4)
 
 def no_tokens_in_logs():
     """ Do not print token data in logs
@@ -1042,3 +1127,12 @@ def print_request_coverage(request=None, rendered_sequence=None, log_rendered_ha
 
     """
     SpecCoverageLog.Instance().log_request_coverage_incremental(request, rendered_sequence, log_rendered_hash)
+
+
+def generate_summary_speccov():
+    """ Takes the existing spec coverage file and generates a new file that aggregates the data by request type
+
+    @return: None
+    @rtype : None
+    """
+    SpecCoverageLog.Instance().generate_summary_speccov()

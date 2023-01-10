@@ -103,6 +103,8 @@ class Sequence(object):
 
         self.executed_requests_count = 0
 
+        self._used_cached_prefix = False
+
     def __iter__(self):
         """ Iterate over Sequences objects. """
         return iter(self.requests)
@@ -354,8 +356,10 @@ class Sequence(object):
 
             """
             if self.create_prefix_once and self.rendered_prefix_status == RenderedPrefixStatus.VALID:
+                self._used_cached_prefix = True
                 return None, None
 
+            self._used_cached_prefix = False
             last_req = self.requests[-1]
 
             self.create_prefix_once, self.re_render_prefix_on_success = Settings().get_cached_prefix_request_settings(last_req.endpoint_no_dynamic_objects, last_req.method)
