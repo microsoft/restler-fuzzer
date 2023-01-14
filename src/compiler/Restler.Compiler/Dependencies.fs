@@ -1265,7 +1265,10 @@ let extractDependencies (requestData:(RequestId*RequestData)[])
     logTimingInfo "Getting producers..."
 
     requestData
-    // Don't filter on request method -- any operation can be a producer from inputs (in particular Delete)
+    // Only include POST, PUT, PATCH, and GET requests.  Others are never producers.
+    |> Array.filter (fun (r, _) -> [ OperationMethod.Post ; OperationMethod.Put; OperationMethod.Patch ;
+                                     OperationMethod.Get ]
+                                    |> List.contains r.method)
     |> Microsoft.FSharp.Collections.Array.Parallel.iter
             (fun (r, rd) ->
                 match rd.responseProperties with
@@ -1302,7 +1305,12 @@ let extractDependencies (requestData:(RequestId*RequestData)[])
                                         let resourceName, producer = ip.Value
                                         producers.addInputOnlyProducer(resourceName, producer)
                             )
+                )
 
+    requestData
+    // Don't filter on request method when processing links -- any operation can be a producer (in particular Delete)
+    |> Microsoft.FSharp.Collections.Array.Parallel.iter
+            (fun (r, rd) ->
                 rd.linkAnnotations
                 |> Seq.iter (fun a ->
                                 if a.producerParameter.IsSome then

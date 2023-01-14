@@ -166,7 +166,7 @@ let getAnnotationsFromJson (annotationJson:JToken) =
         printfn "ERROR: malformed annotations specified. %A" e.Message
         raise e
 
-/// Gets the REST-ler dependency annotation from the extension data
+/// Gets the RESTler dependency annotation from the extension data
 /// The 'except' clause indicates that "all consumer IDs with resource name 'workflowName'
 /// should be resolved to this producer, except for the indicated consumer endpoint (which
 /// should use the dependency in order of resolution, e.g. custom dictionary entry.)
@@ -223,7 +223,7 @@ let getGlobalAnnotationsFromFile filePath =
     else
         List.empty
 
-// Gets the REST-ler dependency annotation from OpenAPI v3 links
+// Gets the RESTler dependency annotation from OpenAPI v3 links
 //    "links": {
 //      "linkName":{
 //        "description": "description",
@@ -262,8 +262,6 @@ let getAnnotationsFromOpenapiLinks (producerRequestId:RequestId) (links:IDiction
                                         xMsPath = None
                                     }
             // For now we only support a single parameter
-            //let consumerParameter = link.Parameters |> Seq.tryHead |> Option.map (fun (k,v) -> ResourceName k)
-            let foo = link.Parameters |> Seq.tryHead
             match link.Parameters |> Seq.tryHead with
             | None ->
                 printfn "ERROR: malformed annotation, no parameters specified for link %s" link.OperationId

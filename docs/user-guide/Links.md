@@ -1,9 +1,23 @@
 # Using OpenAPI v3 links to define dependencies
 
 The OpenAPI v3 specification defines [link objects][] that can be used to define dependencies between operations.
-Restler will use links when present in the API definition to generate dependencies between operations.
+RESTler will use links when present in the API definition to generate dependencies between operations.
 
 [link objects]: https://github.com/OAI/OpenAPI-Specification/blob/3.0.3/versions/3.0.3.md#link-object
+
+OpenAPI links provide a subset of the functionality of RESTler annotations. Links can specify that
+a value from the request or response of one operation (the "producer") can be used as the value
+of a parameter in another operation (the "consumer").
+The value from the producer can come from a property in the response body, a response header,
+or a path or query parameter in the request.
+Links cannot specify that the value from the producer can be used in the request body of the consumer.
+The link is defined in the response of the producer operation, in contrast to RESTler local annotations,
+which are defined in the consumer operation.
+
+RESTler currently supports links that use the `operationId` field to specify the target operation
+rather than the `operationRef` field.
+The current implementation also only processes the first parameter in the link object, since links that
+specify multiple parameters are expected to be rare.
 
 ## Example
 
