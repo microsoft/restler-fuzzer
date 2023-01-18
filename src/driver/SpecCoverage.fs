@@ -11,7 +11,7 @@ open Restler.Grammar
 type RequestResponseText =
     {
         request : string
-        response : string
+        response : string option
     }
 
 /// If a request is invalid (not covered), the reason for the failure
@@ -89,7 +89,10 @@ let parseSpecCovMin filePath : RequestCoverageData list =
 
             match requestText, responseText with
             | Some req, Some resp ->
-                Some { request = req ; response = resp }
+                if isNull req then
+                    None
+                else
+                    Some { request = req ; response = if isNull resp then None else Some resp }
             | _ -> None
 
         let matchingPrefix =
@@ -325,7 +328,9 @@ let getRequestSequence (reqCoverageData:RequestCoverageData list)
             | Some requestResponseText ->
                 {
                     request = getEscapedString requestResponseText.request
-                    response = getEscapedString requestResponseText.response
+                    response = match requestResponseText.response with
+                               | None -> None
+                               | Some r -> Some (getEscapedString r)
                 }
                 |> Some
 
@@ -438,7 +443,7 @@ let printFailedRequestSequences (failedRequests:seq<FailedRequestWithSequence>) 
 
     let printRequestResponseText (r:RequestResponseText) =
         writeLogLine "\t> %s" r.request
-        writeLogLine "\t< %s" r.response
+        writeLogLine "\t< %s" (if r.response.IsNone then "" else r.response.Value)
 
     writer.WriteLine("This file contains the failing requests, ordered by the number of blocked dependent requests.")
     writer.WriteLine("To improve coverage, fix the failing requests in the order listed in this file.")
