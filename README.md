@@ -5,11 +5,11 @@
 RESTler is the *first stateful REST API fuzzing tool* for automatically
 testing cloud services through their REST APIs and finding security and
 reliability bugs in these services. For a given cloud service
-with an OpenAPI/Swagger specification, RESTler analyzes its entire specification,
+with an OpenAPI Specification (formerly Swagger), RESTler analyzes its entire specification,
 and then generates and executes tests that exercise the service through its REST API.
 
-RESTler intelligently infers producer-consumer dependencies among request types from the Swagger
-specification.  During testing, it checks for specific classes of bugs
+RESTler intelligently infers producer-consumer dependencies among request types from the OpenAPI
+document. During testing, it checks for specific classes of bugs
 and dynamically learns how the service behaves from prior service responses.
 This intelligence allows RESTler to explore deeper service states
 reachable only through specific request sequences and to find more bugs.
@@ -78,8 +78,8 @@ Prerequisites: Install [Python 3.8.2](https://www.python.org/downloads/) and
 
 RESTler runs in 4 main modes (in order):
 
-1. **Compile:** from a Swagger JSON or YAML specification (and optionally examples), generate a RESTler grammar. See [Compiling](./docs/user-guide/Compiling.md).
-2. **Test:** execute quickly all of the endpoints+methods in a compiled RESTler grammar for debugging the test setup and compute what parts of the Swagger spec are covered. This mode is also called a *smoketest*.
+1. **Compile:** from an OpenAPI document in either JSON or YAML format (and optionally examples), generate a RESTler grammar. See [Compiling](./docs/user-guide/Compiling.md).
+2. **Test:** execute quickly all of the endpoints+methods in a compiled RESTler grammar for debugging the test setup and compute what parts of the OpenAPI Specification are covered. This mode is also called a *smoketest*.
 See [Testing](./docs/user-guide/Testing.md). To use custom test engine settings, see [Test Engine Settings](./docs/user-guide/SettingsFile.md).
 3. **Fuzz-lean:** execute once every endpoint+method in a compiled RESTler grammar with a default set of checkers to see if bugs can be found quickly. See [Fuzzing](./docs/user-guide/Fuzzing.md).
 4. **Fuzz:** bug hunting - explore a RESTler fuzzing grammar in smart breadth-first-search mode (deeper search mode) for finding more bugs.
@@ -103,7 +103,7 @@ When a bug is found, RESTler reports bugs triaged in bug buckets, and provides a
 
 ## Advanced Topics
 
-For tips on using RESTler effectively, please see [Best Practices](./docs/user-guide/BestPractices.md) and [Improving Swagger Coverage](./docs/user-guide/ImprovingCoverage.md).
+For tips on using RESTler effectively, please see [Best Practices](./docs/user-guide/BestPractices.md) and [Improving OpenAPI Coverage](./docs/user-guide/ImprovingCoverage.md).
 
 See also these [Frequently Asked Questions](./docs/user-guide/FAQ.md).
 
