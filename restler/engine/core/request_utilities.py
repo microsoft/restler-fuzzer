@@ -141,13 +141,12 @@ def execute_token_refresh_module(module_path, function, data):
     @return: token
     @type: string:
     """
-    module_name = os.path.basename(module_path)
     try:
         token_refresh_function = import_utilities.import_attr(module_path, function)
         token_result = token_refresh_function(data, _AUTH_LOGGING)
         return token_result
     except FileNotFoundError:
-        error_str = f"Could not find token module file at {module_path}/{module_name}. Please ensure that you've passed a valid path"
+        error_str = f"Could not find token module file at {module_path}. Please ensure that you've passed a valid path"
         _RAW_LOGGING(error_str)
         raise InvalidTokenAuthMethodException(error_str)
     except AttributeError:
