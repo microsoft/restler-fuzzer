@@ -178,11 +178,11 @@ def try_async_poll(request_data, response, max_async_wait_time, poll_delete_stat
                     # Send the polling request
                     poll_response = request_utilities.send_request_data(data)
                     time_str = str(round((time.time() - start_time), 2))
-                    if data_in_poll_response:
+                    if data_in_poll_response and poll_response.status_code in ['200' ,'201']:
                         # If this returned a '200' or '201' status code, the response should contain the parsable data.
                         # Otherwise, continue to poll as the resource has not yet been created. These types will
                         # return a '202 - Accepted' while the resource is still being created.
-                        if poll_response.status_code in ['200' ,'201']:
+
                             responses_to_parse.append(poll_response)
                             if not poll_delete_status:
                                 LOG_RESULTS(request_data,
@@ -199,7 +199,9 @@ def try_async_poll(request_data, response, max_async_wait_time, poll_delete_stat
                             # Break and return the responses to be parsed
                             break
                     else:
-                        # Try to execute a corresponding GET request and obtain
+                        # There is no data in the polling response, or getting data via polling failed
+                        # (e.g. 404 due to incorrect location).
+                        # In such cases, try to execute a corresponding GET request and obtain
                         # information from the response
                         # This comes from Azure-Async responses that do not contain a Location: field
                         # Check for the status of the resource
