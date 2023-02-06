@@ -335,7 +335,7 @@ class RestlerSettingsTest(unittest.TestCase):
         with self.assertRaises(OptionValidationError):
             settings.validate_options()
 
-    def test_multiple_auth_options(self):
+    def test_refresh_module_file_does_not_exist(self):
         user_args = {'target_port': 500,
                      'target_ip': '192.168.0.1',
                      'authentication': {
@@ -343,6 +343,28 @@ class RestlerSettingsTest(unittest.TestCase):
                         {
                             'module': {
                                 'file': 'some_module.py',
+                                'data': {}
+                            },
+                            'token_refresh_interval': 10
+                        }
+                     }}
+        settings = RestlerSettings(user_args)
+        with self.assertRaisesRegexp(OptionValidationError, "module file does not exist"):
+            settings.validate_options()
+
+    def test_multiple_auth_options(self):
+        authentication_test_file_directory = os.path.join(
+            os.path.dirname(__file__), 'authentication_test_files'
+        )
+        file = os.path.join(authentication_test_file_directory, 'unit_test_server_auth.py')
+
+        user_args = {'target_port': 500,
+                     'target_ip': '192.168.0.1',
+                     'authentication': {
+                        'token':
+                        {
+                            'module': {
+                                'file': file,
                                 'data': {}
                             },
                             'token_refresh_cmd': 'some command',
