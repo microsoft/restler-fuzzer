@@ -89,4 +89,4 @@ module TaskResults =
 
             SpecCoverage.printFailedRequestSequences failedRequestSequences stream
 
-            Logging.logInfo <| sprintf "See '%s.txt' to investigate API coverage." specCovToInvestigateFileName
+            Logging.logInfo <| sprintf "See '%s' to investigate API coverage." specCovToInvestigateFileName
