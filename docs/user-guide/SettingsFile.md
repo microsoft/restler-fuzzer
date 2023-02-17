@@ -98,7 +98,7 @@ __client_certificate_key_path__ str (default None):  Path to your key file in a 
 "authentication": {
     "certificate": {
           "client_certificate_path": "/path/to/file.pem",
-          "client_certificate_key_path": "/path/to/file.key" 
+          "client_certificate_key_path": "/path/to/file.key"
     }
 }
 ```
@@ -369,7 +369,7 @@ The IP address of the target webserver.
 ### target_port: int (default None)
 The port of the target webserver.
 
-### time_budget: float (default 30 days)
+### time_budget: float (default 1 hour)
 Once this time is reached, the fuzzing will stop.
 Time is in hours.
 
