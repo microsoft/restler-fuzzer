@@ -1,7 +1,6 @@
 FROM mcr.microsoft.com/dotnet/sdk:6.0-alpine as builder
 
 RUN apk add --no-cache python3 py3-pip
-RUN ln -s /usr/bin/python3 /usr/bin/python
 
 COPY src ./src
 COPY restler ./restler
@@ -14,7 +13,6 @@ RUN python3 -m compileall -b /build/engine
 FROM mcr.microsoft.com/dotnet/aspnet:6.0-alpine as target
 
 RUN apk add --no-cache python3 py3-pip
-RUN ln -s /usr/bin/python3 /usr/bin/python
 RUN pip3 install requests applicationinsights
 
 COPY --from=builder /build /RESTler

@@ -173,7 +173,7 @@ class FuzzingMonitor(object):
         return self.renderings_monitor.num_fully_rendered_requests(request_list, lock)
 
     def set_memoize_invalid_past_renderings_on(self):
-        """ Calls internal renderings monitor's set_memoize_invalid_past_renderings_on functino
+        """ Calls internal renderings monitor's set_memoize_invalid_past_renderings_on function
 
         @return: None
         @rtype : None

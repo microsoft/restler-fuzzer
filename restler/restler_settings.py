@@ -4,6 +4,7 @@
 """ Holds user-defined settings data """
 from __future__ import print_function
 from enum import Enum
+import os
 import json
 import sys
 import re
@@ -993,8 +994,11 @@ class RestlerSettings(object):
                 raise OptionValidationError("Must specify token refresh method")
             if self.token_authentication_method and not self.token_refresh_interval:
                 raise OptionValidationError("Must specify refresh period in seconds")
-            if self.token_authentication_method == 'module' and not self.token_module_file:
-                raise OptionValidationError("Must specify token module file")    
+            if self.token_authentication_method == TokenAuthMethod.MODULE:
+                if not self.token_module_file:
+                    raise OptionValidationError("Must specify token module file")
+                if not os.path.isfile(self.token_module_file):
+                    raise OptionValidationError(f"Token module file does not exist at path {self.token_module_file}")
 
             token_auth_options = [self.token_module_file, self.token_refresh_cmd, self.token_location]
             user_provided_token_auth_options = [option for option in token_auth_options if option is not None]
