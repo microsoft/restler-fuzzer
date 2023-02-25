@@ -698,7 +698,8 @@ def generate_sequences(fuzzing_requests, checkers, fuzzing_jobs=1, garbage_colle
                 else:
                     seq_collection = render(seq_collection, fuzzing_pool, checkers, generation, global_lock,
                                             garbage_collector)
-
+                
+                
             except TimeOutException:
                 logger.write_to_main("Timed out...")
                 timeout_reached = True

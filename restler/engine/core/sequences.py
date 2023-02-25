@@ -109,6 +109,9 @@ class Sequence(object):
         """ Iterate over Sequences objects. """
         return iter(self.requests)
 
+    def toJson(self):
+        return json.dumps(self, default=lambda o : o.__dict__, indent=4)
+    
     def __add__(self, other):
         """ Add two sequences
 
@@ -602,6 +605,11 @@ class Sequence(object):
 
             # add sequence's error codes to bug buckets.
             if response.has_bug_code():
+                duplicate = copy_self()
+                renderingslocal = RenderedSequence(duplicate, valid=False, failure_info=response.status_text,
+                                        final_request_response=response,
+                                        response_datetime=response_datetime_str)
+                self.last_request.stats.set_all_stats(renderingslocal)
                 BugBuckets.Instance().update_bug_buckets(
                     self, status_code, lock=lock
                 )

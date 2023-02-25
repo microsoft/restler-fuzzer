@@ -45,6 +45,7 @@ class FuzzingThread(threading.Thread):
                 self._garbage_collector
             )
 
+            logger.print_bugbuckets_json()
             # At the end of everything print out any request that were never
             # rendered (because they never had valid constraints).
             logger.print_request_rendering_stats_never_rendered_requests(
