@@ -3,8 +3,9 @@
 
 """ Module includes classes used to parse logs for testing purposes """
 from test_servers.parsed_requests import *
-
+import utils.logger as logger
 import copy
+import json
 
 SENDING = ': Sending: '
 GENERATION = 'Generation-'
@@ -386,3 +387,51 @@ class BugLogParser(LogParser):
                 print("Failed to read bug log. Log was not a complete test log.\n"
                       f"{err!s}")
                 raise TestFailedException
+            
+class JsonFormattedBugsLogParser(LogParser):
+    class FileType(enumerate):
+        Bugs =1,
+        BugDetails=2,
+        BugBuckets_ByChecker= 3
+
+
+    def __init__(self, path, fileType):
+        """ BugLogParser constructor
+
+        @param path: The path to the bug log file
+        @type  path: Str
+
+        """
+        super().__init__(path)
+        # key = bug type, value = list(tuple(ParsedSequence, reproduced-bool, bug-hash))
+        self._bug_list = []
+        self._bug_detail = None
+        self._bug_buckets_bychecker = []
+        self._fileType = fileType
+        self._parse()
+    
+    def _parse(self):
+        """ Parses the bug log to populate the bug list
+
+        @return: None
+        @rtype : None
+
+        """
+        try:
+            if self._fileType == JsonFormattedBugsLogParser.FileType.Bugs: #"Bugs":
+                with open(self._path, 'r') as bugs:
+                        bugs_json = json.load(bugs)
+                self._bug_list = bugs_json['bugs']
+            elif self._fileType == JsonFormattedBugsLogParser.FileType.BugDetails:
+                with open(self._path, 'r') as bugs:
+                        bugs_json = json.load(bugs)
+                self._bug_detail = bugs_json
+            elif self._fileType == JsonFormattedBugsLogParser.FileType.BugBuckets_ByChecker:
+                with open(self._path, 'r') as bugs:
+                        bugs_json = json.load(bugs)
+                self._bug_buckets_bychecker = bugs_json['buckets']
+        except Exception as err:
+            logger.write_to_main(f"Failed to process grammar file: {self._path}; {err!s}", print_to_console=True)
+            print("Failed to read bugs log json. Log was not a complete bugs log.\n"
+                      f"{err!s}")
+            raise TestFailedException
