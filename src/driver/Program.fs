@@ -776,7 +776,6 @@ let getConfigValue key =
     | s ->
         Some (s.ToString())
 
-
 let tryRecreateDir dirPath =
     if Directory.Exists dirPath then
         try
@@ -833,7 +832,30 @@ let main argv =
             | None -> Restler.Telemetry.InstrumentationKey
             | Some key -> key
     let machineId = Telemetry.getMachineId()
-    use telemetryClient = new TelemetryClient(machineId, instrumentationKey)
+    let environmentMetadata = 
+        match getConfigValue Telemetry.AppInsightsAdditionalPropertiesSettingsKey with
+        | None -> []
+        | Some str ->
+            match Microsoft.FSharpLu.Json.Compact.tryDeserialize<Telemetry.AdditionalTelemetryProperties> str with
+            | Choice1Of2 p ->
+                let envVarValues = 
+                    match p.envVars with
+                    | None -> []
+                    | Some envVars ->
+                        envVars 
+                        |> List.map (fun name -> name, Environment.GetEnvironmentVariable(name))
+                        |> List.filter (fun (k,v) -> not (System.String.IsNullOrWhiteSpace v))
+                let propertyValues = 
+                    match p.properties with
+                    | None -> []
+                    | Some properties ->
+                        properties |> List.map (fun p -> p.key, p.value)
+                propertyValues @ envVarValues
+            | Choice2Of2 error -> 
+                printfn "Error deserializing telemetry properties from runtime config: %s" error
+                []
+                
+    use telemetryClient = new TelemetryClient(machineId, instrumentationKey, environmentMetadata)
 
     // Run task
     let runRestlerTask executionId taskName = async {
