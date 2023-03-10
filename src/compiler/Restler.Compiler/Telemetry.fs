@@ -6,7 +6,8 @@ module Restler.Telemetry
 //Instrumentation key is from app insights resource in Azure Portal
 let [<Literal>] InstrumentationKey = "6a4d265f-98cd-432f-bfb9-18ced4cd43a9"
 
-type TelemetryClient(machineId: System.Guid, instrumentationKey: string) =
+type TelemetryClient(machineId: System.Guid, instrumentationKey: string, 
+                     environmentMetadata: (string*string) list) =
     let client =
         let c = Microsoft.ApplicationInsights.TelemetryClient(
                     new Microsoft.ApplicationInsights.Extensibility.TelemetryConfiguration(instrumentationKey))
@@ -24,7 +25,7 @@ type TelemetryClient(machineId: System.Guid, instrumentationKey: string) =
                 "version", version
                 "task", task
                 "executionId", sprintf "%A" executionId
-            ]@featureList))
+            ]@environmentMetadata@featureList))
 
     member __.RestlerFinished(version, task, executionId, status,
                               specCoverageCounts,

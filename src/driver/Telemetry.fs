@@ -15,6 +15,20 @@ module Telemetry =
 
     let [<Literal>] AppInsightsInstrumentationSettingsKey = "restlerAppInsightsTelemetry"
 
+    let [<Literal>] AppInsightsAdditionalPropertiesSettingsKey = "additionalTelemetryProperties"
+
+    type TelemetryProperty = 
+        {
+            key : string
+            value : string
+        }
+
+    type AdditionalTelemetryProperties = 
+        {
+            envVars : string list option
+            properties : TelemetryProperty list option
+        }
+
     let getMicrosoftOptOut() =
         // Disable telemetry if the environment variable is set to 1 or true
         let optOutValues = ["1" ; "true"]
