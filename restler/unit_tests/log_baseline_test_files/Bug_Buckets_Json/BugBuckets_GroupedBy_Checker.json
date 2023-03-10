@@ -1,0 +1,26 @@
+{
+    "buckets": [
+        {
+            "checkerName": "InvalidValueChecker",
+            "bugs": [
+                {
+                    "status_code": "500",
+                    "details": [
+                        {
+                            "filepath": "InvalidValueChecker_500_1.txt",
+                            "reproducible": true
+                        },
+                        {
+                            "filepath": "InvalidValueChecker_500_2.txt",
+                            "reproducible": true
+                        },
+                        {
+                            "filepath": "InvalidValueChecker_500_3.txt",
+                            "reproducible": true
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
