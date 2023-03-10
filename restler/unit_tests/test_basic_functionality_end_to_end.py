@@ -20,6 +20,7 @@ import utils.logger as logger
 from collections import namedtuple
 from pathlib import Path
 from test_servers.log_parser import *
+from enum import Enum
 
 Test_File_Directory = os.path.join(
     os.path.dirname(__file__), 'log_baseline_test_files'
@@ -1057,6 +1058,53 @@ class FunctionalityTests(unittest.TestCase):
             self.assertTrue(default_parser.diff_log(test_parser))
         except TestFailedException:
             self.fail("Smoke test failed: Fuzzing")
+
+    def test_logger_jsonformatted_bugbuckets(self):
+       
+        settings_file_path = os.path.join(Test_File_Directory, "test_invalid_value_checker_settings.json")
+
+        args = Common_Settings + [
+        '--fuzzing_mode', 'test-all-combinations',
+        '--restler_grammar', f'{os.path.join(Test_File_Directory, "test_grammar.py")}',
+        '--enable_checkers', 'invalidvalue',
+        '--settings', f'{settings_file_path}'
+        ]
+
+        result = subprocess.run(args, capture_output=True)
+        if result.stderr:
+            self.fail(result.stderr)
+        try:
+            result.check_returncode()
+        except subprocess.CalledProcessError:
+            self.fail(f"Restler returned non-zero exit code: {result.returncode}")
+
+        experiments_dir = self.get_experiments_dir()
+        try:
+            #Verify the generated bugs.json file
+            default_parser = JsonFormattedBugsLogParser(os.path.join(Test_File_Directory, "Bug_Buckets_Json","Bugs_Bucket_AsJson.json"),JsonFormattedBugsLogParser.FileType.Bugs)
+            test_parser = JsonFormattedBugsLogParser(os.path.join(experiments_dir, 'bug_buckets', 'Bugs.json'),JsonFormattedBugsLogParser.FileType.Bugs)
+            self.assertTrue(len(default_parser._bug_list) == len(test_parser._bug_list),"Expected count of bugs are not same.")
+            counter =0;
+            for expectedBug in default_parser._bug_list:
+                actualBug = test_parser._bug_list[counter]
+                self.assertTrue(expectedBug == actualBug ,f"Expected bug :{expectedBug} and actual bug :{actualBug} are different")
+                counter = counter + 1
+        except TestFailedException:
+            self.fail("verification of bugs json file failed")
+        
+        try:
+            #Verify the generated bug details in json format.
+            default_parser = JsonFormattedBugsLogParser(os.path.join(Test_File_Directory,"Bug_Buckets_Json", "InvalidValueChecker_500_1.json"),JsonFormattedBugsLogParser.FileType.BugDetails)
+            test_parser = JsonFormattedBugsLogParser(os.path.join(experiments_dir, 'bug_buckets', 'InvalidValueChecker_500_1.json'),JsonFormattedBugsLogParser.FileType.BugDetails)
+            self.assertTrue(default_parser._bug_detail['status_code'] == test_parser._bug_detail['status_code'])
+            self.assertTrue(default_parser._bug_detail['checkerName'] == test_parser._bug_detail['checkerName'])
+            self.assertTrue(default_parser._bug_detail['reproducible'] == test_parser._bug_detail['reproducible'])
+            self.assertTrue(default_parser._bug_detail['verb'] == test_parser._bug_detail['verb'])
+            self.assertTrue(default_parser._bug_detail['endpoint'] == test_parser._bug_detail['endpoint'])
+            self.assertTrue(default_parser._bug_detail['status_text'] == test_parser._bug_detail['status_text'])
+            self.assertTrue(len(default_parser._bug_detail['request_sequence']) == len(test_parser._bug_detail['request_sequence']))
+        except TestFailedException:
+            self.fail("verification of bugs details file failed")
 
     def test_gc_limits(self):
         """ This test checks that RESTler exits after N objects cannot be deleted according
