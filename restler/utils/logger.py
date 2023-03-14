@@ -787,7 +787,7 @@ def update_bug_buckets(bug_buckets, bug_request_data, bug_hash, additional_log_s
                         requestBug.checker_name = bug_bucket.origin
                         requestBug.error_code =bucket_class.split("_")[len(bucket_class.split("_"))-1] 
                         
-                        write_incremental_bugs(os.path.join(BUG_BUCKETS_DIR, "Bugs.Json"),requestBug)
+                        write_incremental_bugs(os.path.join(BUG_BUCKETS_DIR, "Bugs.json"),requestBug)
                         Bugs_Logged[bucket_hash] = BugTuple(filename, bug_hash, bug_bucket.reproduce_attempts, bug_bucket.reproduce_successes)
                         add_hash(filename)
                     except Exception as error:
