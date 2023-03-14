@@ -1,22 +1,22 @@
 {
-	"bugs": [
-		{
-			"filepath": "InvalidValueChecker_500_1.json",
-			"reproducible": true,
-			"checker_name": "InvalidValueChecker",
-			"error_code": "500"
-		},
-		{
-			"filepath": "InvalidValueChecker_500_2.json",
-			"reproducible": true,
-			"checker_name": "InvalidValueChecker",
-			"error_code": "500"
-		},
-		{
-			"filepath": "InvalidValueChecker_500_3.json",
-			"reproducible": true,
-			"checker_name": "InvalidValueChecker",
-			"error_code": "500"
-		}
-	]
+  "bugs": [
+    {
+      "filepath": "InvalidValueChecker_500_1.json",
+      "reproducible": true,
+      "checker_name": "InvalidValueChecker",
+      "error_code": "500"
+    },
+    {
+      "filepath": "InvalidValueChecker_500_2.json",
+      "reproducible": true,
+      "checker_name": "InvalidValueChecker",
+      "error_code": "500"
+    },
+    {
+      "filepath": "InvalidValueChecker_500_3.json",
+      "reproducible": true,
+      "checker_name": "InvalidValueChecker",
+      "error_code": "500"
+    }
+  ]
 }
