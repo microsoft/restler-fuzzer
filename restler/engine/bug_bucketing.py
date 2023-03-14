@@ -15,11 +15,12 @@ class UninitializedError(Exception):
     pass
 
 class BugBucket(object):
-    def __init__(self, sequence, reproducible, reproduce_attempts, reproduce_successes):
+    def __init__(self, sequence, reproducible, reproduce_attempts, reproduce_successes, bucket_origin):
         self.sequence = sequence
         self.reproducible = reproducible
         self.reproduce_attempts = reproduce_attempts
         self.reproduce_successes = reproduce_successes
+        self.origin = bucket_origin
 
 class BugBuckets(object):
     __instance = None
@@ -207,7 +208,7 @@ class BugBuckets(object):
                     (reproducible, reproduce_attempts, reproduce_successes) = self._test_bug_reproducibility(sequence, bug_code, bucket)
                 else:
                     (reproducible, reproduce_attempts, reproduce_successes) = (False, 0, 0)
-                bucket[seq_hex] = BugBucket(sequence, reproducible, reproduce_attempts, reproduce_successes)
+                bucket[seq_hex] = BugBucket(sequence, reproducible, reproduce_attempts, reproduce_successes, origin)
 
             sent_request_data_list = sequence.sent_request_data_list
             create_once_requests = self._get_create_once_requests(sequence)

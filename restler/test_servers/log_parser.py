@@ -5,6 +5,7 @@
 from test_servers.parsed_requests import *
 
 import copy
+import json
 
 SENDING = ': Sending: '
 GENERATION = 'Generation-'
@@ -386,3 +387,43 @@ class BugLogParser(LogParser):
                 print("Failed to read bug log. Log was not a complete test log.\n"
                       f"{err!s}")
                 raise TestFailedException
+            
+class JsonFormattedBugsLogParser(LogParser):
+    class FileType(enumerate):
+        Bugs = 'Bugs',
+        BugDetails = 'BugDetails',
+
+
+    def __init__(self, path, fileType):
+        """ BugLogParser constructor
+
+        @param path: The path to the bug log file
+        @type  path: Str
+
+        """
+        super().__init__(path)
+        # key = bug type, value = list(tuple(ParsedSequence, reproduced-bool, bug-hash))
+        self._bug_list = []
+        self._bug_detail = None
+        self._bug_buckets_bychecker = []
+        self._fileType = fileType
+        self._parse()
+    
+    def _parse(self):
+        """ Parses the bug log to populate the bug list
+
+        @return: None
+        @rtype : None
+
+        """
+        try:
+            with open(self._path, 'r') as bugs:
+                bugs_json = json.load(bugs)
+            if self._fileType == JsonFormattedBugsLogParser.FileType.Bugs:
+                self._bug_list = bugs_json['bugs']
+            elif self._fileType == JsonFormattedBugsLogParser.FileType.BugDetails:
+                self._bug_detail = bugs_json
+        except Exception as err:
+            print("Failed to read bug buckets file type {self._fileType} in bug buckets directory.\n"
+                      f"{err!s}")
+            raise TestFailedException

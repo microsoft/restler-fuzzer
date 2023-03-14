@@ -1,0 +1,17 @@
+{
+    "status_code": "500",
+    "checker_name": "InvalidValueChecker",
+    "reproducible": true,
+    "verb": "PUT",
+    "endpoint": "/item/{itemName}",
+    "status_text": "Internal Server Error",
+    "request_sequence": [
+        {
+            "request_order": 0,
+            "producer_timing_delay": 0,
+            "max_async_wait_time": 20,
+            "replay_request": "PUT /item/itemName<test!>-1be4af6ce2?location=centralus&date=2021-01-01 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nAUTHORIZATION TOKEN\r\n\r\n{\"datetest\":\"2021-01-01\",\"id\":\"/testparts/{BT\t[\"}\r\n",
+            "response": "HTTP/1.1 500 Internal Server Error\r\nRestler Test\r\n\r\n{\"code\": \"InternalServerError\", \"message\": \"Invalid control character at: line 1 column 46 (char 45)\"}"
+        }
+    ]
+}
