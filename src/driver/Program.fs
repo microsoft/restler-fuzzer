@@ -133,7 +133,7 @@ module Compile =
             match config.CustomDictionaryFilePath with
             | None ->
                 let newDictionaryFilePath = workingDirectory ++ "defaultDict.json"
-                Microsoft.FSharpLu.Json.Compact.serializeToFile newDictionaryFilePath Restler.Dictionary.DefaultMutationsDictionary
+                Restler.Utilities.JsonSerialization.serializeToFile newDictionaryFilePath Restler.Dictionary.DefaultMutationsDictionary
                 Some newDictionaryFilePath
             | Some s ->
                 config.CustomDictionaryFilePath
@@ -148,7 +148,7 @@ module Compile =
                 GrammarOutputDirectoryPath = Some compilerOutputDirPath
                 CustomDictionaryFilePath = dictionaryFilePath }
         let compilerConfigPath = workingDirectory ++ Restler.Workflow.Constants.DefaultCompilerConfigName
-        Microsoft.FSharpLu.Json.Compact.serializeToFile compilerConfigPath compilerConfig
+        Restler.Utilities.JsonSerialization.serializeToFile compilerConfigPath compilerConfig
 
         // Run compiler
         let! result =
@@ -531,7 +531,7 @@ module Config =
         let defaultDictionary =
             match Restler.Dictionary.getDictionaryFromString customPayloads with
             | Ok d ->
-                Microsoft.FSharpLu.Json.Compact.serializeToFile dictionaryFilePath d
+                Restler.Utilities.JsonSerialization.serializeToFile dictionaryFilePath d
             | error ->
                 failwith "Could not deserialize default dictionary during generate_config."
         let engineSettingsFilePath = configDirPath ++ Restler.Workflow.Constants.DefaultEngineSettingsFileName
@@ -562,7 +562,7 @@ module Config =
         let configFilePath = configDirPath ++ Restler.Workflow.Constants.DefaultCompilerConfigName
         // Deserialize the config to make sure it is valid before writing it.
         let defaultConfig = config.ToString()
-        let _ = Microsoft.FSharpLu.Json.Compact.deserialize<Restler.Config.Config> defaultConfig
+        let _ = Restler.Utilities.JsonSerialization.deserialize<Restler.Config.Config> defaultConfig
         File.WriteAllText(configFilePath, defaultConfig)
         ()
 
@@ -725,7 +725,7 @@ let rec parseArgs (args:DriverArgs) = function
             Logging.logError <| sprintf "File %s does not exist." compilerConfigFilePath
             usage()
 
-        match Microsoft.FSharpLu.Json.Compact.tryDeserializeFile<Restler.Config.Config> compilerConfigFilePath with
+        match Restler.Utilities.JsonSerialization.tryDeserializeFile<Restler.Config.Config> compilerConfigFilePath with
         | Choice1Of2 config->
             let config = Restler.Config.mergeWithDefaultConfig (File.ReadAllText compilerConfigFilePath)
             let config = Restler.Config.convertRelativeToAbsPaths compilerConfigFilePath config
@@ -836,7 +836,7 @@ let main argv =
         match getConfigValue Telemetry.AppInsightsAdditionalPropertiesSettingsKey with
         | None -> []
         | Some str ->
-            match Microsoft.FSharpLu.Json.Compact.tryDeserialize<Telemetry.AdditionalTelemetryProperties> str with
+            match Restler.Utilities.JsonSerialization.tryDeserialize<Telemetry.AdditionalTelemetryProperties> str with
             | Choice1Of2 p ->
                 let envVarValues = 
                     match p.envVars with

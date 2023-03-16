@@ -55,6 +55,7 @@ let tryDeserializeJObjectFromFile filePath =
     if System.IO.File.Exists filePath then
         use stream = System.IO.File.OpenText(filePath)
         use reader = new Newtonsoft.Json.JsonTextReader(stream)
+        reader.DateParseHandling <- Newtonsoft.Json.DateParseHandling.None
         let jObject = JObject.Load(reader)
         Some (jObject, Some filePath)
     else

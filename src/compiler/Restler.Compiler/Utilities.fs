@@ -28,8 +28,61 @@ module Logging =
         printfn "%s" message
         Trace.error "%s" message
 
+module Dict =
+    open System.Collections.Generic
+    let tryGetString (dict:IDictionary<_, obj>) name =
+        match dict.TryGetValue name with
+        | true, v ->  v :?> string |> Some
+        | false, _ -> None
+
+    let tryGetDict (dict:IDictionary<_, obj>) name =
+        match dict.TryGetValue name with
+        | true, v ->  v :?> IDictionary<_, obj> |> Some
+        | false, _ -> None
+
+
+/// Helper that adds options specific to RESTler to Microsoft.FSharpLu.Json
+module JsonSerialization = 
+    open Newtonsoft.Json
+    open Microsoft.FSharpLu.Json
+    open System.Runtime.CompilerServices
+
+    // Create a custom deserializer that has identical behavior to FShapLu.Json.Compact
+    // except with dates parsed as strings
+
+    type TupleAsArraySettings =
+        static member formatting = Formatting.Indented
+        static member settings = 
+            let settings =
+                JsonSerializerSettings(
+                    NullValueHandling = NullValueHandling.Ignore,
+                    MissingMemberHandling = MissingMemberHandling.Error,
+                    DateParseHandling = DateParseHandling.None
+                )
+            settings.Converters.Add(CompactUnionJsonConverter(true, true))
+            settings
+
+    type private S = With<TupleAsArraySettings>
+        
+    let inline serialize x = S.serialize x
+
+    let inline deserialize< ^T> json : ^T = S.deserialize< ^T> json
+
+    let inline serializeToFile file obj = S.serializeToFile file obj
+
+    let inline tryDeserializeFile< ^T> file = S.tryDeserializeFile< ^T> file
+
+    let inline tryDeserialize< ^T> json = S.tryDeserialize< ^T> json
+
+    let inline deserializeFile< ^T> file = S.deserializeFile< ^T> file
+
+    let inline serializeToStream stream obj = S.serializeToStream stream obj
+
+    let inline deserializeStream< ^T> stream = S.deserializeStream< ^T> stream
+
 module JsonParse =
     open Newtonsoft.Json.Linq
+    open System.Collections.Generic
 
     let getProperty (obj:JObject) (propertyName:string) =
         if obj.ContainsKey(propertyName) then
@@ -62,28 +115,15 @@ module JsonParse =
             None
 
     let mergeWithOverride (defaultJson:string) (overrideJson:string) =
-        let newJson = JObject.Parse(defaultJson)
-        let userConfigAsJson = JObject.Parse(overrideJson)
-        for prop in userConfigAsJson.Properties() do
+        let newJson = JsonSerialization.deserialize<Dictionary<string, obj>> defaultJson
+
+        let userConfigAsJson = JsonSerialization.deserialize<Dictionary<string, obj>> overrideJson
+        for prop in userConfigAsJson do
             // Overwrite the default property
-            newJson.Remove(prop.Name) |> ignore
-            newJson.Add(prop.Name, prop.Value)
-
-        newJson.ToString()
-
-
-module Dict =
-    open System.Collections.Generic
-    let tryGetString (dict:IDictionary<_, obj>) name =
-        match dict.TryGetValue name with
-        | true, v ->  v :?> string |> Some
-        | false, _ -> None
-
-    let tryGetDict (dict:IDictionary<_, obj>) name =
-        match dict.TryGetValue name with
-        | true, v ->  v :?> IDictionary<_, obj> |> Some
-        | false, _ -> None
-
+            if newJson.ContainsKey(prop.Key) then
+                newJson.Remove(prop.Key) |> ignore
+                newJson.Add(prop.Key, prop.Value)
+        JsonSerialization.serialize newJson
 
 module Stream =
     /// https://en.wikipedia.org/wiki/UTF-8
@@ -107,7 +147,7 @@ module Stream =
 
     let serializeToFile filePath data = 
         use fs = new FileStreamWithoutPreamble(filePath, System.IO.FileMode.Create)
-        Microsoft.FSharpLu.Json.Compact.serializeToStream fs data
+        JsonSerialization.serializeToStream fs data
         fs.Flush()
         fs.Dispose()
 

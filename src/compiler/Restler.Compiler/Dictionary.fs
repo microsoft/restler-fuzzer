@@ -5,6 +5,7 @@ module Restler.Dictionary
 
 open Restler.Grammar
 open Restler.ApiResourceTypes
+open Restler.Utilities
 open Restler.Utilities.Operators
 open Restler.AccessPaths
 
@@ -14,19 +15,19 @@ type InvalidMutationsDictionaryFormat (msg:string) =
 type MutationsDictionary =
     {
         // Each string type has a matching 'unquoted' type
-        restler_fuzzable_string : string list
-        restler_fuzzable_string_unquoted : string list
-        restler_fuzzable_datetime : string list
-        restler_fuzzable_datetime_unquoted : string list
-        restler_fuzzable_date : string list
-        restler_fuzzable_date_unquoted : string list
-        restler_fuzzable_uuid4 : string list
-        restler_fuzzable_uuid4_unquoted : string list
+        restler_fuzzable_string : string list option
+        restler_fuzzable_string_unquoted : string list option
+        restler_fuzzable_datetime : string list option
+        restler_fuzzable_datetime_unquoted : string list option
+        restler_fuzzable_date : string list option
+        restler_fuzzable_date_unquoted : string list option
+        restler_fuzzable_uuid4 : string list option
+        restler_fuzzable_uuid4_unquoted : string list option
 
-        restler_fuzzable_int : string list
-        restler_fuzzable_number : string list
-        restler_fuzzable_bool : string list
-        restler_fuzzable_object : string list
+        restler_fuzzable_int : string list option
+        restler_fuzzable_number : string list option
+        restler_fuzzable_bool : string list option
+        restler_fuzzable_object : string list option
         restler_custom_payload : Map<string, string list> option
         restler_custom_payload_unquoted : Map<string, string list> option
         restler_custom_payload_uuid4_suffix : Map<string, string> option
@@ -172,7 +173,6 @@ type MutationsDictionary =
                     } |> stn
             | None -> Seq.empty
 
-
         /// Combines the elements of the two dictionaries
         member x.combineCustomPayloadSuffix (secondDict:MutationsDictionary) =
             let combinedSuffix =
@@ -195,18 +195,18 @@ type MutationsDictionary =
 /// The default mutations dictionary generated when a user does not specify it
 let DefaultMutationsDictionary =
     {
-        restler_fuzzable_string = [DefaultPrimitiveValues.[PrimitiveType.String]]
-        restler_fuzzable_string_unquoted = []
-        restler_fuzzable_int = [DefaultPrimitiveValues.[PrimitiveType.Int]]
-        restler_fuzzable_number = [DefaultPrimitiveValues.[PrimitiveType.Number]]
-        restler_fuzzable_bool = [DefaultPrimitiveValues.[PrimitiveType.Bool]]
-        restler_fuzzable_datetime = [DefaultPrimitiveValues.[PrimitiveType.DateTime]]
-        restler_fuzzable_datetime_unquoted = []
-        restler_fuzzable_date = [DefaultPrimitiveValues.[PrimitiveType.Date]]
-        restler_fuzzable_date_unquoted = []
-        restler_fuzzable_object = [DefaultPrimitiveValues.[PrimitiveType.Object]]
-        restler_fuzzable_uuid4 = [DefaultPrimitiveValues.[PrimitiveType.Uuid]]
-        restler_fuzzable_uuid4_unquoted = []
+        restler_fuzzable_string = Some [DefaultPrimitiveValues.[PrimitiveType.String]]
+        restler_fuzzable_string_unquoted = Some []
+        restler_fuzzable_int = Some [DefaultPrimitiveValues.[PrimitiveType.Int]]
+        restler_fuzzable_number = Some [DefaultPrimitiveValues.[PrimitiveType.Number]]
+        restler_fuzzable_bool = Some [DefaultPrimitiveValues.[PrimitiveType.Bool]]
+        restler_fuzzable_datetime = Some [DefaultPrimitiveValues.[PrimitiveType.DateTime]]
+        restler_fuzzable_datetime_unquoted = Some []
+        restler_fuzzable_date = Some [DefaultPrimitiveValues.[PrimitiveType.Date]]
+        restler_fuzzable_date_unquoted = Some []
+        restler_fuzzable_object = Some [DefaultPrimitiveValues.[PrimitiveType.Object]]
+        restler_fuzzable_uuid4 = Some [DefaultPrimitiveValues.[PrimitiveType.Uuid]]
+        restler_fuzzable_uuid4_unquoted = Some []
         restler_custom_payload = Some (Map.empty<string, string list>)
         restler_custom_payload_unquoted = Some (Map.empty<string, string list>)
         restler_custom_payload_uuid4_suffix = Some (Map.empty<string, string>)
@@ -214,23 +214,25 @@ let DefaultMutationsDictionary =
         restler_custom_payload_header_unquoted = None
         restler_custom_payload_query = None
         shadow_values = None
-    }
-
-/// Gets the dictionary from string
-let getDictionaryFromString dictStr =
-    match Microsoft.FSharpLu.Json.Compact.tryDeserialize<MutationsDictionary> dictStr with
-    | Choice1Of2 d ->
-        Ok d
-    | Choice2Of2 e ->
-        Error (sprintf "ERROR: Cannot deserialize mutations dictionary.  %s" e)
+    } 
 
 /// Reads the dictionary from the specified file and returns it if it is valid
 let getDictionary dictionaryFilePath =
     if System.IO.File.Exists dictionaryFilePath then
-        match Microsoft.FSharpLu.Json.Compact.tryDeserializeFile<MutationsDictionary> dictionaryFilePath with
+        match JsonSerialization.tryDeserializeFile<MutationsDictionary> dictionaryFilePath with
         | Choice1Of2 d ->
             Ok d
         | Choice2Of2 e ->
             Error (sprintf "ERROR: Cannot deserialize mutations dictionary.  %s" e)
     else
         Error (sprintf "ERROR: invalid path for dictionary: %s" dictionaryFilePath)
+
+/// Reads the dictionary from the specified string
+let getDictionaryFromString dictionaryString =
+    match JsonSerialization.tryDeserialize<MutationsDictionary> dictionaryString with
+    | Choice1Of2 d ->
+        Ok d
+    | Choice2Of2 e ->
+        Error (sprintf "ERROR: Cannot deserialize mutations dictionary.  %s" e)
+    
+

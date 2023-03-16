@@ -424,7 +424,7 @@ module Examples =
 
             // A new dictionary should be produced with the above entries in 'restler_custom_payload_uuid_suffix'
             let dictionaryFilePath = Path.Combine(grammarOutputDirectoryPath, "dict.json")
-            let dictionary = Microsoft.FSharpLu.Json.Compact.tryDeserializeFile<Restler.Dictionary.MutationsDictionary> dictionaryFilePath
+            let dictionary = Restler.Utilities.JsonSerialization.tryDeserializeFile<Restler.Dictionary.MutationsDictionary> dictionaryFilePath
             match dictionary with
             | Choice2Of2 str -> Assert.True(false, sprintf "dictionary error: %s" str)
             | Choice1Of2 dict ->

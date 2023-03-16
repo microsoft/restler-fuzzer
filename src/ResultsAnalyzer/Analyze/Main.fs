@@ -51,7 +51,7 @@ let main (args:AnalyzeArgs) =
         | None -> List.empty
         | Some dictionaryFilePath ->
             if File.Exists dictionaryFilePath then
-                match Microsoft.FSharpLu.Json.Compact.tryDeserializeFile<Restler.Dictionary.MutationsDictionary> dictionaryFilePath with
+                match Restler.Utilities.JsonSerialization.tryDeserializeFile<Restler.Dictionary.MutationsDictionary> dictionaryFilePath with
                 | Choice1Of2 d ->
                     d.restler_custom_payload_uuid4_suffix
                     |> Option.defaultValue Map.empty
@@ -114,7 +114,7 @@ let main (args:AnalyzeArgs) =
                         errorCode, trimmed |> Map.ofSeq) //maybe dont need this?
         |> Map.ofSeq
 
-    Microsoft.FSharpLu.Json.Compact.serializeToFile errorBucketsFilePath allBucketsMapTrimmed
+    Restler.Utilities.JsonSerialization.serializeToFile errorBucketsFilePath allBucketsMapTrimmed
 
     let runSummaryFilePath = Path.Combine(args.outputDirPath, "runSummary.json")
     let runDataMap = failedByResponseCode |> Map.ofSeq
@@ -139,4 +139,4 @@ let main (args:AnalyzeArgs) =
                                     |> Map.ofSeq
         }
 
-    Microsoft.FSharpLu.Json.Compact.serializeToFile runSummaryFilePath runSummary
+    Restler.Utilities.JsonSerialization.serializeToFile runSummaryFilePath runSummary

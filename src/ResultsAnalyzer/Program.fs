@@ -134,7 +134,7 @@ let (|AbstractionOptions|_|) (parsedOptions:AbstractionOptions) = function
         Some ({ parsedOptions with abstractCustom = new Regex(regex) :: parsedOptions.abstractCustom }, rest)
     | "-af"::dictionaryFile::rest | "--abstract-dictionary-file"::dictionaryFile::rest ->
         let dictionarySuffixes =
-            match Microsoft.FSharpLu.Json.Compact.tryDeserializeFile<Restler.Dictionary.MutationsDictionary> dictionaryFile with
+            match Restler.Utilities.JsonSerialization.tryDeserializeFile<Restler.Dictionary.MutationsDictionary> dictionaryFile with
             | Choice1Of2 d ->
                 d.restler_custom_payload_uuid4_suffix
                 |> Option.defaultValue Map.empty
