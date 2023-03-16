@@ -25,7 +25,7 @@ type UnsupportedRecursiveExample (msg:string) =
 module SchemaUtilities =
 
     let formatExampleValue (exampleObject:obj) = 
-        Microsoft.FSharpLu.Json.Compact.serialize exampleObject
+        Restler.Utilities.JsonSerialization.serialize exampleObject
 
     /// Get an example value as a string, either directly from the 'example' attribute or
     /// from the extension 'Examples' property.

@@ -22,7 +22,7 @@ module Dependencies =
             let dictionary =
                 match config.CustomDictionaryFilePath with
                 | Some customDictionaryPath when File.Exists customDictionaryPath ->
-                    let d = Microsoft.FSharpLu.Json.Compact.deserializeFile<Restler.Dictionary.MutationsDictionary> customDictionaryPath
+                    let d = Restler.Utilities.JsonSerialization.deserializeFile<Restler.Dictionary.MutationsDictionary> customDictionaryPath
                     { d with restler_custom_payload_uuid4_suffix = Some (Map.empty<string, string>) }
                 | _ -> Restler.Dictionary.DefaultMutationsDictionary
 
@@ -80,7 +80,7 @@ module Dependencies =
 
             // A new dictionary should be produced with two entries in 'restler_custom_payload_uuid_suffix'
             let dictionaryFilePath = Path.Combine(grammarOutputDirectoryPath, "dict.json")
-            let dictionary = Microsoft.FSharpLu.Json.Compact.tryDeserializeFile<Restler.Dictionary.MutationsDictionary> dictionaryFilePath
+            let dictionary = Restler.Utilities.JsonSerialization.tryDeserializeFile<Restler.Dictionary.MutationsDictionary> dictionaryFilePath
             match dictionary with
             | Choice2Of2 str -> Assert.True(false, sprintf "dictionary error: %s" str)
             | Choice1Of2 dict ->
@@ -206,7 +206,7 @@ module Dependencies =
                 let dependenciesJsonFilePath = Path.Combine(outputDirectory,
                                                             Restler.Workflow.Constants.DependenciesDebugFileName)
 
-                Microsoft.FSharpLu.Json.Compact.deserializeFile<ProducerConsumerDependency list> dependenciesJsonFilePath
+                Restler.Utilities.JsonSerialization.deserializeFile<ProducerConsumerDependency list> dependenciesJsonFilePath
             let resolvedDependencies =
                 dependencies
                 |> Seq.filter (fun dep -> dep.producer.IsSome)
@@ -232,7 +232,7 @@ module Dependencies =
                 let dependenciesJsonFilePath = Path.Combine(ctx.testRootDirPath,
                                                             Restler.Workflow.Constants.DependenciesDebugFileName)
 
-                Microsoft.FSharpLu.Json.Compact.deserializeFile<ProducerConsumerDependency list> dependenciesJsonFilePath
+                Restler.Utilities.JsonSerialization.deserializeFile<ProducerConsumerDependency list> dependenciesJsonFilePath
             let resolvedDependencies =
                 dependencies
                 |> Seq.filter (fun dep -> dep.producer.IsSome)
@@ -265,7 +265,7 @@ module Dependencies =
                 let dependenciesJsonFilePath = Path.Combine(ctx.testRootDirPath,
                                                             Restler.Workflow.Constants.DependenciesDebugFileName)
 
-                Microsoft.FSharpLu.Json.Compact.deserializeFile<ProducerConsumerDependency list> dependenciesJsonFilePath
+                Restler.Utilities.JsonSerialization.deserializeFile<ProducerConsumerDependency list> dependenciesJsonFilePath
             let resolvedDependencies =
                 dependencies
                 |> Seq.filter (fun dep -> dep.producer.IsSome)

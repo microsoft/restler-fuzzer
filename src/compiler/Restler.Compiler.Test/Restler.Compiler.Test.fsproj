@@ -203,6 +203,9 @@
     <Content Include="swagger\dictionaryTests\customPayloadRequestTypeDict.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="swagger\dictionaryTests\serializationTestDict.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="swagger\DependencyTests\lowercase_paths.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

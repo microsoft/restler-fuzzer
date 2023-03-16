@@ -6,6 +6,7 @@ module Restler.Workflow
 open System.IO
 open Restler.Config
 open Restler.Engine.Settings
+open Restler.Utilities
 open Restler.Utilities.Logging
 open Restler.Compiler.Main.Types
 open System
@@ -194,7 +195,7 @@ let generateGrammarFromSwagger grammarOutputDirectoryPath (swaggerDoc, specMetad
     // specific grammars.
 #if TEST_GRAMMAR
     use f = System.IO.File.OpenRead(grammarFilePath)
-    Microsoft.FSharpLu.Json.Compact.deserializeStream<GrammarDefinition> f
+    JsonSerialization.deserializeStream<GrammarDefinition> f
     |> ignore
 #endif
 
@@ -203,14 +204,13 @@ let generateGrammarFromSwagger grammarOutputDirectoryPath (swaggerDoc, specMetad
         let discoveredExamplesFilePath = Path.Combine(examplesDirectory, Constants.DefaultExampleMetadataFileName)
         Examples.serializeExampleConfigFile discoveredExamplesFilePath examples
 
-
     // A helper function to override defaults with user-specified dictionary values 
     // when the user specifies only some of the properties
     let mergeWithDefaultDictionary (newDictionaryAsString:string) =
-        let defaultDict = Microsoft.FSharpLu.Json.Compact.serialize Dictionary.DefaultMutationsDictionary
+        let defaultDict = JsonSerialization.serialize Dictionary.DefaultMutationsDictionary
         let newDict = Utilities.JsonParse.mergeWithOverride defaultDict newDictionaryAsString
 
-        Microsoft.FSharpLu.Json.Compact.deserialize<Dictionary.MutationsDictionary> newDict
+        JsonSerialization.deserialize<Dictionary.MutationsDictionary> newDict
 
     // Write the updated dictionary.
     let writeDictionary dictionaryName newDict =
@@ -218,13 +218,13 @@ let generateGrammarFromSwagger grammarOutputDirectoryPath (swaggerDoc, specMetad
         printfn "Writing new dictionary to %s" newDictionaryFilePath
         // Add any properties to the dictionary that are missing from the original dictionary
         // For example, the user may specify only custom payloads, and exclude fuzzable properties.
-        let newDict = mergeWithDefaultDictionary (Microsoft.FSharpLu.Json.Compact.serialize newDict) 
-        Microsoft.FSharpLu.Json.Compact.serializeToFile newDictionaryFilePath newDict
+        let newDict = mergeWithDefaultDictionary (JsonSerialization.serialize newDict) 
+        JsonSerialization.serializeToFile newDictionaryFilePath newDict
 
     writeDictionary Constants.NewDictionaryFileName newDictionary
 
     // Also generate a template for input value generator based on the dictionary.
-    let newDictJson = Microsoft.FSharpLu.Json.Compact.serialize newDictionary
+    let newDictJson = JsonSerialization.serialize newDictionary
     let customValueGeneratorTemplateFilePath = System.IO.Path.Combine(grammarOutputDirectoryPath, Constants.CustomValueGeneratorTemplateFileName)
     let templateLines = Restler.CodeGenerator.Python.generateCustomValueGenTemplate newDictJson
     Microsoft.FSharpLu.File.writeLines customValueGeneratorTemplateFilePath templateLines
@@ -284,7 +284,7 @@ let generateRestlerGrammar swaggerDoc (config:Config) =
         match config.GrammarInputFilePath with
         | Some grammarFilePath when File.Exists grammarFilePath ->
             use f = System.IO.File.OpenRead(grammarFilePath)
-            Microsoft.FSharpLu.Json.Compact.deserializeStream<GrammarDefinition> f
+            JsonSerialization.deserializeStream<GrammarDefinition> f
         | None ->
              logTimingInfo "Generating grammar..."
              generateGrammarFromSwagger grammarOutputDirectoryPath (swaggerDoc,None) config

@@ -173,4 +173,53 @@ module Dictionary =
             let message = sprintf "Template value generator does not match baseline.  First difference: %A" valueGenDiff
             Assert.True(valueGenDiff.IsNone, message)
 
+        [<Fact>]
+        /// Test that dates are deserialized and serialized in the same format as
+        /// specified by the user
+        let ``date format is preserved after deserialization and serialization`` () =
+            let dictionaryFilePath = 
+                Path.Combine(Environment.CurrentDirectory, "swagger", "dictionaryTests", "serializationTestDict.json")
+
+            let deserialized = Restler.Utilities.JsonSerialization.deserializeFile<Restler.Dictionary.MutationsDictionary> dictionaryFilePath
+            let custom_payload = 
+                deserialized.restler_custom_payload.Value
+            let fuzzable_date = deserialized.restler_fuzzable_datetime.Value
+            let serialized = Restler.Utilities.JsonSerialization.serialize deserialized
+
+            Assert.Equal("03/13/2023 10:36:56 ", 
+                         custom_payload.["custom_date2"][0])
+            Assert.Equal("2023-03-13T10:36:56.0000000Z", 
+                         custom_payload.["custom_date1"][0])
+            Assert.Equal("2023-03-13T10:36:56.0000000Z", 
+                         fuzzable_date[0])
+
+            Assert.True(serialized.Contains("2023-03-13T10:36:56.0000000Z"))
+            Assert.True(serialized.Contains("03/13/2023 10:36:56 "))
+
+            // Compile and check that the output dictionary contains the
+            // ISO date
+            let grammarOutputDirPath = ctx.testRootDirPath
+            let config = { Restler.Config.SampleConfig with
+                             IncludeOptionalParameters = true
+                             GrammarOutputDirectoryPath = Some grammarOutputDirPath
+                             ResolveBodyDependencies = true
+                             ResolveQueryDependencies = true
+                             UseBodyExamples = Some false
+                             UseQueryExamples = Some false
+                             // The spec is arbitrary, since the test is only checking the output
+                             SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, "swagger", "dictionaryTests", "customPayloadSwagger.json"))]
+                             CustomDictionaryFilePath = Some dictionaryFilePath
+                         }
+            let inputDictionaryString = 
+                File.ReadAllText(dictionaryFilePath)
+
+            Restler.Workflow.generateRestlerGrammar None config
+            let outputDictPath = Path.Combine(grammarOutputDirPath,
+                                              Restler.Workflow.Constants.NewDictionaryFileName)
+            let dictionaryString = 
+                File.ReadAllText(outputDictPath)
+
+            Assert.True(dictionaryString.Contains("2023-03-13T10:36:56.0000000Z"))
+            Assert.True(dictionaryString.Contains("03/13/2023 10:36:56 "))
+
         interface IClassFixture<Fixtures.TestSetupAndCleanup>

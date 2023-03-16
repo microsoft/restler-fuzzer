@@ -1897,7 +1897,7 @@ let writeDependenciesDebug dependenciesFilePath dependencies =
     // The below statement is present as an assertion, to check for deserialization issues
 #if TEST_GRAMMAR
     use f = System.IO.File.OpenRead(dependenciesFilePath)
-    Microsoft.FSharpLu.Json.Compact.deserializeStream<ProducerConsumerDependency list> f
+    Restler.Utilities.JsonSerialization.deserializeStream<ProducerConsumerDependency list> f
     |> ignore
 #endif
 

@@ -296,7 +296,7 @@ let DefaultConfig =
 // A helper function to override defaults with user-specified config values 
 // when the user specifies only some of the properties
 let mergeWithDefaultConfig (userConfigAsString:string) =
-    let defaultConfig = Microsoft.FSharpLu.Json.Compact.serialize DefaultConfig
+    let defaultConfig = Utilities.JsonSerialization.serialize DefaultConfig
     let newConfig = Restler.Utilities.JsonParse.mergeWithOverride defaultConfig userConfigAsString
 
-    Microsoft.FSharpLu.Json.Compact.deserialize<Config> newConfig
+    Utilities.JsonSerialization.deserialize<Config> newConfig

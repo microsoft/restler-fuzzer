@@ -25,7 +25,7 @@ module TaskResults =
                 [], []
             | Some testingSummaryFilePath ->
                 let testingSummary =
-                    Microsoft.FSharpLu.Json.Compact.deserializeFile<Engine.TestingSummary> testingSummaryFilePath
+                    Restler.Utilities.JsonSerialization.deserializeFile<Engine.TestingSummary> testingSummaryFilePath
 
                 Logging.logInfo <| sprintf "Request coverage (successful / total): %s" testingSummary.final_spec_coverage
                 Logging.logInfo <| sprintf "Attempted requests: %s" testingSummary.rendered_requests

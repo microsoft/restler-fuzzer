@@ -30,7 +30,7 @@ module CodeGenerator =
             Restler.Workflow.generateRestlerGrammar None
                                     { configs.["demo_server"] with
                                        GrammarOutputDirectoryPath = Some grammarOutputDirectory1 }
-            let grammar1 = Microsoft.FSharpLu.Json.Compact.deserializeFile<GrammarDefinition>
+            let grammar1 = Restler.Utilities.JsonSerialization.deserializeFile<GrammarDefinition>
                                 (Path.Combine(grammarOutputDirectory1, Restler.Workflow.Constants.DefaultJsonGrammarFileName))
             let pythonGrammar1 = File.ReadAllText (Path.Combine(grammarOutputDirectory1, Restler.Workflow.Constants.DefaultRestlerGrammarFileName))
 

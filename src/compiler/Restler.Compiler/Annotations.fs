@@ -46,7 +46,7 @@ type ProducerConsumerUserAnnotation =
 let parseAnnotation (ann:JToken) =
     let annJson = ann.ToString(Newtonsoft.Json.Formatting.None)
 
-    match Microsoft.FSharpLu.Json.Compact.tryDeserialize<ProducerConsumerUserAnnotation>
+    match Utilities.JsonSerialization.tryDeserialize<ProducerConsumerUserAnnotation>
             annJson with
     | Choice2Of2 error ->
         failwith (sprintf "Invalid producer annotation: %s (%s)" error annJson)
