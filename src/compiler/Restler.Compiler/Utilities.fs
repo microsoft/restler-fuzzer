@@ -122,7 +122,7 @@ module JsonParse =
             // Overwrite the default property
             if newJson.ContainsKey(prop.Key) then
                 newJson.Remove(prop.Key) |> ignore
-                newJson.Add(prop.Key, prop.Value)
+            newJson.Add(prop.Key, userConfigAsJson.[prop.Key])
         JsonSerialization.serialize newJson
 
 module Stream =

@@ -25,7 +25,7 @@ let main argv =
         match argv with
         | [|configFilePath|] ->
             if File.Exists configFilePath then
-                let config = Json.Compact.deserializeFile<Config> configFilePath
+                let config = Restler.Utilities.JsonSerialization.deserializeFile<Config> configFilePath
                 let config =
                     match config.GrammarOutputDirectoryPath with
                     | None ->
