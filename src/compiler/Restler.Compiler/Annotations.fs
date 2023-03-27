@@ -236,6 +236,11 @@ let getGlobalAnnotationsFromFile filePath =
 //
 let getAnnotationsFromOpenapiLinks (producerRequestId:RequestId) (links:IDictionary<_, NSwag.OpenApiLink>) (oasDoc:NSwag.OpenApiDocument) =
 
+    let pathOrName (name: string) =
+        match AccessPaths.tryGetAccessPathFromString name with
+        | Some p -> ResourcePath p
+        | None -> ResourceName name
+
     // Parse the producer parameter from the JSON path in the parameter value
     // Only match specific patterns for now
     let parseProducerParameter (paramValue:obj) =
@@ -245,7 +250,7 @@ let getAnnotationsFromOpenapiLinks (producerRequestId:RequestId) (links:IDiction
             match s.Split(".") with
             | [|"$request"; "path" | "query" | "header"; v|] -> v |> ResourceName |> Some
             | [|"$response"; "header"; v|] -> v |> ResourceName |> Some
-            | [|"$response"; v|] when v.StartsWith("#body") -> v.Replace("#body","") |> ResourceName |> Some
+            | [|"$response"; v|] when v.StartsWith("body#") -> v.Replace("body#","") |> pathOrName |> Some
             | _ -> None
         | _ -> None
 

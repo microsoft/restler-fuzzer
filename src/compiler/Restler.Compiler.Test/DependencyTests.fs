@@ -146,6 +146,38 @@ module Dependencies =
         *)
 
         [<Fact>]
+        let ``Get dependency from OpenAPI v3 links`` () =
+            let grammarOutputDirectoryPath = ctx.testRootDirPath
+            let config = { Restler.Config.SampleConfig with
+                             IncludeOptionalParameters = true
+                             GrammarOutputDirectoryPath = Some grammarOutputDirectoryPath
+                             ResolveBodyDependencies = true
+                             UseBodyExamples = Some true
+                             SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, "swagger", "linksTests", "widgets_with_annotations.yaml"))]
+                             AnnotationFilePath = None
+                             CustomDictionaryFilePath = None
+                             AllowGetProducers = true
+                         }
+            Restler.Workflow.generateRestlerGrammar None config
+            let grammarFilePath = Path.Combine(grammarOutputDirectoryPath, "grammar.py")
+            let grammar = File.ReadAllText(grammarFilePath)
+
+            // Compiling with the REST API definition with OpenAPI links should give the same grammar
+            let config2 = { Restler.Config.SampleConfig with
+                             IncludeOptionalParameters = true
+                             GrammarOutputDirectoryPath = Some grammarOutputDirectoryPath
+                             ResolveBodyDependencies = true
+                             UseBodyExamples = Some true
+                             SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, "swagger", "linksTests", "widgets_with_links.yaml"))]
+                             AnnotationFilePath = None
+                             CustomDictionaryFilePath = None
+                             AllowGetProducers = true
+                         }
+            Restler.Workflow.generateRestlerGrammar None config2
+            let grammar2 = File.ReadAllText(grammarFilePath)
+            Assert.True((grammar = grammar2))
+
+        [<Fact>]
         let ``Get header dependency from OpenAPI v3 links`` () =
             let grammarOutputDirectoryPath = ctx.testRootDirPath
             let config = { Restler.Config.SampleConfig with

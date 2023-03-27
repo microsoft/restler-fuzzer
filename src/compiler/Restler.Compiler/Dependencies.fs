@@ -1308,7 +1308,7 @@ let extractDependencies (requestData:(RequestId*RequestData)[])
                 )
 
     requestData
-    // Only include POST, PUT, PATCH, and GET requests until we figure out how to handle delete producers.
+    // TODO: remove this filter when we figure out how to handle delete producers.
     |> Array.filter (fun (r, _) -> [ OperationMethod.Post ; OperationMethod.Put; OperationMethod.Patch ;
                                      OperationMethod.Get ]
                                     |> List.contains r.method)
