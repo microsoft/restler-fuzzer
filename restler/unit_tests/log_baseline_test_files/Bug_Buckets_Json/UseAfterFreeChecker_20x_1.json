@@ -1,0 +1,28 @@
+{
+    "status_code": "200",
+    "checker_name": "UseAfterFreeChecker",
+    "reproducible": true,
+    "verb": "GET",
+    "endpoint": "/useafterfreetest/{useafterfreeTest}",
+    "status_text": "OK",
+    "request_sequence": [
+        {
+            "producer_timing_delay": 0,
+            "max_async_wait_time": 0,
+            "replay_request": "PUT /useafterfreetest/useafterfreeTest<test!>-6ae6874f61 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nAUTHORIZATION TOKEN\r\n\r\n{}\r\n",
+            "response": "HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{\"name\": \"useafterfreeTest<test!>-6ae6874f61\"}"
+        },
+        {
+            "producer_timing_delay": 0,
+            "max_async_wait_time": 20,
+            "replay_request": "DELETE /useafterfreetest/useafterfreeTest<test!>-6ae6874f61 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nAUTHORIZATION TOKEN\r\n\r\n",
+            "response": "HTTP/1.1 202 Accepted\r\nRestler Test\r\n\r\n\"useafterfreeTest<test!>-6ae6874f61\""
+        },
+        {
+            "producer_timing_delay": 0,
+            "max_async_wait_time": 0,
+            "replay_request": "GET /useafterfreetest/useafterfreeTest<test!>-6ae6874f61 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nAUTHORIZATION TOKEN\r\n\r\n",
+            "response": "HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{\"name\": \"useafterfreeTest<test!>-6ae6874f61\"}"
+        }
+    ]
+}

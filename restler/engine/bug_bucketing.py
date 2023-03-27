@@ -15,12 +15,13 @@ class UninitializedError(Exception):
     pass
 
 class BugBucket(object):
-    def __init__(self, sequence, reproducible, reproduce_attempts, reproduce_successes, bucket_origin):
+    def __init__(self, sequence, reproducible, reproduce_attempts, reproduce_successes, bucket_origin, error_code):
         self.sequence = sequence
         self.reproducible = reproducible
         self.reproduce_attempts = reproduce_attempts
         self.reproduce_successes = reproduce_successes
         self.origin = bucket_origin
+        self.error_code = error_code
 
 class BugBuckets(object):
     __instance = None
@@ -89,8 +90,29 @@ class BugBuckets(object):
                         create_once_requests.append(c_req)
         return create_once_requests
 
+    def _get_bug_code_description(self, bug_code):
+        """ Helper to get a bug code description .
+
+        @param bug_code: The status code that triggered the bug
+        @type  bug_code: Str
+        @return: The bug code description
+        @rtype : Str
+
+        """
+        if bug_code == TIMEOUT_CODE:
+            bug_code_string = 'timeout'
+        elif bug_code == CONNECTION_CLOSED_CODE:
+            bug_code_string = 'connection_closed'
+        elif bug_code.startswith('20'):
+            bug_code_string = '20x'
+        else:
+            bug_code_string = f'{bug_code}'
+            
+        return bug_code_string
+
     def _get_bucket_origin(self, origin, bug_code):
-        """ Helper to get the bug bucket origin string from a bug code
+        """ Helper to get a full bug bucket origin string that includes the
+        bug origin and bug code.
 
         @param origin: The origin of the bug (checker name, main driver, etc)
         @type  origin: Str
@@ -100,14 +122,9 @@ class BugBuckets(object):
         @rtype : Str
 
         """
-        if bug_code == TIMEOUT_CODE:
-            return f'{origin}_timeout'
-        elif bug_code == CONNECTION_CLOSED_CODE:
-            return f'{origin}_connection_closed'
-        elif bug_code.startswith('20'):
-            return f'{origin}_20x'
-        else:
-            return f'{origin}_{bug_code}'
+        return f'{origin}_{self._get_bug_code_description(bug_code)}'
+
+
 
     def _get_bug_hash(self, origin, sequence, hash_full_request, additional_str):
         """ Helper that creates and returns the unique bug hash
@@ -197,6 +214,7 @@ class BugBuckets(object):
 
         try:
             bucket_origin = self._get_bucket_origin(origin, bug_code)
+            bucket_bugcode_description = self._get_bug_code_description(bug_code)
             if bucket_origin not in self._bug_buckets:
                 self._bug_buckets[bucket_origin] = OrderedDict()
             bucket = self._bug_buckets[bucket_origin]
@@ -208,7 +226,7 @@ class BugBuckets(object):
                     (reproducible, reproduce_attempts, reproduce_successes) = self._test_bug_reproducibility(sequence, bug_code, bucket)
                 else:
                     (reproducible, reproduce_attempts, reproduce_successes) = (False, 0, 0)
-                bucket[seq_hex] = BugBucket(sequence, reproducible, reproduce_attempts, reproduce_successes, origin)
+                bucket[seq_hex] = BugBucket(sequence, reproducible, reproduce_attempts, reproduce_successes, origin, bucket_bugcode_description)
 
             sent_request_data_list = sequence.sent_request_data_list
             create_once_requests = self._get_create_once_requests(sequence)

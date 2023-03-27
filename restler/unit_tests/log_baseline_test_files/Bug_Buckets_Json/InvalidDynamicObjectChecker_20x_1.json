@@ -1,0 +1,22 @@
+{
+    "status_code": "200",
+    "checker_name": "InvalidDynamicObjectChecker",
+    "reproducible": true,
+    "verb": "GET",
+    "endpoint": "/city/{cityName}",
+    "status_text": "OK",
+    "request_sequence": [
+        {
+            "producer_timing_delay": 0,
+            "max_async_wait_time": 20,
+            "replay_request": "PUT /city/cityName<test!>-3978db8792 HTTP/1.1\r\nHost: unittest\r\nAUTHORIZATION TOKEN\r\n\r\n{}\r\n",
+            "response": "HTTP/1.1 201 Created\r\nRestler Test\r\n\r\n{\"name\": \"cityName<test!>-3978db8792\", \"properties\": {}}"
+        },
+        {
+            "producer_timing_delay": 0,
+            "max_async_wait_time": 0,
+            "replay_request": "GET /city/cityName<test!>-3978db8792?injected_query_string=123 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nAUTHORIZATION TOKEN\r\n\r\n",
+            "response": "HTTP/1.1 200 OK\r\nRestler Test\r\n\r\n{\"name\": \"cityName<test!>-3978db8792\", \"properties\": {}}"
+        }
+    ]
+}

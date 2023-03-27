@@ -99,7 +99,6 @@ class BugDetail():
 class BugRequest():
     def __init__(self):
         
-        self.request_order = 0
         self.producer_timing_delay = 0
         self.max_async_wait_time = 0
         self.replay_request = None 
@@ -697,7 +696,6 @@ def update_bug_buckets(bug_buckets, bug_request_data, bug_hash, additional_log_s
                 bugRequest = BugRequest()
                 bugRequest.replay_request = req.rendered_data
                 bugRequest.response = req.response
-                bugRequest.request_order = sequence_request_counter
                 bugRequest.producer_timing_delay = req.producer_timing_delay
                 bugRequest.max_async_wait_time = req.max_async_wait_time
                 bugDetail.request_sequence.append(bugRequest)    
@@ -785,7 +783,7 @@ def update_bug_buckets(bug_buckets, bug_request_data, bug_hash, additional_log_s
                         requestBug.filepath = filenameJson
                         requestBug.reproducible = bug_bucket.reproducible
                         requestBug.checker_name = bug_bucket.origin
-                        requestBug.error_code =bucket_class.split("_")[len(bucket_class.split("_"))-1] 
+                        requestBug.error_code = bug_bucket.error_code 
                         
                         write_incremental_bugs(os.path.join(BUG_BUCKETS_DIR, "Bugs.json"),requestBug)
                         Bugs_Logged[bucket_hash] = BugTuple(filename, bug_hash, bug_bucket.reproduce_attempts, bug_bucket.reproduce_successes)
