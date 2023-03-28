@@ -1,21 +1,135 @@
 {
     "buckets": [
         {
-            "checkerName": "InvalidValueChecker",
+            "checker_name": "LeakageRuleChecker",
+            "bugs": [
+                {
+                    "status_code": "20x",
+                    "details": [
+                        {
+                            "filepath": "LeakageRuleChecker_20x_1.txt",
+                            "reproducible": true
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "checker_name": "InvalidDynamicObjectChecker",
+            "bugs": [
+                {
+                    "status_code": "20x",
+                    "details": [
+                        {
+                            "filepath": "InvalidDynamicObjectChecker_20x_1.txt",
+                            "reproducible": true
+                        },
+                        {
+                            "filepath": "InvalidDynamicObjectChecker_20x_2.txt",
+                            "reproducible": true
+                        },
+                        {
+                            "filepath": "InvalidDynamicObjectChecker_20x_3.txt",
+                            "reproducible": true
+                        },
+                        {
+                            "filepath": "InvalidDynamicObjectChecker_20x_4.txt",
+                            "reproducible": true
+                        },
+                        {
+                            "filepath": "InvalidDynamicObjectChecker_20x_5.txt",
+                            "reproducible": true
+                        },
+                        {
+                            "filepath": "InvalidDynamicObjectChecker_20x_6.txt",
+                            "reproducible": true
+                        },
+                        {
+                            "filepath": "InvalidDynamicObjectChecker_20x_7.txt",
+                            "reproducible": true
+                        },
+                        {
+                            "filepath": "InvalidDynamicObjectChecker_20x_8.txt",
+                            "reproducible": true
+                        },
+                        {
+                            "filepath": "InvalidDynamicObjectChecker_20x_9.txt",
+                            "reproducible": true
+                        },
+                        {
+                            "filepath": "InvalidDynamicObjectChecker_20x_10.txt",
+                            "reproducible": true
+                        },
+                        {
+                            "filepath": "InvalidDynamicObjectChecker_20x_11.txt",
+                            "reproducible": true
+                        },
+                        {
+                            "filepath": "InvalidDynamicObjectChecker_20x_12.txt",
+                            "reproducible": true
+                        },
+                        {
+                            "filepath": "InvalidDynamicObjectChecker_20x_13.txt",
+                            "reproducible": true
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "checker_name": "NameSpaceRuleChecker",
+            "bugs": [
+                {
+                    "status_code": "20x",
+                    "details": [
+                        {
+                            "filepath": "NameSpaceRuleChecker_20x_1.txt",
+                            "reproducible": false
+                        },
+                        {
+                            "filepath": "NameSpaceRuleChecker_20x_2.txt",
+                            "reproducible": false
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "checker_name": "UseAfterFreeChecker",
+            "bugs": [
+                {
+                    "status_code": "20x",
+                    "details": [
+                        {
+                            "filepath": "UseAfterFreeChecker_20x_1.txt",
+                            "reproducible": true
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "checker_name": "main_driver",
             "bugs": [
                 {
                     "status_code": "500",
                     "details": [
                         {
-                            "filepath": "InvalidValueChecker_500_1.txt",
+                            "filepath": "main_driver_500_1.txt",
                             "reproducible": true
-                        },
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "checker_name": "ResourceHierarchyChecker",
+            "bugs": [
+                {
+                    "status_code": "20x",
+                    "details": [
                         {
-                            "filepath": "InvalidValueChecker_500_2.txt",
-                            "reproducible": true
-                        },
-                        {
-                            "filepath": "InvalidValueChecker_500_3.txt",
+                            "filepath": "ResourceHierarchyChecker_20x_1.txt",
                             "reproducible": true
                         }
                     ]

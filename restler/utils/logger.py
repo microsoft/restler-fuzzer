@@ -76,8 +76,8 @@ class Bug():
        
        self.filepath = None
        self.reproducible = False
-       self.checkerName = None
-       self.errorCode = None
+       self.checker_name = None
+       self.error_code = None
 
      def toJson(self):
         return json.dumps(self, default=lambda o : o.__dict__, indent=4)
@@ -86,12 +86,11 @@ class BugDetail():
     def __init__(self):
        
        self.status_code = 0
-       self.checkerName = None
+       self.checker_name = None
        self.reproducible = False
        self.verb = None
        self.endpoint = None
        self.status_text = None
-       #self.error_message = None
        self.request_sequence = []
 
     def toJson(self):
@@ -100,11 +99,10 @@ class BugDetail():
 class BugRequest():
     def __init__(self):
         
-        self.requestOrder = 0
-        self.replayrequest = None   
         self.producer_timing_delay = 0
         self.max_async_wait_time = 0
-        self.response =None
+        self.replay_request = None 
+        self.response =None  
         
 class Buckets():
      def __init__(self):
@@ -115,7 +113,7 @@ class Buckets():
      
 class CheckerBucket():
      def __init__(self):
-       self.checkerName = None
+       self.checker_name = None
        self.bugs=[]
 
      def toJson(self):
@@ -132,8 +130,8 @@ class BucketedBug():
 class BucketedBugDetails():
     def __init__(self):
        self.filepath = None
-       self.reproducible = False       
-     
+       self.reproducible = False  
+       
 Network_Auth_Log = None
 
 class NetworkLog(object):
@@ -653,9 +651,9 @@ Bugs_Logged = dict()
 # Dict of bug hashes to be printed to bug_buckets.json
 #   {bug_hash: {"file_path": replay_log_relative_path}}
 Bug_Hashes = dict()
-
 BugBuckets_GroupedBy_Checker = Buckets()
-def update_bug_buckets(bug_buckets, bug_request_data, bug_hash, additional_log_str=None, origin='main_driver'):
+
+def update_bug_buckets(bug_buckets, bug_request_data, bug_hash, additional_log_str=None):
     """
     @param bug_buckets: Dictionary containing bug bucket information
     @type  bug_buckets: Dict
@@ -671,9 +669,12 @@ def update_bug_buckets(bug_buckets, bug_request_data, bug_hash, additional_log_s
 
     """
     Header_Len = 80
+    def get_bug_filename(file_extension):
+        return f"{bucket_class}_{len(bug_buckets[bucket_class].keys())}.{file_extension}"
+    
     def log_new_bug():
         # Create the new bug log
-        filename = f"{bucket_class}_{len(bug_buckets[bucket_class].keys())}.txt"
+        filename = get_bug_filename("txt")
         filepath = os.path.join(BUG_BUCKETS_DIR, filename)
 
         with open(filepath, "w+", encoding='utf-8') as bug_file:
@@ -708,26 +709,25 @@ def update_bug_buckets(bug_buckets, bug_request_data, bug_hash, additional_log_s
     
     def log_new_bug_as_json():
         # Create the new bug log in json format
-        filename = f"{bucket_class}_{len(bug_buckets[bucket_class].keys())}.json"
+        filename = get_bug_filename("json")
         filepath = os.path.join(BUG_BUCKETS_DIR, filename)
         currentsequence = bug_bucket.sequence
         
         bugDetail = BugDetail()
-        bugDetail.checkerName = checkerName
+        bugDetail.checker_name = bug_bucket.origin
         bugDetail.reproducible = bug_bucket.reproducible
         bugDetail.endpoint = currentsequence.last_request._endpoint_no_dynamic_objects
         bugDetail.verb = currentsequence.last_request.method
-        sequenceRequestCounter = 0;
+        sequence_request_counter = 0
         for req in bug_request_data:
             try:
                 bugRequest = BugRequest()
-                bugRequest.replayrequest = req.rendered_data
+                bugRequest.replay_request = req.rendered_data
                 bugRequest.response = req.response
-                bugRequest.requestOrder = sequenceRequestCounter
                 bugRequest.producer_timing_delay = req.producer_timing_delay
                 bugRequest.max_async_wait_time = req.max_async_wait_time
                 bugDetail.request_sequence.append(bugRequest)    
-                if(sequenceRequestCounter == len(bug_request_data)-1):
+                if(sequence_request_counter == len(bug_request_data)-1):
                     if(len(req.response.split(DELIM))>1):
                         split_responsebody = req.response.split(DELIM)
                         response_headers = split_responsebody[0].split("\r\n")
@@ -738,7 +738,7 @@ def update_bug_buckets(bug_buckets, bug_request_data, bug_hash, additional_log_s
                         bugDetail.status_code = ''
                         bugDetail.status_text = ''
                     
-                sequenceRequestCounter= sequenceRequestCounter + 1
+                sequence_request_counter = sequence_request_counter + 1
             except Exception as error:
                         write_to_main(f"Failed to write bug bucket as json log: {error!s}")
                         filename = 'Failed to create bug bucket as json log.'
@@ -803,7 +803,7 @@ def update_bug_buckets(bug_buckets, bug_request_data, bug_hash, additional_log_s
                 bug_bucket = bug_buckets[bucket_class][seq_hash]
                 bucket_hash = f"{seq_hash}_{bucket_class}"
                 name_header = bucket_class
-                checkerName = bucket_class[0:0+ bucket_class.find("_"+bucket_class.split("_")[len(bucket_class.split("_"))-1])]
+                checker_name = bug_bucket.origin
                 if bucket_hash not in Bugs_Logged:
                     try:
                         filename = log_new_bug()
@@ -811,25 +811,25 @@ def update_bug_buckets(bug_buckets, bug_request_data, bug_hash, additional_log_s
                         requestBug = Bug()
                         requestBug.filepath = filenameJson
                         requestBug.reproducible = bug_bucket.reproducible
-                        requestBug.checkerName = checkerName
-                        requestBug.errorCode =bucket_class.split("_")[len(bucket_class.split("_"))-1] 
+                        requestBug.checker_name = bug_bucket.origin
+                        requestBug.error_code = bug_bucket.error_code 
                         
-                        write_incremental_bugs(os.path.join(BUG_BUCKETS_DIR, "Bugs.Json"),requestBug)
+                        write_incremental_bugs(os.path.join(BUG_BUCKETS_DIR, "Bugs.json"),requestBug)
                         Bugs_Logged[bucket_hash] = BugTuple(filename, bug_hash, bug_bucket.reproduce_attempts, bug_bucket.reproduce_successes)
-                        bug_Buckets_perChecker =[bug_Bucket_perChecker for bug_Bucket_perChecker in BugBuckets_GroupedBy_Checker.buckets if bug_Bucket_perChecker.checkerName == checkerName] 
+                        bug_Buckets_perChecker =[bug_Bucket_perChecker for bug_Bucket_perChecker in BugBuckets_GroupedBy_Checker.buckets if bug_Bucket_perChecker.checker_name == checker_name] 
                         if len(bug_Buckets_perChecker) <= 0:
                             checkerBucket = CheckerBucket()
-                            checkerBucket.checkerName = checkerName
+                            checkerBucket.checker_name = bug_bucket.origin
                             BugBuckets_GroupedBy_Checker.buckets.append(checkerBucket)
-                            bug_Buckets_perChecker = [bug_Bucket_perChecker for bug_Bucket_perChecker in BugBuckets_GroupedBy_Checker.buckets if bug_Bucket_perChecker.checkerName == checkerName] 
+                            bug_Buckets_perChecker = [bug_Bucket_perChecker for bug_Bucket_perChecker in BugBuckets_GroupedBy_Checker.buckets if bug_Bucket_perChecker.checker_name == checker_name] 
                         
                         bugs_inbucket_perChecker = bug_Buckets_perChecker[0].bugs
-                        bugs_perChecker_statusCode = [bug_perChecker_statusCodelocal for bug_perChecker_statusCodelocal in bugs_inbucket_perChecker if bug_perChecker_statusCodelocal.status_code ==requestBug.errorCode] 
+                        bugs_perChecker_statusCode = [bug_perChecker_statusCodelocal for bug_perChecker_statusCodelocal in bugs_inbucket_perChecker if bug_perChecker_statusCodelocal.status_code ==requestBug.error_code] 
                         if len(bugs_perChecker_statusCode) <= 0 :
                             bucketedBug = BucketedBug()
-                            bucketedBug.status_code = requestBug.errorCode
+                            bucketedBug.status_code = requestBug.error_code
                             bugs_inbucket_perChecker.append(bucketedBug)
-                            bugs_perChecker_statusCode = [bug_perChecker_statusCodelocal for bug_perChecker_statusCodelocal in bugs_inbucket_perChecker if bug_perChecker_statusCodelocal.status_code ==requestBug.errorCode] 
+                            bugs_perChecker_statusCode = [bug_perChecker_statusCodelocal for bug_perChecker_statusCodelocal in bugs_inbucket_perChecker if bug_perChecker_statusCodelocal.status_code ==requestBug.error_code] 
                         
                         bucketedBugDetails = BucketedBugDetails()
                         bucketedBugDetails.filepath= filename
@@ -1296,7 +1296,7 @@ def generate_summary_speccov():
     @rtype : None
     """
     SpecCoverageLog.Instance().generate_summary_speccov()
-    
+
 def print_bugbuckets_bychecker():
     # Print the bug buckets by the checker in json format
     if len(BugBuckets_GroupedBy_Checker.buckets)>0 :
@@ -1304,4 +1304,4 @@ def print_bugbuckets_bychecker():
         jsonString = BugBuckets_GroupedBy_Checker.toJson()
         with open(filepath, "w+", encoding='utf-8') as bug_buckets_json_file:
             print(f'{jsonString}', file=bug_buckets_json_file)
-    
+        

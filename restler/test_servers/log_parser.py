@@ -390,9 +390,9 @@ class BugLogParser(LogParser):
             
 class JsonFormattedBugsLogParser(LogParser):
     class FileType(enumerate):
-        Bugs =1,
-        BugDetails=2,
-        BugBuckets_ByChecker= 3
+        Bugs = 'Bugs',
+        BugDetails = 'BugDetails',
+        BugBuckets_ByChecker = 'BugBuckets_ByChecker'
 
 
     def __init__(self, path, fileType):
@@ -418,20 +418,15 @@ class JsonFormattedBugsLogParser(LogParser):
 
         """
         try:
-            if self._fileType == JsonFormattedBugsLogParser.FileType.Bugs: #"Bugs":
-                with open(self._path, 'r') as bugs:
-                        bugs_json = json.load(bugs)
+            with open(self._path, 'r') as bugs:
+                bugs_json = json.load(bugs)
+            if self._fileType == JsonFormattedBugsLogParser.FileType.Bugs:
                 self._bug_list = bugs_json['bugs']
             elif self._fileType == JsonFormattedBugsLogParser.FileType.BugDetails:
-                with open(self._path, 'r') as bugs:
-                        bugs_json = json.load(bugs)
                 self._bug_detail = bugs_json
             elif self._fileType == JsonFormattedBugsLogParser.FileType.BugBuckets_ByChecker:
-                with open(self._path, 'r') as bugs:
-                        bugs_json = json.load(bugs)
                 self._bug_buckets_bychecker = bugs_json['buckets']
         except Exception as err:
-            logger.write_to_main(f"Failed to process grammar file: {self._path}; {err!s}", print_to_console=True)
-            print("Failed to read bugs log json. Log was not a complete bugs log.\n"
+            print("Failed to read bug buckets file type {self._fileType} in bug buckets directory.\n"
                       f"{err!s}")
             raise TestFailedException

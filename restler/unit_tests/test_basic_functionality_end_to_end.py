@@ -1060,15 +1060,31 @@ class FunctionalityTests(unittest.TestCase):
             self.fail("Smoke test failed: Fuzzing")
 
     def test_logger_jsonformatted_bugbuckets(self):
-       
-        settings_file_path = os.path.join(Test_File_Directory, "test_invalid_value_checker_settings.json")
+        
+        def verify_bug_details(baseline_bugdetail_filename, actual_bugdetail_filename):
+            try:
+            #Verify the generated bug details in json format.
+                default_parser = JsonFormattedBugsLogParser(baseline_bugdetail_filename, JsonFormattedBugsLogParser.FileType.BugDetails)
+                test_parser = JsonFormattedBugsLogParser(actual_bugdetail_filename, JsonFormattedBugsLogParser.FileType.BugDetails)
+                self.assertTrue(default_parser._bug_detail['status_code'] == test_parser._bug_detail['status_code'])
+                self.assertTrue(default_parser._bug_detail['checker_name'] == test_parser._bug_detail['checker_name'])
+                self.assertTrue(default_parser._bug_detail['reproducible'] == test_parser._bug_detail['reproducible'])
+                self.assertTrue(default_parser._bug_detail['verb'] == test_parser._bug_detail['verb'])
+                self.assertTrue(default_parser._bug_detail['endpoint'] == test_parser._bug_detail['endpoint'])
+                self.assertTrue(default_parser._bug_detail['status_text'] == test_parser._bug_detail['status_text'])
+                self.assertTrue(len(default_parser._bug_detail['request_sequence']) == len(test_parser._bug_detail['request_sequence']))
+            except TestFailedException:
+                self.fail("verification of bugs details file failed")
 
+
+        settings_file_path = os.path.join(Test_File_Directory, "test_one_schema_settings.json")
         args = Common_Settings + [
-        '--fuzzing_mode', 'test-all-combinations',
-        '--restler_grammar', f'{os.path.join(Test_File_Directory, "test_grammar.py")}',
-        '--enable_checkers', 'invalidvalue',
-        '--settings', f'{settings_file_path}'
-        ]
+                '--fuzzing_mode', 'directed-smoke-test',
+                '--restler_grammar', f'{os.path.join(Test_File_Directory, "test_grammar_bugs.py")}',
+                '--enable_checkers', '*',
+                '--disable_checkers', 'invalidvalue',
+                '--settings', f'{settings_file_path}'
+            ]
 
         result = subprocess.run(args, capture_output=True)
         if result.stderr:
@@ -1085,51 +1101,43 @@ class FunctionalityTests(unittest.TestCase):
             test_parser = JsonFormattedBugsLogParser(os.path.join(experiments_dir, 'bug_buckets', 'Bugs.json'),JsonFormattedBugsLogParser.FileType.Bugs)
             self.assertTrue(len(default_parser._bug_list) == len(test_parser._bug_list),"Expected count of bugs are not same.")
             counter =0;
-            for expectedBug in default_parser._bug_list:
-                actualBug = test_parser._bug_list[counter]
-                self.assertTrue(expectedBug == actualBug ,f"Expected bug :{expectedBug} and actual bug :{actualBug} are different")
+            for expected_bug in default_parser._bug_list:
+                actual_bug = test_parser._bug_list[counter]
+                self.assertTrue(expected_bug == actual_bug ,f"Expected bug :{expected_bug} and actual bug :{actual_bug} are different")
                 counter = counter + 1
         except TestFailedException:
             self.fail("verification of bugs json file failed")
         
-        try:
-            default_parser = JsonFormattedBugsLogParser(os.path.join(Test_File_Directory,"Bug_Buckets_Json", "InvalidValueChecker_500_1.json"),JsonFormattedBugsLogParser.FileType.BugDetails)
-            test_parser = JsonFormattedBugsLogParser(os.path.join(experiments_dir, 'bug_buckets', 'InvalidValueChecker_500_1.json'),JsonFormattedBugsLogParser.FileType.BugDetails)
-            self.assertTrue(default_parser._bug_detail['status_code'] == test_parser._bug_detail['status_code'])
-            self.assertTrue(default_parser._bug_detail['checkerName'] == test_parser._bug_detail['checkerName'])
-            self.assertTrue(default_parser._bug_detail['reproducible'] == test_parser._bug_detail['reproducible'])
-            self.assertTrue(default_parser._bug_detail['verb'] == test_parser._bug_detail['verb'])
-            self.assertTrue(default_parser._bug_detail['endpoint'] == test_parser._bug_detail['endpoint'])
-            self.assertTrue(default_parser._bug_detail['status_text'] == test_parser._bug_detail['status_text'])
-            self.assertTrue(len(default_parser._bug_detail['request_sequence']) == len(test_parser._bug_detail['request_sequence']))
-        except TestFailedException:
-            self.fail("verification of bugs details file failed")
-            
+        verify_bug_details(os.path.join(Test_File_Directory,"Bug_Buckets_Json", "InvalidDynamicObjectChecker_20x_1.json"),
+                           os.path.join(experiments_dir, 'bug_buckets', 'InvalidDynamicObjectChecker_20x_1.json'))
+        
+        verify_bug_details(os.path.join(Test_File_Directory,"Bug_Buckets_Json", "UseAfterFreeChecker_20x_1.json"),
+                           os.path.join(experiments_dir, 'bug_buckets', 'UseAfterFreeChecker_20x_1.json'))
+        
         try:
             default_parser = JsonFormattedBugsLogParser(os.path.join(Test_File_Directory, "Bug_Buckets_Json","BugBuckets_GroupedBy_Checker.json"),JsonFormattedBugsLogParser.FileType.BugBuckets_ByChecker)
             test_parser = JsonFormattedBugsLogParser(os.path.join(experiments_dir, 'bug_buckets', 'BugBuckets_GroupedBy_Checker.json'),JsonFormattedBugsLogParser.FileType.BugBuckets_ByChecker)
 
             bugBucketCounter =0
             for bugBucketPerCheckerExcpected in default_parser._bug_buckets_bychecker:
-                self.assertTrue(bugBucketPerCheckerExcpected['checkerName']== test_parser._bug_buckets_bychecker[bugBucketCounter]['checkerName'])
+                self.assertTrue(bugBucketPerCheckerExcpected['checker_name'] == test_parser._bug_buckets_bychecker[bugBucketCounter]['checker_name'])
                 self.assertTrue(len(bugBucketPerCheckerExcpected['bugs']) == len(test_parser._bug_buckets_bychecker[bugBucketCounter]['bugs']))
                 bugInfoPerStatuscodeCounter = 0
                 for expectedBugInfoPerStatuscode in bugBucketPerCheckerExcpected['bugs'] :
                     actualBugInfoPerStatuscode = test_parser._bug_buckets_bychecker[bugBucketCounter]['bugs'][bugInfoPerStatuscodeCounter]
-                    self.assertTrue(expectedBugInfoPerStatuscode['status_code'], actualBugInfoPerStatuscode['status_code'])
+                    self.assertTrue(expectedBugInfoPerStatuscode['status_code'] == actualBugInfoPerStatuscode['status_code'])
                     
                     bugdetailCounter = 0
                     for expectedBugDetailPerStatusCode in expectedBugInfoPerStatuscode['details']:
                         actualBugDetailPerStatusCode = actualBugInfoPerStatuscode['details'][bugdetailCounter]
-                        self.assertTrue(expectedBugDetailPerStatusCode['filepath'], actualBugDetailPerStatusCode['filepath'])
-                        self.assertTrue(expectedBugDetailPerStatusCode['reproducible'], actualBugDetailPerStatusCode['reproducible'])
+                        self.assertTrue(expectedBugDetailPerStatusCode['filepath'] == actualBugDetailPerStatusCode['filepath'])
+                        self.assertTrue(expectedBugDetailPerStatusCode['reproducible'] == actualBugDetailPerStatusCode['reproducible'])
                         bugdetailCounter = bugdetailCounter +1
                     bugInfoPerStatuscodeCounter = bugInfoPerStatuscodeCounter + 1
                 bugBucketCounter= bugBucketCounter + 1
         except TestFailedException:
             self.fail("verification of file containing bugs buckets grouped by checker failed.")
-            
-
+        
     def test_gc_limits(self):
         """ This test checks that RESTler exits after N objects cannot be deleted according
         to the settings.  It also tests that async resource deletion is being performed.
