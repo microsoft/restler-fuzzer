@@ -409,7 +409,8 @@ module private Parameters =
 
     let pathParameters (swaggerMethodDefinition:OpenApiOperation) (endpoint:string)
                        (exampleConfig: ExampleRequestPayload list option)
-                       (trackParameters:bool) =
+                       (trackParameters:bool)
+                       (jsonPropertyMaxDepth:int option) =
         let allDeclaredPathParameters = getSpecParameters swaggerMethodDefinition OpenApiParameterKind.Path
 
         let parameterList =
@@ -456,14 +457,34 @@ module private Parameters =
                                                          raise (Exception("Arrays in path examples are not supported yet."))
                                                      else
                                                         let specExampleValue = getExamplesFromParameter parameter
-                                                        getFuzzableValueForProperty ""
-                                                                                     schema
-                                                                                     true (*IsRequired*)
-                                                                                     false (*IsReadOnly*)
-                                                                                     (tryGetEnumeration schema)
-                                                                                     (tryGetDefault schema)
-                                                                                     specExampleValue
-                                                                                     trackParameters
+                                                        let propertyPayload = 
+                                                            generateGrammarElementForSchema
+                                                                    schema
+                                                                    (specExampleValue, true)
+                                                                    (trackParameters, jsonPropertyMaxDepth)
+                                                                    (true (*isRequired*), false (*isReadOnly*))
+                                                                    []
+                                                                    (SchemaCache())
+                                                                    id
+                                                        match propertyPayload with
+                                                        | LeafNode leafProperty -> 
+                                                            let leafNodePayload =
+
+                                                                match leafProperty.payload with
+                                                                | Fuzzable fp ->
+                                                                    match fp.primitiveType with
+                                                                    | Enum(propertyName, propertyType, values, defaultValue) ->
+                                                                        let primitiveType = PrimitiveType.Enum(parameter.Name, propertyType, values, defaultValue)
+                                                                        Fuzzable { fp with primitiveType = primitiveType }
+                                                                    | _ ->
+                                                                        Fuzzable {fp with
+                                                                                    parameterName = if trackParameters then Some parameter.Name else None }
+                                                                | _ -> leafProperty.payload
+                                                            { leafProperty with payload = leafNodePayload }
+                                                        | InternalNode (internalNode, children) ->
+                                                            // The parameter payload is not expected to be nested
+                                                            failwith "Path parameters with nested object types are not supported"
+
                                                 Some { name = parameterName
                                                        payload = LeafNode leafProperty
                                                        serialization = serialization }
@@ -1153,6 +1174,7 @@ let generateRequestGrammar (swaggerDocs:Types.ApiSpecFuzzingConfig list)
                                     m.Value ep
                                     (if usePathExamples then exampleConfig else None)
                                     config.TrackFuzzedParameterNames
+                                    config.JsonPropertyMaxDepth
                         let body =
                             let useBodyExamples =
                                 config.UseBodyExamples |> Option.defaultValue false
