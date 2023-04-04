@@ -15,6 +15,7 @@ type RequestData =
     {
         requestParameters : RequestParameters
         localAnnotations : seq<ProducerConsumerAnnotation>
+        linkAnnotations : seq<ProducerConsumerAnnotation>
         responseProperties : ResponseProperties option
         responseHeaders : (string * ResponseProperties) list
         requestMetadata : RequestMetadata

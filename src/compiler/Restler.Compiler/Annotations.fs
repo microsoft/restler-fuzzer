@@ -4,6 +4,7 @@
 module Restler.Annotations
 
 open System.Collections.Generic
+open System.Text.RegularExpressions
 open Restler.Grammar
 open System
 open System.IO
@@ -165,7 +166,7 @@ let getAnnotationsFromJson (annotationJson:JToken) =
         printfn "ERROR: malformed annotations specified. %A" e.Message
         raise e
 
-/// Gets the REST-ler dependency annotation from the extension data
+/// Gets the RESTler dependency annotation from the extension data
 /// The 'except' clause indicates that "all consumer IDs with resource name 'workflowName'
 /// should be resolved to this producer, except for the indicated consumer endpoint (which
 /// should use the dependency in order of resolution, e.g. custom dictionary entry.)
@@ -221,3 +222,72 @@ let getGlobalAnnotationsFromFile filePath =
             raise (ArgumentException("invalid annotation file"))
     else
         List.empty
+
+// Gets the RESTler dependency annotation from OpenAPI v3 links
+//    "links": {
+//      "linkName":{
+//        "description": "description",
+//        "operationId": "target operation",
+//        "parameters": {
+//          "configStoreName": "JSON path to value"
+//        }
+//      }
+//    }
+//
+let getAnnotationsFromOpenapiLinks (producerRequestId:RequestId) (links:IDictionary<_, NSwag.OpenApiLink>) (oasDoc:NSwag.OpenApiDocument) =
+
+    let pathOrName (name: string) =
+        match AccessPaths.tryGetAccessPathFromString name with
+        | Some p -> ResourcePath p
+        | None -> ResourceName name
+
+    // Parse the producer parameter from the JSON path in the parameter value
+    // Only match specific patterns for now
+    let parseProducerParameter (paramValue:obj) =
+        // OAS v3 says that the value can be "any" but we only support strings
+        match paramValue with
+        | :? string as s ->
+            match s.Split(".") with
+            | [|"$request"; "path" | "query" | "header"; v|] -> v |> ResourceName |> Some
+            | [|"$response"; "header"; v|] -> v |> ResourceName |> Some
+            | [|"$response"; v|] when v.StartsWith("body#") -> v.Replace("body#","") |> pathOrName |> Some
+            | _ -> None
+        | _ -> None
+
+    let parseLink (link:NSwag.OpenApiLink): ProducerConsumerAnnotation option =
+
+        match oasDoc.Operations |> Seq.tryFind (fun op -> op.Operation.OperationId = link.OperationId) with
+        | None -> None
+        | Some consumerOperation ->
+            let consumerEndpoint = consumerOperation.Path
+            let consumerMethod = getOperationMethodFromString (consumerOperation.Method.ToString())
+            let consumerRequestId = Some {
+                                        endpoint = consumerEndpoint
+                                        method = consumerMethod
+                                        xMsPath = None
+                                    }
+            // For now we only support a single parameter
+            match link.Parameters |> Seq.tryHead with
+            | None ->
+                printfn "ERROR: malformed annotation, no parameters specified for link %s" link.OperationId
+                None
+            | Some kv ->
+                // Note: OAS v3 says
+                // "The parameter name can be qualified using the parameter location [{in}.]{name} for operations
+                // that use the same parameter name in different locations (e.g. path.id)."
+                let consumerParameter = Regex.Replace(kv.Key, "^(path\.|query\.|header\.|cookie\.)", "") |> ResourceName |> Some
+                match kv.Value |> parseProducerParameter with
+                | None -> None
+                | producerParameter ->
+                    Some {
+                        ProducerConsumerAnnotation.producerId = producerRequestId
+                        consumerId = consumerRequestId
+                        consumerParameter = consumerParameter
+                        producerParameter = producerParameter
+                        exceptConsumerId = None
+                    }
+
+    if isNull links then
+        Seq.empty
+    else
+        links |> Seq.choose (fun (KeyValue(k,v)) -> parseLink(v.ActualLink))

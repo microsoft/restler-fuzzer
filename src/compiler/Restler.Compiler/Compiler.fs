@@ -856,7 +856,7 @@ let generateRequestPrimitives (requestId:RequestId)
             requestParameter, false
 
     // Generate header parameters.
-    // Do not compute dependencies for header parameters.
+    // Do not compute dependencies for header parameters unless resolveHeaderDependencies (from config) is true.
     let requestHeaderParameters =
         let headersSpecifiedAsCustomPayloads = dictionary.getCustomPayloadHeaderParameterNames()
         match requestParameters.header with
@@ -1232,8 +1232,16 @@ let generateRequestGrammar (swaggerDocs:Types.ApiSpecFuzzingConfig list)
                                                                         schemaCache
                                                                         id
                                         |> Some
+
+                                // Convert links in the response to annotations
+                                let linkAnnotations =
+                                    if isNull r.Value.ActualResponse.Links then Seq.empty
+                                    else
+                                        Restler.Annotations.getAnnotationsFromOpenapiLinks requestId r.Value.ActualResponse.Links swaggerDoc
+
                                 {| bodyResponse = bodyResponseSchema
-                                   headerResponse = headerResponseSchema |}
+                                   headerResponse = headerResponseSchema
+                                   linkAnnotations = linkAnnotations |}
                         }
 
                         // 'allResponseProperties' contains the schemas of all possible responses
@@ -1253,6 +1261,10 @@ let generateRequestGrammar (swaggerDocs:Types.ApiSpecFuzzingConfig list)
 
                         yield (requestId, { RequestData.requestParameters = requestParameters
                                             localAnnotations = localAnnotations
+                                            linkAnnotations =
+                                                match response with
+                                                | None -> Seq.empty
+                                                | Some r -> r.linkAnnotations
                                             responseProperties =
                                                 match response with
                                                 | None -> None
