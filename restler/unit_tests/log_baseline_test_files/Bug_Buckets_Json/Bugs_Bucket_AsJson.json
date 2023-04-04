@@ -1,0 +1,118 @@
+{
+	"bugs": [
+		{
+			"filepath": "LeakageRuleChecker_20x_1.json",
+			"reproducible": true,
+			"checker_name": "LeakageRuleChecker",
+			"error_code": "20x"
+		},
+		{
+			"filepath": "InvalidDynamicObjectChecker_20x_1.json",
+			"reproducible": true,
+			"checker_name": "InvalidDynamicObjectChecker",
+			"error_code": "20x"
+		},
+		{
+			"filepath": "NameSpaceRuleChecker_20x_1.json",
+			"reproducible": false,
+			"checker_name": "NameSpaceRuleChecker",
+			"error_code": "20x"
+		},
+		{
+			"filepath": "InvalidDynamicObjectChecker_20x_2.json",
+			"reproducible": true,
+			"checker_name": "InvalidDynamicObjectChecker",
+			"error_code": "20x"
+		},
+		{
+			"filepath": "UseAfterFreeChecker_20x_1.json",
+			"reproducible": true,
+			"checker_name": "UseAfterFreeChecker",
+			"error_code": "20x"
+		},
+		{
+			"filepath": "InvalidDynamicObjectChecker_20x_3.json",
+			"reproducible": true,
+			"checker_name": "InvalidDynamicObjectChecker",
+			"error_code": "20x"
+		},
+		{
+			"filepath": "NameSpaceRuleChecker_20x_2.json",
+			"reproducible": false,
+			"checker_name": "NameSpaceRuleChecker",
+			"error_code": "20x"
+		},
+		{
+			"filepath": "InvalidDynamicObjectChecker_20x_4.json",
+			"reproducible": true,
+			"checker_name": "InvalidDynamicObjectChecker",
+			"error_code": "20x"
+		},
+		{
+			"filepath": "InvalidDynamicObjectChecker_20x_5.json",
+			"reproducible": true,
+			"checker_name": "InvalidDynamicObjectChecker",
+			"error_code": "20x"
+		},
+		{
+			"filepath": "InvalidDynamicObjectChecker_20x_6.json",
+			"reproducible": true,
+			"checker_name": "InvalidDynamicObjectChecker",
+			"error_code": "20x"
+		},
+		{
+			"filepath": "InvalidDynamicObjectChecker_20x_7.json",
+			"reproducible": true,
+			"checker_name": "InvalidDynamicObjectChecker",
+			"error_code": "20x"
+		},
+		{
+			"filepath": "InvalidDynamicObjectChecker_20x_8.json",
+			"reproducible": true,
+			"checker_name": "InvalidDynamicObjectChecker",
+			"error_code": "20x"
+		},
+		{
+			"filepath": "InvalidDynamicObjectChecker_20x_9.json",
+			"reproducible": true,
+			"checker_name": "InvalidDynamicObjectChecker",
+			"error_code": "20x"
+		},
+		{
+			"filepath": "InvalidDynamicObjectChecker_20x_10.json",
+			"reproducible": true,
+			"checker_name": "InvalidDynamicObjectChecker",
+			"error_code": "20x"
+		},
+		{
+			"filepath": "main_driver_500_1.json",
+			"reproducible": true,
+			"checker_name": "main_driver",
+			"error_code": "500"
+		},
+		{
+			"filepath": "InvalidDynamicObjectChecker_20x_11.json",
+			"reproducible": true,
+			"checker_name": "InvalidDynamicObjectChecker",
+			"error_code": "20x"
+		},
+		{
+			"filepath": "InvalidDynamicObjectChecker_20x_12.json",
+			"reproducible": true,
+			"checker_name": "InvalidDynamicObjectChecker",
+			"error_code": "20x"
+		},
+		{
+			"filepath": "ResourceHierarchyChecker_20x_1.json",
+			"reproducible": true,
+			"checker_name": "ResourceHierarchyChecker",
+			"error_code": "20x"
+		},
+		{
+			"filepath": "InvalidDynamicObjectChecker_20x_13.json",
+			"reproducible": true,
+			"checker_name": "InvalidDynamicObjectChecker",
+			"error_code": "20x"
+		}
+	]
+}

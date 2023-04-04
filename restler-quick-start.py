@@ -68,7 +68,7 @@ def replay_from_dir(ip, port, host, use_ssl, restler_dll_path, replay_dir):
     import glob
     from pathlib import Path
     # get all the 500 replay files in the bug buckets directory
-    bug_buckets = glob.glob(os.path.join(replay_dir, 'RestlerResults', '**/bug_buckets/*500*'))
+    bug_buckets = glob.glob(os.path.join(replay_dir, 'RestlerResults', '**/bug_buckets/*500*txt'))
     print(f"buckets: {bug_buckets}")
     for file_path in bug_buckets:
         if "bug_buckets" in os.path.basename(file_path):
