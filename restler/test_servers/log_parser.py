@@ -387,7 +387,7 @@ class BugLogParser(LogParser):
                 print("Failed to read bug log. Log was not a complete test log.\n"
                       f"{err!s}")
                 raise TestFailedException
-            
+
 class JsonFormattedBugsLogParser(LogParser):
     class FileType(enumerate):
         Bugs = 'Bugs',
@@ -405,10 +405,9 @@ class JsonFormattedBugsLogParser(LogParser):
         # key = bug type, value = list(tuple(ParsedSequence, reproduced-bool, bug-hash))
         self._bug_list = []
         self._bug_detail = None
-        self._bug_buckets_bychecker = []
         self._fileType = fileType
         self._parse()
-    
+
     def _parse(self):
         """ Parses the bug log to populate the bug list
 

@@ -7,9 +7,9 @@ In *Replay* mode, RESTler can replay a sequence from a bug_bucket log that was c
 To reproduce a bug bucket using RESTler,
 send the following command (as an example):
 
-`C:\restler_bin\restler\restler.exe replay --replay_log C:\demo-server-test\Test\RestlerResults\experiment20652\bug_buckets\PayloadBodyChecker_500_1.txt --token_refresh_command "<command>" --token_refresh_interval 30`
+`C:\restler_bin\restler\restler.exe replay --replay_log C:\demo-server-test\Test\RestlerResults\experiment20652\bug_buckets\PayloadBodyChecker_500_1.replay.txt --token_refresh_command "<command>" --token_refresh_interval 30`
 
-In this example, RESTler will replay the log `PayloadBodyChecker_500_1.txt`.
+In this example, RESTler will replay the log `PayloadBodyChecker_500_1.replay.txt`.
 If authentication is required to replay the sequence, the authentication options must be specified during replay.
 
 As you can see above,
