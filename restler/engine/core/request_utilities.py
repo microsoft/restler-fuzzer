@@ -103,7 +103,7 @@ def execute_token_refresh(token_dict):
             _RAW_LOGGING(error_str)
             sys.exit(-1)
         except Exception as error:
-            error_str = f"Authentication failed when refreshing token:\n\nUsing Token authentication method: \n{token_auth_method} \n with error {error}"
+            error_str = f"Authentication failed when refreshing token using authentication method: {token_auth_method}\nWith error {repr(error)}\n"
             print(f'\n{error_str}')
             latest_token_value = ERROR_VAL_STR
             latest_shadow_token_value = ERROR_VAL_STR
