@@ -64,6 +64,9 @@
     <Content Include="baselines\exampleTests\array_example_grammar.py">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+	  <Content Include="swagger\exampleTests\example_int_openapi3.yml">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content> 
 	  <Content Include="baselines\exampleTests\body_param_exactCopy_grammar.py">
 		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </Content>

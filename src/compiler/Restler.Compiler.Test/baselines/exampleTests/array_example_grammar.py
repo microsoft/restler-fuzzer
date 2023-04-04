@@ -108,10 +108,10 @@ request = requests.Request([
     primitives.restler_static_string("{"),
     primitives.restler_static_string("""
     "storeId":"""),
-    primitives.restler_fuzzable_int("1", examples=['"23456"']),
+    primitives.restler_fuzzable_int("1", examples=["23456"]),
     primitives.restler_static_string(""",
     "rush":"""),
-    primitives.restler_fuzzable_bool("true", examples=['"True"']),
+    primitives.restler_fuzzable_bool("true", examples=["true"]),
     primitives.restler_static_string(""",
     "bagType":"""),
     primitives.restler_fuzzable_string("fuzzstring", quoted=True, examples=["paperfestive"]),

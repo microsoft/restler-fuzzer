@@ -1,0 +1,49 @@
+openapi: 3.0.3
+info:
+  title: api with int path param
+  version: 1.2.3
+paths:
+  "/test/{testId}/{category}":
+    post:
+      parameters:
+        - $ref: '#/components/parameters/idParam'
+        - $ref: '#/components/parameters/categoryParam'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/bodyParam'
+      responses:
+        '200':
+          description: OK
+components:
+  parameters:
+    idParam:
+      in: path
+      name: testId
+      description: 'Id of the test case'
+      required: true
+      schema:
+        type: integer
+        format: int64
+      example: 1010101
+    categoryParam:
+      in: path
+      name: category
+      description: 'category of the test case'
+      required: true
+      schema:
+        type: boolean
+      example: false
+  schemas:
+    bodyParam:
+      example:
+        testDescription:
+          cloudy_test_scenario:
+            label: 'cloudy'
+            duration: !!int 60
+            is_negative: !!bool true
+      type: object
+      properties:
+        testDescription:
+          type: object

@@ -230,24 +230,16 @@ module SwaggerVisitors =
 
             match primitiveType with
             | _ when v.Type = JTokenType.Null -> null
-            | PrimitiveType.String
-            | PrimitiveType.DateTime
-            | PrimitiveType.Enum (_, PrimitiveType.String, _, _)
-            | PrimitiveType.Uuid
-            // Special case: non-Json bodies (e.g. text, xml) should not be quoted
-            | PrimitiveType.Object when (rawValue.[0] = ''' || rawValue.[0] =  '"') ->
-                // Remove the start and end quotes, which are preserved with 'Formatting.None'.
-                if rawValue.Length > 1 then
-                    match rawValue.[0], rawValue.[rawValue.Length-1] with
-                    | '"', '"' ->
-                        rawValue.[1..rawValue.Length-2]
-                    | '"', _
-                    | _, '"' ->
-                        printfn "WARNING: example file contains malformed value in property %A.  The compiler does not currently support this.  Please modify the grammar manually to send the desired payload."
-                                rawValue
-                        rawValue
-                    | _ -> rawValue
-                else rawValue
+            | _ when rawValue.Length > 1 && (rawValue.[0] = ''' || rawValue.[0] =  '"') ->
+                match rawValue.[0], rawValue.[rawValue.Length-1] with
+                | '"', '"' ->
+                    rawValue.[1..rawValue.Length-2]
+                | '"', _
+                | _, '"' ->
+                    printfn "WARNING: example file contains malformed value in property %A.  The compiler does not currently support this.  Please modify the grammar manually to send the desired payload."
+                            rawValue
+                    rawValue
+                | _ -> rawValue
             | _ -> rawValue
 
         /// Returns the specified property when the object contains it.
