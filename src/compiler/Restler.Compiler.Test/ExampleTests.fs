@@ -572,6 +572,27 @@ module Examples =
             let message = sprintf "Grammar Does not match baseline.  First difference: %A" grammarDiff
             Assert.True(grammarDiff.IsNone, message)
 
+        [<Fact>]
+        let ``int64 format example with OpenAPI3 regression test`` () =
+            let config = { Restler.Config.SampleConfig with
+                             IncludeOptionalParameters = true
+                             GrammarOutputDirectoryPath = Some ctx.testRootDirPath
+                             ResolveBodyDependencies = true
+                             UseBodyExamples = Some false
+                             SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, "swagger", "exampleTests", "example_int_openapi3.yml"))]
+                             CustomDictionaryFilePath = None
+                         }
+            Restler.Workflow.generateRestlerGrammar None config
+            let grammarFilePath = Path.Combine(ctx.testRootDirPath, "grammar.py")
+            let grammar = File.ReadAllText(grammarFilePath)
+
+            // The grammar should contain the example integer without quotes
+            Assert.True(grammar.Contains("examples=[\"1010101\"]"))
+
+            // Test that objects are still correctly generated
+            Assert.True(grammar.Contains("{\\\"cloudy_test_scenario\\\":{\\\"label\\\":\\\"cloudy\\\",\\\"duration\\\":60,"))
+            Assert.True(grammar.Contains("\\\"is_negative\\\":true}}"))
+
         ///// Test that the grammar is correct when the entire body is replaced by an example payload.
         ///// Both 'exactCopy' settings should be tested.
         //[<Fact>]
