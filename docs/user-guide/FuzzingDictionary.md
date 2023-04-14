@@ -24,7 +24,7 @@ configuration files and then re-compiling.
 
 To add more values to the existing lists of values in the dictionary (```restler_fuzzable_string```, etc.): simply copy the dictionary out of the ```Compile```
 folder (to avoid accidentally re-compiling and overwriting the dictionary in the future),
-modify it, and proceed to testing and fuzzing (see Testing.md).
+modify it, and proceed to testing and fuzzing (see [Testing](Testing.md)).
 
 **If you add a new custom property to the dictionary:**
 

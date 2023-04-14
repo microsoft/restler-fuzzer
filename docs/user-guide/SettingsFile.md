@@ -38,7 +38,7 @@ Path to your key file in a txt file.
 If provided and valid, RESTler will attempt to use it during the SSL handshake.
 
 ### authentication: dict (default empty)
-Settings for specifying authentication. See Authentication.md for details
+Settings for specifying authentication. See [Authentication](Authentication.md) for details
 
 #### _token_ dict (default empty): Can optionally provide one of {```location```, ```token_refresh_cmd```, ```module```}
 

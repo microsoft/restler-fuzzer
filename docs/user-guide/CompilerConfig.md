@@ -66,14 +66,14 @@ file named ```examples.json``` will also be generated in the examples directory.
 This file can be augmented with additional examples, and passed as an input to the
 compilation using the *ExampleConfigFilePath* parameter (see below).
 
-* *ExampleConfigFilePath* is the path to the file containing metadata about example parameter payloads.  See /docs/user-guide/Examples.md for a description of the file format.
+* *ExampleConfigFilePath* is the path to the file containing metadata about example parameter payloads.  See [Examples](Examples.md) for a description of the file format.
 If this setting is not specified, and *DiscoverExamples* is set to ```false```,
 the compiler looks for a default file named ```examples.json``` in the specified examples
 directory.  If *DiscoverExamples* is false, every time an example is used
 in the Swagger file, RESTler will first look for it in metadata,
 and, if found, the externally specified example will override the example from the specification.
 
-    See /docs/user-guide/Examples.md for a description of the file format.
+    See [Examples](Examples.md) for a description of the file format.
 If this setting is not specified, and *DiscoverExamples* is set to ```false```,
 the compiler looks for a default file named ```examples.json``` in the specified examples
 directory.  If *DiscoverExamples* is false, every time an example is used
