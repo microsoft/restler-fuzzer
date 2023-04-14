@@ -37,7 +37,7 @@ To analyze the grammar directly, use one of these two files:
 One quick analysis of the grammar that can be done to check if a path parameter is set to '*fuzzstring*'.  Such cases often require extra configuration, such as
 
 - setting a *restler_custom_payload* or *restler_custom_payload_uuid_suffix* for this parameter in the dictionary (see [FuzzingDictionary](FuzzingDictionary.md))
-- adding a *producer-consumer annotation* to retrieve the value from a response of a different request in he API (see [Annotations](Annotations.md)).
+- adding a *producer-consumer annotation* to retrieve the value from a response of a different request in the API (see [Annotations](Annotations.md)).
 
 In some cases, it is more convenient to analyze the grammar since it does not require invoking the API.  However, for a complex API with many parameters, analyzing live logs rather than the grammar is recommended.
 
