@@ -14,7 +14,7 @@ To enable or disable more checkers during fuzzing (fuzz-lean or fuzz modes),
 simply add one, or both, of the following to the command-line (as example):
 
 ```
---enable_checkers UseAfterFree InvalidDynamicObject
+--enable_checkers UseAfterFree,InvalidDynamicObject
 --disable_Checkers LeakageRule
 ```
 
