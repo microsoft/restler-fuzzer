@@ -6,7 +6,7 @@
     },
     "servers": [
         {
-            "url": "https://localhost:8888",
+            "url": "http://localhost:8888",
             "description": "Staging environment"
         }
     ],
