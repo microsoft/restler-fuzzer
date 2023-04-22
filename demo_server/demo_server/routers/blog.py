@@ -24,7 +24,7 @@ def create_post(payload: BlogPostPublicInput,
     # The first few IDs are reserved
     # This forces an example to be required in order for RESTler to execute the POST successfully
     if payload.id < 10:
-        raise HTTPException(status_code=400, detail=f"ID must be at least 1")
+        raise HTTPException(status_code=400, detail=f"ID must be at least 10")
 
     # The payload ID is ignored, and a new one will be assigned
     # (This is intentional to match the behavior of the old demo_server)
