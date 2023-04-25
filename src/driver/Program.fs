@@ -14,7 +14,7 @@ open Microsoft.FSharpLu.Diagnostics.Process
 open Restler.Telemetry
 
 [<Literal>]
-let CurrentVersion = "9.1.1"
+let CurrentVersion = "9.1.2"
 let EngineErrorCode = -2
 
 let exitRestler status =
@@ -832,29 +832,29 @@ let main argv =
             | None -> Restler.Telemetry.InstrumentationKey
             | Some key -> key
     let machineId = Telemetry.getMachineId()
-    let environmentMetadata = 
+    let environmentMetadata =
         match getConfigValue Telemetry.AppInsightsAdditionalPropertiesSettingsKey with
         | None -> []
         | Some str ->
             match Restler.Utilities.JsonSerialization.tryDeserialize<Telemetry.AdditionalTelemetryProperties> str with
             | Choice1Of2 p ->
-                let envVarValues = 
+                let envVarValues =
                     match p.envVars with
                     | None -> []
                     | Some envVars ->
-                        envVars 
+                        envVars
                         |> List.map (fun name -> name, Environment.GetEnvironmentVariable(name))
                         |> List.filter (fun (k,v) -> not (System.String.IsNullOrWhiteSpace v))
-                let propertyValues = 
+                let propertyValues =
                     match p.properties with
                     | None -> []
                     | Some properties ->
                         properties |> List.map (fun p -> p.key, p.value)
                 propertyValues @ envVarValues
-            | Choice2Of2 error -> 
+            | Choice2Of2 error ->
                 printfn "Error deserializing telemetry properties from runtime config: %s" error
                 []
-                
+
     use telemetryClient = new TelemetryClient(machineId, instrumentationKey, environmentMetadata)
 
     // Run task
