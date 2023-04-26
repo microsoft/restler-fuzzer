@@ -1,7 +1,12 @@
-InvalidValueChecker_500: 1
-Total Buckets: 1
+InvalidValueChecker_500: 2
+Total Buckets: 2
 -------------
-InvalidValueChecker_500 - Bug was reproduced - InvalidValueChecker_500_1.txt
+InvalidValueChecker_500 - Bug was reproduced - InvalidValueChecker_500_1.replay.txt
 Hash: InvalidValueChecker_500_04253dc98135690c234d24a23d5a149b74d5bca6
 PUT /city/cityName HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nauthentication_token_tag\r\n{"properties":{"population":10000, "area": "5000",strtest:true,"subproperties":{"subtest":true}}}\r\n
+--------------------------------------------------------------------------------
+InvalidValueChecker_500 - Bug was reproduced - InvalidValueChecker_500_2.replay.txt
+Hash: InvalidValueChecker_500_869eb0bee8d183686139289a93de5d2d6ed2b3af
+PUT /city/cityName HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nauthentication_token_tag\r\n{"properties":{"population":10000, "area": "5000",strtest:true,"subproperties":{"subtest":true}}}\r\n
+PUT /city/_READER_DELIM_city_put_name_READER_DELIM/house/houseName HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nauthentication_token_tag\r\n[{"house":houseName,"group":fuzzable_group_tag},{"arraytest":location}]\r\n
 --------------------------------------------------------------------------------

@@ -1,15 +1,25 @@
-InvalidValueChecker_500: 3
-Total Buckets: 3
+InvalidValueChecker_500: 5
+Total Buckets: 5
 -------------
-InvalidValueChecker_500 - Bug was reproduced - InvalidValueChecker_500_1.txt
+InvalidValueChecker_500 - Bug was reproduced - InvalidValueChecker_500_1.replay.txt
 Hash: InvalidValueChecker_500_782e65a9bcf4494654a62acb9ce820adb691ce9e
 PUT /item/itemName?location=location&date=2020-1-1 HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nauthentication_token_tag\r\n{"datetest":2020-1-1,"id":"/testparts/testcustomparts"}\r\n
 --------------------------------------------------------------------------------
-InvalidValueChecker_500 - Bug was reproduced - InvalidValueChecker_500_2.txt
+InvalidValueChecker_500 - Bug was reproduced - InvalidValueChecker_500_2.replay.txt
 Hash: InvalidValueChecker_500_7b1ecee86a09701a906ae9a86b39f52053d55851
 PUT /farm/farmName?location=location HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nauthentication_token_tag\r\n{testbool:testval,"location":location}\r\n
 --------------------------------------------------------------------------------
-InvalidValueChecker_500 - Bug was reproduced - InvalidValueChecker_500_3.txt
+InvalidValueChecker_500 - Bug was reproduced - InvalidValueChecker_500_3.replay.txt
 Hash: InvalidValueChecker_500_04253dc98135690c234d24a23d5a149b74d5bca6
 PUT /city/cityName HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nauthentication_token_tag\r\n{"population":10000, "area": "5000",strtest:true}\r\n
+--------------------------------------------------------------------------------
+InvalidValueChecker_500 - Bug was reproduced - InvalidValueChecker_500_4.replay.txt
+Hash: InvalidValueChecker_500_6f815b6b81d032a07131f6cf4cbf825dc488592c
+PUT /city/cityName HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nauthentication_token_tag\r\n{"population":10000, "area": "5000",strtest:true}\r\n
+PUT /city/_READER_DELIM_city_put_name_READER_DELIM/road/roadName HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nauthentication_token_tag\r\n{"testpayload":testquote}\r\n
+--------------------------------------------------------------------------------
+InvalidValueChecker_500 - Bug was reproduced - InvalidValueChecker_500_5.replay.txt
+Hash: InvalidValueChecker_500_869eb0bee8d183686139289a93de5d2d6ed2b3af
+PUT /city/cityName HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nauthentication_token_tag\r\n{"population":10000, "area": "5000",strtest:true}\r\n
+PUT /city/_READER_DELIM_city_put_name_READER_DELIM/house/houseName HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nauthentication_token_tag\r\n{"house":houseName,"group":fuzzable_group_tag}\r\n
 --------------------------------------------------------------------------------
