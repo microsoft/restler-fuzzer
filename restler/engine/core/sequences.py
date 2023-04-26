@@ -303,8 +303,8 @@ class Sequence(object):
         """
         if isinstance(data, list):
             for idx, val in enumerate(data):
-                if dependencies.RDELIM in data:
-                    var_name = data.remove(dependencies.RDELIM)
+                if dependencies.RDELIM in val:
+                    var_name = str(val).replace(dependencies.RDELIM, '')
                     data[idx] = dependencies.get_variable(var_name)
                     if data[idx] == 'None':
                         RAW_LOGGING(f'Dynamic object {var_name} is set to None!')

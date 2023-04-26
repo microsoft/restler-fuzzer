@@ -150,6 +150,18 @@ def set_variable(type, value):
     else:
         __add_variable_to_dyn_cache(type, value, dyn_objects_cache, dyn_objects_cache_lock)
 
+def print_variables():
+    """ Prints all dynamic variables and their values.
+
+    @return: None
+    @rtype : None
+
+    """
+    from utils.logger import raw_network_logging as RAW_LOGGING
+
+    for k in tlb:
+        RAW_LOGGING("{}: {}".format(k, tlb[k]))
+
 def set_variable_no_gc(type, value):
     """ Setter for dynamic variable that should never be garbage collected.
 
