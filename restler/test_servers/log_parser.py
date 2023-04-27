@@ -6,6 +6,7 @@ from test_servers.parsed_requests import *
 
 import copy
 import json
+from collections import Counter
 
 SENDING = ': Sending: '
 GENERATION = 'Generation-'
@@ -118,45 +119,84 @@ class FuzzingLogParser(LogParser):
 
         """
 
-        def get_diff(left_seq_list, right_seq_list, description_str):
+        def get_diff(left_seq_list, right_seq_list, description_str, diff_checkers=True):
+            """ Gets the difference between two sequence lists
+
+            @param left_seq_list: The left sequence list
+            @type  left_seq_list: List[ParsedSequence]
+
+            @param right_seq_list: The right sequence list
+            @type  right_seq_list: List[ParsedSequence]
+
+            @param description_str: The description of the right sequence list
+            @type  description_str: Str
+
+            @param diff_checkers: If true, diff both the checker and main requests, otherwise
+                                  diff the main requests only.
+            @type  diff_checkers: Bool
+            """
             right_seq_list_copy = copy.copy(right_seq_list)
             for left in left_seq_list:
                 found = False
                 found_idx = -1
                 found_count = 0
+
                 for idx, right in enumerate(right_seq_list_copy):
-                    if left.requests == right.requests and \
-                        left.checker_requests == right.checker_requests:
-                        found = True
+                    found_request_sequence = (left.requests == right.requests)
+                    found_checkers = (left.checker_requests == right.checker_requests)
+                    if found_request_sequence:
                         found_idx = idx
                         found_count += 1
+
+                        if not diff_checkers or found_checkers:
+                            found = True
+
+                    if found_request_sequence:
                         break
                 if found:
                     right_seq_list_copy.pop(found_idx)
-                if not found:
-                    print(f"+++ Found item not in {description_str} set +++")
-                    print("+++ Requests: +++")
+                elif found_request_sequence:
+                    # Found the request sequence, but the checker requests are different
+                    print(f"+++ Found checker requests not in {description_str} set +++")
+                    print("+++ Request sequence: +++")
                     for req in left.requests:
                         print(f"endpoint: {req.endpoint}, method: {req.method}, body: {req.body}")
                     print("+++ Checker requests: +++")
-                    for name, reqs in left.checker_requests.items():
-                        if reqs:
-                            print(f"Checker name: {name}")
-                            for req in reqs:
-                                print(f"endpoint: {req.endpoint}, method: {req.method}, body: {req.body}")
+                    right_checkers_requests = right_seq_list_copy[found_idx].checker_requests
+                    for name, left_checker_reqs in left.checker_requests.items():
+                        if name in right_checkers_requests:
+                            right_checker_reqs = right_checkers_requests[name]
+                            if left_checker_reqs != right_checker_reqs:
+                                if left_checker_reqs and right_checker_reqs:
+                                    # Diff the checker requests
+                                    left_counter = Counter(left_checker_reqs)
+                                    right_counter = Counter(right_checker_reqs)
+
+                                    left_diff = left_counter - right_counter
+                                    right_diff = right_counter - left_counter
+                                    print(f"Checker name: {name}")
+                                    print(f"--- Left diff ({description_str} - other): ---")
+                                    for req in left_diff:
+                                        print(f"endpoint: {req.endpoint}, method: {req.method}, body: {req.body}")
+                                    print(f"--- Right diff (other - {description_str}): ---")
+                                    for req in right_diff:
+                                        print(f"endpoint: {req.endpoint}, method: {req.method}, body: {req.body}")
+                                else:
+                                    print(f"Checker {name} is enabled in the {description_str} set, but did not kick in.")
                         else:
-                            print(f"Checker {name} is enabled, but did not kick in.")
+                            print(f"Checker {name} is enabled in the {description_str} set, but not in the other set.")
+
                     return False
-                if found_count > 1:
-                    print(f"+++ Found item {found_count} (more than once) times in {description_str} set +++")
+                else: # Did not find the request sequence
+                    print(f"+++ Found request sequence not in {description_str} set +++")
                     for req in left.requests:
                         print(f"endpoint: {req.endpoint}, method: {req.method}, body: {req.body}")
-                    print("+++ Checker requests: +++")
-                    for name, reqs in left.checker_requests.items():
-                        if reqs:
-                            print(f"Checker name: {name}")
-                            for req in reqs:
-                                print(f"endpoint: {req.endpoint}, method: {req.method}, body: {req.body}")
+                    return False
+
+                if found_count > 1:
+                    print(f"+++ Found request sequence {found_count} (more than once) times in {description_str} set +++")
+                    for req in left.requests:
+                        print(f"endpoint: {req.endpoint}, method: {req.method}, body: {req.body}")
                     return False
             return True
 
@@ -165,8 +205,15 @@ class FuzzingLogParser(LogParser):
 
             # To help diagnose failures, compare the two sequences of tests as sets.
             #
-            found_right = get_diff(self._seq_list, other._seq_list, "right")
-            found_left = get_diff(other._seq_list, self._seq_list, "left")
+            found_right = get_diff(self._seq_list, other._seq_list, "right", diff_checkers=False)
+            found_left = get_diff(other._seq_list, self._seq_list, "left", diff_checkers=False)
+
+            if not (found_right and found_left):
+                return False
+
+            print("The main algorithm requests are identical.  Checking checker requests...")
+            found_right = get_diff(self._seq_list, other._seq_list, "right", diff_checkers=True)
+            found_left = get_diff(other._seq_list, self._seq_list, "left", diff_checkers=True)
 
             if not (found_right and found_left):
                 return False

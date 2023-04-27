@@ -20,6 +20,18 @@
             ]
         },
         {
+            "name": "Python: diff network logs",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}\\restler\\utils\\network_logs\\diff_network_logs.py",
+            "args" :[
+                "--left_file",
+                "D:\\test\\734\\logs_before_2\\logs\\network.testing.48660.1.txt",
+                "--right_file",
+                "D:\\test\\734\\logs_after_2\\logs\\network.testing.47156.1.txt"
+            ]
+        },
+        {
             "name": "Python: GC unit test",
             "type": "python",
             "request": "launch",

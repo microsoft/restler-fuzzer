@@ -345,6 +345,6 @@ class InvalidValueChecker(CheckerBase):
             finally:
                 rendered_values[idx] = orig_rendered_values
 
-        self._checker_log.checker_print(f"Tested {fuzzed_combinations} combinations for request"
+        self._checker_log.checker_print(f"Tested {fuzzed_combinations} combinations for request "
                                         f"{last_request.endpoint} {last_request.method}, combination "
                                         f"{last_request._current_combination_id}")
