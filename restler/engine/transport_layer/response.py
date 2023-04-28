@@ -1,7 +1,11 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
+from abc import ABCMeta, abstractmethod, abstractproperty
 import string
 import re
+from typing import Dict, List
+
+import hyper
 from restler_settings import Settings
 
 DELIM = "\r\n\r\n"
@@ -14,7 +18,112 @@ RESTLER_BUG_CODES = [TIMEOUT_CODE, CONNECTION_CLOSED_CODE]
 # of a sequence because the sequence failed prior to that request being reached.
 RESTLER_INVALID_CODE = '999'
 
-class HttpResponse(object):
+class AbstractHttpResponse(object, metaclass=ABCMeta):
+    @abstractmethod
+    def __init__(self, response):
+        pass
+
+    @abstractproperty
+    def to_str(self):
+        pass
+
+    @abstractproperty
+    def to_str(self) -> str:
+        pass
+
+    @abstractproperty
+    def status_code(self) -> str:
+        pass
+
+    @abstractproperty
+    def body(self) -> str:
+        pass
+
+    @abstractproperty
+    def headers(self) -> str:
+        """Raw response header section of response"""
+        pass
+
+    @abstractproperty
+    def headers_dict(self) -> Dict:
+        pass
+ 
+    @abstractmethod
+    def has_valid_code(self) -> bool:
+        pass
+
+    @abstractmethod
+    def has_bug_code(self) -> bool:
+        pass
+
+    @abstractproperty
+    def json_body(self) -> str:
+        pass
+
+    @abstractproperty
+    def status_text(self) -> str:
+        pass
+
+
+class Http2Response(AbstractHttpResponse):
+    def __init__(self, response: hyper.HTTP20Response):
+        """ Hyper response facade
+        """
+        self._response = response
+        self._body = self._response.read(decode_content=True).decode('utf-8')
+
+    @property
+    def to_str(self) -> str:
+        #TODO: remove the need for this function.
+        # It is hacky.
+        return f"{self.headers}{DELIM}{self.body}"
+
+    @property
+    def status_code(self) -> str:
+        return str(self._response.status)
+
+    @property
+    def body(self) -> str:
+        return self._body
+
+    @property
+    def headers(self) -> str:
+        """Raw response header section of response"""
+        h_generator = self._response.headers.iter_raw()
+        header_str = '\n\r'.join(f"{k.decode('utf-8')}: {v.decode('utf-8')}" for k,v in h_generator)
+        return header_str 
+
+    @property
+    def headers_dict(self) -> Dict:
+        h_dict = dict()
+        for k, v  in self._response.headers.iter_raw():
+            h_dict[k] = v
+        return h_dict
+ 
+    def has_valid_code(self) -> bool:
+        sc = self._response.status
+        return sc in VALID_CODES
+
+    def has_bug_code(self) -> bool:
+        sc = self._response.status
+        custom_bug = sc in Settings().custom_non_bug_codes
+        fiveXX_code = sc >= 500
+        return custom_bug or fiveXX_code
+
+    @property
+    def json_body(self) -> str:
+        # TODO: actually parse json data
+        return self.body
+
+    @property
+    def status_text(self) -> str:
+        """
+        This is not used in HTTP/2, and so is always an empty string.
+        """
+        return ""
+
+
+class HttpResponse(AbstractHttpResponse):
     def __init__(self, response_str: str=None):
         """ Initializes an HttpResponse object
 

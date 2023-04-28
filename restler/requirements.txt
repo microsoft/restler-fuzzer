@@ -1,2 +1,3 @@
 applicationinsights
 pytest
+hyper==0.7.0

@@ -1,13 +1,17 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-""" Transport layer fuctionality using python sockets. """
+""" Transport layer functionality using python sockets. """
 from __future__ import print_function
+from abc import ABCMeta, abstractmethod
 import ssl
 import socket
 import time
 import threading
 from importlib import util
+from typing import Dict, Tuple, Union
+from hyper import HTTP20Connection
+
 
 from utils.logger import raw_network_logging as RAW_LOGGING
 from engine.errors import TransportLayerException
@@ -22,14 +26,155 @@ UTF8 = 'utf-8'
 
 
 class HttpSock(object):
+    """
+    Proxy to return the correct socket object.
+    """
+    def __init__(self, connection_settings: Dict) -> None:
+        if Settings().use_http2:
+            self._subject = Http2Sock(connection_settings)
+        else:
+            self._subject = HttpRawSock(connection_settings)
+
+    def sendRecv(self, message: str, req_timeout_sec: int, reconnect: bool = False) -> Tuple[bool, Union[HttpResponse ,str]]:
+        """ Sends a specified request to the server and waits for a response
+
+        @param message: Message to be sent.
+        @type message : Str
+        @param req_timeout_sec: The time, in seconds, to wait for request to complete
+        @type req_timeout_sec : Int
+
+        @return:
+            False if failure, True if success
+            Response if True returned, Error if False returned
+        @rtype : Tuple (Bool, String)
+
+        """
+        return self._subject.sendRecv(message, req_timeout_sec, reconnect=reconnect)
+
+
+class BaseSocket(object, metaclass=ABCMeta):
+    __last_request_sent_time = time.time()
+    __req_sem = threading.Semaphore()
+
+    @abstractmethod
+    def __init__(self, connection_settings: Dict) -> None:
+        self.connection_settings = connection_settings
+
+        host = Settings().host
+        self.target_ip = connection_settings.target_ip or host
+        self.target_port = connection_settings.target_port or 433
+
+        self.connection_settings = connection_settings
+
+        self.ignore_decoding_failures = Settings().ignore_decoding_failures
+
+    @abstractmethod
+    def __del__(self):
+        pass
+
+    @abstractmethod
+    def sendRecv(self, message: str, req_timeout_sec: int) -> Tuple[bool, str]:
+        pass
+
+    def _get_method_from_message(self, message):
+        end_of_method_idx = message.find(" ")
+        method_name = message[0:end_of_method_idx]
+        return method_name
+
+    def _get_payload_from_message(self, message):
+        # FIXME: really not a safe way of doing this...
+        payload_index = message.find(DELIM)
+        body = message[payload_index+len(DELIM):]
+        return body
+
+    def _get_uri_segment_from_message(self, message):
+        segment_start_index = message.find(' ')
+        segment_end_index = message[segment_start_index+1:].find(' ') + segment_start_index+1
+        segment = message[segment_start_index+1:segment_end_index]
+        return segment
+
+    def _get_headers_from_message(self, message) -> Dict:
+        # FIXME: ugly
+        header_index = message.find('\r\n')
+        payload_index = message.find(DELIM)
+        
+        headers = message[header_index+2:payload_index]
+        h = dict()
+        for line in headers.split('\r\n'):
+            k, v = line.split(':')
+            h[k.strip()] = v.strip()
+        return h
+
+
+class Http2Sock(BaseSocket):
+    def __init__(self, connection_settings: Dict) -> None:
+        """ Initializes a socket object using hyper.
+
+        @param connection_settings: The connection settings for this socket
+        @type  connection_settings: ConnectionSettings
+
+        @return: None
+        @rtype : None
+
+        """
+        super().__init__(connection_settings)
+
+        self.client = HTTP20Connection(
+            host=self.target_ip,
+            port=self.target_port,
+            secure=self.connection_settings.use_ssl
+        )
+
+    def sendRecv(self, message: str, req_timeout_sec: int, *args, **kwargs) -> Tuple[bool, str]:
+        super().sendRecv(message, req_timeout_sec)
+        method = self._get_method_from_message(message) 
+        message_body = self._get_payload_from_message(message)
+        uri_segment = self._get_uri_segment_from_message(message) 
+
+        print(message)
+
+        self.client.request(
+            method, 
+            url=uri_segment,
+            body=bytes(message_body, UTF8),  #TODO: allow other encodings
+            headers=self._get_headers_from_message(message)
+        )
+
+        response = self.client.get_response()
+
+        res = Http2Response(response)
+        
+        return (True, res)
+
+    def __del__(self):
+        pass
+
+
+class HttpRawSock(BaseSocket):
     __last_request_sent_time = time.time()
     __request_sem = threading.Semaphore()
 
+    def __init__(self, connection_settings):
+        """ Initializes a socket object using low-level python socket objects.
+
+        @param connection_settings: The connection settings for this socket
+        @type  connection_settings: ConnectionSettings
+
+        @return: None
+        @rtype : None
+
+        """
+        super().__init__(connection_settings)
+
     def set_up_connection(self):
         try:
-            host = Settings().host
-            target_ip = self.connection_settings.target_ip or host
-            target_port = self.connection_settings.target_port
+            self._sock = None
+
+            if Settings().request_throttle_ms:
+                self._request_throttle_sec = Settings().request_throttle_ms/1000.0
+            else:
+                self._request_throttle_sec = None
+
             if Settings().use_test_socket:
                 self._sock = TestSocket(Settings().test_server)
             elif self.connection_settings.use_ssl:
@@ -42,13 +187,13 @@ class HttpSock(object):
                         certfile = Settings().client_certificate_path,
                         keyfile = Settings().client_certificate_key_path,
                     )
-
-                with socket.create_connection((target_ip, target_port or 443)) as sock:
-                    self._sock = context.wrap_socket(sock, server_hostname=host)
+                      
+                with socket.create_connection((self.target_ip, self.target_port)) as sock:                  
+                    self._sock = context.wrap_socket(sock, server_hostname=self.host)
 
             else:
                 self._sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                self._sock.connect((target_ip, target_port or 80))
+                self._sock.connect((self.target_ip, self.target_port or 80))
         except Exception as error:
             raise TransportLayerException(f"Exception Creating Socket: {error!s}")
 
