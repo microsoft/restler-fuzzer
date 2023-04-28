@@ -5,7 +5,6 @@ module Restler.ResultsAnalyzer.Common.Utilities
 
 open System.IO
 open System.Text
-open System.Security.Cryptography
 
 open Newtonsoft.Json
 
@@ -26,20 +25,6 @@ module String =
             .Replace("\\t", "\t")
             .Replace(@"\\", @"\")
             .ToString()
-
-    /// Provide a deterministic hash from a string, because
-    /// F# Operator.hash / C# GetHashCode() are NOT deterministic between runs.
-    /// 32 hex digits = 16 bytes = 128 bits => 2^64 elements before collision with 50% probability.
-    let deterministicShortHash (str:string): string =
-        let hashLength = 16 // bytes
-
-        use sha1 = SHA1.Create()
-        let bytes = Encoding.Default.GetBytes(str)
-        let hashBytes = sha1.ComputeHash(bytes)
-        hashBytes
-        |> Seq.take hashLength
-        |> Seq.map (fun b -> b.ToString("x2"))
-        |> String.concat ""
 
 module Seq =
     /// Generic split on sequences (similar to String.Split).

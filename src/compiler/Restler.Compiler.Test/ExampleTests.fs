@@ -22,7 +22,7 @@ module Examples =
                              SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, "swagger", "example_demo1.json"))]
                              CustomDictionaryFilePath = Some (Path.Combine(Environment.CurrentDirectory, "swagger", "example_demo_dictionary.json"))
                          }
-            Restler.Workflow.generateRestlerGrammar None config
+            Restler.Workflow.generateRestlerGrammar config
             let grammarFilePath = Path.Combine(ctx.testRootDirPath, "grammar.py")
             let grammar = File.ReadAllText(grammarFilePath)
 
@@ -60,7 +60,7 @@ module Examples =
                          }
             // Run the example test using the Swagger example and using the external example.
             let runTest testConfig =
-                Restler.Workflow.generateRestlerGrammar None testConfig
+                Restler.Workflow.generateRestlerGrammar testConfig
                 // Read the baseline and make sure it matches the expected one
                 //
                 let expectedGrammarFilePath = Path.Combine(Environment.CurrentDirectory,
@@ -93,7 +93,7 @@ module Examples =
                              SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, "swagger", "array_example.json"))]
                              AnnotationFilePath = Some (Path.Combine(Environment.CurrentDirectory, "swagger", "array_example_annotations.json"))
                          }
-            Restler.Workflow.generateRestlerGrammar None config
+            Restler.Workflow.generateRestlerGrammar config
             let grammarFilePath = Path.Combine(grammarDirectoryPath,
                                                Restler.Workflow.Constants.DefaultRestlerGrammarFileName)
             let grammar = File.ReadAllText(grammarFilePath)
@@ -113,7 +113,7 @@ module Examples =
                              SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, "swagger", "object_example.json"))]
                              CustomDictionaryFilePath = Some (Path.Combine(Environment.CurrentDirectory, "swagger", "example_demo_dictionary.json"))
                          }
-            Restler.Workflow.generateRestlerGrammar None config
+            Restler.Workflow.generateRestlerGrammar config
             let grammarFilePath = Path.Combine(grammarDirectoryPath,
                                                Restler.Workflow.Constants.DefaultRestlerGrammarFileName)
             let grammar = File.ReadAllText(grammarFilePath)
@@ -132,7 +132,7 @@ module Examples =
                              SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, "swagger", "secgroup_example.json"))]
                              CustomDictionaryFilePath = Some (Path.Combine(Environment.CurrentDirectory, "swagger", "dict_secgroup_example.json"))
                          }
-            Restler.Workflow.generateRestlerGrammar None config
+            Restler.Workflow.generateRestlerGrammar config
 
         [<Fact>]
         let ``empty array example in grammar`` () =
@@ -155,7 +155,7 @@ module Examples =
             let resolveDependencies = [true; false]
             resolveDependencies
             |> List.iter (fun x ->
-                            Restler.Workflow.generateRestlerGrammar None
+                            Restler.Workflow.generateRestlerGrammar
                                 { config with
                                     ResolveBodyDependencies = x
                                     ResolveQueryDependencies = x }
@@ -164,7 +164,7 @@ module Examples =
             // This is a special case, because empty arrays are represented without a leaf node
             let customDictionary = Some "{ \"restler_custom_payload\": { \"item_descriptions\": [\"zzz\"] }}"
 
-            Restler.Workflow.generateRestlerGrammar None
+            Restler.Workflow.generateRestlerGrammar
                 { config with
                     ResolveBodyDependencies = true
                     ResolveQueryDependencies = true
@@ -181,7 +181,7 @@ module Examples =
                              SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, "swagger", "headers.json"))]
                              CustomDictionaryFilePath = Some (Path.Combine(Environment.CurrentDirectory, "swagger", "headers_dict.json"))
                          }
-            Restler.Workflow.generateRestlerGrammar None config
+            Restler.Workflow.generateRestlerGrammar config
             let grammarFilePath = Path.Combine(grammarOutputDirectoryPath, "grammar.py")
             let grammar = File.ReadAllText(grammarFilePath)
 
@@ -216,7 +216,7 @@ module Examples =
                                                                             "swagger", sprintf "example_demo1%s" extension))]
                                  CustomDictionaryFilePath = Some (Path.Combine(Environment.CurrentDirectory, "swagger", "example_demo_dictionary.json"))
                              }
-                Restler.Workflow.generateRestlerGrammar None config
+                Restler.Workflow.generateRestlerGrammar config
                 let grammarFilePath = Path.Combine(ctx.testRootDirPath, "grammar.py")
                 let grammar = File.ReadAllText(grammarFilePath)
 
@@ -240,7 +240,7 @@ module Examples =
                              SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, "swagger", "example_demo1.json"))]
                              CustomDictionaryFilePath = Some (Path.Combine(Environment.CurrentDirectory, "swagger", "example_demo_dictionary.json"))
                          }
-            Restler.Workflow.generateRestlerGrammar None config
+            Restler.Workflow.generateRestlerGrammar config
             let grammarFilePath = Path.Combine(ctx.testRootDirPath, "grammar.py")
 
             let grammar = File.ReadAllText(grammarFilePath)
@@ -267,7 +267,7 @@ module Examples =
                              SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, "swagger", "example_demo.json"))]
                              CustomDictionaryFilePath = Some (Path.Combine(Environment.CurrentDirectory, "swagger", "example_demo_dictionary.json"))
                          }
-            Restler.Workflow.generateRestlerGrammar None config
+            Restler.Workflow.generateRestlerGrammar config
             let grammarFilePath = Path.Combine(ctx.testRootDirPath, "grammar.py")
 
             let grammar = File.ReadAllText(grammarFilePath)
@@ -298,7 +298,7 @@ module Examples =
                             SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, "swagger", "dependencyTests", "subnet_id.json"))]
                             CustomDictionaryFilePath = None
                          }
-            Restler.Workflow.generateRestlerGrammar None config
+            Restler.Workflow.generateRestlerGrammar config
             let grammarFilePath = Path.Combine(grammarOutputDirectoryPath, "grammar.py")
             let grammar = File.ReadAllText(grammarFilePath)
 
@@ -327,7 +327,7 @@ module Examples =
                             SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, "swagger", "dependencyTests", "nested_objects_naming.json"))]
                             CustomDictionaryFilePath = None
                          }
-            Restler.Workflow.generateRestlerGrammar None config
+            Restler.Workflow.generateRestlerGrammar config
             let grammarFilePath = Path.Combine(grammarOutputDirPath, "grammar.py")
             let grammar = File.ReadAllText(grammarFilePath)
 
@@ -398,7 +398,7 @@ module Examples =
                             SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, "swagger", "dependencyTests", "frontend_port_id.json"))]
                             CustomDictionaryFilePath = None
                          }
-            Restler.Workflow.generateRestlerGrammar None config
+            Restler.Workflow.generateRestlerGrammar config
             let grammarFilePath = Path.Combine(grammarOutputDirectoryPath, "grammar.py")
             let grammar = File.ReadAllText(grammarFilePath)
 
@@ -447,7 +447,7 @@ module Examples =
                             SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, "swagger", "DependencyTests", "ip_configurations_get.json"))]
                             CustomDictionaryFilePath = None
                          }
-            Restler.Workflow.generateRestlerGrammar None config
+            Restler.Workflow.generateRestlerGrammar config
             let grammarFilePath = Path.Combine(ctx.testRootDirPath, "grammar.py")
             let grammar = File.ReadAllText(grammarFilePath)
 
@@ -465,7 +465,7 @@ module Examples =
                              SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, "swagger", "inline_examples.json"))]
                              CustomDictionaryFilePath = None
                          }
-            Restler.Workflow.generateRestlerGrammar None config
+            Restler.Workflow.generateRestlerGrammar config
             let grammarFilePath = Path.Combine(grammarOutputDirectoryPath, "grammar.py")
             let grammar = File.ReadAllText(grammarFilePath)
 
@@ -499,13 +499,13 @@ module Examples =
             }
 
             let exactCopyTestConfig = { config with ExampleConfigFiles = Some [ exampleConfigFile ] }
-            Restler.Workflow.generateRestlerGrammar None exactCopyTestConfig
+            Restler.Workflow.generateRestlerGrammar exactCopyTestConfig
             let grammarFilePath = Path.Combine(grammarOutputDirectoryPath, Restler.Workflow.Constants.DefaultRestlerGrammarFileName)
             let grammar = File.ReadAllText(grammarFilePath)
             Assert.True(grammar.Contains("primitives.restler_static_string(\"2020-02-02\")"))
 
             let testConfig = { config with ExampleConfigFiles = Some [ {exampleConfigFile with exactCopy = false }] }
-            Restler.Workflow.generateRestlerGrammar None testConfig
+            Restler.Workflow.generateRestlerGrammar testConfig
 
             let grammarFilePath = Path.Combine(grammarOutputDirectoryPath, Restler.Workflow.Constants.DefaultRestlerGrammarFileName)
             let grammar = File.ReadAllText(grammarFilePath)
@@ -533,7 +533,7 @@ module Examples =
             }
 
             let testConfig = { config with ExampleConfigFiles = Some [ exampleConfigFile ] }
-            Restler.Workflow.generateRestlerGrammar None testConfig
+            Restler.Workflow.generateRestlerGrammar testConfig
 
             let grammarFilePath = Path.Combine(grammarOutputDirectoryPath, Restler.Workflow.Constants.DefaultRestlerGrammarFileName)
             let grammar = File.ReadAllText(grammarFilePath)
@@ -562,7 +562,7 @@ module Examples =
             }
 
             let testConfig = { config with ExampleConfigFiles = Some [ exampleConfigFile ] }
-            Restler.Workflow.generateRestlerGrammar None testConfig
+            Restler.Workflow.generateRestlerGrammar testConfig
 
             let expectedGrammarFilePath = Path.Combine(Environment.CurrentDirectory,
                                                         "baselines", "exampleTests", "body_param_exactCopy_grammar.py")
@@ -582,7 +582,7 @@ module Examples =
                              SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, "swagger", "exampleTests", "example_int_openapi3.yml"))]
                              CustomDictionaryFilePath = None
                          }
-            Restler.Workflow.generateRestlerGrammar None config
+            Restler.Workflow.generateRestlerGrammar config
             let grammarFilePath = Path.Combine(ctx.testRootDirPath, "grammar.py")
             let grammar = File.ReadAllText(grammarFilePath)
 
@@ -620,7 +620,7 @@ module Examples =
         //                     CustomDictionaryFilePath = Some dictionaryFilePath
         //                 }
 
-        //    Restler.Workflow.generateRestlerGrammar None config
+        //    Restler.Workflow.generateRestlerGrammar config
 
         //    let grammarFilePath = Path.Combine(grammarOutputDirectoryPath,
         //                                       Restler.Workflow.Constants.DefaultRestlerGrammarFileName)

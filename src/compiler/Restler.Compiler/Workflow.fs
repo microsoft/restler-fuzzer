@@ -73,54 +73,14 @@ let getSwaggerDataForDoc doc workingDirectory =
     }
 
 
-let generateGrammarFromSwagger grammarOutputDirectoryPath (swaggerDoc, specMetadata) config =
+let generateGrammarFromSwagger grammarOutputDirectoryPath config =
 
     // Extract the Swagger documents and corresponding document-specific configuration, if any
-    let swaggerDocs =
-        match swaggerDoc with
-        | Some s -> [ (s,specMetadata) ]
-        | None ->
-            match config.SwaggerSpecFilePath with
-            | None ->
-                if config.SwaggerSpecConfig.IsNone then
-                    printfn "ERROR: must specify Swagger or grammar file."
-                    raise (ArgumentException("unspecified API spec file path"))
-                else
-                    // Swagger specified in config.  handled below.
-                    []
-            | Some swaggerSpecFilePaths when swaggerSpecFilePaths
-                                             |> Seq.forall (fun fp -> File.Exists fp) ->
-                swaggerSpecFilePaths
-                |> List.map (fun fp -> Restler.Swagger.getSwaggerDocument fp grammarOutputDirectoryPath)
-            | Some p ->
-                printfn "ERROR: invalid path found in the list of Swagger specs given: %A" p
-                raise (ArgumentException(sprintf "invalid API spec file path found: %A" p))
-
-    let docsWithEmptyConfig =
-        swaggerDocs
-        |> List.map (fun (x,preprocessingResult) ->
-                        {   swaggerDoc = x
-                            dictionary = None
-                            globalAnnotations = None
-                            xMsPathsMapping = if preprocessingResult.IsSome then preprocessingResult.Value.xMsPathsMapping else None
-                        })
+    let swaggerSpecConfigs = getSwaggerSpecConfigsFromCompilerConfig config
 
     let configuredSwaggerDocs =
-        match config.SwaggerSpecConfig with
-        | None ->
-            if swaggerDocs.Length = 0 then
-                printfn "ERROR: must specify at least one Swagger or grammar file."
-                raise (ArgumentException("unspecified API spec file path"))
-            else
-                docsWithEmptyConfig
-        | Some docs when docs |> Seq.forall (fun doc -> File.Exists doc.SpecFilePath) ->
-            let configuredDocs =
-                docs
-                |> List.map (fun doc -> getSwaggerDataForDoc doc grammarOutputDirectoryPath)
-            docsWithEmptyConfig @ configuredDocs
-        | Some docs ->
-            printfn "ERROR: invalid path found in the list of Swagger configurations given: %A" docs
-            raise (ArgumentException(sprintf "invalid API spec file path found: %A" docs))
+        swaggerSpecConfigs
+        |> List.map (fun doc -> getSwaggerDataForDoc doc grammarOutputDirectoryPath)
 
     let dictionary =
         match config.CustomDictionaryFilePath with
@@ -271,7 +231,7 @@ let generateGrammarFromSwagger grammarOutputDirectoryPath (swaggerDoc, specMetad
 
     grammar
 
-let generateRestlerGrammar swaggerDoc (config:Config) =
+let generateRestlerGrammar (config:Config) =
     let grammarOutputDirectoryPath =
         match config.GrammarOutputDirectoryPath with
         | Some p -> p
@@ -287,7 +247,7 @@ let generateRestlerGrammar swaggerDoc (config:Config) =
             JsonSerialization.deserializeStream<GrammarDefinition> f
         | None ->
              logTimingInfo "Generating grammar..."
-             generateGrammarFromSwagger grammarOutputDirectoryPath (swaggerDoc,None) config
+             generateGrammarFromSwagger grammarOutputDirectoryPath config
         | Some p ->
             printfn "ERROR: invalid path for grammar: %s" p
             exit 1

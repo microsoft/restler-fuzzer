@@ -29,7 +29,8 @@ type TelemetryClient(machineId: System.Guid, instrumentationKey: string,
 
     member __.RestlerFinished(version, task, executionId, status,
                               specCoverageCounts,
-                              bugBucketCounts) =
+                              bugBucketCounts, 
+                              featureList) =
         client.TrackEvent("restler finished",
             dict ([
                 "machineId", sprintf "%A" machineId
@@ -37,7 +38,7 @@ type TelemetryClient(machineId: System.Guid, instrumentationKey: string,
                 "task", task
                 "executionId", sprintf "%A" executionId
                 "status", sprintf "%A" status
-            ]@bugBucketCounts@specCoverageCounts))
+            ]@bugBucketCounts@specCoverageCounts@featureList))
 
     member __.ResultsAnalyzerFinished(version, task, executionId, status) =
         client.TrackEvent("results analyzer finished",

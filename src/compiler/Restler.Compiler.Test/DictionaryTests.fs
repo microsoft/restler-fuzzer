@@ -24,7 +24,7 @@ module Dictionary =
                              SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, "swagger", "dictionaryTests", "customPayloadSwagger.json"))]
                              CustomDictionaryFilePath = Some (Path.Combine(Environment.CurrentDirectory, "swagger", "dictionaryTests", "customPayloadDict.json"))
                          }
-            Restler.Workflow.generateRestlerGrammar None config
+            Restler.Workflow.generateRestlerGrammar config
 
             let expectedGrammarFilePath = Path.Combine(Environment.CurrentDirectory,
                                                        "baselines", "dictionaryTests", "quoted_primitives_grammar.py")
@@ -48,7 +48,7 @@ module Dictionary =
                              SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, "swagger", "dictionaryTests", "multipleIdenticalUuidSuffix.json"))]
                              CustomDictionaryFilePath = Some (Path.Combine(Environment.CurrentDirectory, "swagger", "dictionaryTests", "multipleIdenticalUuidSuffixDict.json"))
                          }
-            Restler.Workflow.generateRestlerGrammar None config
+            Restler.Workflow.generateRestlerGrammar config
 
             let grammarFilePath = Path.Combine(grammarOutputDirPath,
                                                Restler.Workflow.Constants.DefaultRestlerGrammarFileName)
@@ -80,7 +80,7 @@ module Dictionary =
                          }
 
             let configWithoutDictionary = { config with CustomDictionaryFilePath = None }
-            Restler.Workflow.generateRestlerGrammar None configWithoutDictionary
+            Restler.Workflow.generateRestlerGrammar configWithoutDictionary
 
             let grammarFilePath = Path.Combine(grammarOutputDirPath,
                                                Restler.Workflow.Constants.DefaultRestlerGrammarFileName)
@@ -90,7 +90,7 @@ module Dictionary =
             Assert.True((numFuzzableStrings = 4))
 
             // Now generate a grammar with the dictionary
-            Restler.Workflow.generateRestlerGrammar None config
+            Restler.Workflow.generateRestlerGrammar config
 
             let grammarFilePath = Path.Combine(grammarOutputDirPath,
                                                Restler.Workflow.Constants.DefaultRestlerGrammarFileName)
@@ -139,7 +139,7 @@ module Dictionary =
                              SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, "swagger", "dictionaryTests", "customPayloadSwagger.json"))]
                              CustomDictionaryFilePath = Some (Path.Combine(Environment.CurrentDirectory, "swagger", "dictionaryTests", "customPayloadRequestTypeDict.json"))
                          }
-            Restler.Workflow.generateRestlerGrammar None config
+            Restler.Workflow.generateRestlerGrammar config
 
             let grammarFilePath = Path.Combine(grammarOutputDirPath,
                                                Restler.Workflow.Constants.DefaultRestlerGrammarFileName)
@@ -163,7 +163,7 @@ module Dictionary =
                              SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, "swagger", "dictionaryTests", "customPayloadSwagger.json"))]
                              CustomDictionaryFilePath = Some (Path.Combine(Environment.CurrentDirectory, "swagger", "dictionaryTests", "customPayloadDict.json"))
                          }
-            Restler.Workflow.generateRestlerGrammar None config
+            Restler.Workflow.generateRestlerGrammar config
 
             let expectedValueGenTemplatePath = Path.Combine(Environment.CurrentDirectory,
                                                             @"baselines", "dictionaryTests", "customPayloadDict_ValueGeneratorTemplate.py")
@@ -213,7 +213,7 @@ module Dictionary =
             let inputDictionaryString = 
                 File.ReadAllText(dictionaryFilePath)
 
-            Restler.Workflow.generateRestlerGrammar None config
+            Restler.Workflow.generateRestlerGrammar config
             let outputDictPath = Path.Combine(grammarOutputDirPath,
                                               Restler.Workflow.Constants.NewDictionaryFileName)
             let dictionaryString = 

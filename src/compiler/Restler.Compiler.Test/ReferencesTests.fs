@@ -25,7 +25,7 @@ module References =
                              SwaggerSpecFilePath = Some [filePath]
                              CustomDictionaryFilePath = None
                          }
-            Restler.Workflow.generateRestlerGrammar None config
+            Restler.Workflow.generateRestlerGrammar config
 
             let grammarFilePath = Path.Combine(grammarOutputDirectoryPath.Value, "grammar.py")
             let grammarText = File.ReadAllText(grammarFilePath)

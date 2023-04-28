@@ -14,7 +14,7 @@ module RealWorldTests =
 
         [<Fact>]
         let ``demo_server grammar sanity test`` () =
-            Restler.Workflow.generateRestlerGrammar None
+            Restler.Workflow.generateRestlerGrammar
                 { configs.["demo_server"] with
                       GrammarOutputDirectoryPath = Some ctx.testRootDirPath }
             Assert.True(true)

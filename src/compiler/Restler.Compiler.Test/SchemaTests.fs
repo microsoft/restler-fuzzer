@@ -25,7 +25,7 @@ module ApiSpecSchema =
                              SwaggerSpecFilePath = Some [filePath]
                              CustomDictionaryFilePath = None
                          }
-            Restler.Workflow.generateRestlerGrammar None config
+            Restler.Workflow.generateRestlerGrammar config
             let grammarOutputFilePath =
                 config.GrammarOutputDirectoryPath.Value ++ Restler.Workflow.Constants.DefaultRestlerGrammarFileName
 
@@ -56,7 +56,7 @@ module ApiSpecSchema =
                              ExampleConfigFilePath = Some exampleConfigFilePath
                              UseHeaderExamples = Some true
                          }
-            Restler.Workflow.generateRestlerGrammar None config
+            Restler.Workflow.generateRestlerGrammar config
 
             let grammarDiff =
                 getLineDifferences
@@ -82,7 +82,7 @@ module ApiSpecSchema =
                              ResolveQueryDependencies = true
                              SwaggerSpecFilePath = Some [specFilePath]
                          }
-            Restler.Workflow.generateRestlerGrammar None config
+            Restler.Workflow.generateRestlerGrammar config
             let grammarOutputFilePath = config.GrammarOutputDirectoryPath.Value ++ Restler.Workflow.Constants.DefaultRestlerGrammarFileName
             let grammar = File.ReadAllText(grammarOutputFilePath)
             Assert.True(grammar.Contains("restler_custom_payload_uuid4_suffix(\"customerId\", quoted=False)"))
@@ -97,7 +97,7 @@ module ApiSpecSchema =
                              ResolveQueryDependencies = true
                              SwaggerSpecFilePath = Some [specFilePath]
                          }
-            Restler.Workflow.generateRestlerGrammar None config
+            Restler.Workflow.generateRestlerGrammar config
             let grammarOutputFilePath = config.GrammarOutputDirectoryPath.Value ++ Restler.Workflow.Constants.DefaultRestlerGrammarFileName
             let grammar = File.ReadAllText(grammarOutputFilePath)
             Assert.True(grammar.Contains("\"escape\""))
@@ -115,7 +115,7 @@ module ApiSpecSchema =
                                 ResolveQueryDependencies = true
                                 SwaggerSpecFilePath = Some [specFilePath]
                             }
-            Restler.Workflow.generateRestlerGrammar None config
+            Restler.Workflow.generateRestlerGrammar config
             let grammarOutputFilePath = config.GrammarOutputDirectoryPath.Value ++ Restler.Workflow.Constants.DefaultRestlerGrammarFileName
             let grammar = File.ReadAllText(grammarOutputFilePath)
             Assert.True(grammar.Contains("\"treeId\":"))
@@ -134,7 +134,7 @@ module ApiSpecSchema =
                              SwaggerSpecFilePath = Some [specFilePath]
                          }
 
-            Restler.Workflow.generateRestlerGrammar None config
+            Restler.Workflow.generateRestlerGrammar config
             let grammarOutputFilePath = config.GrammarOutputDirectoryPath.Value ++ Restler.Workflow.Constants.DefaultRestlerGrammarFileName
             let noDepthLimitGrammar = File.ReadAllText(grammarOutputFilePath)
 
@@ -143,7 +143,7 @@ module ApiSpecSchema =
             for depthLimit in lowerLimit..upperLimit do
                 let objectName = sprintf "object_level_%d" depthLimit
                 let nextObjectName = sprintf "object_level_%d" (depthLimit + 1)
-                Restler.Workflow.generateRestlerGrammar None { config with JsonPropertyMaxDepth = Some depthLimit }
+                Restler.Workflow.generateRestlerGrammar { config with JsonPropertyMaxDepth = Some depthLimit }
                 let grammarOutputFilePath = config.GrammarOutputDirectoryPath.Value ++ Restler.Workflow.Constants.DefaultRestlerGrammarFileName
                 let grammar = File.ReadAllText(grammarOutputFilePath)
                 if depthLimit < upperLimit then
@@ -163,7 +163,7 @@ module ApiSpecSchema =
                                 ResolveQueryDependencies = true
                                 SwaggerSpecFilePath = Some [specFilePath]
                          }
-            Restler.Workflow.generateRestlerGrammar None config
+            Restler.Workflow.generateRestlerGrammar config
             let grammarOutputFilePath = config.GrammarOutputDirectoryPath.Value ++ Restler.Workflow.Constants.DefaultRestlerGrammarFileName
             let grammar = File.ReadAllText(grammarOutputFilePath)
             let expectedProperties = ["supiRanges"; "groupId"; "start"; "end"]
@@ -180,7 +180,7 @@ module ApiSpecSchema =
                                 ResolveQueryDependencies = true
                                 SwaggerSpecFilePath = Some [specFilePath]
                             }
-            Restler.Workflow.generateRestlerGrammar None config
+            Restler.Workflow.generateRestlerGrammar config
             let grammarOutputFilePath = config.GrammarOutputDirectoryPath.Value ++ Restler.Workflow.Constants.DefaultRestlerGrammarFileName
             let grammar = File.ReadAllText(grammarOutputFilePath)
             

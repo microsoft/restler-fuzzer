@@ -28,7 +28,7 @@ module GrammarTests =
 
             // Confirm the baselines match for grammar.json and grammar.py
             for includeOptionalParameters in [true ; false] do
-                Restler.Workflow.generateRestlerGrammar None { config with IncludeOptionalParameters = includeOptionalParameters }
+                Restler.Workflow.generateRestlerGrammar { config with IncludeOptionalParameters = includeOptionalParameters }
 
                 for extension in [".json"; ".py"] do
                     let actualGrammarFileName =

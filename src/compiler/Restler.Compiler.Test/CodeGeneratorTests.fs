@@ -27,7 +27,7 @@ module CodeGenerator =
         let ``generate code from modified grammar`` () =
 
             let grammarOutputDirectory1 = ctx.testRootDirPath
-            Restler.Workflow.generateRestlerGrammar None
+            Restler.Workflow.generateRestlerGrammar 
                                     { configs.["demo_server"] with
                                        GrammarOutputDirectoryPath = Some grammarOutputDirectory1 }
             let grammar1 = Restler.Utilities.JsonSerialization.deserializeFile<GrammarDefinition>
@@ -127,7 +127,7 @@ module CodeGenerator =
                              SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, "swagger" , "example_demo1.json"))]
                              CustomDictionaryFilePath = Some (Path.Combine(Environment.CurrentDirectory, "swagger", "example_demo_dictionary.json"))
                          }
-            Restler.Workflow.generateRestlerGrammar None config
+            Restler.Workflow.generateRestlerGrammar config
             let grammarFilePath = Path.Combine(grammarDirectoryPath, "grammar.py")
             let grammar = File.ReadAllText(grammarFilePath)
 
@@ -136,7 +136,7 @@ module CodeGenerator =
 
             // Now turn on parameter tracking
             let config = { config with TrackFuzzedParameterNames = true }
-            Restler.Workflow.generateRestlerGrammar None config
+            Restler.Workflow.generateRestlerGrammar config
             let grammarFilePath = Path.Combine(grammarDirectoryPath, "grammar.py")
             let grammar = File.ReadAllText(grammarFilePath)
 

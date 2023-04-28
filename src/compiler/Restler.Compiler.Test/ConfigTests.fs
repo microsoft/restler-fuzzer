@@ -54,7 +54,7 @@ module Config =
 
             let newSettingsFilePath = Path.Combine(grammarOutputDirectoryPath, Restler.Workflow.Constants.DefaultEngineSettingsFileName)
 
-            Restler.Workflow.generateRestlerGrammar None multiDictConfig
+            Restler.Workflow.generateRestlerGrammar multiDictConfig
 
             match Restler.Engine.Settings.getEngineSettings newSettingsFilePath with
             | Ok perResourceSettings ->
@@ -101,7 +101,7 @@ module Config =
                 Assert.True(false, sprintf "Engine settings error: %s" msg)
 
             // Check that if an engine settings file is not specified, then a default new one is generated.
-            Restler.Workflow.generateRestlerGrammar None { multiDictConfig with EngineSettingsFilePath = None }
+            Restler.Workflow.generateRestlerGrammar { multiDictConfig with EngineSettingsFilePath = None }
             match Restler.Engine.Settings.getEngineSettings newSettingsFilePath with
             | Ok _ -> ()
             | Error msg ->
@@ -153,14 +153,14 @@ module Config =
             let grammarExternalFilePath = Path.Combine(grammarOutputDirectoryPath, "grammarExternal.py")
             let grammarNoAnnotationsFilePath = Path.Combine(grammarOutputDirectoryPath, "grammarNoAnnotations.py")
 
-            Restler.Workflow.generateRestlerGrammar None config
+            Restler.Workflow.generateRestlerGrammar config
 
             File.Copy(grammarFilePath, grammarInlineFilePath)
             // Delete the grammar file to make sure it gets re-generated
             File.Delete(grammarFilePath)
 
             // As a test sanity check, make sure the config without global annotations does not  the grammar to make sure it gets re-generated
-            Restler.Workflow.generateRestlerGrammar None noAnnotationsConfig
+            Restler.Workflow.generateRestlerGrammar noAnnotationsConfig
             File.Copy(grammarFilePath, grammarNoAnnotationsFilePath)
             // Delete the grammar file to make sure it gets re-generated
             File.Delete(grammarFilePath)
@@ -170,7 +170,7 @@ module Config =
 
             Assert.True(grammarsDiffAfterRemovingAnnotations.IsSome, message)
 
-            Restler.Workflow.generateRestlerGrammar None externalConfig
+            Restler.Workflow.generateRestlerGrammar externalConfig
             File.Copy(grammarFilePath, grammarExternalFilePath)
             // Delete the grammar file to make sure it gets re-generated
             File.Delete(grammarFilePath)
@@ -197,7 +197,7 @@ module Config =
                              UseBodyExamples = Some true
                              GrammarOutputDirectoryPath = Some grammarOutputDirectoryPath
                          }
-            Restler.Workflow.generateRestlerGrammar None config
+            Restler.Workflow.generateRestlerGrammar config
 
             let grammarFilePath = Path.Combine(grammarOutputDirectoryPath, Restler.Workflow.Constants.DefaultRestlerGrammarFileName)
             let grammar = File.ReadAllLines(grammarFilePath)

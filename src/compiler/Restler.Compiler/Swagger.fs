@@ -25,7 +25,7 @@ let getYamlSwaggerDocumentAsync (path:string) = async {
     return swaggerDoc
 }
 
-let getSwaggerDocument (swaggerPath:string) (workingDirectory:string) =
+let preprocessSwaggerDocument (swaggerPath:string) (workingDirectory:string) =
     async {
         // When a spec is preprocessed, it is converted to json
         let specExtension = ".json"
@@ -37,6 +37,12 @@ let getSwaggerDocument (swaggerPath:string) (workingDirectory:string) =
         let preprocessedSpecPath = preprocessedSpecsDirPath ++ specName
         let preprocessingResult =
             SwaggerSpecPreprocessor.preprocessApiSpec swaggerPath preprocessedSpecPath
+        return preprocessedSpecPath, preprocessingResult
+    }
+
+let getSwaggerDocument (swaggerPath:string) (workingDirectory:string) =
+    async {
+        let! preprocessedSpecPath, preprocessingResult = preprocessSwaggerDocument swaggerPath workingDirectory
         match preprocessingResult with
         | Ok pr ->
             let! swaggerDoc = getSwaggerDocumentAsync preprocessedSpecPath
@@ -49,3 +55,10 @@ let getSwaggerDocument (swaggerPath:string) (workingDirectory:string) =
     }
     |> Async.RunSynchronously
 
+let getSwaggerDocumentStats (swaggerPath:string) =
+    use stream = System.IO.File.OpenRead(swaggerPath)
+    let swaggerHash = Restler.Utilities.String.deterministicShortStreamHash stream 
+    let swaggerSize = stream.Length
+    [("size", swaggerSize.ToString())
+     ("content_hash", swaggerHash)]
+    

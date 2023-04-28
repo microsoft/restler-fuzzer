@@ -3,8 +3,8 @@
 
 module Restler.Config
 
+open System
 open System.IO
-open Newtonsoft.Json.Linq
 
 /// The 'type' of the resource is inferred based on the naming of its name and container as
 /// well as conventions for the API method (e.g. PUT vs. POST).
@@ -300,3 +300,49 @@ let mergeWithDefaultConfig (userConfigAsString:string) =
     let newConfig = Restler.Utilities.JsonParse.mergeWithOverride defaultConfig userConfigAsString
 
     Utilities.JsonSerialization.deserialize<Config> newConfig
+
+/// Determines which dictionary to use with each Swagger/OpenAPI spec and returns
+/// a 'SwaggerSpecConfig' for each specification. 
+let getSwaggerSpecConfigsFromCompilerConfig (config:Config) = 
+    let swaggerDocs =
+        match config.SwaggerSpecFilePath with
+        | None ->
+            if config.SwaggerSpecConfig.IsNone then
+                printfn "ERROR: must specify Swagger or grammar file."
+                raise (ArgumentException("unspecified API spec file path"))
+            else
+                // Swagger specified in config.  handled below.
+                []
+        | Some swaggerSpecFilePaths when swaggerSpecFilePaths
+                                            |> Seq.forall (fun fp -> File.Exists fp) ->
+            swaggerSpecFilePaths
+        | Some p ->
+            printfn "ERROR: invalid path found in the list of Swagger specs given: %A" p
+            raise (ArgumentException(sprintf "invalid API spec file path found: %A" p))
+
+    let docsWithEmptyConfig =
+        swaggerDocs
+        |> List.map (fun x ->
+                        {   SwaggerSpecConfig.SpecFilePath = x
+                            DictionaryFilePath = None
+                            Dictionary = None
+                            AnnotationFilePath = None
+                        })
+
+    let configuredSwaggerDocs =
+        match config.SwaggerSpecConfig with
+        | None ->
+            if swaggerDocs.Length = 0 then
+                printfn "ERROR: must specify at least one Swagger or grammar file."
+                raise (ArgumentException("unspecified API spec file path"))
+            else
+                docsWithEmptyConfig
+        | Some docs when docs |> Seq.forall (fun doc -> File.Exists doc.SpecFilePath) ->
+            let configuredDocs =
+                docs
+            docsWithEmptyConfig @ configuredDocs
+        | Some docs ->
+            printfn "ERROR: invalid path found in the list of Swagger configurations given: %A" docs
+            raise (ArgumentException(sprintf "invalid API spec file path found: %A" docs))
+
+    configuredSwaggerDocs
