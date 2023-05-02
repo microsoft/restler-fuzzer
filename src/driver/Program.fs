@@ -14,7 +14,7 @@ open Microsoft.FSharpLu.Diagnostics.Process
 open Restler.Telemetry
 
 [<Literal>]
-let CurrentVersion = "9.1.2"
+let CurrentVersion = "9.2.0"
 let EngineErrorCode = -2
 
 let exitRestler status =
@@ -134,7 +134,7 @@ module Compile =
         let swaggerSpecConfigs = Restler.Config.getSwaggerSpecConfigsFromCompilerConfig config
         let swaggerSpecStats =
             swaggerSpecConfigs
-            |> List.mapi (fun i c -> 
+            |> List.mapi (fun i c ->
                             let stats = Restler.Swagger.getSwaggerDocumentStats c.SpecFilePath
                             // append spec_i to the beginning of each key
                             stats |> List.map (fun (k,v) -> sprintf "spec_%d_%s" i k, v)
@@ -233,9 +233,9 @@ module Fuzz =
 
     /// IMPORTANT: These must be aggregate statistics only.
     ///   Do not return contents of grammar files.
-    let getGrammarFileStatistics grammarFilePath = 
+    let getGrammarFileStatistics grammarFilePath =
         use stream = System.IO.File.OpenRead(grammarFilePath)
-        let grammarHash = Restler.Utilities.String.deterministicShortStreamHash stream    
+        let grammarHash = Restler.Utilities.String.deterministicShortStreamHash stream
         let grammarSize = stream.Length
         [ ("grammar_size", grammarSize.ToString())
           ("grammar_content_hash", grammarHash)]
@@ -917,8 +917,8 @@ let main argv =
                     telemetryClient.RestlerStarted(CurrentVersion, taskName, executionId, telemetryFeaturesToSend)
 
                     let! result = Compile.invokeCompiler taskWorkingDirectory compilerConfigPath compilerOutputDirPath
-                    let grammarFileStatistics = 
-                        Fuzz.getGrammarFileStatistics (compilerOutputDirPath ++ 
+                    let grammarFileStatistics =
+                        Fuzz.getGrammarFileStatistics (compilerOutputDirPath ++
                                                        Restler.Workflow.Constants.DefaultRestlerGrammarFileName)
                     return
                         {|
@@ -1036,11 +1036,11 @@ let main argv =
             match result.testingSummary with
             | None -> [], []
             | Some s -> s.bugBucketCounts, s.specCoverageCounts
-        let grammarFileStatistics = 
+        let grammarFileStatistics =
             match result.grammarFileStatistics with
             | Some s -> s
             | None -> []
-        
+
         telemetryClient.RestlerFinished(CurrentVersion, taskName, executionId, result.taskResult,
                                         bugBucketCounts, specCoverageCounts, grammarFileStatistics)
 
