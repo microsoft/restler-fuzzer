@@ -124,10 +124,25 @@ module Paths =
 
 module Compile =
     open Restler.Config
-    let invokeCompiler workingDirectory (config:Config) = async {
-        if not (File.Exists Paths.CompilerExePath) then
-            Trace.failwith "Could not find path to compiler.  Please re-install RESTler or contact support."
+    /// Get the telemetry features to send in anonymized telemetry
+    /// IMPORTANT: These must be aggregate statistics only.
+    ///   Do not return contents of any OpenAPI or config files.
+    let getTelemetryFeatures compilerConfigPath =
+        // Get the sizes and hash the OpenAPI, dictionary, and annotation files.
+        let config =
+            Restler.Utilities.JsonSerialization.deserializeFile<Config> compilerConfigPath
+        let swaggerSpecConfigs = Restler.Config.getSwaggerSpecConfigsFromCompilerConfig config
+        let swaggerSpecStats =
+            swaggerSpecConfigs
+            |> List.mapi (fun i c -> 
+                            let stats = Restler.Swagger.getSwaggerDocumentStats c.SpecFilePath
+                            // append spec_i to the beginning of each key
+                            stats |> List.map (fun (k,v) -> sprintf "spec_%d_%s" i k, v)
+                            )
+            |> List.concat
+        swaggerSpecStats
 
+    let generateCompilerConfig workingDirectory (config:Config) =
         // If a dictionary is not specified, generate a default one.
         let dictionaryFilePath =
             match config.CustomDictionaryFilePath with
@@ -149,6 +164,11 @@ module Compile =
                 CustomDictionaryFilePath = dictionaryFilePath }
         let compilerConfigPath = workingDirectory ++ Restler.Workflow.Constants.DefaultCompilerConfigName
         Restler.Utilities.JsonSerialization.serializeToFile compilerConfigPath compilerConfig
+        compilerConfigPath, compilerOutputDirPath
+
+    let invokeCompiler workingDirectory compilerConfigPath compilerOutputDirPath = async {
+        if not (File.Exists Paths.CompilerExePath) then
+            Trace.failwith "Could not find path to compiler.  Please re-install RESTler or contact support."
 
         // Run compiler
         let! result =
@@ -210,6 +230,15 @@ module Fuzz =
         }
         return versionStr
     }
+
+    /// IMPORTANT: These must be aggregate statistics only.
+    ///   Do not return contents of grammar files.
+    let getGrammarFileStatistics grammarFilePath = 
+        use stream = System.IO.File.OpenRead(grammarFilePath)
+        let grammarHash = Restler.Utilities.String.deterministicShortStreamHash stream    
+        let grammarSize = stream.Length
+        [ ("grammar_size", grammarSize.ToString())
+          ("grammar_content_hash", grammarHash)]
 
     /// Gets the RESTler engine parameters common to any fuzzing mode
     let getCommonParameters (parameters:EngineParameters) maxDurationHours =
@@ -880,20 +909,28 @@ let main argv =
         let! result = async {
             try
                 Logging.logInfo <| sprintf "Starting task %A..." args.task
-                telemetryClient.RestlerStarted(CurrentVersion, taskName, executionId, [])
 
                 match args.task, args.taskParameters with
                 | Compile, CompilerParameters p ->
-                    let! result = Compile.invokeCompiler taskWorkingDirectory p
+                    let compilerConfigPath, compilerOutputDirPath = Compile.generateCompilerConfig taskWorkingDirectory p
+                    let telemetryFeaturesToSend = Compile.getTelemetryFeatures compilerConfigPath
+                    telemetryClient.RestlerStarted(CurrentVersion, taskName, executionId, telemetryFeaturesToSend)
+
+                    let! result = Compile.invokeCompiler taskWorkingDirectory compilerConfigPath compilerOutputDirPath
+                    let grammarFileStatistics = 
+                        Fuzz.getGrammarFileStatistics (compilerOutputDirPath ++ 
+                                                       Restler.Workflow.Constants.DefaultRestlerGrammarFileName)
                     return
                         {|
                             taskResult = result
                             analyzerResult = None
                             testingSummary = None
+                            grammarFileStatistics = Some grammarFileStatistics
                         |}
                 | Test, EngineParameters p
                 | FuzzLean, EngineParameters p ->
-
+                    let grammarFileStatistics = Fuzz.getGrammarFileStatistics p.grammarFilePath
+                    telemetryClient.RestlerStarted(CurrentVersion, taskName, executionId, grammarFileStatistics)
                     let! result = Fuzz.runSmokeTest taskWorkingDirectory p args.pythonFilePath
                     let! analyzerResult = async {
                         if p.runResultsAnalyzer then
@@ -926,9 +963,13 @@ let main argv =
                             taskResult = exitCode
                             analyzerResult = analyzerResult
                             testingSummary = testingSummary
+                            grammarFileStatistics = Some grammarFileStatistics
                         |}
 
                 | Fuzz, EngineParameters p ->
+                    let grammarFileStatistics = Fuzz.getGrammarFileStatistics p.grammarFilePath
+                    telemetryClient.RestlerStarted(CurrentVersion, taskName, executionId, grammarFileStatistics)
+
                     let! result =  Fuzz.fuzz taskWorkingDirectory p args.pythonFilePath
                     let! analyzerResult = async {
                         if p.runResultsAnalyzer then
@@ -952,14 +993,18 @@ let main argv =
                             taskResult = exitCode
                             analyzerResult = analyzerResult
                             testingSummary = testingSummary
+                            grammarFileStatistics = Some grammarFileStatistics
                         |}
                 | Replay, EngineParameters p ->
+                    telemetryClient.RestlerStarted(CurrentVersion, taskName, executionId, [])
+
                     let! result = Fuzz.replayLog taskWorkingDirectory p args.pythonFilePath
                     return
                         {|
                             taskResult = result.ExitCode
                             analyzerResult = None
                             testingSummary = None
+                            grammarFileStatistics = None
                         |}
                 | _,_ ->
                     telemetryClient.RestlerStarted(CurrentVersion, "invalid arguments", executionId, [])
@@ -971,6 +1016,7 @@ let main argv =
                             taskResult = -1
                             analyzerResult = None
                             testingSummary = None
+                            grammarFileStatistics = None
                         |}
 
             with e ->
@@ -980,6 +1026,7 @@ let main argv =
                         taskResult = 1
                         analyzerResult = None
                         testingSummary = None
+                        grammarFileStatistics = None
                     |}
         }
 
@@ -989,8 +1036,13 @@ let main argv =
             match result.testingSummary with
             | None -> [], []
             | Some s -> s.bugBucketCounts, s.specCoverageCounts
+        let grammarFileStatistics = 
+            match result.grammarFileStatistics with
+            | Some s -> s
+            | None -> []
+        
         telemetryClient.RestlerFinished(CurrentVersion, taskName, executionId, result.taskResult,
-                                        bugBucketCounts, specCoverageCounts)
+                                        bugBucketCounts, specCoverageCounts, grammarFileStatistics)
 
         if result.analyzerResult.IsSome then
             telemetryClient.ResultsAnalyzerFinished(CurrentVersion, taskName, executionId, result.analyzerResult.Value)

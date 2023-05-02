@@ -71,7 +71,7 @@ module Dependencies =
                              SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, "swagger", "put_createorupdate.json"))]
                              CustomDictionaryFilePath = None
                          }
-            Restler.Workflow.generateRestlerGrammar None config
+            Restler.Workflow.generateRestlerGrammar config
             let grammarFilePath = Path.Combine(grammarOutputDirectoryPath, "grammar.py")
             let grammar = File.ReadAllText(grammarFilePath)
 
@@ -89,7 +89,7 @@ module Dependencies =
 
             // Compiling with this dictionary should result in the same grammar.
             let config2 = { config with CustomDictionaryFilePath = Some dictionaryFilePath }
-            Restler.Workflow.generateRestlerGrammar None config2
+            Restler.Workflow.generateRestlerGrammar config2
             let grammar2 = File.ReadAllText(grammarFilePath)
             Assert.True((grammar = grammar2))
 
@@ -105,7 +105,7 @@ module Dependencies =
                              CustomDictionaryFilePath = None
                              AllowGetProducers = true
                          }
-            Restler.Workflow.generateRestlerGrammar None config
+            Restler.Workflow.generateRestlerGrammar config
 
             // TODO: check that dynamic objects are present when 'allowGetProducers' is true, but not when it's false.
             //
@@ -125,7 +125,7 @@ module Dependencies =
                              CustomDictionaryFilePath = None
                              AllowGetProducers = true
                          }
-            Restler.Workflow.generateRestlerGrammar None config
+            Restler.Workflow.generateRestlerGrammar config
             let grammarFilePath = Path.Combine(grammarOutputDirectoryPath, "grammar.py")
             let grammar = File.ReadAllText(grammarFilePath)
 
@@ -140,7 +140,7 @@ module Dependencies =
                              CustomDictionaryFilePath = None
                              AllowGetProducers = true
                          }
-            Restler.Workflow.generateRestlerGrammar None config2
+            Restler.Workflow.generateRestlerGrammar config2
             let grammar2 = File.ReadAllText(grammarFilePath)
             Assert.True((grammar = grammar2))
         *)
@@ -158,7 +158,7 @@ module Dependencies =
                              CustomDictionaryFilePath = None
                              AllowGetProducers = true
                          }
-            Restler.Workflow.generateRestlerGrammar None config
+            Restler.Workflow.generateRestlerGrammar config
             let grammarFilePath = Path.Combine(grammarOutputDirectoryPath, "grammar.py")
             let grammar = File.ReadAllText(grammarFilePath)
 
@@ -173,7 +173,7 @@ module Dependencies =
                              CustomDictionaryFilePath = None
                              AllowGetProducers = true
                          }
-            Restler.Workflow.generateRestlerGrammar None config2
+            Restler.Workflow.generateRestlerGrammar config2
             let grammar2 = File.ReadAllText(grammarFilePath)
             Assert.True((grammar = grammar2))
 
@@ -190,7 +190,7 @@ module Dependencies =
                              CustomDictionaryFilePath = None
                              AllowGetProducers = true
                          }
-            Restler.Workflow.generateRestlerGrammar None config
+            Restler.Workflow.generateRestlerGrammar config
             let grammarFilePath = Path.Combine(grammarOutputDirectoryPath, "grammar.py")
             let grammar = File.ReadAllText(grammarFilePath)
 
@@ -205,7 +205,7 @@ module Dependencies =
                              CustomDictionaryFilePath = None
                              AllowGetProducers = true
                          }
-            Restler.Workflow.generateRestlerGrammar None config2
+            Restler.Workflow.generateRestlerGrammar config2
             let grammar2 = File.ReadAllText(grammarFilePath)
             Assert.True((grammar = grammar2))
 
@@ -222,7 +222,7 @@ module Dependencies =
                              CustomDictionaryFilePath = None
                              AllowGetProducers = true
                          }
-            Restler.Workflow.generateRestlerGrammar None config
+            Restler.Workflow.generateRestlerGrammar config
 
             // Read the baseline and make sure it matches the expected one
             //
@@ -247,7 +247,7 @@ module Dependencies =
                              CustomDictionaryFilePath = Some (Path.Combine(Environment.CurrentDirectory, "swagger", "dictionaryTests", "dict.json"))
                              AllowGetProducers = true
                          }
-            Restler.Workflow.generateRestlerGrammar None config
+            Restler.Workflow.generateRestlerGrammar config
 
             // Read the baseline and make sure it matches the expected one
             //
@@ -272,7 +272,7 @@ module Dependencies =
                              CustomDictionaryFilePath = None
                              AllowGetProducers = true
                          }
-            Restler.Workflow.generateRestlerGrammar None config
+            Restler.Workflow.generateRestlerGrammar config
 
             // Read the baseline and make sure it matches the expected one
             let expectedGrammarFilePath = Path.Combine(Environment.CurrentDirectory,
@@ -297,7 +297,7 @@ module Dependencies =
                              CustomDictionaryFilePath = None
                              AllowGetProducers = true
                          }
-            Restler.Workflow.generateRestlerGrammar None config
+            Restler.Workflow.generateRestlerGrammar config
 
             // Read the dependencies.json and check that there are 3 producer-consumer dependencies.
             let dependencies =
@@ -323,7 +323,7 @@ module Dependencies =
                              CustomDictionaryFilePath = None
                              AllowGetProducers = true
                          }
-            Restler.Workflow.generateRestlerGrammar None config
+            Restler.Workflow.generateRestlerGrammar config
 
             //// Read the dependencies and check that there are 3 producer-consumer dependencies.
             let dependencies =
@@ -356,7 +356,7 @@ module Dependencies =
                              SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, "swagger", "dependencyTests", "inconsistent_casing_paths.json"))]
                              CustomDictionaryFilePath = None
                          }
-            Restler.Workflow.generateRestlerGrammar None config
+            Restler.Workflow.generateRestlerGrammar config
 
             // Read the dependencies.json and check that there are 3 producer-consumer dependencies.
             let dependencies =
@@ -386,7 +386,7 @@ module Dependencies =
                              SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, "swagger", "dependencyTests", "post_patch_dependency.json"))]
                              AllowGetProducers = true
                          }
-            Restler.Workflow.generateRestlerGrammar None config
+            Restler.Workflow.generateRestlerGrammar config
 
             // Make sure there are three dynamic objects.
             //
@@ -429,7 +429,7 @@ module Dependencies =
                              UseBodyExamples = None
                          }
 
-            Restler.Workflow.generateRestlerGrammar None config
+            Restler.Workflow.generateRestlerGrammar config
             // Make sure the grammar file exists and there is just one dynamic object for the array, regardless of how
             // many elements it had before.
             let grammarFilePath = Path.Combine(grammarOutputDirPath,
@@ -452,7 +452,7 @@ module Dependencies =
                              AnnotationFilePath = Some (Path.Combine(Environment.CurrentDirectory, "swagger", "dependencyTests", "input_producer_annotations.json"))
                              AllowGetProducers = true
                          }
-            Restler.Workflow.generateRestlerGrammar None config
+            Restler.Workflow.generateRestlerGrammar config
 
             let grammarFilePath = Path.Combine(grammarOutputDirPath,
                                                Restler.Workflow.Constants.DefaultRestlerGrammarFileName)
@@ -503,7 +503,7 @@ module Dependencies =
                              CustomDictionaryFilePath = Some dictionaryFilePath
                          }
 
-            Restler.Workflow.generateRestlerGrammar None config
+            Restler.Workflow.generateRestlerGrammar config
 
             let grammarFilePath = Path.Combine(grammarOutputDirectoryPath,
                                                Restler.Workflow.Constants.DefaultRestlerGrammarFileName)
@@ -524,7 +524,7 @@ module Dependencies =
                              AnnotationFilePath = None
                              AllowGetProducers = true
                          }
-            Restler.Workflow.generateRestlerGrammar None config
+            Restler.Workflow.generateRestlerGrammar config
 
             let grammarFilePath = Path.Combine(grammarOutputDirPath,
                                                Restler.Workflow.Constants.DefaultRestlerGrammarFileName)
@@ -541,7 +541,7 @@ module Dependencies =
             // Confirm the same works with annotations
             let configWithAnnotations = { config with
                                             AnnotationFilePath = Some (Path.Combine(Environment.CurrentDirectory, "swagger", "dependencyTests", "response_headers_annotations.json"))}
-            Restler.Workflow.generateRestlerGrammar None configWithAnnotations
+            Restler.Workflow.generateRestlerGrammar configWithAnnotations
 
             let expectedGrammarFilePath = Path.Combine(Environment.CurrentDirectory,
                                                        "baselines", "dependencyTests", "header_response_writer_annotation_grammar.py")
@@ -563,7 +563,7 @@ module Dependencies =
                              AnnotationFilePath = None
                              AllowGetProducers = true
                          }
-            Restler.Workflow.generateRestlerGrammar None config
+            Restler.Workflow.generateRestlerGrammar config
 
             let actualGrammarFilePath = Path.Combine(grammarOutputDirPath,
                                                      Restler.Workflow.Constants.DefaultRestlerGrammarFileName)
@@ -573,13 +573,13 @@ module Dependencies =
             // This scenario should work with annotations only.
             let configWithAnnotations = { config with
                                             AnnotationFilePath = Some (Path.Combine(Environment.CurrentDirectory, "swagger", "dependencyTests", "header_deps_annotations.json"))}
-            Restler.Workflow.generateRestlerGrammar None configWithAnnotations
+            Restler.Workflow.generateRestlerGrammar configWithAnnotations
 
             let grammarDiff = getLineDifferences expectedGrammarFilePath actualGrammarFilePath
             let message = sprintf "Grammar (test with annotations) does not match baseline.  First difference: %A" grammarDiff
             Assert.True(grammarDiff.IsNone, message)
 
-            Restler.Workflow.generateRestlerGrammar None config
+            Restler.Workflow.generateRestlerGrammar config
             let grammarDiff = getLineDifferences expectedGrammarFilePath actualGrammarFilePath
             let message = "Grammar (test without annotations) matches the baseline, this is not expected"
             Assert.True(grammarDiff.IsSome, message)
@@ -602,7 +602,7 @@ module Dependencies =
                              AnnotationFilePath = None
                              AllowGetProducers = true
                          }
-            Restler.Workflow.generateRestlerGrammar None config
+            Restler.Workflow.generateRestlerGrammar config
 
             let actualGrammarFilePath = Path.Combine(grammarOutputDirPath,
                                                      Restler.Workflow.Constants.DefaultRestlerGrammarFileName)
@@ -611,7 +611,7 @@ module Dependencies =
 
             let configWithAnnotations = { config with
                                             AnnotationFilePath = Some (Path.Combine(Environment.CurrentDirectory, "swagger", "dependencyTests", "ordering_test_annotations.json"))}
-            Restler.Workflow.generateRestlerGrammar None configWithAnnotations
+            Restler.Workflow.generateRestlerGrammar configWithAnnotations
 
             let grammarDiff = getLineDifferences expectedGrammarFilePath actualGrammarFilePath
             let message = sprintf "Grammar (test with annotations) does not match baseline.  First difference: %A" grammarDiff
@@ -631,7 +631,7 @@ module Dependencies =
                              AllowGetProducers = true
                              ResolveQueryDependencies = true
                          }
-            Restler.Workflow.generateRestlerGrammar None config
+            Restler.Workflow.generateRestlerGrammar config
 
             let actualGrammarFilePath = Path.Combine(grammarOutputDirPath,
                                                      Restler.Workflow.Constants.DefaultRestlerGrammarFileName)
@@ -661,7 +661,7 @@ module Dependencies =
                                  AllowGetProducers = true
                                  ResolveQueryDependencies = true
                              }
-                Restler.Workflow.generateRestlerGrammar None config
+                Restler.Workflow.generateRestlerGrammar config
 
                 let actualGrammarFilePath = Path.Combine(grammarOutputDirPath,
                                                          Restler.Workflow.Constants.DefaultRestlerGrammarFileName)

@@ -40,5 +40,5 @@ let main argv =
             exit 1
 
 
-    Restler.Workflow.generateRestlerGrammar None config
+    Restler.Workflow.generateRestlerGrammar config
     0

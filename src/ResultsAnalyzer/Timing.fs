@@ -75,7 +75,7 @@ let main args =
             req.uri.path
             |> String.concat "/"
             |> escapeNewlinesQuotes
-        let reqHash = reqAbstracted.ToString() |> String.deterministicShortHash
+        let reqHash = reqAbstracted.ToString() |> Restler.Utilities.String.deterministicShortHash
         printf "%s,%s,%s,%s,\t%s,"
             req.method
             pathAbstracted
@@ -86,7 +86,7 @@ let main args =
         match resp with
         | None -> printfn ",,,"
         | Some (respTime, resp, respAbstracted) ->
-            let respHash = respAbstracted.ToString() |> String.deterministicShortHash
+            let respHash = respAbstracted.ToString() |> Restler.Utilities.String.deterministicShortHash
             let delay = (respTime - reqTime).TotalMilliseconds |> System.Convert.ToInt32
             printfn "%d %s,%s,\t%s,%d"
                 resp.statusCode

@@ -220,7 +220,7 @@ module Request =
         }
 
     /// Hash to identify a particular request without having to compare or print the full contents.
-    let hash req = req.ToString() |> Utilities.String.deterministicShortHash
+    let hash req = req.ToString() |> Restler.Utilities.String.deterministicShortHash
 
 module Response =
     /// Parse an HTTP response, where the body is parsed to 'T by bodyParser.

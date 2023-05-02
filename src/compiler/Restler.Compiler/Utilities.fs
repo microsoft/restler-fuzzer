@@ -151,3 +151,33 @@ module Stream =
         fs.Flush()
         fs.Dispose()
 
+module String = 
+    open System.Text
+    open System.Security.Cryptography
+
+    /// Provide a deterministic hash from a string, because
+    /// F# Operator.hash / C# GetHashCode() are NOT deterministic between runs.
+    /// 32 hex digits = 16 bytes = 128 bits => 2^64 elements before collision with 50% probability.
+    let deterministicShortHash (str:string): string =
+        let hashLength = 16 // bytes
+
+        use sha1 = SHA1.Create()
+        let bytes = Encoding.Default.GetBytes(str)
+        let hashBytes = sha1.ComputeHash(bytes)
+        hashBytes
+        |> Seq.take hashLength
+        |> Seq.map (fun b -> b.ToString("x2"))
+        |> String.concat ""
+
+    /// Provide a deterministic hash from a string, because
+    /// F# Operator.hash / C# GetHashCode() are NOT deterministic between runs.
+    /// 32 hex digits = 16 bytes = 128 bits => 2^64 elements before collision with 50% probability.
+    let deterministicShortStreamHash (s:System.IO.Stream): string =
+        let hashLength = 16 // bytes
+
+        use sha1 = SHA1.Create()
+        let hashBytes = sha1.ComputeHash(s)
+        hashBytes
+        |> Seq.take hashLength
+        |> Seq.map (fun b -> b.ToString("x2"))
+        |> String.concat ""
