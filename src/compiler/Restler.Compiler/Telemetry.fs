@@ -54,7 +54,7 @@ type TelemetryClient(machineId: System.Guid, instrumentationKey: string,
                 "executionId", sprintf "%A" executionId
                 "status", sprintf "%A" status
             ]))
-        
+
     member __.RestlerDriverFailed(version, task, executionId) =
         client.TrackEvent("restler failed",
             dict ([
