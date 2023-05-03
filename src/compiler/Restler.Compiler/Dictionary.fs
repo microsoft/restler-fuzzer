@@ -210,9 +210,9 @@ let DefaultMutationsDictionary =
         restler_custom_payload = Some (Map.empty<string, string list>)
         restler_custom_payload_unquoted = Some (Map.empty<string, string list>)
         restler_custom_payload_uuid4_suffix = Some (Map.empty<string, string>)
-        restler_custom_payload_header = None
+        restler_custom_payload_header = Some (Map.empty<string, string list>)
         restler_custom_payload_header_unquoted = None
-        restler_custom_payload_query = None
+        restler_custom_payload_query = Some (Map.empty<string, string list>)
         shadow_values = None
     } 
 
