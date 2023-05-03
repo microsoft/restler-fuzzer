@@ -918,8 +918,11 @@ let main argv =
 
                     let! result = Compile.invokeCompiler taskWorkingDirectory compilerConfigPath compilerOutputDirPath
                     let grammarFileStatistics =
-                        Fuzz.getGrammarFileStatistics (compilerOutputDirPath ++
-                                                       Restler.Workflow.Constants.DefaultRestlerGrammarFileName)
+                        match result with
+                        | 0 -> 
+                            Fuzz.getGrammarFileStatistics (compilerOutputDirPath ++
+                                                           Restler.Workflow.Constants.DefaultRestlerGrammarFileName)
+                        | _ -> []
                     return
                         {|
                             taskResult = result
