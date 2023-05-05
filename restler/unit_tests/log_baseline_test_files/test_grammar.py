@@ -41,7 +41,7 @@ _group_put_name = dependencies.DynamicVariable(
     "_group_put_name"
 )
 
-def parse_cityNamePut(data):
+def parse_cityNamePut(data, **kwargs):
     temp_123 = None
 
     try:
@@ -58,7 +58,7 @@ def parse_cityNamePut(data):
     if temp_123:
         dependencies.set_variable("_city_put_name", temp_123)
 
-def parse_cityHouseNamePut(data):
+def parse_cityHouseNamePut(data, **kwargs):
     temp_123 = None
 
     try:
@@ -75,7 +75,7 @@ def parse_cityHouseNamePut(data):
     if temp_123:
         dependencies.set_variable("_city_house_put_name", temp_123)
 
-def parse_cityHouseColorNamePut(data):
+def parse_cityHouseColorNamePut(data, **kwargs):
     temp_123 = None
 
     try:
@@ -92,7 +92,7 @@ def parse_cityHouseColorNamePut(data):
     if temp_123:
         dependencies.set_variable("_city_house_color_put_name", temp_123)
 
-def parse_cityRoadNamePut(data):
+def parse_cityRoadNamePut(data, **kwargs):
     temp_123 = None
 
     try:
@@ -109,7 +109,7 @@ def parse_cityRoadNamePut(data):
     if temp_123:
         dependencies.set_variable("_city_road_put_name", temp_123)
 
-def parse_farmNamePut(data):
+def parse_farmNamePut(data, **kwargs):
     temp_123 = None
 
     try:
@@ -126,7 +126,7 @@ def parse_farmNamePut(data):
     if temp_123:
         dependencies.set_variable("_farm_put_name", temp_123)
 
-def parse_farmAnimalNamePut(data):
+def parse_farmAnimalNamePut(data, **kwargs):
     temp_123 = None
 
     try:
@@ -143,7 +143,7 @@ def parse_farmAnimalNamePut(data):
     if temp_123:
         dependencies.set_variable("_farm_animal_put_name", temp_123)
 
-def parse_itemNamePut(data):
+def parse_itemNamePut(data, **kwargs):
     temp_123 = None
 
     try:
@@ -160,7 +160,7 @@ def parse_itemNamePut(data):
     if temp_123:
         dependencies.set_variable("_item_put_name", temp_123)
 
-def parse_groupNamePut(data):
+def parse_groupNamePut(data, **kwargs):
     temp_123 = None
 
     try:

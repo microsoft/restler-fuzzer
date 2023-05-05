@@ -431,15 +431,7 @@ def call_response_parser(parser, response, request=None, responses=None):
     for response in responses:
         try:
             if parser:
-                # For backwards compatibility, check if the parser accepts named arguments.
-                # If not, this is an older grammar that only supports a json body as the argument
-                import inspect
-                args, varargs, varkw, defaults = inspect.getargspec(parser)
-
-                if varkw=='kwargs':
-                    parser(response.json_body, headers=response.headers_dict)
-                else:
-                    parser(response.json_body)
+                parser(response.json_body, headers=response.headers_dict)
                 # Print a diagnostic message if some dynamic objects were not set.
                 # The parser only fails if all of the objects were not set.
                 if request:
@@ -450,7 +442,7 @@ def call_response_parser(parser, response, request=None, responses=None):
                             _RAW_LOGGING(err_str)
                 return True
         except (ResponseParsingException, AttributeError) as error:
-            _RAW_LOGGING(str(error))
+            _RAW_LOGGING(f"Parser exception: {str(error)}.")
 
     return False
 

@@ -17,7 +17,7 @@ _city_house_put_name = dependencies.DynamicVariable(
     "_city_house_put_name"
 )
 
-def parse_cityNamePut(data):
+def parse_cityNamePut(data, **kwargs):
     temp_123 = None
 
     try:
@@ -34,7 +34,7 @@ def parse_cityNamePut(data):
     if temp_123:
         dependencies.set_variable("_city_put_name", temp_123)
 
-def parse_cityHouseNamePut(data):
+def parse_cityHouseNamePut(data, **kwargs):
     temp_123 = None
 
     try:

@@ -41,7 +41,7 @@ _namespaceruletest_put_name = dependencies.DynamicVariable(
     "_namespaceruletest_put_name"
 )
 
-def parse_cityNamePut(data):
+def parse_cityNamePut(data, **kwargs):
     temp_123 = None
 
     try:
@@ -57,7 +57,7 @@ def parse_cityNamePut(data):
     if temp_123:
         dependencies.set_variable("_city_put_name", temp_123)
 
-def parse_cityHouseNamePut(data):
+def parse_cityHouseNamePut(data, **kwargs):
     temp_123 = None
 
     try:
@@ -73,7 +73,7 @@ def parse_cityHouseNamePut(data):
     if temp_123:
         dependencies.set_variable("_city_house_put_name", temp_123)
 
-def parse_cityHouseColorNamePut(data):
+def parse_cityHouseColorNamePut(data, **kwargs):
     temp_123 = None
 
     try:
@@ -89,7 +89,7 @@ def parse_cityHouseColorNamePut(data):
     if temp_123:
         dependencies.set_variable("_city_house_color_put_name", temp_123)
 
-def parse_leakageruletestNamePut(data):
+def parse_leakageruletestNamePut(data, **kwargs):
     temp_123 = None
 
     try:
@@ -105,7 +105,7 @@ def parse_leakageruletestNamePut(data):
     if temp_123:
         dependencies.set_variable("_leakageruletest_put_name", temp_123)
 
-def parse_useafterfreetestNamePut(data):
+def parse_useafterfreetestNamePut(data, **kwargs):
     temp_123 = None
 
     try:
@@ -121,7 +121,7 @@ def parse_useafterfreetestNamePut(data):
     if temp_123:
         dependencies.set_variable("_useafterfreetest_put_name", temp_123)
 
-def parse_resourcehierarchytestNamePut(data):
+def parse_resourcehierarchytestNamePut(data, **kwargs):
     temp_123 = None
 
     try:
@@ -137,7 +137,7 @@ def parse_resourcehierarchytestNamePut(data):
     if temp_123:
         dependencies.set_variable("_resourcehierarchytest_put_name", temp_123)
 
-def parse_resourcehierarchychildNamePut(data):
+def parse_resourcehierarchychildNamePut(data, **kwargs):
     temp_123 = None
 
     try:
@@ -153,7 +153,7 @@ def parse_resourcehierarchychildNamePut(data):
     if temp_123:
         dependencies.set_variable("_resourcehierarchychild_put_name", temp_123)
 
-def parse_namespaceruletestNamePut(data):
+def parse_namespaceruletestNamePut(data, **kwargs):
     temp_123 = None
 
     try:
