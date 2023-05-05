@@ -19,7 +19,7 @@ _post_a = dependencies.DynamicVariable(
 )
 
 
-def parse_A(data):
+def parse_A(data, **kwargs):
     temp_123 = None
 
     try:

@@ -19,7 +19,7 @@ _post_large_resource = dependencies.DynamicVariable(
 )
 
 
-def parse_LR(data):
+def parse_LR(data, **kwargs):
     temp_123 = None
 
     try:

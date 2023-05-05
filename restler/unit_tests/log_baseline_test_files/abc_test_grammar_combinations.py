@@ -26,7 +26,7 @@ _post_d = dependencies.DynamicVariable(
     "_post_d"
 )
 
-def parse_A(data):
+def parse_A(data, **kwargs):
     temp_123 = None
 
     try:
@@ -42,7 +42,7 @@ def parse_A(data):
     if temp_123:
         dependencies.set_variable("_post_a", temp_123)
 
-def parse_B(data):
+def parse_B(data, **kwargs):
     temp_123 = None
 
     try:
@@ -59,7 +59,7 @@ def parse_B(data):
         dependencies.set_variable("_post_b", temp_123)
 
 
-def parse_D(data):
+def parse_D(data, **kwargs):
     temp_123 = None
 
     try:
