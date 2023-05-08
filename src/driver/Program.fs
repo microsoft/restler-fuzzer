@@ -26,7 +26,7 @@ let usage() =
         "Usage:
 
   restler --version
-          generate_config --specs <OpenAPI file list or directory> --output_dir <output directory>
+          generate_config --specs <OpenAPI file list or directory> --output_dir <output directory> [--relative_path <relative path>]
           [--disable_log_upload] [--logsUploadRootDirPath <log upload directory>]
           [--python_path <full path to python executable>]
           [--workingDirPath <local logs directory (default: cwd)>]
@@ -482,6 +482,7 @@ module Config =
         {
             specFilesOrDirs : string list
             outputDir : string option
+            relativePath : string option
         }
 
     let rec parseGenerateConfigParameters (args:GenerateConfigParameters) = function
@@ -508,6 +509,12 @@ module Config =
                     rest.[0..i-1], (rest |> List.skip i)
 
             parseGenerateConfigParameters { args with specFilesOrDirs = specs } rest
+        | "--relative_path"::relPath::rest ->
+            if Directory.Exists relPath then
+                parseGenerateConfigParameters { args with relativePath = Some relPath } rest
+            else
+                Logging.logError <| sprintf "Directory %s specified for the relative path does not exist." relPath
+                usage()
         | invalidArgument::rest ->
             Logging.logError <| sprintf "Invalid argument: %s" invalidArgument
             usage()
@@ -517,7 +524,8 @@ module Config =
         // in the list
         let configParameters = parseGenerateConfigParameters
                                     { specFilesOrDirs = []
-                                      outputDir = None }
+                                      outputDir = None 
+                                      relativePath = None }
                                     generateConfigParameters
         let configDirPath = configParameters.outputDir.Value
         printf "Creating directory %s" configDirPath
@@ -544,11 +552,17 @@ module Config =
 
         // Get absolute paths.  The user will need to convert these to a relative path
         // when checked in.
-        let swaggerSpecAbsFilePaths =
-            specPaths
-            |> Seq.map (fun filePath ->
-                            Restler.Config.convertToAbsPath Environment.CurrentDirectory filePath)
-            |> Seq.toList
+        let swaggerSpecFilePaths =
+            match configParameters.relativePath with
+            | Some relPath ->
+                specPaths
+                |> Seq.map (fun p -> System.IO.Path.GetRelativePath(relPath, p)
+                                                   .Replace(System.IO.Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar))
+            | None ->
+                specPaths
+                |> Seq.map (fun filePath ->
+                                Restler.Config.convertToAbsPath Environment.CurrentDirectory filePath)
+        let swaggerSpecFilePaths = swaggerSpecFilePaths |> Seq.toList
         let dictionaryFileName = "dict.json"
         let dictionaryFilePath = configDirPath ++ dictionaryFileName
         let customPayloads = """{
@@ -581,7 +595,7 @@ module Config =
         // use a JObject below instead of modifying the default config.
         let config =
             JObject(
-                JProperty("SwaggerSpecFilePath", JArray(swaggerSpecAbsFilePaths)),
+                JProperty("SwaggerSpecFilePath", JArray(swaggerSpecFilePaths)),
                 JProperty("DataFuzzing", true),
                 JProperty("CustomDictionaryFilePath", Restler.Workflow.Constants.NewDictionaryFileName),
                 JProperty("EngineSettingsFilePath", Restler.Workflow.Constants.DefaultEngineSettingsFileName),
