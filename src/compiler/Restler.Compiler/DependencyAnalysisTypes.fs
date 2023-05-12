@@ -186,3 +186,87 @@ type ResourceId =
         requestId : RequestId
         resourceReference : ResourceReference
     }
+
+module Paths = 
+    open System
+    let isPathParameter (p:string) = p.StartsWith "{"
+
+    let tryGetPathParameterName(p:string) = 
+        if isPathParameter p then
+            Some (p.[1 .. p.Length-2])
+        else None
+
+    let formatPathParameter(name:string) = sprintf "{%s}" name
+    
+    /// Tests if two parameter names correspond to the same parameter.
+    let parameterNamesEqual (name1:string) (name2:string) = 
+        String.Equals(name1, name2, StringComparison.OrdinalIgnoreCase)
+
+    type PathPart = 
+        | Parameter of string // {param}
+        | Constant of string  // all others
+        | Separator // "/"
+    
+    /// Returns the original endpoint as declared in the OpenAPI spec
+    let getPathParts (pathParts:PathPart list) = 
+        pathParts
+        |> List.map (fun part -> 
+                        match part with
+                        | Parameter p -> sprintf "{%s}" p
+                        | Constant c -> c
+                        | Separator -> "/")
+
+    type Path =
+        {
+            path : PathPart list
+        }
+        with
+            /// Returns the original endpoint as declared in the OpenAPI spec
+            member x.getPath() = 
+                getPathParts x.path
+                |> String.concat ""
+
+            /// Returns whether this path parameter is present in the path
+            member x.containsParameter(name) =
+                x.path 
+                |> List.exists(fun x -> match x with
+                                        | Parameter pn -> parameterNamesEqual pn name
+                                        | _ -> false)
+
+            /// Returns the path parts up to (not including) this parameter
+            member x.getPathPartsBeforeParameter(name) =
+                let pathUntilParameter = 
+                    x.path
+                    |> List.takeWhile (fun part -> match part with
+                                                   | Parameter pn -> not (parameterNamesEqual pn name)
+                                                   | Constant c -> true
+                                                   | Separator -> true)
+                getPathParts pathUntilParameter
+
+    /// Returns the path corresponding to the endpoint (including the query part if this is an x-ms-path)
+    // Partition the path based on the path parts and parameters
+    // For example, "/api/customer({id})" will be split into "/", "api", "/", "customer(", "{id}", ")"
+    let getPathFromString (path:string) (includeSeparators:bool) =
+        let paramSplitRegexPattern = @"({[^}]+})"
+        let parts = path.Split([|'/'|], StringSplitOptions.RemoveEmptyEntries)
+        let partsPartitionedByParameter =
+            parts
+            |> Seq.mapi (fun i p ->
+                            let subParts = System.Text.RegularExpressions.Regex.Split(p, paramSplitRegexPattern)
+                            let subParts = 
+                                subParts 
+                                |> Array.toList
+                                |> List.filter (fun x -> x <> "") 
+                                |> List.map (fun x -> 
+                                                match tryGetPathParameterName x with
+                                                | None -> Constant x
+                                                | Some n -> Parameter n)
+                            if includeSeparators then
+                                Separator::subParts
+                            else 
+                                subParts)
+            |> Seq.concat
+            |> Seq.toList
+        {
+            path = partsPartitionedByParameter
+        }

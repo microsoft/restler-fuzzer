@@ -13,6 +13,7 @@ open Microsoft.FSharpLu.File
 /// RESTler handles the API specification schema.
 [<Trait("TestCategory", "ApiSpecSchema")>]
 module ApiSpecSchema =
+
     type SchemaTests(ctx:Fixtures.TestSetupAndCleanup, output:Xunit.Abstractions.ITestOutputHelper) =
 
         let compileSpec specFileName =
@@ -34,6 +35,22 @@ module ApiSpecSchema =
             let grammar = File.ReadAllText(grammarOutputFilePath)
             // Make sure the grammar contains at least one request
             Assert.True(grammar.Contains("req_collection.add_request(request)"))
+
+        let diffGrammarOutputFiles config pyGrammarBaselineFilePath jsonGrammarBaselineFilePath = 
+            let grammarDiff =
+                getLineDifferences
+                    (config.GrammarOutputDirectoryPath.Value ++ Restler.Workflow.Constants.DefaultRestlerGrammarFileName)
+                    pyGrammarBaselineFilePath
+            let message = sprintf "grammar.py does not match baseline.  First difference: %A" grammarDiff
+            Assert.True(grammarDiff.IsNone, message)
+
+            let grammarDiff =
+                getLineDifferences
+                    (config.GrammarOutputDirectoryPath.Value ++ Restler.Workflow.Constants.DefaultJsonGrammarFileName)
+                    jsonGrammarBaselineFilePath
+            let message = sprintf "grammar.json does not match baseline.  First difference: %A" grammarDiff
+            Assert.True(grammarDiff.IsNone, message)
+
 
         [<Fact>]
         let ``required header is parsed successfully`` () =
@@ -58,19 +75,9 @@ module ApiSpecSchema =
                          }
             Restler.Workflow.generateRestlerGrammar config
 
-            let grammarDiff =
-                getLineDifferences
-                    (config.GrammarOutputDirectoryPath.Value ++ Restler.Workflow.Constants.DefaultRestlerGrammarFileName)
-                    (Path.Combine(Environment.CurrentDirectory, "baselines", "schemaTests", "xMsPaths_grammar.py"))
-            let message = sprintf "grammar.py does not match baseline.  First difference: %A" grammarDiff
-            Assert.True(grammarDiff.IsNone, message)
-
-            let grammarDiff =
-                getLineDifferences
-                    (config.GrammarOutputDirectoryPath.Value ++ Restler.Workflow.Constants.DefaultJsonGrammarFileName)
-                    (Path.Combine(Environment.CurrentDirectory, "baselines", "schemaTests", "xMsPaths_grammar.json"))
-            let message = sprintf "grammar.json does not match baseline.  First difference: %A" grammarDiff
-            Assert.True(grammarDiff.IsNone, message)
+            diffGrammarOutputFiles config 
+                                   (Path.Combine(Environment.CurrentDirectory, "baselines", "schemaTests", "xMsPaths_grammar.py"))
+                                   (Path.Combine(Environment.CurrentDirectory, "baselines", "schemaTests", "xMsPaths_grammar.json"))
 
         [<Fact>]
         let ``path parameter is read from the global parameters`` () =
@@ -195,5 +202,21 @@ module ApiSpecSchema =
             Assert.False(grammar.Contains("schema_example_9574638"))
             Assert.True(grammar.Contains("\\\"completed\\\":true"))
 
+
+
+        [<Fact>]
+        let ``path parameter substrings`` () =
+            let specFilePath = Path.Combine(Environment.CurrentDirectory, "swagger", "schemaTests", "path_param_substrings.json")
+            let config = { Restler.Config.SampleConfig with
+                                IncludeOptionalParameters = true
+                                GrammarOutputDirectoryPath = Some ctx.testRootDirPath
+                                ResolveBodyDependencies = true
+                                ResolveQueryDependencies = true
+                                SwaggerSpecFilePath = Some [specFilePath]
+                         }
+            Restler.Workflow.generateRestlerGrammar config
+            diffGrammarOutputFiles config 
+                                   (Path.Combine(Environment.CurrentDirectory, "baselines", "schemaTests", "path_param_substrings_grammar.py"))
+                                   (Path.Combine(Environment.CurrentDirectory, "baselines", "schemaTests", "path_param_substrings_grammar.json"))
 
         interface IClassFixture<Fixtures.TestSetupAndCleanup>

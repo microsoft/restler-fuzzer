@@ -233,10 +233,6 @@ module private Parameters =
     open System.Linq
     open Tree
 
-    let isPathParameter (p:string) = p.StartsWith "{"
-
-    let getPathParameterName(p:string) = p.[1 .. p.Length-2]
-
     let getParameterSerialization (p:OpenApiParameter) =
          match p.Style with
          | OpenApiParameterStyle.Form ->
@@ -412,83 +408,66 @@ module private Parameters =
                        (trackParameters:bool)
                        (jsonPropertyMaxDepth:int option) =
         let allDeclaredPathParameters = getSpecParameters swaggerMethodDefinition OpenApiParameterKind.Path
-
+        let path = Paths.getPathFromString endpoint false
         let parameterList =
-            endpoint.Split([|'/'|], StringSplitOptions.RemoveEmptyEntries)
-            |> Array.filter (fun p -> isPathParameter p)
+            allDeclaredPathParameters  
+            |> Seq.filter (fun p -> path.containsParameter p.Name)
             // By default, all path parameters are fuzzable (unless a producer or custom value is found for them later)
-            |> Seq.choose (fun part -> let parameterName = getPathParameterName part
-                                       let declaredParameter =
-                                            match allDeclaredPathParameters |> Seq.tryFind (fun p -> p.Name = parameterName) with
-                                            | Some dp -> Some dp
-                                            | None ->
-                                                // Also try to match case-insensitive and output a warning
-                                                match allDeclaredPathParameters |> Seq.tryFind (fun p -> p.Name.ToLower() = parameterName.ToLower()) with
-                                                | Some adp ->
-                                                    printfn "Warning: specification has inconsistent casing for path parameter (%s vs. %s)" parameterName adp.Name
-                                                    Some adp
-                                                | None -> None
+            |> Seq.choose (fun parameter -> 
+                                let serialization = getParameterSerialization parameter
+                                let schema = parameter.ActualSchema
+                                // Check for path examples in the Swagger specification
+                                // External path examples are not currently supported
+                                let parameterValueFromExample =
+                                    match exampleConfig with
+                                    | None
+                                    | Some [] ->
+                                        None
+                                    | Some (firstExample::remainingExamples) ->
+                                        // Use the first example specified to determine the parameter value.
+                                        getParametersFromExample firstExample (parameter |> stn) trackParameters
+                                        |> Seq.tryHead
 
-                                       match declaredParameter with
-                                       | None ->
-                                           printfn "Error: path parameter not found for parameter name: %s.  This usually indicates an invalid Swagger file." parameterName
-                                           None
-                                       | Some parameter ->
-                                            let serialization = getParameterSerialization parameter
-                                            let schema = parameter.ActualSchema
-                                            // Check for path examples in the Swagger specification
-                                            // External path examples are not currently supported
+                                if parameterValueFromExample.IsSome then
+                                    parameterValueFromExample
+                                else
+                                    let leafProperty =
+                                        if schema.IsArray then
+                                            raise (Exception("Arrays in path examples are not supported yet."))
+                                        else
+                                            let specExampleValue = getExamplesFromParameter parameter
+                                            let propertyPayload = 
+                                                generateGrammarElementForSchema
+                                                        schema
+                                                        (specExampleValue, true)
+                                                        (trackParameters, jsonPropertyMaxDepth)
+                                                        (true (*isRequired*), false (*isReadOnly*))
+                                                        []
+                                                        (SchemaCache())
+                                                        id
+                                            match propertyPayload with
+                                            | LeafNode leafProperty -> 
+                                                let leafNodePayload =
 
-                                            let parameterValueFromExample =
-                                               match exampleConfig with
-                                               | None
-                                               | Some [] ->
-                                                    None
-                                               | Some (firstExample::remainingExamples) ->
-                                                    // Use the first example specified to determine the parameter value.
-                                                    getParametersFromExample firstExample (parameter |> stn) trackParameters
-                                                    |> Seq.tryHead
+                                                    match leafProperty.payload with
+                                                    | Fuzzable fp ->
+                                                        match fp.primitiveType with
+                                                        | Enum(propertyName, propertyType, values, defaultValue) ->
+                                                            let primitiveType = PrimitiveType.Enum(parameter.Name, propertyType, values, defaultValue)
+                                                            Fuzzable { fp with primitiveType = primitiveType }
+                                                        | _ ->
+                                                            Fuzzable {fp with
+                                                                        parameterName = if trackParameters then Some parameter.Name else None }
+                                                    | _ -> leafProperty.payload
+                                                { leafProperty with payload = leafNodePayload }
+                                            | InternalNode (internalNode, children) ->
+                                                // The parameter payload is not expected to be nested
+                                                failwith "Path parameters with nested object types are not supported"
 
-                                            if parameterValueFromExample.IsSome then
-                                                parameterValueFromExample
-                                            else
-                                                let leafProperty =
-                                                     if schema.IsArray then
-                                                         raise (Exception("Arrays in path examples are not supported yet."))
-                                                     else
-                                                        let specExampleValue = getExamplesFromParameter parameter
-                                                        let propertyPayload = 
-                                                            generateGrammarElementForSchema
-                                                                    schema
-                                                                    (specExampleValue, true)
-                                                                    (trackParameters, jsonPropertyMaxDepth)
-                                                                    (true (*isRequired*), false (*isReadOnly*))
-                                                                    []
-                                                                    (SchemaCache())
-                                                                    id
-                                                        match propertyPayload with
-                                                        | LeafNode leafProperty -> 
-                                                            let leafNodePayload =
-
-                                                                match leafProperty.payload with
-                                                                | Fuzzable fp ->
-                                                                    match fp.primitiveType with
-                                                                    | Enum(propertyName, propertyType, values, defaultValue) ->
-                                                                        let primitiveType = PrimitiveType.Enum(parameter.Name, propertyType, values, defaultValue)
-                                                                        Fuzzable { fp with primitiveType = primitiveType }
-                                                                    | _ ->
-                                                                        Fuzzable {fp with
-                                                                                    parameterName = if trackParameters then Some parameter.Name else None }
-                                                                | _ -> leafProperty.payload
-                                                            { leafProperty with payload = leafNodePayload }
-                                                        | InternalNode (internalNode, children) ->
-                                                            // The parameter payload is not expected to be nested
-                                                            failwith "Path parameters with nested object types are not supported"
-
-                                                Some { name = parameterName
-                                                       payload = LeafNode leafProperty
-                                                       serialization = serialization }
-                            )
+                                    Some { name = parameter.Name
+                                           payload = LeafNode leafProperty
+                                           serialization = serialization }
+                )
         ParameterList parameterList
 
     let private getParameters (parameterList:seq<OpenApiParameter>)
@@ -631,14 +610,14 @@ module private XMsPaths =
         let queryPartSplit =
             xMsPath.queryPart.Split([|'='; '&'|], StringSplitOptions.RemoveEmptyEntries)
 
-        let pathPartLength = req.path.Length - queryPartSplit.Length
+        let pathPartLength = req.path.Length - (queryPartSplit.Length * 2) // multiply by 2 because 'req.path' contains path delimiters
         let pathPart = req.path |> List.take pathPartLength
         let queryPart = req.path |> List.skip pathPartLength
 
         let pathParametersInQueryPart =
             queryPartSplit
-            |> Array.mapi (fun idx p -> idx,p)
-            |> Array.filter (fun (idx,part) -> Parameters.isPathParameter part)
+            |> Array.mapi (fun idx p -> idx * 2 + 1, p) // Adjust for 'req.path' containing path delimiters
+            |> Array.filter (fun (idx,part) -> Paths.isPathParameter part)
 
         let queryParamPayloads =
             pathParametersInQueryPart
@@ -687,9 +666,8 @@ module private XMsPaths =
                                  let splitParam = x.Split("=", StringSplitOptions.RemoveEmptyEntries)
                                  match splitParam with
                                  | [|name ; paramValue|] ->
-
-                                    if paramValue.StartsWith("{") then
-                                        Some (Parameters.getPathParameterName paramValue)
+                                    if Paths.isPathParameter paramValue then
+                                        Paths.tryGetPathParameterName paramValue
                                     else
                                         Some name
                                  | [|name|] ->
@@ -715,6 +693,7 @@ module private XMsPaths =
                                 printfn "Warning: example found with x-ms-paths query parameters."
                                 (payloadSource, requestParameterPayload))
         queryParametersFiltered
+
 
 /// Given a list of the parameters found in the spec and the dictionary,
 /// determines which additional injected parameters are specified in the dictionary
@@ -789,43 +768,42 @@ let generateRequestPrimitives (requestId:RequestId)
             |> Map.ofSeq
         | _ -> raise (UnsupportedType "Only a list of query parameters is supported.")
 
-
     let path =
-        let pathParts =
-            requestId.endpoint.Split([|'/'|], StringSplitOptions.RemoveEmptyEntries)
-            |> Array.choose (fun p ->
-                            if Parameters.isPathParameter p then
-                                let consumerResourceName = Parameters.getPathParameterName p
-                                let declaredParameter =
-                                    match pathParameters |> Seq.tryFind (fun p -> p.Key = consumerResourceName) with
+        let splitPath = Paths.getPathFromString requestId.endpoint true (*includeSeparators*)
+        splitPath.path
+        |> List.map (fun p ->
+                        match p with
+                        | Paths.PathPart.Parameter name -> 
+                            let declaredParameter = 
+                                match pathParameters |> Seq.tryFind (fun p -> Paths.parameterNamesEqual p.Key name) with
+                                | Some dp -> Some dp.Value
+                                | None when requestId.xMsPath.IsSome ->
+                                    // This is a query parameter that appears in the path that is in x-ms-path format
+                                    // Check the query parameters
+                                    match queryParameters |> Seq.tryFind (fun p -> Paths.parameterNamesEqual p.Key name) with
                                     | Some dp -> Some dp.Value
-                                    | None when requestId.xMsPath.IsSome ->
-                                        // This is a query parameter that appears in the path that is in x-ms-path format
-                                        // Check the query parameters
-                                        match queryParameters |> Seq.tryFind (fun p -> p.Key = consumerResourceName) with
-                                        | Some dp -> Some dp.Value
-                                        | None -> None
-                                    | None ->
-                                        None
-
-                                match declaredParameter with
-                                | Some rp ->
-                                    let newRequestParameter, _ =
-                                        Restler.Dependencies.DependencyLookup.getDependencyPayload
-                                                    dependencies
-                                                    None
-                                                    requestId
-                                                    rp
-                                                    dictionary
-                                    Some (Parameters.getPathParameterPayload newRequestParameter.payload)
+                                    | None -> None
                                 | None ->
-                                    // Parameter not found in parameter list.  This error was previously reported.
+                                    // Swagger bug: parameter is not declared
+                                    // Avoid failing to compile, since other requests may still be fuzzed successfully
                                     None
-                            else
-                                Some (Constant (PrimitiveType.String, p))
-                      )
-            |> Array.toList
-        pathParts
+
+                            match declaredParameter with
+                            | Some rp ->
+                                let newRequestParameter, _ =
+                                    Restler.Dependencies.DependencyLookup.getDependencyPayload
+                                                dependencies
+                                                None
+                                                requestId
+                                                rp
+                                                dictionary
+                                Parameters.getPathParameterPayload newRequestParameter.payload
+                            | None ->
+                                // Add the parameter to the grammar in braces, to highlight that there is an issue with the spec
+                                Constant (PrimitiveType.String, Paths.formatPathParameter name)
+                        | Paths.PathPart.Constant s -> Constant (PrimitiveType.String, s)
+                        | Paths.PathPart.Separator -> Constant (PrimitiveType.String, "/")
+                        )
 
     let replaceCustomPayloads customPayloadType customPayloadParameterNames (requestParameter:RequestParameter) =
         if customPayloadParameterNames |> Seq.contains requestParameter.name then

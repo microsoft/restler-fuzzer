@@ -41,7 +41,8 @@ module GrammarTests =
                     let actualGrammarFilePath = Path.Combine(grammarOutputDirectoryPath,
                                                              actualGrammarFileName + extension)
                     let grammarDiff = getLineDifferences expectedGrammarFilePath actualGrammarFilePath
-                    let message = sprintf "Python grammar Does not match baseline.  First difference: %A" grammarDiff
+                    let grammarName = if extension = ".json" then "Json" else "Python"
+                    let message = sprintf "%s grammar Does not match baseline.  First difference: %A" grammarName grammarDiff
                     Assert.True(grammarDiff.IsNone, message)
 
 

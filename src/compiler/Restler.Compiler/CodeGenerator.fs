@@ -463,17 +463,8 @@ let generatePythonFromRequestElement includeOptionalParameters (requestId:Reques
             | None -> parts.Length
             | Some _ -> parts |> List.findIndex(fun x -> x = Constant (PrimitiveType.String, "?"))
         let x = parts
-                |> List.mapi(fun idx p ->
-                                idx, getRestlerPythonPayload p false (*isQuoted*))
-                |> (fun xs ->
-                    [
-                        for (idx,primitive) in xs do
-                            if idx < queryStartIndex then
-                                // Only add path delimiters in the path part
-                                yield Restler_static_string_constant "/"
-                            yield! primitive
-                    ]
-                )
+                |> List.map(fun p -> getRestlerPythonPayload p false (*isQuoted*))
+                |> List.concat
         // Handle the case of '/'
         if x |> List.isEmpty || queryStartIndex = 0 then
             [ Restler_static_string_constant "/" ] @ x

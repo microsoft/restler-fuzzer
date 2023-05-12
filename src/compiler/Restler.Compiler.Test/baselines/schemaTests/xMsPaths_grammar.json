@@ -116,6 +116,12 @@
       "basePath": "",
       "path": [
         {
+          "Constant": [
+            "String",
+            "/"
+          ]
+        },
+        {
           "Custom": {
             "payloadType": "UuidSuffix",
             "primitiveType": "String",
@@ -317,6 +323,12 @@
       "basePath": "",
       "path": [
         {
+          "Constant": [
+            "String",
+            "/"
+          ]
+        },
+        {
           "Custom": {
             "payloadType": "UuidSuffix",
             "primitiveType": "String",
@@ -477,6 +489,12 @@
       "basePath": "",
       "path": [
         {
+          "Constant": [
+            "String",
+            "/"
+          ]
+        },
+        {
           "DynamicObject": {
             "primitiveType": "String",
             "variableName": "__resourceName__type_file_put_resourceName_path",
@@ -610,11 +628,23 @@
       "basePath": "",
       "path": [
         {
+          "Constant": [
+            "String",
+            "/"
+          ]
+        },
+        {
           "DynamicObject": {
             "primitiveType": "String",
             "variableName": "__resourceName__type_file_put_resourceName_path",
             "isWriter": false
           }
+        },
+        {
+          "Constant": [
+            "String",
+            "/"
+          ]
         },
         {
           "Fuzzable": {
@@ -704,11 +734,23 @@
       "basePath": "",
       "path": [
         {
+          "Constant": [
+            "String",
+            "/"
+          ]
+        },
+        {
           "DynamicObject": {
             "primitiveType": "String",
             "variableName": "__resourceName__type_file_put_resourceName_path",
             "isWriter": false
           }
+        },
+        {
+          "Constant": [
+            "String",
+            "/"
+          ]
         },
         {
           "Fuzzable": {
