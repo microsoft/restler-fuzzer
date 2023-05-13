@@ -924,6 +924,7 @@ let getParameterDependencies parameterKind globalAnnotations
                           |> Seq.collect (fun (requestId, requestData) ->
                               requestData.linkAnnotations
                           )
+    let path = Paths.getPathFromString requestId.endpoint false (*includeSeparators*)
     let getConsumer (resourceName:string) (resourceAccessPath:string list) (primitiveType:PrimitiveType option) =
         if String.IsNullOrEmpty resourceName then
             failwith "[getConsumer] invalid usage"
@@ -934,11 +935,7 @@ let getParameterDependencies parameterKind globalAnnotations
                 HeaderResource resourceName
             | ParameterKind.Path ->
 
-                let pathToParameter =
-                    let x = requestId.endpoint.Split("/", StringSplitOptions.RemoveEmptyEntries)
-                    let pathParamIndex =
-                        x |> Array.findIndex (fun x -> x = sprintf "{%s}" parameterName)
-                    x |> Array.take (pathParamIndex)
+                let pathToParameter = path.getPathPartsBeforeParameter parameterName |> List.toArray
                 PathResource { name = resourceName ;
                                PathParameterReference.responsePath = { path = Array.empty }
                                PathParameterReference.pathToParameter = pathToParameter }

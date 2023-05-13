@@ -46,7 +46,13 @@
     <Content Include="baselines\schemaTests\xMsPaths_grammar.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="baselines\grammarTests\required_params_grammar.json">
+	  <Content Include="baselines\schemaTests\path_param_substrings_grammar.py">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
+	  <Content Include="baselines\schemaTests\path_param_substrings_grammar.json">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
+	  <Content Include="baselines\grammarTests\required_params_grammar.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="baselines\grammarTests\required_params_grammar.py">
@@ -211,7 +217,9 @@
 	  <Content Include="swagger\schemaTests\openapi3_examples.json">
 		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </Content>
-
+	  <Content Include="swagger\schemaTests\path_param_substrings.json">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
     <Content Include="swagger\schemaTests\xMsPaths_annotations.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
