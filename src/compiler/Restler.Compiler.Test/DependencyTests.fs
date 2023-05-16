@@ -672,6 +672,44 @@ module Dependencies =
                 let message = sprintf "Grammar for annotation test %s does not match baseline.  First difference: %A" annotationTest grammarDiff
                 Assert.True(grammarDiff.IsNone, message)
 
+        /// Test that when an annotation is specified within the same request, RESTler
+        /// compiles it to an equality constraint by setting the consumer payload equal to the producer
+        /// payload if the producer payload exists.
+        /// This allows, for example, custom payload uuid4 suffix values to have the same value
+        /// assigned to multiple payload parameters.
+        [<Fact>]
+        let ``annotation dependency in the same request works as equality constraint`` () =
+            let specFilePath = Path.Combine(Environment.CurrentDirectory, "swagger", "dependencyTests", "same_body_dep.json")
+            let annotationFilePath = Path.Combine(Environment.CurrentDirectory, "swagger", "dependencyTests", "same_body_dep_annotations.json")
+            let config = { Restler.Config.SampleConfig with
+                                IncludeOptionalParameters = true
+                                GrammarOutputDirectoryPath = Some ctx.testRootDirPath
+                                ResolveBodyDependencies = true
+                                ResolveQueryDependencies = true
+                                ResolveHeaderDependencies = true
+                                SwaggerSpecFilePath = Some [specFilePath]
+                                AnnotationFilePath = Some annotationFilePath
+                         }
+            Restler.Workflow.generateRestlerGrammar config
+
+            let grammarFilePath = Path.Combine(config.GrammarOutputDirectoryPath.Value,
+                                               Restler.Workflow.Constants.DefaultRestlerGrammarFileName)
+            let grammarLines = File.ReadAllLines(grammarFilePath)
+            let integerCount = 
+                grammarLines
+                |> Seq.filter (fun line -> line.Contains("""restler_custom_payload_uuid4_suffix("archiveId", writer=_archive__archiveId__put_archiveId_path.writer(), quoted=False"""))
+                |> Seq.length 
+            Assert.Equal(2, integerCount)
+            let stringCountQuoted = 
+                grammarLines
+                |> Seq.filter (fun line -> line.Contains("""restler_custom_payload_uuid4_suffix("archiveName", writer=_archive__archiveId__put_archiveName_header.writer(), quoted=True)"""))
+                |> Seq.length 
+            Assert.Equal(1, stringCountQuoted)
+            let stringCountUnquoted = 
+                grammarLines
+                |> Seq.filter (fun line -> line.Contains("""restler_custom_payload_uuid4_suffix("archiveName", writer=_archive__archiveId__put_archiveName_header.writer(), quoted=False"""))
+                |> Seq.length 
+            Assert.Equal(1, stringCountUnquoted)
 
         interface IClassFixture<Fixtures.TestSetupAndCleanup>
 

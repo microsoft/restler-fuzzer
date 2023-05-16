@@ -1,0 +1,92 @@
+{
+  "basePath": "/api",
+  "consumes": [
+    "application/json"
+  ],
+  "host": "localhost:8888",
+  "info": {
+    "description": "Small example for PUT with input producer in path and equal property in the body",
+    "title": "Input producer test case",
+    "version": "1.0.0"
+  },
+  "definitions": {
+    "fileId":{
+        "type": "String",
+        "description":  "the file id"
+    },
+    "Archive": {
+      "properties": {
+        "tags": {
+          "type": "object"
+        },
+        "name": {
+          "type": "string"
+        },
+        "id": {
+          "type": "integer"
+        }
+      }
+    }
+  },
+  "paths": {
+    "/archive/{archiveId}/{label}": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "archiveId",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "in": "path",
+            "name": "label",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/archive/{archiveId}": {
+      "put": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "archiveId",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "in": "header",
+            "name": "archiveName",
+            "required": true,
+            "type": "string"
+          },
+
+          {
+            "in": "body",
+            "name": "bodyParam",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Archive"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Archive"
+            }
+          }
+        }
+      }
+    }
+  },
+  "swagger": "2.0"
+}

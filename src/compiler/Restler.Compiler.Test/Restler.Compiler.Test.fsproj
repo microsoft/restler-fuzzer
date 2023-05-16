@@ -94,7 +94,13 @@
     <Content Include="swagger\dependencyTests\post_patch_dependency.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="swagger\dependencyTests\input_producer_spec.json">
+	  <Content Include="swagger\dependencyTests\same_body_dep.json">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
+	  <Content Include="swagger\dependencyTests\same_body_dep_annotations.json">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
+	  <Content Include="swagger\dependencyTests\input_producer_spec.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="swagger\dependencyTests\input_producer_dict.json">

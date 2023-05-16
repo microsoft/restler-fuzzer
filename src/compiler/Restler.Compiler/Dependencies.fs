@@ -383,6 +383,7 @@ let findProducerWithResourceName
 
                 let annotationResponseProducer =
                     responseProducersWithMatchingResourceIds
+                    |> Seq.filter (fun rp -> isValidProducer rp consumer allowGetProducers)
                     |> Seq.filter (fun p ->
                                             // Match on the path, if it exists,
                                             // otherwise match on the ID only
@@ -549,7 +550,7 @@ let findProducerWithResourceName
                     // appropriate dictionary entry that will direct RESTler to automatically generate unique values.
                     //
                     // If a dictionary payload is not returned below, a fuzzable payload will be generated as usual, and the
-                    // fuzzed value will be asssigned to the producer (writer variable).
+                    // fuzzed value will be assigned to the producer (writer variable).
                     match consumer.id.PrimitiveType with
                     | PrimitiveType.String ->
                         let dictionary, suffixProducer =
@@ -952,15 +953,17 @@ let getParameterDependencies parameterKind globalAnnotations
                 parameterKind = parameterKind
         }
 
+    let getPrimitiveType payload =
+        match payload with
+        | FuzzingPayload.Fuzzable fp -> Some fp.primitiveType
+        | FuzzingPayload.Constant (pt, _) -> Some pt
+        | FuzzingPayload.Custom c -> Some c.primitiveType
+        | _ -> None
+
     let visitLeaf (parentAccessPath:string list) (p:LeafProperty) =
         if not (String.IsNullOrEmpty p.name) then
             let resourceAccessPath = PropertyAccessPaths.getLeafAccessPath parentAccessPath p
-            let primitiveType =
-                match p.payload with
-                | FuzzingPayload.Fuzzable fp -> Some fp.primitiveType
-                | FuzzingPayload.Constant (pt, _) -> Some pt
-                | FuzzingPayload.Custom c -> Some c.primitiveType
-                | _ -> None
+            let primitiveType = getPrimitiveType p.payload
             let c = getConsumer p.name resourceAccessPath primitiveType
             consumerList.Add(c)
 
@@ -970,18 +973,31 @@ let getParameterDependencies parameterKind globalAnnotations
             let c = getConsumer p.name resourceAccessPath None
             consumerList.Add(c)
 
+    let getPrimitiveTypeFromLeafNode (leafNodePayload:ParameterPayload) = 
+        match leafNodePayload with
+        | Tree.LeafNode lp -> 
+            getPrimitiveType lp.payload
+        | Tree.InternalNode _ -> 
+            None
+
+    let primitiveType = getPrimitiveTypeFromLeafNode parameterPayload
     match parameterKind with
-    | ParameterKind.Header ->
-        let c = getConsumer parameterName [] None
+    | ParameterKind.Header ->    
+        let c = getConsumer parameterName [] primitiveType
         consumerList.Add(c)
     | ParameterKind.Path ->
-        let c = getConsumer parameterName [] None
+        let primitiveType = 
+            match primitiveType with
+            | Some PrimitiveType.Object ->
+                Some PrimitiveType.String
+            | _ -> primitiveType
+        let c = getConsumer parameterName [] primitiveType
         consumerList.Add(c)
     | ParameterKind.Query ->
         if String.IsNullOrEmpty parameterName then
             Tree.iterCtx visitLeaf visitInner PropertyAccessPaths.getInnerAccessPath [] parameterPayload
         else
-            let parameterDependency = getConsumer parameterName [] None
+            let parameterDependency = getConsumer parameterName [] primitiveType
             consumerList.Add(parameterDependency)
     | ParameterKind.Body ->
         Tree.iterCtx visitLeaf visitInner PropertyAccessPaths.getInnerAccessPath [] parameterPayload
@@ -1511,6 +1527,66 @@ let extractDependencies (requestData:(RequestId*RequestData)[])
                 restler_custom_payload_uuid4_suffix =
                     Some newCustomPayloadUuidSuffix
         }
+
+    logTimingInfo "Assigning equality constraints..."
+    consumers
+    |> Array.Parallel.iter
+        (fun (requestId, requestConsumers) ->
+            requestConsumers
+            |> Seq.iter (fun (consumer:Consumer) ->     
+                // Check for annotations that are equality constraints for each consumer
+                // The equality constraints are the ones where the producer and consumer request IDs are the same,
+                // but the resource names are different
+                match consumer.annotation with
+                | Some a when a.consumerId.IsSome && a.consumerId.Value = a.producerId -> 
+                    // Check if there is a dependency already for this consumer.
+                    // If so, issue a warning since this annotation cannot be applied
+                    match findDependencies consumer with
+                    | Some d ->
+                        printfn "Cannot apply equality constraint since the consumer already has a dependency." 
+                    | None ->
+                        // Need to find the dependency that has the producer of this dependency as a consumer
+                        // We have to try all parameters to find the name, since it's not specified in the annotation
+                        let possibleResourceReferences = 
+                            match a.producerParameter.Value with
+                            | ResourcePath p -> 
+                                [ ParameterKind.Body, BodyResource { name = p.getNamePart().Value ; fullPath = p }]
+                            | ResourceName n -> 
+                                [ 
+                                    ParameterKind.Path, PathResource
+                                                            {
+                                                                name = n
+                                                                pathToParameter = Array.empty
+                                                                responsePath = { path = Array.empty }
+                                                            }
+                                    ParameterKind.Query, QueryResource n
+                                    ParameterKind.Header, HeaderResource n 
+                                ]
+
+                        let existingDep = 
+                            possibleResourceReferences
+                            |> Seq.choose (fun (parameterKind, resourceReference) ->
+                                let searchConsumer = 
+                                    {
+                                            Consumer.id = ApiResource(consumer.id.RequestId,
+                                                                      resourceReference,
+                                                                      consumer.id.NamingConvention, // placeholder value
+                                                                      PrimitiveType.String) // placeholder value
+                                            Consumer.parameterKind = parameterKind
+                                            Consumer.annotation = None
+                                    }
+                                findDependencies searchConsumer
+                            )
+                            |> Seq.tryHead
+
+                        if existingDep.IsSome then
+                            let dep = { consumer = consumer ; producer = existingDep.Value.producer }
+                            addDependency dep
+                        else
+                            printfn "Cannot apply equality constraint since the producer does not have a dependency." 
+                | _ -> ()
+        )
+    )
 
     logTimingInfo "Getting ordering constraints..."
     let orderingConstraints =

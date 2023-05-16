@@ -1,0 +1,20 @@
+{
+  "x-restler-global-annotations": [
+    {
+      "producer_endpoint": "/archive/{archiveId}",
+      "producer_method": "PUT",
+      "consumer_endpoint": "/archive/{archiveId}",
+      "consumer_method": "PUT",
+      "producer_resource_name": "archiveId",
+      "consumer_param": "/id"
+    },
+    {
+      "producer_endpoint": "/archive/{archiveId}",
+      "producer_method": "PUT",
+      "consumer_endpoint": "/archive/{archiveId}",
+      "consumer_method": "PUT",
+      "producer_resource_name": "archiveName",
+      "consumer_param": "/name"
+    }
+  ]
+}
