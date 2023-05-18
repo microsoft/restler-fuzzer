@@ -567,6 +567,7 @@ class RestlerSettingsTest(unittest.TestCase):
         self.assertTrue(settings.ignore_dependencies)
         self.assertTrue(settings.ignore_feedback)
         self.assertTrue(settings.connection_settings.include_user_agent)
+        self.assertEqual(None, settings.connection_settings.user_agent)
         self.assertEqual(45, settings.max_async_resource_creation_time)
         self.assertEqual(11, settings.max_sequence_length)
         self.assertFalse(settings.connection_settings.use_ssl)

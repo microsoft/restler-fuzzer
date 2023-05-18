@@ -28,7 +28,8 @@ class OptionValidationError(Exception):
     pass
 
 class ConnectionSettings(object):
-    def __init__(self, target_ip, target_port, use_ssl=True, include_user_agent=False, disable_cert_validation=False):
+    def __init__(self, target_ip, target_port, use_ssl=True, include_user_agent=False, disable_cert_validation=False,
+                 user_agent=None):
         """ Initializes an object that contains the connection settings for the socket
         @param target_ip: The ip of the target service.
         @type  target_ip: Str
@@ -38,6 +39,8 @@ class ConnectionSettings(object):
         @type  use_ssl: Boolean
         @param include_user_agent: Whether or not to add User-Agent to request headers
         @type  include_user_agent: Boolean
+        @param user_agent: The specified User-Agent to add to request headers
+        @type  user_agent: Str
         @param disable_cert_validation: Whether or not to disable SSL certificate validation
         @type  disable_cert_validation: Bool
 
@@ -49,6 +52,7 @@ class ConnectionSettings(object):
         self.target_port = target_port
         self.use_ssl = use_ssl
         self.include_user_agent = include_user_agent
+        self.user_agent = user_agent
         self.disable_cert_validation = disable_cert_validation
 
 class SettingsArg(object):
@@ -436,6 +440,8 @@ class RestlerSettings(object):
         self._ignore_feedback = SettingsArg('ignore_feedback', bool, False, user_args)
         ## Include user agent in requests sent
         self._include_user_agent = SettingsArg('include_user_agent', bool, True, user_args)
+        ## The user agent to include in requests sent
+        self._user_agent = SettingsArg('user_agent', str, None, user_args)
         ## Maximum time to wait for an asynchronous resource to be created before continuing (seconds)
         self._max_async_resource_creation_time = SettingsArg('max_async_resource_creation_time', (int, float), MAX_ASYNC_RESOURCE_CREATION_TIME_DEFAULT, user_args, minval=0)
         ## Maximum number of parameter value combinations for parameters within a given request payload
@@ -495,7 +501,7 @@ class RestlerSettings(object):
         self._token_refresh_cmd = SettingsArg('token_refresh_cmd', str, None, user_args)
         ## Interval to periodically refresh the authentication token (seconds)
         self._token_refresh_interval = SettingsArg('token_refresh_interval', int, None, user_args)
-        ## Set the authentication options 
+        ## Set the authentication options
         self._authentication_settings = SettingsArg('authentication', dict, {}, user_args)
         ## Restler's version
         self._version = SettingsArg('set_version', str, DEFAULT_VERSION, user_args)
@@ -503,10 +509,11 @@ class RestlerSettings(object):
         self._wait_for_async_resource_creation = SettingsArg('wait_for_async_resource_creation', bool, True, user_args)
 
         self._connection_settings = ConnectionSettings(self._target_ip.val,
-                                        self._target_port.val,
-                                        not self._no_ssl.val,
-                                        self._include_user_agent.val,
-                                        self._disable_cert_validation.val)
+                                                       self._target_port.val,
+                                                       not self._no_ssl.val,
+                                                       self._include_user_agent.val,
+                                                       self._disable_cert_validation.val,
+                                                       self._user_agent.val)
 
         # Set per resource arguments
         if 'per_resource_settings' in user_args:
@@ -811,7 +818,7 @@ class RestlerSettings(object):
         else:
             return include_req() and not exclude_req()
 
-    @property 
+    @property
     def token_authentication_method(self):
         if self.token_module_file:
             return TokenAuthMethod.MODULE

@@ -188,7 +188,11 @@ Set to override the basepath that is specified in the grammar.
 Example: `/api/v2`
 
 ### include_user_agent: bool (default True)
-Set to false to disable sending user agent with requests
+Set to false to disable sending user agent with requests.
+
+### user_agent: string (default None)
+Set to send a custom user agent with requests.
+When specified, overrides the default user agent sent when ```include_user_agent``` is enabled.
 
 ### max_async_resource_creation_time: float (default 20)
 The maximum amount of time, in seconds, to wait for a resource to be created before continuing.

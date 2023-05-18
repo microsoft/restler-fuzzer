@@ -190,7 +190,10 @@ class HttpSock(object):
             except Exception as error:
                 RAW_LOGGING(f'Failed to append Content-Length header to message: {message!r}\n')
                 raise error
-        if self.connection_settings.include_user_agent:
+        if self.connection_settings.user_agent is not None:
+            message = _append_to_header(message, f"User-Agent: {self.connection_settings.user_agent}")
+        elif self.connection_settings.include_user_agent:
+            # Send the RESTler user agent only if a custom user agent is not specified
             message = _append_to_header(message, f"User-Agent: restler/{Settings().version}")
 
         # Attempt to throttle the request if necessary
