@@ -96,7 +96,7 @@ The following information can be supplied in a annotation:
 - `except`: a list of consumers that should not use the producer in the annotation.
 - `description`: a description of the dependency.
 
-The `producer_endpoint` and `producer_method` are required. The `consumer_endpoint` and `consumer_method` are required in global annotations, and are implied in local annotations. The `except` property is only meaningful in global annotations.
+The `producer_endpoint` and `producer_method` are required. The `consumer_endpoint` and `consumer_method` are optional in global annotations, and are implied in local annotations.  If the consumer endpoint and method are not specified in a global annotation, every consumer request type that contains a matching `consumer_param` will have the annotation applied to it.  The `except` property is only meaningful in global annotations.
 
 Below is an example annotation.  The ```except``` property may be either an object or an array with a list of except consumers.
 
