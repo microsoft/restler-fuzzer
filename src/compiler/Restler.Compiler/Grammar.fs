@@ -454,7 +454,7 @@ type GrammarDefinition =
     }
 
 module DynamicObjectNaming =
-    let ReplaceTargets = [|"/"; "."; "__"; "{"; "}"; "$"; "-" |]
+    let ReplaceTargets = [|"/"; "."; "__"; "{"; "}"; "$"; "-"; ":" |]
 
     /// Returns the string with all characters that are invalid in
     /// a Python function replaced with 'delimiter'
