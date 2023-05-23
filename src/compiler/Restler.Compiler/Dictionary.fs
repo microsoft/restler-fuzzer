@@ -139,6 +139,9 @@ type MutationsDictionary =
         member x.getCustomPayloadQueryParameterNames() =
             x.getKeys [ x.restler_custom_payload_query ]
 
+        member x.getCustomPayloadNames() =
+            x.getKeys [ x.restler_custom_payload; x.restler_custom_payload_unquoted ]
+
         member x.getParameterForCustomPayloadUuidSuffix
                     consumerResourceName
                     (accessPathParts: AccessPath)
@@ -214,7 +217,7 @@ let DefaultMutationsDictionary =
         restler_custom_payload_header_unquoted = None
         restler_custom_payload_query = Some (Map.empty<string, string list>)
         shadow_values = None
-    } 
+    }
 
 /// Reads the dictionary from the specified file and returns it if it is valid
 let getDictionary dictionaryFilePath =
@@ -234,5 +237,5 @@ let getDictionaryFromString dictionaryString =
         Ok d
     | Choice2Of2 e ->
         Error (sprintf "ERROR: Cannot deserialize mutations dictionary.  %s" e)
-    
+
 
