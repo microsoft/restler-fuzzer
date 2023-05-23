@@ -343,11 +343,11 @@ module private Parameters =
             else
                 SchemaUtilities.tryGetSchemaExampleAsJToken p.Schema
 
-        let getParameterExample() = 
+        let getParameterExample() =
             // Get the example from p.Example
             match SchemaUtilities.tryGetSchemaExampleAsJToken (p :> NJsonSchema.JsonSchema) with
             | Some ext -> Some ext
-            | None when not (isNull p.Examples) -> 
+            | None when not (isNull p.Examples) ->
                 // Get the value from p.Examples
                 if p.Examples.Count > 0 then
                     let firstExample = p.Examples.First()
@@ -356,9 +356,9 @@ module private Parameters =
                 else
                     None
             | _ -> None
-            
+
         match getParameterExample() with
-        | Some parameterExample ->  
+        | Some parameterExample ->
             Some parameterExample
         | None ->
             getSchemaExample()
@@ -410,10 +410,10 @@ module private Parameters =
         let allDeclaredPathParameters = getSpecParameters swaggerMethodDefinition OpenApiParameterKind.Path
         let path = Paths.getPathFromString endpoint false
         let parameterList =
-            allDeclaredPathParameters  
+            allDeclaredPathParameters
             |> Seq.filter (fun p -> path.containsParameter p.Name)
             // By default, all path parameters are fuzzable (unless a producer or custom value is found for them later)
-            |> Seq.choose (fun parameter -> 
+            |> Seq.choose (fun parameter ->
                                 let serialization = getParameterSerialization parameter
                                 let schema = parameter.ActualSchema
                                 // Check for path examples in the Swagger specification
@@ -436,7 +436,7 @@ module private Parameters =
                                             raise (Exception("Arrays in path examples are not supported yet."))
                                         else
                                             let specExampleValue = getExamplesFromParameter parameter
-                                            let propertyPayload = 
+                                            let propertyPayload =
                                                 generateGrammarElementForSchema
                                                         schema
                                                         (specExampleValue, true)
@@ -446,7 +446,7 @@ module private Parameters =
                                                         (SchemaCache())
                                                         id
                                             match propertyPayload with
-                                            | LeafNode leafProperty -> 
+                                            | LeafNode leafProperty ->
                                                 let leafNodePayload =
 
                                                     match leafProperty.payload with
@@ -494,7 +494,7 @@ module private Parameters =
                 Some (parameterList
                       |> Seq.map (fun p ->
                                     let specExampleValue =
-                                         getExamplesFromParameter p 
+                                         getExamplesFromParameter p
 
                                     let parameterPayload = generateGrammarElementForSchema
                                                                 p.ActualSchema
@@ -736,6 +736,31 @@ let private getInjectedCustomPayloadParameters (dictionary:MutationsDictionary) 
                         newParameter)
             |> Seq.toList
 
+let private getContentLengthCustomPayload() =
+    let headerName = "Content-Length"
+    let newParameter =
+        {
+            RequestParameter.name = headerName
+            serialization = None
+            payload =
+                Tree.LeafNode
+                    {
+                        LeafProperty.name = ""
+                        LeafProperty.payload =
+                            FuzzingPayload.Custom
+                                {
+                                    payloadType = CustomPayloadType.String
+                                    primitiveType = PrimitiveType.String
+                                    payloadValue = headerName
+                                    isObject = false
+                                    dynamicObject = None
+                                }
+                        LeafProperty.isRequired = true
+                        LeafProperty.isReadOnly = false
+                    }}
+    newParameter
+
+
 let generateRequestPrimitives (requestId:RequestId)
                                (dependencyData:RequestDependencyData option)
                                (requestParameters:RequestParameters)
@@ -773,8 +798,8 @@ let generateRequestPrimitives (requestId:RequestId)
         splitPath.path
         |> List.map (fun p ->
                         match p with
-                        | Paths.PathPart.Parameter name -> 
-                            let declaredParameter = 
+                        | Paths.PathPart.Parameter name ->
+                            let declaredParameter =
                                 match pathParameters |> Seq.tryFind (fun p -> Paths.parameterNamesEqual p.Key name) with
                                 | Some dp -> Some dp.Value
                                 | None when requestId.xMsPath.IsSome ->
@@ -863,6 +888,15 @@ let generateRequestPrimitives (requestId:RequestId)
                                 else parameterList
                             | _ -> raise (UnsupportedType "Only a list of header parameters is supported.")
 
+                        let addContentLengthCustomPayload =
+                            let isContentLengthParam name =
+                                name = "Content-Length"
+
+                            let specContainsContentLength = parameterList |> Seq.exists (fun p -> isContentLengthParam p.name)
+                            let dictionaryContainsContentLength =
+                                dictionary.getCustomPayloadNames()
+                                |> Seq.exists (fun name -> isContentLengthParam name)
+                            specContainsContentLength && dictionaryContainsContentLength
 
                         let parameterList =
                             parameterList
@@ -878,9 +912,15 @@ let generateRequestPrimitives (requestId:RequestId)
                             |> Seq.map (fun p -> p.name)
                             |> Seq.toList
 
-                        // Get the additional custom payload query parameters that should be injected
-                        let injectedCustomPayloadQueryParameters = getInjectedCustomPayloadParameters dictionary CustomPayloadType.Header specHeaderParameterNames
-                        let allHeaderParameters = [ parameterList ; injectedCustomPayloadQueryParameters |> seq ] |> Seq.concat
+                        // Get the additional custom payload header parameters that should be injected
+                        let injectedCustomPayloadHeaderParameters = getInjectedCustomPayloadParameters dictionary CustomPayloadType.Header specHeaderParameterNames
+
+                        let allHeaderParameters =
+                            [
+                                parameterList
+                                injectedCustomPayloadHeaderParameters |> seq
+                                if addContentLengthCustomPayload then getContentLengthCustomPayload() |> stn else Seq.empty
+                            ] |> Seq.concat
                         payloadSource, ParameterList allHeaderParameters)
 
     // Special case for endpoints in x-ms-paths:
@@ -1336,10 +1376,10 @@ let generateRequestGrammar (swaggerDocs:Types.ApiSpecFuzzingConfig list)
 
     logTimingInfo "Generating request primitives..."
 
-       
+
     // The dependencies above are analyzed on a per-request basis.
-    // This can lead to missing dependencies (for example, an input producer writer 
-    // may be missing because the same parameter already refers to a reader). 
+    // This can lead to missing dependencies (for example, an input producer writer
+    // may be missing because the same parameter already refers to a reader).
     // As a workaround, the function below handles such issues by finding and fixing up the
     // problematic cases.
     let dependenciesIndex, orderingConstraints = Restler.Dependencies.mergeDynamicObjects dependenciesIndex orderingConstraints
@@ -1352,14 +1392,14 @@ let generateRequestGrammar (swaggerDocs:Types.ApiSpecFuzzingConfig list)
 
     let dependencyInfo = getResponseParsers dependencies orderingConstraints
 
-    let basePath = 
+    let basePath =
         // Remove the ending slash if present, since a static slash will
         // be inserted in the grammar
         // Note: this code is not sufficient, and the same logic must be added in the engine,
         // since the user may specify their own base path through a custom payload.
         // However, this is included here as well so reading the grammar is not confusing and for any
         // other tools that may process the grammar separately from the engine.
-        let bp = swaggerDocs.[0].swaggerDoc.BasePath 
+        let bp = swaggerDocs.[0].swaggerDoc.BasePath
         if String.IsNullOrEmpty bp then ""
         elif bp.EndsWith("/") then
             bp.[0..bp.Length-2]
