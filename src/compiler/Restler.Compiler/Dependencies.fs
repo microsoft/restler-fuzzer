@@ -383,7 +383,7 @@ let findProducerWithResourceName
 
                 let annotationResponseProducer =
                     responseProducersWithMatchingResourceIds
-                    |> Seq.filter (fun rp -> isValidProducer rp consumer allowGetProducers)
+                    |> Seq.filter (fun rp -> isValidProducer rp consumer true (*override allowGetProducers*))
                     |> Seq.filter (fun p ->
                                             // Match on the path, if it exists,
                                             // otherwise match on the ID only
@@ -619,7 +619,7 @@ let findProducerWithResourceName
             |> Seq.isEmpty &&
            inferredExactMatches |> Seq.isEmpty then
 
-           let dictionary, producer = 
+           let dictionary, producer =
                 getCreateOrUpdateProducer
                             consumer
                             dictionary
@@ -973,20 +973,20 @@ let getParameterDependencies parameterKind globalAnnotations
             let c = getConsumer p.name resourceAccessPath None
             consumerList.Add(c)
 
-    let getPrimitiveTypeFromLeafNode (leafNodePayload:ParameterPayload) = 
+    let getPrimitiveTypeFromLeafNode (leafNodePayload:ParameterPayload) =
         match leafNodePayload with
-        | Tree.LeafNode lp -> 
+        | Tree.LeafNode lp ->
             getPrimitiveType lp.payload
-        | Tree.InternalNode _ -> 
+        | Tree.InternalNode _ ->
             None
 
     let primitiveType = getPrimitiveTypeFromLeafNode parameterPayload
     match parameterKind with
-    | ParameterKind.Header ->    
+    | ParameterKind.Header ->
         let c = getConsumer parameterName [] primitiveType
         consumerList.Add(c)
     | ParameterKind.Path ->
-        let primitiveType = 
+        let primitiveType =
             match primitiveType with
             | Some PrimitiveType.Object ->
                 Some PrimitiveType.String
@@ -1533,26 +1533,26 @@ let extractDependencies (requestData:(RequestId*RequestData)[])
     |> Array.Parallel.iter
         (fun (requestId, requestConsumers) ->
             requestConsumers
-            |> Seq.iter (fun (consumer:Consumer) ->     
+            |> Seq.iter (fun (consumer:Consumer) ->
                 // Check for annotations that are equality constraints for each consumer
                 // The equality constraints are the ones where the producer and consumer request IDs are the same,
                 // but the resource names are different
                 match consumer.annotation with
-                | Some a when a.consumerId.IsSome && a.consumerId.Value = a.producerId -> 
+                | Some a when a.consumerId.IsSome && a.consumerId.Value = a.producerId ->
                     // Check if there is a dependency already for this consumer.
                     // If so, issue a warning since this annotation cannot be applied
                     match findDependencies consumer with
                     | Some d ->
-                        printfn "Cannot apply equality constraint since the consumer already has a dependency." 
+                        printfn "Cannot apply equality constraint since the consumer already has a dependency."
                     | None ->
                         // Need to find the dependency that has the producer of this dependency as a consumer
                         // We have to try all parameters to find the name, since it's not specified in the annotation
-                        let possibleResourceReferences = 
+                        let possibleResourceReferences =
                             match a.producerParameter.Value with
-                            | ResourcePath p -> 
+                            | ResourcePath p ->
                                 [ ParameterKind.Body, BodyResource { name = p.getNamePart().Value ; fullPath = p }]
-                            | ResourceName n -> 
-                                [ 
+                            | ResourceName n ->
+                                [
                                     ParameterKind.Path, PathResource
                                                             {
                                                                 name = n
@@ -1560,13 +1560,13 @@ let extractDependencies (requestData:(RequestId*RequestData)[])
                                                                 responsePath = { path = Array.empty }
                                                             }
                                     ParameterKind.Query, QueryResource n
-                                    ParameterKind.Header, HeaderResource n 
+                                    ParameterKind.Header, HeaderResource n
                                 ]
 
-                        let existingDep = 
+                        let existingDep =
                             possibleResourceReferences
                             |> Seq.choose (fun (parameterKind, resourceReference) ->
-                                let searchConsumer = 
+                                let searchConsumer =
                                     {
                                             Consumer.id = ApiResource(consumer.id.RequestId,
                                                                       resourceReference,
@@ -1583,7 +1583,7 @@ let extractDependencies (requestData:(RequestId*RequestData)[])
                             let dep = { consumer = consumer ; producer = existingDep.Value.producer }
                             addDependency dep
                         else
-                            printfn "Cannot apply equality constraint since the producer does not have a dependency." 
+                            printfn "Cannot apply equality constraint since the producer does not have a dependency."
                 | _ -> ()
         )
     )
@@ -2009,18 +2009,18 @@ let writeDependenciesDebug dependenciesFilePath dependencies =
 #endif
 
 
-let mergeDynamicObjects (dependenciesIndex:Dictionary<string, List<ProducerConsumerDependency>>) 
+let mergeDynamicObjects (dependenciesIndex:Dictionary<string, List<ProducerConsumerDependency>>)
                         (orderingConstraints:(RequestId * RequestId) list)
                         : Dictionary<string, List<ProducerConsumerDependency>> * (RequestId * RequestId) list =
 
     let producerDict =  Dictionary<ResourceId, List<ProducerKind * ApiResource * Producer>>()
 
-    let addDependency (id:ApiResource) depKind producerApiResource producer = 
+    let addDependency (id:ApiResource) depKind producerApiResource producer =
         let key = { requestId = id.RequestId; resourceReference = id.ResourceReference }
         let newItem = producerDict.TryAdd(key, List<ProducerKind * ApiResource * Producer>())
         producerDict.[key].Add(depKind, producerApiResource, producer)
 
-    let dependencies = 
+    let dependencies =
         dependenciesIndex
         |> Seq.map (fun kvp -> kvp.Value)
         |> Seq.concat
@@ -2031,7 +2031,7 @@ let mergeDynamicObjects (dependenciesIndex:Dictionary<string, List<ProducerConsu
         | DictionaryPayload dp ->
             // A writer would have been added.
             ()
-        | ResponseObject rp -> 
+        | ResponseObject rp ->
             addDependency dep.consumer.id ProducerKind.Response rp.id dep.producer.Value
         | InputParameter (ip, _, _) ->
             addDependency dep.consumer.id ProducerKind.Input ip.id dep.producer.Value
@@ -2042,32 +2042,32 @@ let mergeDynamicObjects (dependenciesIndex:Dictionary<string, List<ProducerConsu
     let newDependenciesIndex = Dictionary<string, List<ProducerConsumerDependency>>()
     let newOrderingConstraints = List<RequestId * RequestId>()
     for kvp in dependenciesIndex do
-        let newDepList, orderingConstraints = 
+        let newDepList, orderingConstraints =
             kvp.Value
-            |> Seq.mapFold (fun oc dep -> 
+            |> Seq.mapFold (fun oc dep ->
                                 match dep.producer with
                                 | None -> dep, oc
                                 | Some _ ->
-                                    let consumerId = 
+                                    let consumerId =
                                         { requestId = dep.consumer.id.RequestId ; resourceReference = dep.consumer.id.ResourceReference }
-                        
+
                                     if producerDict.ContainsKey(consumerId) then
 
                                         match producerDict.[consumerId] |> Seq.tryFind (fun (depKind, _, _) -> depKind = ProducerKind.Input) with
                                         | None -> dep, oc
                                         | Some (depKind, inputProducerApiResource, _) ->
 
-                                            let producerResourceId = 
+                                            let producerResourceId =
                                                 { requestId = inputProducerApiResource.RequestId ; resourceReference = inputProducerApiResource.ResourceReference }
 
                                             if producerDict.ContainsKey(producerResourceId) then
                                                 match producerDict.[producerResourceId] |> Seq.tryFind (fun (depKind, _, _) -> depKind = ProducerKind.Response) with
-                                                | None -> 
+                                                | None ->
                                                     // This is the case when an input producer corresponds to a dictionary entry or fuzzing payload (not a dynamic object from a response)
                                                     dep, oc
                                                 | Some (depKind, responseProducerApiResource, responseProducer) ->
                                                     // Add an ordering constraint from the *input producer* writer to the consumer
-                                                    let newOrderingConstraint = producerResourceId.requestId, consumerId.requestId 
+                                                    let newOrderingConstraint = producerResourceId.requestId, consumerId.requestId
                                                     // Replace the input producer with the response producer if it exists
                                                     { dep with producer = Some responseProducer }, newOrderingConstraint::oc
                                             else
