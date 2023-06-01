@@ -14,7 +14,7 @@ open Microsoft.FSharpLu.Diagnostics.Process
 open Restler.Telemetry
 
 [<Literal>]
-let CurrentVersion = "9.2.0"
+let CurrentVersion = "9.2.1"
 let EngineErrorCode = -2
 
 let exitRestler status =
@@ -524,7 +524,7 @@ module Config =
         // in the list
         let configParameters = parseGenerateConfigParameters
                                     { specFilesOrDirs = []
-                                      outputDir = None 
+                                      outputDir = None
                                       relativePath = None }
                                     generateConfigParameters
         let configDirPath = configParameters.outputDir.Value
@@ -933,7 +933,7 @@ let main argv =
                     let! result = Compile.invokeCompiler taskWorkingDirectory compilerConfigPath compilerOutputDirPath
                     let grammarFileStatistics =
                         match result with
-                        | 0 -> 
+                        | 0 ->
                             Fuzz.getGrammarFileStatistics (compilerOutputDirPath ++
                                                            Restler.Workflow.Constants.DefaultRestlerGrammarFileName)
                         | _ -> []
