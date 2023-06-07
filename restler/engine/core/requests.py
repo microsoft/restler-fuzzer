@@ -1073,6 +1073,8 @@ class Request(object):
         @rtype : (Str, Function Pointer, List[Str])
 
         """
+        from engine.core.request_utilities import replace_auth_token
+
         def _handle_exception(type, tag, err):
             logger.write_to_main(
                 f"Exception when rendering request {self.method} {self.endpoint_no_dynamic_objects}.\n"
@@ -1227,8 +1229,22 @@ class Request(object):
                 if value_list:
                     rendered_data = values
                 else:
-                    rendered_data = "".join(values)
-
+                    try:
+                        rendered_data = "".join(values)
+                    except Exception as err:
+                        debug_values = []
+                        for v in values:
+                            if isinstance(v, str):
+                                debug_values.append(replace_auth_token(v, '_OMITTED_AUTH_TOKEN_'))
+                            else:
+                                debug_values.append(v)
+                        logger.write_to_main(
+                            f"Exception when rendering request {self.method} {self.endpoint_no_dynamic_objects}.\n"
+                            f"Request block values: {debug_values}\n"
+                            f"  Exception: {err!s}",
+                            print_to_console=True
+                        )
+                        raise
                 # Save the schema for this combination.
                 self._last_rendered_schema_request = (req, is_example)
 
