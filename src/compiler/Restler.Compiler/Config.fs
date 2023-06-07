@@ -136,6 +136,9 @@ type Config =
         // The maximum depth for Json properties in the schema to test
         // Any properties exceeding this depth are removed.
         JsonPropertyMaxDepth : int option
+
+        // When this switch is on, preprocess the specs only, do not compile
+        Preprocess : bool option
     }
 
 let convertToAbsPath (currentDirPath:string) (filePath:string) =
@@ -257,6 +260,7 @@ let SampleConfig =
         ApiNamingConvention = None
         TrackFuzzedParameterNames = false
         JsonPropertyMaxDepth = None
+        Preprocess = None
     }
 
 /// The default config used for unit tests.  Most of these should also be the defaults for
@@ -291,9 +295,10 @@ let DefaultConfig =
         ApiNamingConvention = None
         TrackFuzzedParameterNames = false
         JsonPropertyMaxDepth = None
+        Preprocess = None
     }
 
-// A helper function to override defaults with user-specified config values 
+// A helper function to override defaults with user-specified config values
 // when the user specifies only some of the properties
 let mergeWithDefaultConfig (userConfigAsString:string) =
     let defaultConfig = Utilities.JsonSerialization.serialize DefaultConfig
@@ -302,8 +307,8 @@ let mergeWithDefaultConfig (userConfigAsString:string) =
     Utilities.JsonSerialization.deserialize<Config> newConfig
 
 /// Determines which dictionary to use with each Swagger/OpenAPI spec and returns
-/// a 'SwaggerSpecConfig' for each specification. 
-let getSwaggerSpecConfigsFromCompilerConfig (config:Config) = 
+/// a 'SwaggerSpecConfig' for each specification.
+let getSwaggerSpecConfigsFromCompilerConfig (config:Config) =
     let swaggerDocs =
         match config.SwaggerSpecFilePath with
         | None ->

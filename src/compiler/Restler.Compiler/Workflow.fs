@@ -72,15 +72,15 @@ let getSwaggerDataForDoc doc workingDirectory =
         xMsPathsMapping = if preprocessingResult.IsSome then preprocessingResult.Value.xMsPathsMapping else None
     }
 
-
-let generateGrammarFromSwagger grammarOutputDirectoryPath config =
-
+let getConfiguredOpenAPIDocuments grammarOutputDirectoryPath config =
     // Extract the Swagger documents and corresponding document-specific configuration, if any
     let swaggerSpecConfigs = getSwaggerSpecConfigsFromCompilerConfig config
 
-    let configuredSwaggerDocs =
-        swaggerSpecConfigs
-        |> List.map (fun doc -> getSwaggerDataForDoc doc grammarOutputDirectoryPath)
+    swaggerSpecConfigs
+    |> List.map (fun doc -> getSwaggerDataForDoc doc grammarOutputDirectoryPath)
+
+let generateGrammarFromSwagger grammarOutputDirectoryPath config =
+    let configuredSwaggerDocs = getConfiguredOpenAPIDocuments grammarOutputDirectoryPath config
 
     let dictionary =
         match config.CustomDictionaryFilePath with
@@ -164,7 +164,7 @@ let generateGrammarFromSwagger grammarOutputDirectoryPath config =
         let discoveredExamplesFilePath = Path.Combine(examplesDirectory, Constants.DefaultExampleMetadataFileName)
         Examples.serializeExampleConfigFile discoveredExamplesFilePath examples
 
-    // A helper function to override defaults with user-specified dictionary values 
+    // A helper function to override defaults with user-specified dictionary values
     // when the user specifies only some of the properties
     let mergeWithDefaultDictionary (newDictionaryAsString:string) =
         let defaultDict = JsonSerialization.serialize Dictionary.DefaultMutationsDictionary
@@ -178,7 +178,7 @@ let generateGrammarFromSwagger grammarOutputDirectoryPath config =
         printfn "Writing new dictionary to %s" newDictionaryFilePath
         // Add any properties to the dictionary that are missing from the original dictionary
         // For example, the user may specify only custom payloads, and exclude fuzzable properties.
-        let newDict = mergeWithDefaultDictionary (JsonSerialization.serialize newDict) 
+        let newDict = mergeWithDefaultDictionary (JsonSerialization.serialize newDict)
         JsonSerialization.serializeToFile newDictionaryFilePath newDict
 
     writeDictionary Constants.NewDictionaryFileName newDictionary
@@ -240,19 +240,25 @@ let generateRestlerGrammar (config:Config) =
 
     Microsoft.FSharpLu.File.createDirIfNotExists grammarOutputDirectoryPath
 
-    let grammar =
-        match config.GrammarInputFilePath with
-        | Some grammarFilePath when File.Exists grammarFilePath ->
-            use f = System.IO.File.OpenRead(grammarFilePath)
-            JsonSerialization.deserializeStream<GrammarDefinition> f
-        | None ->
-             logTimingInfo "Generating grammar..."
-             generateGrammarFromSwagger grammarOutputDirectoryPath config
-        | Some p ->
-            printfn "ERROR: invalid path for grammar: %s" p
-            exit 1
+    match config.Preprocess with
+    | Some true ->
+        logTimingInfo "Preprocessing API specifications..."
+        getConfiguredOpenAPIDocuments grammarOutputDirectoryPath config
+        |> ignore
+    | _ ->
+        let grammar =
+            match config.GrammarInputFilePath with
+            | Some grammarFilePath when File.Exists grammarFilePath ->
+                use f = System.IO.File.OpenRead(grammarFilePath)
+                JsonSerialization.deserializeStream<GrammarDefinition> f
+            | None ->
+                 logTimingInfo "Generating grammar..."
+                 generateGrammarFromSwagger grammarOutputDirectoryPath config
+            | Some p ->
+                printfn "ERROR: invalid path for grammar: %s" p
+                exit 1
 
-    logTimingInfo "Generating python grammar..."
-    generatePython grammarOutputDirectoryPath config grammar
-    logTimingInfo "Done generating python grammar."
+        logTimingInfo "Generating python grammar..."
+        generatePython grammarOutputDirectoryPath config grammar
+        logTimingInfo "Done generating python grammar."
     printfn "Workflow completed.  See %s for REST-ler grammar." grammarOutputDirectoryPath
