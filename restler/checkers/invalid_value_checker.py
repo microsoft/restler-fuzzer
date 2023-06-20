@@ -308,7 +308,6 @@ class InvalidValueChecker(CheckerBase):
                     if not isinstance(fuzzed_value, str):
                         print("not a string!")
                     rendered_data = "".join(rendered_values)
-                    self._checker_log.checker_print(f"+++payload: {rendered_data}.+++")
 
                     # Check time budget
                     if Monitor().remaining_time_budget <= 0:
