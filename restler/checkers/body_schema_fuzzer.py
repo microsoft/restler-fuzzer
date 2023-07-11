@@ -8,9 +8,10 @@ import itertools
 import json
 import random
 
+from restler_settings import Settings
+
 from engine.fuzzing_parameters.fuzzing_utils import *
 from engine.fuzzing_parameters.request_params import *
-
 from engine.fuzzing_parameters.param_combinations import JsonBodySchemaFuzzerBase
 
 class BodySchemaStructuralFuzzer(JsonBodySchemaFuzzerBase):
@@ -65,6 +66,8 @@ class BodySchemaStructuralFuzzer(JsonBodySchemaFuzzerBase):
             self._shuffle_combination = config['shuffle_combination']
         if 'random_seed' in config:
             self._random_seed = config['random_seed']
+        else:
+            self._random_seed = Settings().random_seed
 
         # overwrite fuzzer-specific configuration
         self._set_fuzzer_config()

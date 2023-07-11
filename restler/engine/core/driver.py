@@ -7,7 +7,6 @@ import sys, os
 import traceback
 import copy
 import time
-import random
 import inspect
 import itertools
 import functools
@@ -15,6 +14,7 @@ import multiprocessing
 from multiprocessing.dummy import Pool as ThreadPool
 from collections import deque
 import re
+from random import Random
 
 from restler_settings import Settings
 import utils.logger as logger
@@ -56,7 +56,7 @@ def validate_dependencies(consumer_req, producer_seq):
     return consumer_req.consumes <= set(producer_requests)
 
 
-def extend(seq_collection, fuzzing_requests, lock):
+def extend(seq_collection, fuzzing_requests, lock, random_gen):
     """ Extends each sequence currently present in collection by any request
     from request collection whose dependencies can be resolved if appended at
     the end of the target sequence.
@@ -121,7 +121,7 @@ def extend(seq_collection, fuzzing_requests, lock):
     # one randomly selected sequence
     if Settings().fuzzing_mode == 'random-walk':
         if len(seq_collection) > 0:
-            rand_int = random.randint(prev_len, len(seq_collection) - 1)
+            rand_int = random_gen.randint(prev_len, len(seq_collection) - 1)
             return seq_collection[rand_int: rand_int + 1], extended_requests[rand_int: rand_int + 1]
         else:
             return [], []
@@ -575,6 +575,7 @@ def generate_sequences(fuzzing_requests, checkers, fuzzing_jobs=1, garbage_colle
 
     fuzzing_mode = Settings().fuzzing_mode
     max_len = Settings().max_sequence_length
+    random_gen = Random(Settings().random_seed)
 
     if fuzzing_jobs > 1:
         render = render_parallel
@@ -676,7 +677,9 @@ def generate_sequences(fuzzing_requests, checkers, fuzzing_jobs=1, garbage_colle
                     # go to the next generation
                     continue
             else:
-                seq_collection, extended_requests = extend(seq_collection, fuzzing_requests, global_lock)
+                seq_collection, extended_requests = extend(seq_collection,
+                                                           fuzzing_requests,
+                                                           global_lock, random_gen)
 
             print(f"{formatting.timestamp()}: Generation: {generation} ")
             logger.write_to_main(

@@ -182,6 +182,7 @@ module Engine =
             total_requests_sent : Dictionary<string, int>
             bug_buckets : Dictionary<string, int>
             reproducible_bug_buckets : Dictionary<string, int>
+            settings : Dictionary<string, obj>
         }
 
 /// Helper module to produce compact messages in the console, but more

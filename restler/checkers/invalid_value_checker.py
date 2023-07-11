@@ -178,6 +178,8 @@ class InvalidValueChecker(CheckerBase):
             self._value_generators_file_path = default_value_generators_file_path
 
         self._override_random_seed = Settings().get_checker_arg(self._friendly_name, 'random_seed')
+        if self._override_random_seed is None:
+            self._override_random_seed = Settings().random_seed
 
     def apply(self, rendered_sequence, lock):
         """ Fuzzes each value in the parameters of this request as specified by
