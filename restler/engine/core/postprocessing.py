@@ -59,7 +59,7 @@ def delete_create_once_resources(destructors, fuzzing_requests):
             msg = f"Failed to delete create_once resource: {error!s}"
             logger.raw_network_logging(msg)
             logger.write_to_main(msg, print_to_console=True)
-            if settings.in_smoke_test_mode():
+            if Settings().in_smoke_test_mode():
                 if renderings.sequence:
                     renderings.sequence.last_request.stats.request_order = 'Postprocessing'
                     renderings.sequence.last_request.stats.set_all_stats(renderings)
