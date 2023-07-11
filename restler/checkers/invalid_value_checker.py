@@ -87,7 +87,7 @@ def get_test_values(max_values: int, req: Request, static_dict=None,
                 quoted = request_block[2]
                 examples = request_block[3]
 
-            fuzzable_string = primitives.restler_fuzzable_string("fuzzstring", is_quoted=quoted, examples=examples)
+            fuzzable_string = primitives.restler_fuzzable_string("fuzzstring", quoted=quoted, examples=examples)
             vgen_fuzzable_values, _, _ = req.init_fuzzable_values([fuzzable_string],
                                                                   vg_pool,
                                                                   log_dict_err_to_main=False)
