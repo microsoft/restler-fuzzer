@@ -789,21 +789,21 @@ class Request(object):
 
         tested_example_payloads = False
         if Settings().example_payloads is not None:
-            tested_example_payloads = True
             for ex in get_all_example_schemas():
+                tested_example_payloads = True
                 yield ex, True
 
         tested_param_combinations = False
         header_param_combinations = Settings().header_param_combinations
         if header_param_combinations is not None:
-            tested_param_combinations = True
             for hpc in self.get_header_param_combinations(header_param_combinations):
+                tested_param_combinations = True
                 yield hpc, False
 
         query_param_combinations = Settings().query_param_combinations
         if query_param_combinations is not None:
-            tested_param_combinations = True
             for hpc in self.get_query_param_combinations(query_param_combinations):
+                tested_param_combinations = True
                 yield hpc, False
 
         if not (tested_param_combinations or tested_example_payloads):
