@@ -45,7 +45,7 @@ class CandidateValuesTest(unittest.TestCase):
         current_file_dir = os.path.dirname(os.path.abspath(__file__))
         checkers_file_dir = os.path.join(current_file_dir, "..", "checkers")
         file_path = os.path.join(checkers_file_dir, "invalid_value_checker_value_gen.py")
-        fuzzable_string = primitives.restler_fuzzable_string("fuzzstring", is_quoted=False, examples=[])
+        fuzzable_string = primitives.restler_fuzzable_string("fuzzstring", quoted=False, examples=[])
         req_definition = [fuzzable_string]
         temp_req = Request(req_definition)
 
@@ -77,7 +77,7 @@ class CandidateValuesTest(unittest.TestCase):
 
         # Default generators with 'int' in request block, which is not present there.
         # Expected: the string generator should be used.
-        fuzzable_int = primitives.restler_fuzzable_int("20", is_quoted=False, examples=[])
+        fuzzable_int = primitives.restler_fuzzable_int("20", quoted=False, examples=[])
         override_value_gen["restler_fuzzable_int"] = None
         req_definition = [fuzzable_int]
         temp_req = Request(req_definition)

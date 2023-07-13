@@ -258,13 +258,23 @@ def des_param_payload(param_payload_json, tag='', body_param=True):
                                     dynamic_object=dynamic_object, is_quoted=is_quoted, content_type=content_type)
 
         elif content_type == 'Int':
-            value = ParamNumber(param_properties=param_properties, dynamic_object=dynamic_object, number_type=content_type)
+            value = ParamNumber(custom_payload_type=custom_payload_type,
+                                param_properties=param_properties,
+                                dynamic_object=dynamic_object,
+                                number_type=content_type)
         elif content_type == 'Number':
-            value = ParamNumber(param_properties=param_properties, dynamic_object=dynamic_object, number_type=content_type)
+            value = ParamNumber(custom_payload_type=custom_payload_type,
+                                param_properties=param_properties,
+                                dynamic_object=dynamic_object,
+                                number_type=content_type)
         elif content_type == 'Bool':
-            value = ParamBoolean(param_properties=param_properties, dynamic_object=dynamic_object)
+            value = ParamBoolean(custom_payload_type=custom_payload_type,
+                                 param_properties=param_properties,
+                                 dynamic_object=dynamic_object)
         elif content_type == 'Object':
-            value = ParamObjectLeaf(param_properties=param_properties, dynamic_object=dynamic_object)
+            value = ParamObjectLeaf(custom_payload_type=custom_payload_type,
+                                    param_properties=param_properties,
+                                    dynamic_object=dynamic_object)
         elif 'Enum' in content_type:
             # unique case for Enums, as they are defined as
             # "fuzzable" types in the schema, but are not fuzzable
@@ -290,7 +300,8 @@ def des_param_payload(param_payload_json, tag='', body_param=True):
                 else:
                     is_quoted = False
                 value = ParamEnum(contents, enum_content_type, is_quoted=is_quoted,
-                                  param_properties=param_properties, body_param=body_param, enum_name=enum_name)
+                                  custom_payload_type=custom_payload_type,
+                                  param_properties=param_properties, enum_name=enum_name)
             else:
                 logger.write_to_main(f'Unexpected enum schema {name}')
         else:
