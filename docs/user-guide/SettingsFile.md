@@ -501,6 +501,16 @@ For instance, any custom payloads
 or fuzzable values for this endpoint will be taken from the specified custom dictionary
 instead of the default dictionary.
 
+### random_seed: int (default 12345)
+The random seed to use for the RESTler invocation.  The same random seed will
+always be used if none is specified and `generate_random_seed` is `False`.  Checkers may have a separate `random_seed` setting that overrides this setting.
+
+### generate_random_seed: bool (default False)
+When `True`, generate a new random seed instead of using the default or user-specified
+`random_seed`.  This setting also overrides any `random_seed` checker settings.
+The random seed that was used for the run is logged in main.txt as well as in the
+testing summary.
+
 ### custom_value_generators: string (default None)
 If this setting is set to a valid path with a ```.py``` extension,
 RESTler will try to import the contents of this

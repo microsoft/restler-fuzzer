@@ -1179,3 +1179,111 @@ class FunctionalityTests(unittest.TestCase):
         run_test(None, False)
         check_gc_error(None)
         check_gc_stats(None)
+
+    def test_random_seed_settings(self):
+        """ This test is identical to test_abc_minimal_smoke_test, except that it modifies the random seed
+        settings.  The test checks that the same sequences are sent in 'test' mode, but different sequences
+        are sent in 'random-walk' mode, and tests that the seed was output to the testing summary.
+        """
+        def create_settings_file(settings):
+            new_settings_file_path = os.path.join(Test_File_Directory, "random_seed_settings.json")
+            try:
+                json_settings = json.dumps(settings, indent=4)
+                with open(new_settings_file_path, "w") as f:
+                    f.write(json_settings)
+                return new_settings_file_path
+            except Exception as e:
+                print(e)
+                return None
+
+        def test_with_settings(settings):
+            try:
+                new_settings_file_path = create_settings_file(settings)
+                self.run_abc_smoke_test(Test_File_Directory, "abc_test_grammar.py",
+                                        "directed-smoke-test", settings_file=new_settings_file_path)
+            finally:
+                ## Clean up temporary settings file
+                if os.path.exists(new_settings_file_path):
+                    os.remove(new_settings_file_path)
+
+            experiments_dir = self.get_experiments_dir()
+
+            # Make sure all requests were successfully rendered.  This is because the comparisons below do not
+            # take status codes into account
+
+            # Make sure the right number of requests was sent.
+            testing_summary_file_path = os.path.join(experiments_dir, "logs", "testing_summary.json")
+            DEFAULT_RANDOM_SEED = 12345
+            try:
+                with open(testing_summary_file_path, 'r') as file:
+                    testing_summary = json.loads(file.read())
+                    total_requests_sent = testing_summary["total_requests_sent"]["main_driver"]
+                    num_fully_valid = testing_summary["num_fully_valid"]
+                    self.assertEqual(num_fully_valid, 5)
+                    self.assertLessEqual(total_requests_sent, 14)
+
+                    # Make sure the random seed was output to the testing summary
+                    if 'random_seed' in settings:
+                        if 'generate_random_seed' in settings:
+                            self.assertNotEqual(testing_summary["settings"]["random_seed"], settings["random_seed"])
+                        else:
+                            self.assertEqual(testing_summary["settings"]["random_seed"], settings["random_seed"])
+                    else:
+                        if 'generate_random_seed' in settings:
+                            self.assertNotEqual(testing_summary["settings"]["random_seed"], DEFAULT_RANDOM_SEED)
+                        else:
+                            self.assertEqual(testing_summary["settings"]["random_seed"], DEFAULT_RANDOM_SEED)
+
+                default_parser = FuzzingLogParser(os.path.join(Test_File_Directory, "abc_smoke_test_testing_log.txt"))
+                test_parser = FuzzingLogParser(self.get_network_log_path(experiments_dir, logger.LOG_TYPE_TESTING))
+                self.assertTrue(default_parser.diff_log(test_parser))
+            except TestFailedException:
+                self.fail("Smoke test failed: Fuzzing")
+
+        def random_walk_test(settings, expected_equal):
+
+            try:
+                new_settings_file_path = create_settings_file(settings)
+                # First run
+                self.run_abc_smoke_test(Test_File_Directory, "abc_test_grammar.py",
+                                        "random-walk", settings_file=new_settings_file_path)
+                experiments_dir = self.get_experiments_dir()
+
+                parser_1 = FuzzingLogParser(self.get_network_log_path(experiments_dir, logger.LOG_TYPE_TESTING), max_seq=20)
+
+                # Second run
+                self.run_abc_smoke_test(Test_File_Directory, "abc_test_grammar.py",
+                                        "random-walk", settings_file=new_settings_file_path)
+                experiments_dir = self.get_experiments_dir()
+
+                parser_2 = FuzzingLogParser(self.get_network_log_path(experiments_dir, logger.LOG_TYPE_TESTING), max_seq=20)
+                diff_result = parser_1.diff_log(parser_2)
+                if expected_equal:
+                    self.assertTrue(diff_result)
+                else:
+                    self.assertFalse(diff_result)
+
+            finally:
+                ## Clean up temporary settings file
+                if os.path.exists(new_settings_file_path):
+                    os.remove(new_settings_file_path)
+
+        # Test with a random seed
+        test_with_settings({"random_seed": 1234})
+
+        # Test with a random seed and generate_random_seed
+        test_with_settings({"random_seed": 1234, "generate_random_seed": True})
+
+        # Test with no random seed
+        test_with_settings({})
+
+        # Test with generate_random_seed
+        test_with_settings({"generate_random_seed": True})
+
+        # Test two runs without a random seed specified.  The same random seed should be used,
+        # and the payloads are expected to be equal.
+        random_walk_test({ "time_budget": 0.01}, True)
+
+        # Test two runs with 'generate_random_seed' set to True.  Different random seeds should be used,
+        # and the payloads are expected to be different.
+        random_walk_test({"generate_random_seed": True, "time_budget": 0.01}, False)

@@ -8,6 +8,7 @@ import os
 import json
 import sys
 import re
+import time
 
 class TokenAuthMethod(Enum):
     """ Enum of token auth methods """
@@ -508,6 +509,14 @@ class RestlerSettings(object):
         ## If set, poll for async resource creation before continuing
         self._wait_for_async_resource_creation = SettingsArg('wait_for_async_resource_creation', bool, True, user_args)
 
+        ## The random seed to use (may be overridden by checker-specific random seeds)
+        self._random_seed = SettingsArg('random_seed', int, 12345, user_args, minval=0)
+        ## Generate a new random seed instead of using the one specified
+        ## When specified, the seed will be used for all of the checkers as well.
+        self._generate_random_seed = SettingsArg('generate_random_seed', bool, False, user_args)
+        if self._generate_random_seed.val:
+            self._random_seed.val = time.time()
+
         self._connection_settings = ConnectionSettings(self._target_ip.val,
                                                        self._target_port.val,
                                                        not self._no_ssl.val,
@@ -666,6 +675,14 @@ class RestlerSettings(object):
     @property
     def max_sequence_length(self):
         return self._max_sequence_length.val
+
+    @property
+    def random_seed(self):
+        return self._random_seed.val
+
+    @property
+    def generate_random_seed(self):
+        return self._generate_random_seed.val
 
     @property
     def no_tokens_in_logs(self):

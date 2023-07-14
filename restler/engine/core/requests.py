@@ -5,8 +5,6 @@
 from __future__ import print_function
 import time
 import types
-import random
-random.seed(12345)
 import itertools
 import functools, operator
 import collections
@@ -14,6 +12,8 @@ import datetime
 import copy
 
 from restler_settings import Settings
+from random import Random
+
 import engine.core.request_utilities as request_utilities
 from engine.core.request_utilities import str_to_hex_def
 from engine.fuzzing_parameters.request_examples import RequestExamples
@@ -304,6 +304,8 @@ class Request(object):
         self._rendered_values_cache = RenderedValuesCache()
         self._last_rendered_schema_request = None
         self._is_resource_generator = None
+
+        self._random = Random(Settings().random_seed)
 
         # Check for empty request before assigning ids
         if self._definition:
@@ -1007,7 +1009,7 @@ class Request(object):
                     values = [(values, quoted, writer_variable)]
 
             if Settings().fuzzing_mode == 'random-walk' and not preprocessing:
-                random.shuffle(values)
+                self._random.shuffle(values)
 
             if len(values) == 0:
                 _raise_dict_err(primitive_type, "empty value list")

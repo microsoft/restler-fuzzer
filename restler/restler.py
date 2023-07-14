@@ -442,6 +442,10 @@ if __name__ == '__main__':
         }
         )
 
+    # Write the random seed to main in case the run exits in the middle and needs to be
+    # restarted with the same seed
+    logger.write_to_main(f"Random seed: {Settings().random_seed}")
+
     # Initialize the fuzzing monitor
     monitor = fuzzing_monitor.FuzzingMonitor()
 
