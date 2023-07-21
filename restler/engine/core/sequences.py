@@ -561,21 +561,43 @@ class Sequence(object):
                 rendered_data = self.resolve_dependencies(rendered_data)
 
             req_async_wait = Settings().get_max_async_resource_creation_time(request.request_id)
+            req_producer_timing_delay = Settings().get_producer_timing_delay(request.request_id)
 
             response = request_utilities.send_request_data(rendered_data)
             if response.has_valid_code():
                 for name,v in updated_writer_variables.items():
                     dependencies.set_variable(name, v)
 
-            responses_to_parse, resource_error, _ = async_request_utilities.try_async_poll(
+            responses_to_parse, resource_error, async_waited = async_request_utilities.try_async_poll(
                 rendered_data, response, req_async_wait)
             parser_exception_occurred = False
+
+            # If the async logic waited for the resource, this wait already included the required
+            # producer timing delay. Here, set the producer timing delay to zero, so this wait is
+            # skipped both below for this request and during replay
+            if async_waited:
+                req_producer_timing_delay = 0
+            else:
+                req_async_wait = 0
+
+            # If the request is a resource generator and we did not perform an async resource
+            # creation wait, then wait for the specified duration in order for the backend to have a
+            # chance to create the resource.
+            # One case where this is important is if the garbage collector cannot delete the resource
+            # because it is still in a 'creating' state.
+
+            if req_producer_timing_delay > 0 and request.is_resource_generator():
+                print(f"Pausing for {req_producer_timing_delay} seconds, request is a generator...")
+                time.sleep(req_producer_timing_delay)
+
             # Response may not exist if there was an error sending the request or a timeout
             if parser and responses_to_parse:
                 parser_exception_occurred = not request_utilities.call_response_parser(parser, None, request=request, responses=responses_to_parse)
             status_code = response.status_code
 
-            self.append_data_to_sent_list(rendered_data, parser, response, max_async_wait_time=req_async_wait)
+            self.append_data_to_sent_list(rendered_data, parser, response,
+                                          producer_timing_delay=req_producer_timing_delay,
+                                          max_async_wait_time=req_async_wait)
             self.executed_requests_count = self.executed_requests_count + 1
 
             if not status_code:
