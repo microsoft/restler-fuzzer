@@ -176,7 +176,7 @@ let generatePythonParameter includeOptionalParameters parameterSource parameterK
             // The inner properties must be comma separated
             let cs = innerProperties
                      // Filter empty elements, which are the result of filtered child properties
-                     |> Seq.filter (fun p -> p.Length > 0) 
+                     |> Seq.filter (fun p -> p.Length > 0)
                      |> Seq.mapi (fun i s ->
                                       if i > 0 && not (s |> List.isEmpty) then
                                           [
@@ -316,7 +316,8 @@ let generatePythonParameter includeOptionalParameters parameterSource parameterK
                 | Array ->
                     formatQueryArrayParameters parameterName innerProperties
                 | Property ->
-                    raise (ArgumentException("Invalid context for property type."))
+                    let message = sprintf "Nested properties in query parameters are not supported yet. Property name: %s." parameterName
+                    raise (NotImplementedException(message))
 
     let visitLeaf level (p:LeafProperty) =
         let rec isPrimitiveTypeQuoted primitiveType isNullValue =
@@ -335,7 +336,7 @@ let generatePythonParameter includeOptionalParameters parameterSource parameterK
             | PrimitiveType.Number ->
                 false
 
-        let includeProperty = 
+        let includeProperty =
             // Exclude 'readonly' parameters
             not p.isReadOnly && (p.isRequired || includeOptionalParameters)
         // Parameters from an example payload are always included
@@ -359,7 +360,7 @@ let generatePythonParameter includeOptionalParameters parameterSource parameterK
                     let needQuotes =
                         (not c.isObject) &&
                         (isPrimitiveTypeQuoted c.primitiveType false)
-                    needQuotes, isFuzzable, false 
+                    needQuotes, isFuzzable, false
                 | FuzzingPayload.Constant (PrimitiveType.String, s) ->
                     // TODO: improve the metadata of FuzzingPayload.Constant to capture whether
                     // the constant represents an object,
@@ -414,7 +415,7 @@ let generatePythonParameter includeOptionalParameters parameterSource parameterK
             []
 
     let visitInner level (p:InnerProperty) (innerProperties: RequestPrimitiveType list seq) =
-        let includeProperty = 
+        let includeProperty =
             // Exclude 'readonly' parameters
             not p.isReadOnly && (p.isRequired || includeOptionalParameters)
         // Parameters from an example payload are always included
