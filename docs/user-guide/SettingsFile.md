@@ -293,6 +293,9 @@ such requests from fuzzing, but currently they will be fuzzed as well.
   "include_requests": [
     {
       "endpoint": "/api/blog/posts/{postId}",
+    },
+    {
+      "endpoint": "/api/blog/posts/*",
     }
   ]
 ```

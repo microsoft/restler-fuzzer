@@ -814,6 +814,9 @@ class RestlerSettings(object):
             for req in req_list:
                 if endpoint == req["endpoint"]:
                     return "methods" not in req or method in req["methods"]
+                elif req["endpoint"].endswith('*'):
+                    if endpoint.startswith(req["endpoint"][:-1]):
+                        return "methods" not in req or method in req["methods"]
             return False
 
         def exclude_req():
