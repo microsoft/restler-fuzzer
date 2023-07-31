@@ -42,14 +42,15 @@ def get_polling_request(response):
     LocationSearchStr = "Location: "
     AzureAsyncSearchStr = "Azure-AsyncOperation: "
     response_str = response.to_str
-    if response.status_code in ['202', '201'] and (LocationSearchStr in response_str or LocationSearchStr.lower() in response_str):
+    if (AzureAsyncSearchStr in response_str):
+        url = response_str.split(AzureAsyncSearchStr)[1]
+    elif response.status_code in ['202', '201'] and (LocationSearchStr in response_str or LocationSearchStr.lower() in response_str):
         if LocationSearchStr in response_str:
             url = response_str.split(LocationSearchStr)[1]
         elif LocationSearchStr.lower() in response_str:
             url = response_str.split(LocationSearchStr.lower())[1]
         data_in_poll_response = True
-    elif (AzureAsyncSearchStr in response_str):
-        url = response_str.split(AzureAsyncSearchStr)[1]
+
     else:
         return None, False
 
