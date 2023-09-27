@@ -10,7 +10,7 @@ from routers import blog, doc
 
 app = FastAPI(title="Demo Blog Server",
     servers=[
-            {"url": "https://localhost:8888", "description": "Staging environment"}]
+            {"url": "http://localhost:8888", "description": "Staging environment"}]
 )
 
 app.include_router(blog.router)
