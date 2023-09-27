@@ -535,9 +535,10 @@ if __name__ == '__main__':
 
     # Set up garbage collection
     gc_thread = None
-    garbage_collector = dependencies.GarbageCollector(req_collection, monitor)
+    garbage_collector = None
 
     if args.garbage_collection_interval or Settings().run_gc_after_every_sequence:
+        garbage_collector = dependencies.GarbageCollector(req_collection, monitor)
         gc_message = "after every test sequence. " \
                         if Settings().run_gc_after_every_sequence else f"every {settings.garbage_collection_interval} seconds."
         print(f"{formatting.timestamp()}: Initializing: Garbage collection {gc_message}")
