@@ -6,6 +6,12 @@ RESTler analyzes the Swagger/OpenAPI spec and generates a fuzzing grammar, which
 
   ```restler.exe compile --api_spec <full path to API specification>```
 
+- For medium to large services, further configuration will likely be required.  To quickly generate the RESTler config files that you will most likely need to provide, run:
+
+  ```restler.exe generate_config --specs <full path to API specification>```
+
+This step will generate a `restlerConfig` directory that contains several files.  The compiler config file (`config.json`) is used to compile the API spec with the full set of configuration options.  The `dict.json` file is where you may provide specific constants required by your service (for example, a required header value that specifies the `api-version`).  The `annotations.json` file specify dependencies between requests.  The `engine_settings.json` file specifies general settings for the fuzzing run.
+
 - To compile the API spec with the full set of configuration options, run:
 
   ```restler.exe compile <path to config.json>```

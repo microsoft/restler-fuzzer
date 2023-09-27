@@ -25,7 +25,7 @@ The minimal requirements for fuzzing your API are:
 Once you have built RESTler per the steps in the main README, and
 prepared (1) and (2), run the following command:
 
-```python restler-quick-start.py --api_spec_path <path to specification> --restler_drop_dir <path to RESTler drop>```
+```python <path to repository root>/restler-quick-start.py --api_spec_path <path to specification> --restler_drop_dir <path to RESTler drop>```
 
 This command combines the Compile and Test mode into one: it compiles the
 Swagger specification and then tries to successfully
@@ -35,21 +35,27 @@ in order to execute each request, so some requests may be executed more than onc
 
 **Initial run results analysis**
 
-Upon completion, the following json is printed
-(and persisted to a file restler_quick_start_results.json).
+Upon completion, a `restler_working_dir` directory will be created containing results from the `Compile` and `Test` modes of RESTler.  To view the current operation coverage for your API, see `testing_summary.json` in the `restler_working_dir/Tests/RestlerResults/experiments*/logs` directory.
 
-``` json
+If RESTler did not successfully exercise some of the operations in the spec, see the `coverage-failures-to-investigate.txt` file for the list of failed operations, ordered by the number of blocked operations that RESTler could not try due to earlier failures.
+
+Below is an example testing summary:
+```json
 {
-    "found_requests": "29",
-    "attempted_requests": "3",
-    "successful_requests": "2",
-    "coverage": "7%",
-    "bugs_found": "0"
+    "final_spec_coverage": "29 / 29",
+    "rendered_requests": "3 / 29",
+    "rendered_requests_valid_status": "2 / 29",
+    "num_fully_valid": 2,
+    "num_sequence_failures": 0,
+    "num_invalid_by_failed_resource_creations": 0,
+
+...
+
+    "settings": {
+        "random_seed": 12345
+    }
 }
 ```
-
-The above results are typical for an API that does not require
-authentication and has a few GET endpoints without any input parameters.
 
 - 29 requests (endpoint + method) were found in the Swagger spec.
 - 3 requests were attempted by RESTler.
@@ -63,6 +69,8 @@ to the other requests.
 
 At this point, you may copy and extend the ```restler_quick_start.py``` script
 for your needs as you continue to configure your test parameters to increase coverage.
+
+To create a RESTler configuration from scratch, see the `generate_config` option described in [Compiling](Compiling.md).
 
 **All requests failed**
 
