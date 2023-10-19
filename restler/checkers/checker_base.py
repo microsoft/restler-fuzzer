@@ -19,7 +19,7 @@ from engine.core.fuzzing_monitor import Monitor
 import engine.dependencies as dependencies
 
 from utils.logger import raw_network_logging as RAW_LOGGING
-
+from utils.logging.trace_db import DB as TraceDatabase
 threadLocal = threading.local()
 
 class CheckerBase:
@@ -121,6 +121,15 @@ class CheckerBase:
         """
         rendered_data, parser, tracked_parameters, updated_writer_variables = request.render_current(self._req_collection.candidate_values_pool)
         rendered_data = seq.resolve_dependencies(rendered_data)
+
+        # We need to record that the request originates from the checker, but
+        # there is not a clear sequence origin.
+        if Settings().use_trace_database:
+            TraceDatabase().initialize_sequence_trace(combination_id=seq.combination_id,
+                                                tags={'hex_definition': seq.hex_definition})
+            TraceDatabase().initialize_request_trace(combination_id=seq.combination_id,
+                                            request_id=request.hex_definition)
+
         response = self._send_request(parser, rendered_data)
         if response.has_valid_code():
             for name,v in updated_writer_variables.items():
@@ -134,6 +143,8 @@ class CheckerBase:
                 rendered_data, response, async_wait)
         request_utilities.call_response_parser(parser, None, responses=responses_to_parse)
         seq.append_data_to_sent_list(rendered_data, parser, response, producer_timing_delay=0, max_async_wait_time=async_wait)
+        if Settings().use_trace_database:
+            TraceDatabase().clear_sequence_trace()
         return response, response_to_parse
 
     def _rule_violation(self, seq, response, valid_response_is_violation=True):

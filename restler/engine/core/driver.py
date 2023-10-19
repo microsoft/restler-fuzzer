@@ -18,6 +18,7 @@ from random import Random
 
 from restler_settings import Settings
 import utils.logger as logger
+from utils.logging.trace_db import DB as TraceDatabase
 import utils.saver as saver
 import utils.formatting as formatting
 import engine.dependencies as dependencies
@@ -148,11 +149,18 @@ def apply_checkers(checkers, renderings, global_lock):
         try:
             if checker.enabled:
                 RAW_LOGGING(f"Checker: {checker.__class__.__name__} kicks in\n")
+                if Settings().use_trace_database:
+
+                    TraceDatabase().set_origin(checker.__class__.__name__)
                 checker.apply(renderings, global_lock)
                 RAW_LOGGING(f"Checker: {checker.__class__.__name__} kicks out\n")
         except Exception as error:
             print(f"Exception {error!s} applying checker {checker}")
             raise
+        finally:
+            if Settings().use_trace_database:
+                TraceDatabase().clear_origin()
+                TraceDatabase().clear_sequence_trace()
 
 
 def render_one(seq_to_render, ith, checkers, generation, global_lock, garbage_collector):
@@ -572,6 +580,8 @@ def generate_sequences(fuzzing_requests, checkers, fuzzing_jobs=1, garbage_colle
         return
 
     logger.create_network_log(logger.LOG_TYPE_TESTING)
+    if Settings().use_trace_database:
+        TraceDatabase().set_origin('main_driver')
 
     fuzzing_mode = Settings().fuzzing_mode
     max_len = Settings().max_sequence_length
@@ -763,6 +773,8 @@ def generate_sequences(fuzzing_requests, checkers, fuzzing_jobs=1, garbage_colle
         fuzzing_pool.close()
         fuzzing_pool.join()
 
+    if Settings().use_trace_database:
+        TraceDatabase().clear_origin()
     return num_total_sequences
 
 def get_host_and_port(hostname):

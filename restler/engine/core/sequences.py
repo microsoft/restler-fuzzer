@@ -30,6 +30,7 @@ from engine.errors import NoTokenSpecifiedException
 from engine.transport_layer.response import RESTLER_INVALID_CODE
 from utils.logger import raw_network_logging as RAW_LOGGING
 from utils.logger import custom_network_logging as CUSTOM_LOGGING
+from utils.logging.trace_db import DB as TraceDatabase
 
 AUTHORIZATION_TOKEN_PLACEHOLDER = 'AUTHORIZATION TOKEN'
 
@@ -265,6 +266,15 @@ class Sequence(object):
         prefix_ids = [ f"{str(req._current_combination_id)}" for req in self.requests[:-1] ]
         return "_".join(prefix_ids)
 
+    @property
+    def combination_id(self):
+        """ Returns the concatenation of combination IDs, including the last request.
+
+        @return: A string describing the unique combination ID for this sequence
+        @rtype : str
+        """
+        return "_".join(self.current_combination_id)
+
     def has_destructor(self):
         """ Helper to decide whether the current sequence instance contains any
         request which is a destructor.
@@ -393,6 +403,10 @@ class Sequence(object):
                 prev_req_async_wait = Settings().get_max_async_resource_creation_time(prev_request.request_id)
                 prev_producer_timing_delay = Settings().get_producer_timing_delay(prev_request.request_id)
 
+                if Settings().use_trace_database:
+                    TraceDatabase().initialize_request_trace(combination_id=self.combination_id,
+                                                    request_id=request.hex_definition)
+
                 prev_response = request_utilities.send_request_data(prev_rendered_data)
                 if prev_response.has_valid_code():
                     for name,v in updated_writer_variables.items():
@@ -415,6 +429,8 @@ class Sequence(object):
                     prev_req_async_wait = 0
 
                 self.append_data_to_sent_list(prev_rendered_data, prev_parser, prev_response, prev_producer_timing_delay, prev_req_async_wait)
+                if Settings().use_trace_database:
+                    TraceDatabase().clear_request_trace(combination_id=self.combination_id)
 
                 # Record the time at which the response was received
                 datetime_now = datetime.datetime.now(datetime.timezone.utc)
@@ -528,6 +544,13 @@ class Sequence(object):
                 request._current_combination_id += 1
                 continue
 
+            # Render candidate value combinations seeking for valid error codes
+            request._current_combination_id += 1
+            RAW_LOGGING(f"Initializing sequence trace.  sequence length: {self.length}, last request endpoint,method: ({self.last_request.endpoint}, {self.last_request.method})")
+            if Settings().use_trace_database:
+                TraceDatabase().initialize_sequence_trace(combination_id=self.combination_id,
+                                                          tags={'hex_definition': self.hex_definition})
+
             request._tracked_parameters = {}
             request.update_tracked_parameters(tracked_parameters)
 
@@ -540,8 +563,6 @@ class Sequence(object):
             finally:
                 dependencies.stop_saving_local_dyn_objects()
 
-            # Render candidate value combinations seeking for valid error codes
-            request._current_combination_id += 1
 
             if self.rendered_prefix_status == RenderedPrefixStatus.INVALID:
                 # A failure to re-render a previously successful sequence prefix may be a
@@ -562,6 +583,9 @@ class Sequence(object):
 
             req_async_wait = Settings().get_max_async_resource_creation_time(request.request_id)
             req_producer_timing_delay = Settings().get_producer_timing_delay(request.request_id)
+            if Settings().use_trace_database:
+                TraceDatabase().initialize_request_trace(combination_id=self.combination_id,
+                                                request_id=request.hex_definition)
 
             response = request_utilities.send_request_data(rendered_data)
             if response.has_valid_code():
@@ -599,6 +623,8 @@ class Sequence(object):
                                           producer_timing_delay=req_producer_timing_delay,
                                           max_async_wait_time=req_async_wait)
             self.executed_requests_count = self.executed_requests_count + 1
+            if Settings().use_trace_database:
+                TraceDatabase().clear_sequence_trace()
 
             if not status_code:
                 duplicate = copy_self()
@@ -679,6 +705,9 @@ class Sequence(object):
         # and release local dynamic objects, since they are no longer needed.
         self.rendered_prefix_status = RenderedPrefixStatus.NONE
         dependencies.clear_saved_local_dyn_objects()
+        if Settings().use_trace_database:
+            TraceDatabase().clear_sequence_trace()
+
         return RenderedSequence(None)
 
     def append_data_to_sent_list(self, rendered_data, parser, response, producer_timing_delay=0, max_async_wait_time=0):
@@ -777,6 +806,12 @@ class Sequence(object):
                 request_utilities.call_response_parser(request_data.parser, None, responses=responses_to_parse)
             return response.status_code
 
+        # TODO: when replaying from the trace DB is supported, the combination ID should be available, since
+        # the sequence object will be available.  It may also be useful to provide the original combination ID
+        # for the sequence, so that the replay can be associated with the original rendering.
+        if Settings().use_trace_database:
+            TraceDatabase().initialize_sequence_trace(None, tags={'origin': 'replay'})
+
         # Send all but the last request in the sequence
         for request_data in self._sent_request_data_list[:-1]:
             rendered_data = self.get_request_data_with_token(request_data.rendered_data)
@@ -788,8 +823,10 @@ class Sequence(object):
 
         final_request_data = self._sent_request_data_list[-1]
         # Send final request and return its status code
-        return send_and_parse(final_request_data)
-
+        status_code = send_and_parse(final_request_data)
+        if Settings().use_trace_database:
+            TraceDatabase().clear_sequence_trace()
+        return status_code
 
 class RenderedSequenceCache(object):
     """ Implements a cache of rendered sequences. """

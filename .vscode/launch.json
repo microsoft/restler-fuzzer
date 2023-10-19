@@ -4,6 +4,7 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
+
         {
             "name": "Python: Current File",
             "type": "python",
@@ -15,7 +16,7 @@
             "type": "python",
             "request": "launch",
             "program": "${workspaceFolder}\\restler\\end_to_end_tests\\test_quick_start.py",
-            "args" :[
+            "args": [
                 "d:\\restlerdrop\\main",
             ]
         },
@@ -24,7 +25,7 @@
             "type": "python",
             "request": "launch",
             "program": "${workspaceFolder}\\restler\\utils\\network_logs\\diff_network_logs.py",
-            "args" :[
+            "args": [
                 "--left_file",
                 "D:\\test\\734\\logs_before_2\\logs\\network.testing.48660.1.txt",
                 "--right_file",
@@ -36,58 +37,57 @@
             "type": "python",
             "request": "launch",
             "program": "${workspaceFolder}\\restler\\restler.py",
-              "args": [
+            "args": [
                 "--use_test_socket",
                 "--custom_mutations",
-               "${workspaceFolder}\\restler\\unit_tests\\log_baseline_test_files\\gc_test_dict.json",
-               "--garbage_collection_interval",
+                "${workspaceFolder}\\restler\\unit_tests\\log_baseline_test_files\\gc_test_dict.json",
+                "--garbage_collection_interval",
                 "30",
                 "--host",
-                 "unittest",
-                  "--token_refresh_cmd",
-               "python ${workspaceFolder}\\restler\\unit_tests\\log_baseline_test_files\\unit_test_server_auth.py",
-               "--token_refresh_interval",
-               "10",
-               "--fuzzing_mode",
-               "test-all-combinations",
-               "--restler_grammar",
-               "${workspaceFolder}\\restler\\unit_tests\\log_baseline_test_files\\gc_test_grammar.py",
-               "--settings",
-               "${workspaceFolder}\\restler\\unit_tests\\log_baseline_test_files\\gc_test_settings.json"
-
+                "unittest",
+                "--token_refresh_cmd",
+                "python ${workspaceFolder}\\restler\\unit_tests\\log_baseline_test_files\\unit_test_server_auth.py",
+                "--token_refresh_interval",
+                "10",
+                "--fuzzing_mode",
+                "test-all-combinations",
+                "--restler_grammar",
+                "${workspaceFolder}\\restler\\unit_tests\\log_baseline_test_files\\gc_test_grammar.py",
+                "--settings",
+                "${workspaceFolder}\\restler\\unit_tests\\log_baseline_test_files\\gc_test_settings.json"
             ]
         },
         {
-          "name": "Python: test create once" ,
-          "type": "python",
-          "request": "launch",
-          "program": "${workspaceFolder}\\restler\\restler.py",
-          "args": [
-             "--use_test_socket",
-              "--custom_mutations",
-             "d:\\git\\restler-fuzzer\\restler\\unit_tests\\log_baseline_test_files\\test_dict.json",
-             "--garbage_collection_interval",
-              "30",
-              "--host",
-               "unittest",
+            "name": "Python: test create once",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}\\restler\\restler.py",
+            "args": [
+                "--use_test_socket",
+                "--custom_mutations",
+                "d:\\git\\restler-fuzzer\\restler\\unit_tests\\log_baseline_test_files\\test_dict.json",
+                "--garbage_collection_interval",
+                "30",
+                "--host",
+                "unittest",
                 "--token_refresh_cmd",
-             "python d:\\git\\restler-fuzzer\\restler\\unit_tests\\log_baseline_test_files\\unit_test_server_auth.py",
-             "--token_refresh_interval",
-             "10",
-             "--fuzzing_mode",
-             "directed-smoke-test",
-             "--restler_grammar",
-             "d:\\git\\restler-fuzzer\\restler\\unit_tests\\log_baseline_test_files\\test_grammar.py",
-             "--settings",
-             "d:\\git\\restler-fuzzer\\restler\\unit_tests\\log_baseline_test_files\\test_settings_createonce.json"
-          ]
+                "python d:\\git\\restler-fuzzer\\restler\\unit_tests\\log_baseline_test_files\\unit_test_server_auth.py",
+                "--token_refresh_interval",
+                "10",
+                "--fuzzing_mode",
+                "directed-smoke-test",
+                "--restler_grammar",
+                "d:\\git\\restler-fuzzer\\restler\\unit_tests\\log_baseline_test_files\\test_grammar.py",
+                "--settings",
+                "d:\\git\\restler-fuzzer\\restler\\unit_tests\\log_baseline_test_files\\test_settings_createonce.json"
+            ]
         },
-           {
+        {
             "name": "Python: test mode",
             "type": "python",
             "request": "launch",
             "program": "${workspaceFolder}\\restler\\restler.py",
-            "args" :[
+            "args": [
                 "--fuzzing_mode",
                 "directed-smoke-test",
                 "--restler_grammar",
@@ -103,14 +103,15 @@
                 "8888",
                 "--garbage_collection_interval",
                 "30"
-            ]
+            ],
+            "justMyCode": false
         },
         {
             "name": "Python: examples checker",
             "type": "python",
             "request": "launch",
             "program": "${workspaceFolder}\\restler\\restler.py",
-            "args" :[
+            "args": [
                 "--fuzzing_mode",
                 "directed-smoke-test",
                 "--restler_grammar",
@@ -132,7 +133,7 @@
             "type": "python",
             "request": "launch",
             "program": "${workspaceFolder}\\restler\\restler.py",
-            "args" :[
+            "args": [
                 "--fuzzing_mode",
                 "directed-smoke-test",
                 "--restler_grammar",
@@ -142,10 +143,16 @@
                 "--settings",
                 "c:\\temp\\restler\\engine_settings.json",
                 "--use_test_socket",
-                "--garbage_collection_interval", "30",
-                "--target_ip", "1", "--target_port", "1",
-                "--token_refresh_cmd", "python restler\\unit_tests\\log_baseline_test_files\\unit_test_server_auth.py",
-                "--token_refresh_interval", "30"
+                "--garbage_collection_interval",
+                "30",
+                "--target_ip",
+                "1",
+                "--target_port",
+                "1",
+                "--token_refresh_cmd",
+                "python restler\\unit_tests\\log_baseline_test_files\\unit_test_server_auth.py",
+                "--token_refresh_interval",
+                "30"
             ]
         },
         {
@@ -153,7 +160,7 @@
             "type": "python",
             "request": "launch",
             "program": "${workspaceFolder}\\restler\\restler.py",
-            "args" :[
+            "args": [
                 "-h"
             ],
             "stopOnEntry": true,
@@ -165,7 +172,7 @@
             "type": "python",
             "request": "launch",
             "program": "${workspaceFolder}\\restler\\restler.py",
-            "args" :[
+            "args": [
                 "--swagger_specification",
                 "c:\\temp\\restler\\demo_server.json",
                 "--inspect_grammar",
