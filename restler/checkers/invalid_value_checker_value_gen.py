@@ -6,6 +6,8 @@ import itertools
 from datetime import datetime
 import sys
 
+MAX_SIZE = 8400 # https://jira.devtools.intel.com/browse/CVS-110647
+
 random_seed=time.time()
 global random_gen
 random_gen = Random(random_seed)
@@ -19,8 +21,8 @@ def set_random_seed(seed):
 EXAMPLE_ARG = "examples"
 
 def get_boundary_values():
-    yield ''.join(random_gen.choices(string.ascii_letters + string.digits, k=10000))
-    yield ''.join(random_gen.choices(string.digits, k=10000))
+    yield ''.join(random_gen.choices(string.ascii_letters + string.digits, k=MAX_SIZE))
+    yield ''.join(random_gen.choices(string.digits, k=MAX_SIZE))
     yield ''
     yield '{}'
     yield '[]'
@@ -49,7 +51,7 @@ def gen_restler_fuzzable_string(**kwargs):
             yield ex[:ex_k] + new_values + ex[ex_k:]
 
         yield ''.join(random_gen.choices(string.ascii_letters + string.digits, k=size))
-        yield ''.join(random_gen.choices(string.printable, k=size)).replace("\r\n", "")
+        yield ''.join(random_gen.choices(string.ascii_letters + string.digits + string.punctuation, k=size)) # whitespaces are not supported by OVMS https://jira.devtools.intel.com/browse/CVS-108702
 
 def placeholder_value_generator():
     for bv in get_boundary_values():
@@ -58,7 +60,7 @@ def placeholder_value_generator():
         yield str(random_gen.randint(-10, 10))
         yield ''.join(random_gen.choices(string.ascii_letters + string.digits, k=1))
         yield ''.join(random_gen.choices(string.ascii_letters + string.digits, k=5))
-        yield str(random_gen.uniform(-10000, 10000))
+        yield str(random_gen.uniform(-MAX_SIZE, MAX_SIZE))
         yield ''.join(random_gen.choices(string.digits, k=random_gen.randint(1, 20)))
 
 
