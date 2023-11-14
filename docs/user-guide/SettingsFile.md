@@ -323,6 +323,64 @@ Save the results in a directory with a fixed name (skip the 'experiment\<pid\>' 
 ### disable_logging: bool (default False)
 Set to True to disable logging to the network logs and main.txt.
 
+### use_trace_database: bool (default False)
+Set to `True` to enable structured logging for all request/response pairs.
+
+The data is logged to a `trace database`, which contains all of the same request/response pairs
+that are logged to the network.*.txt logs.
+The default format is newline-delimited json, but custom logging formats are supported
+via a module specified in the engine settings.
+
+Below is an example request/response pair recorded for demo_server.
+
+```json
+{
+    "sent_timestamp": "2023-11-02T10:10:59.544824+00:00",
+    "received_timestamp": null,
+    "request": "GET /api/blog/posts?page=1&per_page=1 HTTP/1.1\r\nAccept: application/json\r\nHost: localhost\r\nContent-Length: 0\r\nr\n\r\n",
+    "response": null,
+    "request_json": null,
+    "response_json": null,
+    "tags": {
+        "request_id": "27f9653431313fdc3fecc4a890b72b80b4ce1e59",
+        "sequence_id": "fe2172ab-151c-419f-b918-f3e7483b3230",
+        "combination_id": "1950cbddab7726489624c3d346d3426561c921ad_1",
+        "hex_definition": "6daf8d22c7a6b3472fc83c9f08f290b3507c3ff3",
+        "origin": "main_driver"
+    }
+}
+```
+
+```json
+{
+    "sent_timestamp": null,
+    "received_timestamp": "2023-11-02T10:10:59.597613+00:00",
+    "request": null,
+    "response": "HTTP/1.1 400 Bad Request\r\ndate: Thu, 02 Nov 2023 10:10:58 GMT\r\nserver: uvicorn\r\ncontent-length: 41\r\ncontent-type: application/json\r\n\r\n{\"detail\":\"per_page must be at least 2.\"}",
+    "request_json": null,
+    "response_json": null,
+    "tags": {
+        "request_id": "27f9653431313fdc3fecc4a890b72b80b4ce1e59",
+        "sequence_id": "fe2172ab-151c-419f-b918-f3e7483b3230",
+        "combination_id": "1950cbddab7726489624c3d346d3426561c921ad_1",
+        "hex_definition": "6daf8d22c7a6b3472fc83c9f08f290b3507c3ff3",
+        "origin": "main_driver"
+    }
+}
+```
+
+### trace_database: dict (default empty)
+
+Dictionary containing settings for the trace database.
+
+`file_path` str (default None):  When specified, writes the trace database contents to the specified file.  This option enables re-using the same database for multiple RESTler runs.  Concurrent runs are not currently supported.
+
+`root_dir` str (default None): The directory to which the trace database files should be written.
+
+`custom_serializer` dict (default empty): Dictionary containing settings for the custom serializer.  It must contain the `module_file_path` property, which specifies the path to the module that implements the custom serializer.  The module must contain a class that inherits from the `TraceLogWriterBase` abstract base class (and optionally `TraceLogReaderBase`).  The user may provide additional settings in this dictionary, which will be passed into the serializer class initializer.
+
+`cleanup_time` float (default 10): The maximum amount of time, in seconds, to wait for the data serialization to be complete before exiting.
+
 ### request_throttle_ms: float (default None)
 The time, in milliseconds, to throttle each request being sent.
 This is here for special cases where the server will block requests from connections that arrive too quickly.
