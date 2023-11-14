@@ -20,6 +20,7 @@ import restler_settings
 import traceback
 
 import utils.logger as logger
+import utils.logging.trace_db as trace_db
 import utils.formatting as formatting
 
 import engine.bug_bucketing as bug_bucketing
@@ -355,6 +356,16 @@ if __name__ == '__main__':
     if settings.no_tokens_in_logs:
         logger.no_tokens_in_logs()
 
+    trace_db_thread = None
+    if settings.use_trace_database:
+        print(f"{formatting.timestamp()}: Initializing: Trace database.")
+        trace_database_dir_path = \
+            Settings().trace_db_root_dir if Settings().trace_db_root_dir is not None else logger.EXPERIMENT_DIR
+        trace_db_thread = trace_db.TraceDatabaseThread(trace_db.set_up_trace_database(trace_database_dir_path))
+        trace_db_thread.name = 'Trace Database'
+        trace_db_thread.daemon = True
+        trace_db_thread.start()
+
     if args.replay_log:
         try:
             logger.create_network_log(logger.LOG_TYPE_REPLAY)
@@ -589,6 +600,17 @@ if __name__ == '__main__':
         # otherwise CTRL-C does not work.
         while gc_thread.is_alive():
             gc_thread.join(THREAD_JOIN_WAIT_TIME_SECONDS)
+
+    # Finish writing to trace database.
+    if trace_db_thread:
+        print(f"{formatting.timestamp()}: Finishing writing to Trace Database. "
+              f"Waiting for max {settings.trace_db_cleanup_time} seconds. ")
+        trace_db_thread.finish(settings.trace_db_cleanup_time)
+        # Wait for Trace DB logging to complete
+        # Loop in order to enable the signal handler to run,
+        # otherwise CTRL-C does not work.
+        while trace_db_thread.is_alive():
+            trace_db_thread.join(THREAD_JOIN_WAIT_TIME_SECONDS)
 
     # Print the end of the run generation stats
     logger.print_generation_stats(req_collection, monitor, None, final=True)

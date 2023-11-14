@@ -8,7 +8,8 @@ import socket
 import time
 import threading
 from importlib import util
-
+from utils.logging.trace_db import DB as TraceDatabase
+from utils.formatting import iso_timestamp
 from utils.logger import raw_network_logging as RAW_LOGGING
 from engine.errors import TransportLayerException
 from restler_settings import ConnectionSettings
@@ -120,7 +121,11 @@ class HttpSock(object):
             else:
                 response = self._sock.recv()
             RAW_LOGGING(f'Received: {response.to_str!r}\n')
-
+            if Settings().use_trace_database:
+                TraceDatabase().log_request_response(
+                    response=response.to_str,
+                    timestamp=iso_timestamp()
+                )
             return (True, response)
         except TransportLayerException as error:
             response = HttpResponse(str(error).strip('"\''))
@@ -201,6 +206,11 @@ class HttpSock(object):
 
         try:
             RAW_LOGGING(f'Sending: {message!r}\n')
+            if Settings().use_trace_database:
+                TraceDatabase().log_request_response(
+                    request=message,
+                    timestamp=iso_timestamp()
+                )
             self._sock.sendall(message.encode(UTF8))
         except Exception as error:
             raise TransportLayerException(f"Exception Sending Data: {error!s}")

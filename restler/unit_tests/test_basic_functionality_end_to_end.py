@@ -12,11 +12,13 @@ unit_tests/log_baseline_test_files directory. Each log is named <test-type_log-t
 import unittest
 import os
 import glob
-import sys
 import shutil
 import subprocess
 import json
 import utils.logger as logger
+import utils.import_utilities as import_utilities
+import utils.logging.trace_db as trace_db
+from utils.logging.serializer_base import *
 from collections import namedtuple
 from pathlib import Path
 from test_servers.log_parser import *
@@ -87,7 +89,8 @@ class FunctionalityTests(unittest.TestCase):
             self.fail(f"Restler returned non-zero exit code: {result.returncode} {result.stdout}")
 
     def run_abc_smoke_test(self, test_file_dir, grammar_file_name, fuzzing_mode, settings_file=None, dictionary_file_name=None,
-                           failure_expected=False, common_settings=Common_Settings):
+                           failure_expected=False, common_settings=Common_Settings,
+                           enable_checkers=None):
         grammar_file_path = os.path.join(test_file_dir, grammar_file_name)
         if dictionary_file_name is None:
             dictionary_file_name = "abc_dict.json"
@@ -97,6 +100,8 @@ class FunctionalityTests(unittest.TestCase):
         '--restler_grammar', f'{grammar_file_path}',
         '--custom_mutations', f'{dict_file_path}'
         ]
+        if enable_checkers is not None:
+            args = args + ['--enable_checkers', f'{enable_checkers}']
         if settings_file:
             if Path(settings_file).exists():
                 settings_file_path = settings_file
@@ -1287,3 +1292,113 @@ class FunctionalityTests(unittest.TestCase):
         # Test two runs with 'generate_random_seed' set to True.  Different random seeds should be used,
         # and the payloads are expected to be different.
         random_walk_test({"generate_random_seed": True, "time_budget": 0.01}, False)
+
+    def test_trace_database_minimal(self):
+        """ This test invokes the abc_smoke_test with the setting to produce a trace database enabled,
+        then checks the database against a checked-in baseline.  Both databases are deserialized, and the
+        contents are compared, excluding timestamps and ids.
+
+        Because this test uses the 'ABC' smoke test, it does not invoke the GC and only the invalid
+        dynamic object checker is applicable.  The main purpose of this test is to have a short sanity run
+        with a small baseline that can be manually inspected.
+        """
+
+        def run_trace_db_test(custom_serializer_file_name=None, checkers=None, grammar_file_name="abc_test_grammar.py",
+                              dictionary_file_name=None):
+
+            new_settings_file_path = os.path.join(Test_File_Directory, f"tmp_trace_db_settings.json")
+            if os.path.exists(new_settings_file_path):
+                os.remove(new_settings_file_path)
+            settings = {}
+            settings["trace_database"] = {}
+            settings["include_unique_sequence_id"] = False
+            settings["use_trace_database"] = True
+            trace_db_path = None
+            if custom_serializer_file_name is not None:
+                custom_serializer_module_file_path = os.path.join(Test_File_Directory, custom_serializer_file_name)
+                custom_serializer_settings = {}
+                custom_serializer_settings["module_file_path"] = custom_serializer_module_file_path
+                # Using the text serializer
+                trace_db_path = os.path.join(os.getcwd(), "trace_data.txt")
+                custom_serializer_settings["log_file"] = trace_db_path
+                settings["trace_database"]["custom_serializer"] = custom_serializer_settings
+            else:
+                # default serializer .ndjson file
+                trace_db_file_name = "trace_data.ndjson"
+
+            with open(new_settings_file_path, "w") as outfile:
+                outfile.write(json.dumps(settings, indent=4))
+
+            self.run_abc_smoke_test(Test_File_Directory, grammar_file_name,
+                                    "directed-smoke-test",
+                                    dictionary_file_name=dictionary_file_name,
+                                    settings_file=new_settings_file_path,
+                                    enable_checkers=checkers)
+
+            if trace_db_path is None:
+                trace_db_path = os.path.join(self.get_experiments_dir(), "trace_data.ndjson")
+
+            if not os.path.exists(trace_db_path):
+                self.fail("Trace DB file not found")
+
+            if custom_serializer_file_name is None:
+                if checkers is None:
+                    baseline_trace_db_path = os.path.join(Test_File_Directory, "trace_data_baseline.ndjson")
+                else:
+                    baseline_trace_db_path = os.path.join(Test_File_Directory, "trace_data_baseline_checkers.ndjson")
+
+                print(f"Comparing trace DB to baseline: {baseline_trace_db_path}")
+
+                baseline_deserializer = trace_db.JsonTraceLogReader(log_file_paths=[baseline_trace_db_path])
+                actual_deserializer = trace_db.JsonTraceLogReader(log_file_paths=[trace_db_path])
+
+                baseline_trace_messages = baseline_deserializer.load()
+                actual_trace_messages = actual_deserializer.load()
+
+                normalized_baseline = [log.normalize() for log in baseline_trace_messages]
+                normalized_actual = [log.normalize() for log in actual_trace_messages]
+                if len(normalized_baseline) != len(normalized_actual):
+                    message = f"baseline log count {len(normalized_baseline)} != actual log count {len(normalized_actual)}"
+                    self.fail(f"Trace DBs do not match: {message}")
+                for i, x in enumerate(normalized_baseline):
+                    y = normalized_actual[i]
+                    if x != y:
+                        message = f"different baseline log \n{json.dumps(x.to_dict(), indent=4)} \nto actual log \n{json.dumps(y.to_dict(), indent=4)}"
+                        self.fail(f"Trace DBs do not match: {message}")
+
+                # TODO: test that all requests have an origin and that the counts match the
+                # counts in the testing summary
+                #
+            else:
+                baseline_trace_db_path = os.path.join(Test_File_Directory, "abc_smoke_test_trace_data_baseline.txt")
+                print(f"Comparing trace DB to baseline: {baseline_trace_db_path}")
+                # Import the TraceDbTextReader
+                trace_db_text_reader =  import_utilities.import_subclass(custom_serializer_module_file_path,
+                                                                         TraceLogReaderBase)
+
+                baseline_deserializer = trace_db_text_reader(baseline_trace_db_path)
+                actual_deserializer = trace_db_text_reader(trace_db_path)
+
+                baseline_trace_messages = baseline_deserializer.load()
+                actual_trace_messages = actual_deserializer.load()
+
+                for i, x in enumerate(baseline_trace_messages):
+                    y = actual_trace_messages[i]
+                    if x != y:
+                        print(f"different baseline log {x} to actual log {y}")
+                        self.fail("Trace DBs do not match")
+            print("passed")
+
+        # Run the test with a default serializer
+        run_trace_db_test()
+
+        # Run the test with a custom serializer
+        custom_serializer_file_name = "trace_db_text_serializer.py"
+        run_trace_db_test(custom_serializer_file_name)
+
+        # Run the test with checkers and GC
+        # The ABC smoke test does not have any GCed objects, so use the 'test_grammar.py'
+        checkers = [
+            'invaliddynamicobject', # The ABC smoketest does not have any parameters except dynamic objects
+        ]
+        run_trace_db_test(checkers=",".join(checkers))

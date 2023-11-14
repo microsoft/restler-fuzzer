@@ -9,6 +9,7 @@ import engine.core.driver as driver
 import engine.core.fuzzing_requests as fuzzing_requests
 
 import utils.logger as logger
+from utils.logging.trace_db import DB as TraceDatabase
 import utils.formatting as formatting
 import engine.dependencies as dependencies
 import engine.core.sequences as sequences
@@ -217,6 +218,9 @@ def apply_create_once_resources(fuzzing_requests):
         return
 
     logger.create_network_log(logger.LOG_TYPE_PREPROCESSING)
+    if Settings().use_trace_database:
+        TraceDatabase().set_origin('preprocessing')
+
     destructors = set()
     exclude_reqs = set()
     request_count = 0
@@ -310,6 +314,8 @@ def apply_create_once_resources(fuzzing_requests):
         logger.PREPROCESSING_GENERATION,
         None
     )
+    if Settings().use_trace_database:
+        TraceDatabase().clear_origin()
 
     # Return the list of destructors that were removed from the request collection.
     # These will be used to cleanup the create_once resources created during preprocessing.
