@@ -9,7 +9,7 @@ import engine.core.status_codes_monitor as status_codes_monitor
 from engine.core.requests import GrammarRequestCollection
 from restler_settings import Settings
 import utils.logger as logger
-from utils.logging.trace_db import DB as TraceDatabase
+from utils.logging.trace_db import SequenceTracker
 import utils.formatting as formatting
 from engine.errors import TransportLayerException
 from engine.transport_layer import messaging as messaging
@@ -33,8 +33,7 @@ def delete_create_once_resources(destructors, fuzzing_requests):
     candidate_values_pool = GrammarRequestCollection().candidate_values_pool
 
     logger.write_to_main("\nRendering for create-once resource destructors:\n")
-    if Settings().use_trace_database:
-        TraceDatabase().set_origin('preprocessing')
+    SequenceTracker.set_origin('preprocessing')
 
     for destructor in destructors:
         status_codes = []
@@ -80,5 +79,4 @@ def delete_create_once_resources(destructors, fuzzing_requests):
         logger.POSTPROCESSING_GENERATION,
         None
     )
-    if Settings().use_trace_database:
-        TraceDatabase().clear_origin()
+    SequenceTracker.clear_origin()

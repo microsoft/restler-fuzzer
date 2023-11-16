@@ -5,49 +5,46 @@
 
 from restler_settings import Settings
 from utils.logging.ndjson_serializer import *
-import os
 import time
-import json
 import queue
 import threading
 import uuid
 import utils.import_utilities as import_utilities
-import random
 
 DEFAULT_ORIGIN = 'main_driver'
 
 # Thread local storage for tracking the current sequence and request
 threadLocal = threading.local()
 
-class TraceDatabase:
-    """ This class enables structured storage and retrieval of RESTler logs.
-        The serialization format is pluggable and may be specified by the user (currently,
-        only one logger at a time is supported).
-        The default format is newline-delimited json.
-    """
+def _get_trace():
+    """Gets the thread-local trace property for the current thread."""
+    if not hasattr(threadLocal, 'trace'):
+        threadLocal.trace = {}
+        threadLocal.thread_id = threading.get_ident() # for debugging
+    return threadLocal.trace
+
+class SequenceTracker:
     @staticmethod
-    def _get_trace():
-        # if 'trace' is not a property of threadLocal, create it
-        if not hasattr(threadLocal, 'trace'):
-            threadLocal.trace = {}
-            threadLocal.id = random.randint(0, 10000) # for debugging
-            threadLocal.thread_id = threading.get_ident() # for debugging
-        return threadLocal.trace
+    def get_trace_log():
+        trace = _get_trace()
+        if 'sequence' not in trace:
+            return None
+        return trace['sequence']
 
-    def __init__(self, storage_writer):
-        self.storage_writer = storage_writer
-        self._log_queue = queue.SimpleQueue()
-        self._finished = False
+    @staticmethod
+    def get_sequence_id():
+        tls_trace_log = SequenceTracker.get_trace_log()
+        if tls_trace_log is None:
+            return None
+        return tls_trace_log.sequence_id
 
-    @property
-    def trace(self):
-        return TraceDatabase._get_trace()
 
-    def initialize_sequence_trace(self, combination_id, tags={}):
+    @staticmethod
+    def initialize_sequence_trace(combination_id, tags={}):
         """Requests and responses are logged separately, but metadata about sequences is tracked and logged
         with each request and response. This function initializes the metadata for the current sequence.
         """
-        trace = self.trace
+        trace = _get_trace()
         if 'sequence' in trace:
             if trace['sequence'].combination_id != combination_id:
                 print("WARNING: There is already a sequence executing. Continuing with different sequence.")
@@ -55,12 +52,13 @@ class TraceDatabase:
                 print("WARNING: There is already a sequence executing. Continuing with the same sequence.")
         unique_sequence_id=str(uuid.uuid4())
         trace['sequence'] = RequestTraceLog(combination_id=combination_id,
-                                                        sequence_id=unique_sequence_id,
-                                                        sequence_tags=tags)
+                                            sequence_id=unique_sequence_id,
+                                            sequence_tags=tags)
 
-    def initialize_request_trace(self, request_id=None, combination_id=None, tags={}):
+    @staticmethod
+    def initialize_request_trace(request_id=None, combination_id=None, tags={}):
         """Initialize trace log for the request."""
-        trace = self.trace
+        trace = _get_trace()
 
         if combination_id is None:
             raise Exception("ERROR: Combination ID must be specified")
@@ -74,19 +72,15 @@ class TraceDatabase:
         sequence_trace.request_id = request_id
         sequence_trace.tags = tags
 
-    def get_trace_log(self):
-        trace = self.trace
-        if 'sequence' not in trace:
-            return None
-        return trace['sequence']
-
-    def clear_sequence_trace(self):
-        trace = self.trace
+    @staticmethod
+    def clear_sequence_trace():
+        trace = _get_trace()
         if 'sequence' in trace:
             del trace['sequence']
 
-    def clear_request_trace(self, combination_id):
-        trace = self.trace
+    @staticmethod
+    def clear_request_trace(combination_id):
+        trace = _get_trace()
         if combination_id is None:
             raise Exception("ERROR: Sequence ID must be specified.")
 
@@ -96,25 +90,44 @@ class TraceDatabase:
         sequence_trace.request_id = None
         sequence_trace.tags = None
 
-    def set_origin(self, origin):
-        trace = self.trace
+    @staticmethod
+    def set_origin(origin):
+        trace = _get_trace()
         trace['origin'] = origin
 
-    def clear_origin(self):
-        trace = self.trace
+    @staticmethod
+    def clear_origin():
+        trace = _get_trace()
         trace['origin'] = DEFAULT_ORIGIN
 
-    def get_origin(self):
-        trace = self.trace
+    @staticmethod
+    def get_origin():
+        trace = _get_trace()
         if 'origin' not in trace:
             return None
         return trace['origin']
+
+
+class TraceDatabase:
+    """ This class enables structured storage and retrieval of RESTler logs.
+        The serialization format is pluggable and may be specified by the user (currently,
+        only one logger at a time is supported).
+        The default format is newline-delimited json.
+    """
+    def __init__(self, storage_writer):
+        self.storage_writer = storage_writer
+        self._log_queue = queue.SimpleQueue()
+        self._finished = False
+
+    @property
+    def trace(self):
+        return _get_trace()
 
     def log_request_response(self, request=None, response=None,  tags={}, timestamp=None):
         if request is None and response is None:
             raise Exception("ERROR: Request or response must be specified.")
         try:
-            tls_trace_log = self.get_trace_log()
+            tls_trace_log = SequenceTracker.get_trace_log()
             if tls_trace_log is None:
                 # Logging requests outside of sequence context (e.g. GC or checker requests
                 # that are not part of a sequence)
@@ -125,7 +138,7 @@ class TraceDatabase:
                                             combination_id=tls_trace_log.combination_id,
                                             sequence_tags=tls_trace_log.sequence_tags,
                                             tags=tls_trace_log.tags)
-            trace_log.origin = self.get_origin()
+            trace_log.origin = SequenceTracker.get_origin()
             if request:
                 trace_log.request = request
                 if timestamp is not None:
@@ -145,12 +158,6 @@ class TraceDatabase:
             traceback.print_exc()
             print(f"Warning: Exception logging request/response: {error}")
             pass
-
-    def get_sequence_id(self):
-        tls_trace_log = self.get_trace_log()
-        if tls_trace_log is None:
-            return None
-        return tls_trace_log.sequence_id
 
     def log(self, message):
         if self._finished:

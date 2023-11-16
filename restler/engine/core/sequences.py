@@ -30,7 +30,7 @@ from engine.errors import NoTokenSpecifiedException
 from engine.transport_layer.response import RESTLER_INVALID_CODE
 from utils.logger import raw_network_logging as RAW_LOGGING
 from utils.logger import custom_network_logging as CUSTOM_LOGGING
-from utils.logging.trace_db import DB as TraceDatabase
+from utils.logging.trace_db import SequenceTracker
 
 AUTHORIZATION_TOKEN_PLACEHOLDER = 'AUTHORIZATION TOKEN'
 
@@ -403,9 +403,8 @@ class Sequence(object):
                 prev_req_async_wait = Settings().get_max_async_resource_creation_time(prev_request.request_id)
                 prev_producer_timing_delay = Settings().get_producer_timing_delay(prev_request.request_id)
 
-                if Settings().use_trace_database:
-                    TraceDatabase().initialize_request_trace(combination_id=self.combination_id,
-                                                    request_id=request.hex_definition)
+                SequenceTracker.initialize_request_trace(combination_id=self.combination_id,
+                                                         request_id=request.hex_definition)
 
                 prev_response = request_utilities.send_request_data(prev_rendered_data)
                 if prev_response.has_valid_code():
@@ -429,8 +428,7 @@ class Sequence(object):
                     prev_req_async_wait = 0
 
                 self.append_data_to_sent_list(prev_rendered_data, prev_parser, prev_response, prev_producer_timing_delay, prev_req_async_wait)
-                if Settings().use_trace_database:
-                    TraceDatabase().clear_request_trace(combination_id=self.combination_id)
+                SequenceTracker.clear_request_trace(combination_id=self.combination_id)
 
                 # Record the time at which the response was received
                 datetime_now = datetime.datetime.now(datetime.timezone.utc)
@@ -546,10 +544,8 @@ class Sequence(object):
 
             # Render candidate value combinations seeking for valid error codes
             request._current_combination_id += 1
-            RAW_LOGGING(f"Initializing sequence trace.  sequence length: {self.length}, last request endpoint,method: ({self.last_request.endpoint}, {self.last_request.method})")
-            if Settings().use_trace_database:
-                TraceDatabase().initialize_sequence_trace(combination_id=self.combination_id,
-                                                          tags={'hex_definition': self.hex_definition})
+            SequenceTracker.initialize_sequence_trace(combination_id=self.combination_id,
+                                                      tags={'hex_definition': self.hex_definition})
 
             request._tracked_parameters = {}
             request.update_tracked_parameters(tracked_parameters)
@@ -583,9 +579,8 @@ class Sequence(object):
 
             req_async_wait = Settings().get_max_async_resource_creation_time(request.request_id)
             req_producer_timing_delay = Settings().get_producer_timing_delay(request.request_id)
-            if Settings().use_trace_database:
-                TraceDatabase().initialize_request_trace(combination_id=self.combination_id,
-                                                request_id=request.hex_definition)
+            SequenceTracker.initialize_request_trace(combination_id=self.combination_id,
+                                                     request_id=request.hex_definition)
 
             response = request_utilities.send_request_data(rendered_data)
             if response.has_valid_code():
@@ -623,8 +618,7 @@ class Sequence(object):
                                           producer_timing_delay=req_producer_timing_delay,
                                           max_async_wait_time=req_async_wait)
             self.executed_requests_count = self.executed_requests_count + 1
-            if Settings().use_trace_database:
-                TraceDatabase().clear_sequence_trace()
+            SequenceTracker.clear_sequence_trace()
 
             if not status_code:
                 duplicate = copy_self()
@@ -705,8 +699,7 @@ class Sequence(object):
         # and release local dynamic objects, since they are no longer needed.
         self.rendered_prefix_status = RenderedPrefixStatus.NONE
         dependencies.clear_saved_local_dyn_objects()
-        if Settings().use_trace_database:
-            TraceDatabase().clear_sequence_trace()
+        SequenceTracker.clear_sequence_trace()
 
         return RenderedSequence(None)
 
@@ -809,8 +802,7 @@ class Sequence(object):
         # TODO: when replaying from the trace DB is supported, the combination ID should be available, since
         # the sequence object will be available.  It may also be useful to provide the original combination ID
         # for the sequence, so that the replay can be associated with the original rendering.
-        if Settings().use_trace_database:
-            TraceDatabase().initialize_sequence_trace(None, tags={'origin': 'replay'})
+        SequenceTracker.initialize_sequence_trace(None, tags={'origin': 'replay'})
 
         # Send all but the last request in the sequence
         for request_data in self._sent_request_data_list[:-1]:
@@ -824,8 +816,7 @@ class Sequence(object):
         final_request_data = self._sent_request_data_list[-1]
         # Send final request and return its status code
         status_code = send_and_parse(final_request_data)
-        if Settings().use_trace_database:
-            TraceDatabase().clear_sequence_trace()
+        SequenceTracker.clear_sequence_trace()
         return status_code
 
 class RenderedSequenceCache(object):
