@@ -190,6 +190,10 @@ Example: `/api/v2`
 ### include_user_agent: bool (default True)
 Set to false to disable sending user agent with requests.
 
+### include_unique_sequence_id: bool (default True)
+When set, adds a header `x-restler-sequence-id` to each request sent.  The header value is
+a unique GUID that identifies the current request sequence.
+
 ### user_agent: string (default None)
 Set to send a custom user agent with requests.
 When specified, overrides the default user agent sent when ```include_user_agent``` is enabled.

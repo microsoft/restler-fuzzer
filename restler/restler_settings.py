@@ -30,7 +30,7 @@ class OptionValidationError(Exception):
 
 class ConnectionSettings(object):
     def __init__(self, target_ip, target_port, use_ssl=True, include_user_agent=False, disable_cert_validation=False,
-                 user_agent=None):
+                 user_agent=None, include_unique_sequence_id=False):
         """ Initializes an object that contains the connection settings for the socket
         @param target_ip: The ip of the target service.
         @type  target_ip: Str
@@ -54,6 +54,7 @@ class ConnectionSettings(object):
         self.use_ssl = use_ssl
         self.include_user_agent = include_user_agent
         self.user_agent = user_agent
+        self.include_unique_sequence_id = include_unique_sequence_id
         self.disable_cert_validation = disable_cert_validation
 
 class SettingsArg(object):
@@ -444,6 +445,8 @@ class RestlerSettings(object):
         self._ignore_feedback = SettingsArg('ignore_feedback', bool, False, user_args)
         ## Include user agent in requests sent
         self._include_user_agent = SettingsArg('include_user_agent', bool, True, user_args)
+        ## Include a unique sequence ID in requests sent
+        self._include_unique_sequence_id = SettingsArg('include_unique_sequence_id', bool, True, user_args)
         ## The user agent to include in requests sent
         self._user_agent = SettingsArg('user_agent', str, None, user_args)
         ## Maximum time to wait for an asynchronous resource to be created before continuing (seconds)
@@ -527,7 +530,8 @@ class RestlerSettings(object):
                                                        not self._no_ssl.val,
                                                        self._include_user_agent.val,
                                                        self._disable_cert_validation.val,
-                                                       self._user_agent.val)
+                                                       self._user_agent.val,
+                                                       self._include_unique_sequence_id.val)
 
         # Set per resource arguments
         if 'per_resource_settings' in user_args:

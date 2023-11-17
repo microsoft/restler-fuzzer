@@ -8,7 +8,8 @@ import socket
 import time
 import threading
 from importlib import util
-from utils.logging.trace_db import DB as TraceDatabase
+from utils.logging.trace_db import (DB as TraceDatabase,
+                                    SequenceTracker)
 from utils.formatting import iso_timestamp
 from utils.logger import raw_network_logging as RAW_LOGGING
 from engine.errors import TransportLayerException
@@ -200,6 +201,10 @@ class HttpSock(object):
         elif self.connection_settings.include_user_agent:
             # Send the RESTler user agent only if a custom user agent is not specified
             message = _append_to_header(message, f"User-Agent: restler/{Settings().version}")
+        if self.connection_settings.include_unique_sequence_id:
+            sequence_id = SequenceTracker().get_sequence_id()
+            if sequence_id is not None:
+                message = _append_to_header(message, f"x-restler-sequence-id: {sequence_id}")
 
         # Attempt to throttle the request if necessary
         self._begin_throttle_request()
