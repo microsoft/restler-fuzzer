@@ -839,4 +839,5 @@ def replay_sequence_from_log(replay_log_filename, token_refresh_cmd):
         execute_token_refresh_cmd(token_refresh_cmd)
 
     # Send the requests
+    SequenceTracker.set_origin('replay')
     sequence.replay_sequence()
