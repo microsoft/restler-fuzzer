@@ -1355,6 +1355,14 @@ class FunctionalityTests(unittest.TestCase):
                 baseline_trace_messages = baseline_deserializer.load()
                 actual_trace_messages = actual_deserializer.load()
 
+                for i, x in enumerate(baseline_trace_messages):
+                    y = actual_trace_messages[i]
+                    if x.request is not None:
+                        if y.origin is None:
+                            self.fail("Request is missing origin")
+                        if x.origin != y.origin:
+                            self.fail(f"Actual origin: {y.origin} does not match expected origin: {x.origin}")
+
                 normalized_baseline = [log.normalize() for log in baseline_trace_messages]
                 normalized_actual = [log.normalize() for log in actual_trace_messages]
                 if len(normalized_baseline) != len(normalized_actual):
@@ -1366,8 +1374,7 @@ class FunctionalityTests(unittest.TestCase):
                         message = f"different baseline log \n{json.dumps(x.to_dict(), indent=4)} \nto actual log \n{json.dumps(y.to_dict(), indent=4)}"
                         self.fail(f"Trace DBs do not match: {message}")
 
-                # TODO: test that all requests have an origin and that the counts match the
-                # counts in the testing summary
+                # TODO: test that the counts match the counts in the testing summary
                 #
             else:
                 baseline_trace_db_path = os.path.join(Test_File_Directory, "abc_smoke_test_trace_data_baseline.txt")
