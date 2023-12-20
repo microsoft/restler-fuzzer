@@ -1355,6 +1355,19 @@ class FunctionalityTests(unittest.TestCase):
                 baseline_trace_messages = baseline_deserializer.load()
                 actual_trace_messages = actual_deserializer.load()
 
+                # compare origin before normalization (tags are cleared as part of normalize())
+                if len(baseline_trace_messages) != len(actual_trace_messages):
+                    message = f"Prior to normalization, baseline log count {len(baseline_trace_messages)} != actual log count {len(actual_trace_messages)}"
+                    self.fail(f"Trace DBs do not match: {message}")
+
+                for i, x in enumerate(baseline_trace_messages):
+                    y = actual_trace_messages[i]
+                    if x.request is not None:
+                        if y.origin is None:
+                            self.fail("Request is missing origin")
+                        if x.origin != y.origin:
+                            self.fail(f"Actual origin: {y.origin} does not match expected origin: {x.origin}")
+
                 normalized_baseline = [log.normalize() for log in baseline_trace_messages]
                 normalized_actual = [log.normalize() for log in actual_trace_messages]
                 if len(normalized_baseline) != len(normalized_actual):
@@ -1366,8 +1379,7 @@ class FunctionalityTests(unittest.TestCase):
                         message = f"different baseline log \n{json.dumps(x.to_dict(), indent=4)} \nto actual log \n{json.dumps(y.to_dict(), indent=4)}"
                         self.fail(f"Trace DBs do not match: {message}")
 
-                # TODO: test that all requests have an origin and that the counts match the
-                # counts in the testing summary
+                # TODO: test that the counts match the counts in the testing summary
                 #
             else:
                 baseline_trace_db_path = os.path.join(Test_File_Directory, "abc_smoke_test_trace_data_baseline.txt")
@@ -1402,3 +1414,67 @@ class FunctionalityTests(unittest.TestCase):
             'invaliddynamicobject', # The ABC smoketest does not have any parameters except dynamic objects
         ]
         run_trace_db_test(checkers=",".join(checkers))
+
+    def test_trace_database_replay_file(self):
+        """ This test executes a replay file with the setting to produce a trace database enabled,
+        then checks the database against a checked-in baseline.  Both databases are deserialized, and the
+        contents are compared, excluding timestamps and ids.
+   
+        The main purpose of this test is to have a short sanity run with a small baseline that can be manually inspected.
+        """
+
+        # create a settings files with the trace database enabled
+        new_settings_file_path = os.path.join(Test_File_Directory, f"tmp_trace_db_settings.json")
+        if os.path.exists(new_settings_file_path):
+            os.remove(new_settings_file_path)
+        settings = {}
+        settings["use_trace_database"] = True
+        settings["include_unique_sequence_id"] = False
+        with open(new_settings_file_path, "w") as outfile:
+            outfile.write(json.dumps(settings, indent=4))
+
+        # run restler engine with replay file
+        replay_file_path = os.path.join(Test_File_Directory, "replay_sanity_test_for_tracedb.replay.txt")
+        args = Common_Settings + [
+        '--replay_log', f"{replay_file_path}",
+        '--settings', f'{new_settings_file_path}'
+        ]
+        self.run_restler_engine(args)
+
+        # compare actual trace file with baseline
+        baseline_trace_db_path = os.path.join(Test_File_Directory, "trace_data_replay_baseline.ndjson")
+        trace_db_path = os.path.join(self.get_experiments_dir(), "trace_data.ndjson")
+
+        print(f"Comparing trace DB to baseline: {baseline_trace_db_path}")
+
+        baseline_deserializer = trace_db.JsonTraceLogReader(log_file_paths=[baseline_trace_db_path])
+        actual_deserializer = trace_db.JsonTraceLogReader(log_file_paths=[trace_db_path])
+
+        baseline_trace_messages = baseline_deserializer.load()
+        actual_trace_messages = actual_deserializer.load()
+
+        # compare origin before normalization (tags are cleared as part of normalize())
+        if len(baseline_trace_messages) != len(actual_trace_messages):
+            for i, x in enumerate(actual_trace_messages):
+                print(f"Actual trace message[{i}]: {json.dumps(x.to_dict(), indent=4)}")
+            message = f"Prior to normalization, baseline log count {len(baseline_trace_messages)} != actual log count {len(actual_trace_messages)}"
+            self.fail(f"Trace DBs do not match: {message}")
+
+        for i, x in enumerate(baseline_trace_messages):
+            y = actual_trace_messages[i]
+            if x.request is not None:
+                if y.origin is None:
+                    self.fail("Request is missing origin")
+                if x.origin != y.origin:
+                    self.fail(f"Actual origin: {y.origin} does not match expected origin: {x.origin}")
+
+        normalized_baseline = [log.normalize() for log in baseline_trace_messages]
+        normalized_actual = [log.normalize() for log in actual_trace_messages]
+        if len(normalized_baseline) != len(normalized_actual):
+            message = f"baseline log count {len(normalized_baseline)} != actual log count {len(normalized_actual)}"
+            self.fail(f"Trace DBs do not match: {message}")
+        for i, x in enumerate(normalized_baseline):
+            y = normalized_actual[i]
+            if x != y:
+                message = f"different baseline log \n{json.dumps(x.to_dict(), indent=4)} \nto actual log \n{json.dumps(y.to_dict(), indent=4)}"
+                self.fail(f"Trace DBs do not match: {message}")
