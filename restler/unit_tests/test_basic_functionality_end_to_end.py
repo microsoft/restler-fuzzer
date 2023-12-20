@@ -1356,6 +1356,10 @@ class FunctionalityTests(unittest.TestCase):
                 actual_trace_messages = actual_deserializer.load()
 
                 # compare origin before normalization (tags are cleared as part of normalize())
+                if len(baseline_trace_messages) != len(actual_trace_messages):
+                    message = f"Prior to normalization, baseline log count {len(baseline_trace_messages)} != actual log count {len(actual_trace_messages)}"
+                    self.fail(f"Trace DBs do not match: {message}")
+
                 for i, x in enumerate(baseline_trace_messages):
                     y = actual_trace_messages[i]
                     if x.request is not None:
@@ -1450,6 +1454,12 @@ class FunctionalityTests(unittest.TestCase):
         actual_trace_messages = actual_deserializer.load()
 
         # compare origin before normalization (tags are cleared as part of normalize())
+        if len(baseline_trace_messages) != len(actual_trace_messages):
+            for i, x in enumerate(actual_trace_messages):
+                print(f"Actual trace message[{i}]: {json.dumps(x.to_dict(), indent=4)}")
+            message = f"Prior to normalization, baseline log count {len(baseline_trace_messages)} != actual log count {len(actual_trace_messages)}"
+            self.fail(f"Trace DBs do not match: {message}")
+
         for i, x in enumerate(baseline_trace_messages):
             y = actual_trace_messages[i]
             if x.request is not None:
