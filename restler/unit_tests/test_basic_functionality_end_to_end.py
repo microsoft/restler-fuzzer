@@ -1430,7 +1430,7 @@ class FunctionalityTests(unittest.TestCase):
             outfile.write(json.dumps(settings, indent=4))
 
         # run restler engine with replay file
-        replay_file_path = os.path.join(Test_File_Directory, "test_replay.txt")
+        replay_file_path = os.path.join(Test_File_Directory, "replay_sanity_test_for_tracedb.replay.txt")
         args = Common_Settings + [
         '--replay_log', f"{replay_file_path}",
         '--settings', f'{new_settings_file_path}'
