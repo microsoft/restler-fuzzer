@@ -366,11 +366,25 @@ if __name__ == '__main__':
         trace_db_thread.daemon = True
         trace_db_thread.start()
 
+    THREAD_JOIN_WAIT_TIME_SECONDS = 1
+
     if args.replay_log:
         try:
             logger.create_network_log(logger.LOG_TYPE_REPLAY)
             driver.replay_sequence_from_log(args.replay_log, settings.token_refresh_cmd)
             print("Done playing sequence from log")
+        
+            # Finish writing to trace database.
+            if trace_db_thread:
+                print(f"{formatting.timestamp()}: Finishing writing to Trace Database. "
+                    f"Waiting for max {settings.trace_db_cleanup_time} seconds. ")
+                trace_db_thread.finish(settings.trace_db_cleanup_time)
+                # Wait for Trace DB logging to complete
+                # Loop in order to enable the signal handler to run,
+                # otherwise CTRL-C does not work.
+                while trace_db_thread.is_alive():
+                    trace_db_thread.join(THREAD_JOIN_WAIT_TIME_SECONDS)
+
             sys.exit(0)
         except NoTokenSpecifiedException:
             logger.write_to_main(
@@ -564,7 +578,6 @@ if __name__ == '__main__':
     fuzz_thread.daemon = True
     fuzz_thread.start()
 
-    THREAD_JOIN_WAIT_TIME_SECONDS = 1
     # Wait for the fuzzing job to end before continuing.
     # Looping in case the gc_thread terminates prematurely.
     # We don't want to keep fuzzing if GC stopped working
