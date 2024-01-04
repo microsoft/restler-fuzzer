@@ -33,7 +33,8 @@ let usage() =
           [ compile <compile options> |
             test <test options> |
             fuzz-lean <test options> |
-            fuzz <fuzz options> ]
+            fuzz <fuzz options> ] |
+            replay <replay options>
 
     global options:
         --disable_log_upload
@@ -101,9 +102,16 @@ let usage() =
         --search_strategy [bfs-fast(default),bfs,bfs-cheap,random-walk]
 
     replay options:
-        <Required options from 'test' mode as above:
-            --token_refresh_cmd. >
-        --replay_log <path to the RESTler bug bucket repro file>. "
+        <The following options are the same as in 'test' mode:
+            --dictionary_file
+            --token_refresh_interval
+            --token_refresh_command
+            --no_ssl
+            --host
+            --settings
+
+        --replay_log <path to the RESTler bug bucket repro file or trace database>.
+            The replay log file extension may be either '.replay.txt' or '.ndjson'."
     exitRestler 1
 
 module Paths =
@@ -805,7 +813,7 @@ let rec parseArgs (args:DriverArgs) = function
     | "replay"::rest ->
         let engineParameters = parseEngineArgs RestlerTask.Replay DefaultEngineParameters rest
         let engineParameters = { engineParameters with
-                                    checkerOptions = getCheckerOptions Fuzz.DefaultFuzzModeCheckerOptions engineParameters.checkerOptions }
+                                    checkerOptions = getCheckerOptions [] engineParameters.checkerOptions }
         { args with task = Replay
                     taskParameters = EngineParameters engineParameters}
     | invalidArgument::_ ->

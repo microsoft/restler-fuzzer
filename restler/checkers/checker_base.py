@@ -119,7 +119,8 @@ class CheckerBase:
         @rtype : Tuple(HttpResponse, HttpResponse)
 
         """
-        rendered_data, parser, tracked_parameters, updated_writer_variables = request.render_current(self._req_collection.candidate_values_pool)
+        rendered_data, parser, tracked_parameters, updated_writer_variables, replay_blocks =\
+             request.render_current(self._req_collection.candidate_values_pool)
         rendered_data = seq.resolve_dependencies(rendered_data)
 
         # We need to record that the request originates from the checker, but
@@ -127,7 +128,8 @@ class CheckerBase:
         SequenceTracker.initialize_sequence_trace(combination_id=seq.combination_id,
                                             tags={'hex_definition': seq.hex_definition})
         SequenceTracker.initialize_request_trace(combination_id=seq.combination_id,
-                                            request_id=request.hex_definition)
+                                                 request_id=request.hex_definition,
+                                                 replay_blocks=replay_blocks)
 
         response = self._send_request(parser, rendered_data)
         if response.has_valid_code():
@@ -141,7 +143,10 @@ class CheckerBase:
             responses_to_parse, _, _ = async_request_utilities.try_async_poll(
                 rendered_data, response, async_wait)
         request_utilities.call_response_parser(parser, None, responses=responses_to_parse)
-        seq.append_data_to_sent_list(rendered_data, parser, response, producer_timing_delay=0, max_async_wait_time=async_wait)
+        seq.append_data_to_sent_list(request.method_endpoint_hex_definition,
+                                     rendered_data, parser, response, producer_timing_delay=0,
+                                     max_async_wait_time=async_wait,
+                                     replay_blocks=replay_blocks)
         SequenceTracker.clear_sequence_trace()
         return response, response_to_parse
 

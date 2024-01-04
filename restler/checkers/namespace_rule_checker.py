@@ -74,7 +74,7 @@ class NameSpaceRuleChecker(CheckerBase):
         self._checker_log.checker_print("\nRe-rendering start of original sequence")
 
         for request in seq.requests[:-1]:
-            rendered_data, parser, tracked_parameters, updated_writer_variables = request.render_current(
+            rendered_data, parser, tracked_parameters, updated_writer_variables, replay_blocks = request.render_current(
                 self._req_collection.candidate_values_pool
             )
             rendered_data = seq.resolve_dependencies(rendered_data)
@@ -106,7 +106,7 @@ class NameSpaceRuleChecker(CheckerBase):
         # Check if last request contains any trigger_object
 
         last_request = self._sequence.last_request
-        last_rendering, last_parser, _, _ = last_request.render_current(self._req_collection.candidate_values_pool)
+        last_rendering, last_parser, _, _,_ = last_request.render_current(self._req_collection.candidate_values_pool)
 
         last_request_contains_a_trigger_object = False
         for obj in self._trigger_objects:
@@ -182,7 +182,7 @@ class NameSpaceRuleChecker(CheckerBase):
 
         for i in range(stopping_length):
             request = self._sequence.requests[i]
-            rendered_data, parser, tracked_parameters = request.render_current(
+            rendered_data, parser, tracked_parameters, replay_blocks = request.render_current(
                 self._req_collection.candidate_values_pool
             )
             rendered_data = self._sequence.resolve_dependencies(rendered_data)
@@ -206,7 +206,7 @@ class NameSpaceRuleChecker(CheckerBase):
 
         """
         self._checker_log.checker_print("Hijack request rendering")
-        rendered_data, parser, tracked_parameters, updated_writer_variables = req.render_current(
+        rendered_data, parser, tracked_parameters, updated_writer_variables, replay_blocks = req.render_current(
             self._req_collection.candidate_values_pool
         )
         rendered_data = self._sequence.resolve_dependencies(rendered_data)

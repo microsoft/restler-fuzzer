@@ -109,7 +109,7 @@ class UseAfterFreeChecker(CheckerBase):
 
         """
         request = seq.last_request
-        for rendered_data, parser,_,updated_writer_variables in\
+        for rendered_data, parser,_,updated_writer_variables, replay_blocks in\
             request.render_iter(self._req_collection.candidate_values_pool,
                                 skip=request._current_combination_id):
             # Hold the lock (because other workers may be rendering the same
@@ -138,11 +138,10 @@ class UseAfterFreeChecker(CheckerBase):
                 for name,v in updated_writer_variables.items():
                     dependencies.set_variable(name, v)
 
-
-
             # Append the rendered data to the sent list as we will not be rendering
             # with the sequence's render function
-            seq.append_data_to_sent_list(rendered_data, parser, response)
+            seq.append_data_to_sent_list(request.method_endpoint_hex_definition,
+                                         rendered_data, parser, response, replay_blocks=replay_blocks)
             if response and self._rule_violation(seq, response):
                 self._print_suspect_sequence(seq, response)
                 BugBuckets.Instance().update_bug_buckets(seq, response.status_code, origin=self.__class__.__name__)

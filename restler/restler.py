@@ -319,20 +319,22 @@ if __name__ == '__main__':
 
     # Options Validation
     custom_mutations = {}
+    # Replay may be performed with or without the grammar file.
     if not args.replay_log:
         if not args.restler_grammar:
             print("\nArgument Error::\n\tNo restler grammar was provided.\n")
             sys.exit(-1)
-        if settings.fuzzing_mode not in ['bfs', 'bfs-cheap'] and args.fuzzing_jobs > 1:
-            print("\nArgument Error::\n\tOnly bfs supports multiple fuzzing jobs\n")
-            sys.exit(-1)
 
-        if args.custom_mutations:
-            try:
-                custom_mutations = json.load(open(args.custom_mutations, encoding='utf-8'))
-            except Exception as error:
-                print(f"Cannot import custom mutations: {error!s}")
-                sys.exit(-1)
+    if settings.fuzzing_mode not in ['bfs', 'bfs-cheap'] and args.fuzzing_jobs > 1:
+        print("\nArgument Error::\n\tOnly bfs supports multiple fuzzing jobs\n")
+        sys.exit(-1)
+
+    if args.custom_mutations:
+        try:
+            custom_mutations = json.load(open(args.custom_mutations, encoding='utf-8'))
+        except Exception as error:
+            print(f"Cannot import custom mutations: {error!s}")
+            sys.exit(-1)
 
         if settings.custom_value_generators_file_path:
             if not settings.custom_value_generators_file_path.endswith(".py"):
@@ -368,12 +370,22 @@ if __name__ == '__main__':
 
     THREAD_JOIN_WAIT_TIME_SECONDS = 1
 
+    # Validate replay mode options
     if args.replay_log:
+        valid_extensions = [".replay.txt", ".ndjson"]
+        if not args.replay_log.endswith(tuple(valid_extensions)):
+            print(f"The replay log must be a RESTler-generated .replay.txt file or a trace database. \
+                    The valid extensions are: {valid_extensions}.")
+            sys.exit(-1)
+
+    # Legacy replay mode - replay.txt format
+    # The new replay mode is integrated into the main algorithm
+    if args.replay_log and args.replay_log.endswith(".replay.txt"):
         try:
             logger.create_network_log(logger.LOG_TYPE_REPLAY)
             driver.replay_sequence_from_log(args.replay_log, settings.token_refresh_cmd)
             print("Done playing sequence from log")
-        
+
             # Finish writing to trace database.
             if trace_db_thread:
                 print(f"{formatting.timestamp()}: Finishing writing to Trace Database. "

@@ -313,7 +313,7 @@ class Request(object):
         else:
             raise EmptyRequestException
 
-        if Settings().in_smoke_test_mode():
+        if Settings().in_smoke_test_mode() or Settings().in_scenario_replay_mode():
             self.stats = SmokeTestStats()
 
     def __iter__(self):
@@ -482,6 +482,16 @@ class Request(object):
             endpoint_string += payload
 
         return endpoint_string
+
+
+    @property
+    def basepath(self):
+        """ Returns the Request's basepath
+
+        @return: The Request's basepath
+        @rtype : Str
+        """
+        return self._definition[1][1]
 
     @property
     def examples(self) -> RequestExamples:
@@ -1045,7 +1055,8 @@ class Request(object):
                 value_generators[idx] = tuple(tmp_list)
         return value_generators
 
-    def render_iter(self, candidate_values_pool, skip=0, preprocessing=False, prev_rendered_values=None, value_list=False):
+    def render_iter(self, candidate_values_pool, skip=0, preprocessing=False, prev_rendered_values=None,
+                    value_list=False, replay_blocks=False):
         """ This is the core method that renders values combinations in a
         request template. It basically is a generator which lazily iterates over
         a pool of possible combination of values that fit the template of the
@@ -1070,9 +1081,15 @@ class Request(object):
                            corresponding to the request definition.  If False,
                            the rendered request is returned as a string.
         @type  value_list: Bool
+        @param replay_blocks: Set to True to return the list of request blocks that should be used to replay the
+                              request.  If 'False', an empty list is returned.
+                              The replay blocks should preserve all dynamic objects.
+                              However, they currently do not support replay with custom payloads from a different
+                              dictionary (this is future work).
+        @type  replay_blocks: Bool
 
-        @return: (rendered request's payload, response's parser function, request's tracked parameter values)
-        @rtype : (Str, Function Pointer, List[Str])
+        @return: (rendered request's payload, response's parser function, request's tracked parameter values, replay blocks)
+        @rtype : (Str, Function Pointer, List[Str], List[List[Str]])
 
         """
         from engine.core.request_utilities import replace_auth_token
@@ -1102,9 +1119,13 @@ class Request(object):
         # constructed, since not all of them may be needed, e.g. during smoke test mode.
         next_combination = 0
         schema_idx = -1
-        schema_combinations = itertools.islice(self.get_schema_combinations(
-                                                    use_grammar_py_schema=Settings().allow_grammar_py_user_update),
-                                               Settings().max_schema_combinations)
+        if Settings().in_scenario_replay_mode():
+            # Just testing the grammar.py schema with replayed payloads, example payloads are not applicable
+            schema_combinations = [(self, False)]
+        else:
+            schema_combinations = itertools.islice(self.get_schema_combinations(
+                                                        use_grammar_py_schema=Settings().allow_grammar_py_user_update),
+                                                Settings().max_schema_combinations)
         remaining_combinations_count = Settings().max_combinations - skip
 
         for (req, is_example) in schema_combinations:
@@ -1182,6 +1203,11 @@ class Request(object):
                         values[idx] = val
 
                 values = request_utilities.resolve_dynamic_primitives(values, candidate_values_pool)
+                # Get the replay blocks
+
+                # This must be done after resolving dynamic primitives, because concrete values generated
+                # via value generators must be used for replay
+                replay_blocks = request_utilities.get_replay_blocks(req.definition, values)
 
                 # If all the value generators are done, and the combination pool is exhausted, exit
                 # the loop.  Note: this check must be made after resolving dynamic primitives,
@@ -1250,7 +1276,7 @@ class Request(object):
                 # Save the schema for this combination.
                 self._last_rendered_schema_request = (req, is_example)
 
-                yield rendered_data, parser, tracked_parameter_values, dynamic_object_variables_to_update
+                yield rendered_data, parser, tracked_parameter_values, dynamic_object_variables_to_update, replay_blocks
 
                 next_combination = next_combination + 1
                 remaining_combinations_count = remaining_combinations_count - 1

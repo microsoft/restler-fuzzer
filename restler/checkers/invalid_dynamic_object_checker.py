@@ -58,7 +58,7 @@ class InvalidDynamicObjectChecker(CheckerBase):
         InvalidDynamicObjectChecker.generation_executed_requests[generation].add(last_request.hex_definition)
 
         # Get the current rendering of the sequence, which will be the valid rendering of the last request
-        last_rendering, last_request_parser, tracked_parameters, updated_writer_variables =\
+        last_rendering, last_request_parser, tracked_parameters, updated_writer_variables, replay_blocks =\
             last_request.render_current(self._req_collection.candidate_values_pool)
 
         # Execute the sequence up until the last request
@@ -77,10 +77,10 @@ class InvalidDynamicObjectChecker(CheckerBase):
             request_utilities.call_response_parser(last_request_parser, response)
             if response and self._rule_violation(new_seq, response):
                 # Append the data that we just sent to the sequence's sent list
-                new_seq.append_data_to_sent_list(data, last_request_parser, response)
+                new_seq.append_data_to_sent_list(last_request.method_endpoint_hex_definition,
+                                                 data, last_request_parser, response, replay_blocks=replay_blocks)
                 BugBuckets.Instance().update_bug_buckets(new_seq, response.status_code, origin=self.__class__.__name__)
                 self._print_suspect_sequence(new_seq, response)
-
 
 
     def _prepare_invalid_requests(self, data):

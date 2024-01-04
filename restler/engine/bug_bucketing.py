@@ -7,6 +7,7 @@ import utils.logger as logger
 from engine.transport_layer.response import CONNECTION_CLOSED_CODE
 from engine.transport_layer.response import TIMEOUT_CODE
 from engine.core.request_utilities import str_to_hex_def
+from engine.core.requests import GrammarRequestCollection
 
 class NewSingletonError(Exception):
     pass
@@ -107,7 +108,7 @@ class BugBuckets(object):
             bug_code_string = '20x'
         else:
             bug_code_string = f'{bug_code}'
-            
+
         return bug_code_string
 
     def _get_bucket_origin(self, origin, bug_code):
@@ -151,7 +152,7 @@ class BugBuckets(object):
 
         return f'{origin}_{str_to_hex_def(request_str)}'
 
-    def _test_bug_reproducibility(self, sequence, bug_code, bucket):
+    def _test_bug_reproducibility(self, sequence, bug_code, bucket, candidate_values_pool):
         """ Helper function that replays a sequence to test whether or not
         a bug can be reproduced.
 
@@ -168,7 +169,7 @@ class BugBuckets(object):
         """
         seq_hex = sequence.hex_definition
         logger.raw_network_logging("Attempting to reproduce bug...")
-        status_code = sequence.replay_sequence()
+        status_code = sequence.replay_sequence(candidate_values_pool)
         reproducible = status_code and status_code == bug_code
         logger.raw_network_logging("Done replaying sequence.")
         # Gather reproduce retry counts to apply to bucket
@@ -223,7 +224,9 @@ class BugBuckets(object):
             if (seq_hex not in bucket and not self._ending_request_exists(sequence, bucket)) or\
             (reproduce and seq_hex in bucket and bucket[seq_hex].reproducible == False):
                 if reproduce:
-                    (reproducible, reproduce_attempts, reproduce_successes) = self._test_bug_reproducibility(sequence, bug_code, bucket)
+                    candidate_values_pool = GrammarRequestCollection().candidate_values_pool
+                    (reproducible, reproduce_attempts, reproduce_successes) = \
+                        self._test_bug_reproducibility(sequence, bug_code, bucket, candidate_values_pool)
                 else:
                     (reproducible, reproduce_attempts, reproduce_successes) = (False, 0, 0)
                 bucket[seq_hex] = BugBucket(sequence, reproducible, reproduce_attempts, reproduce_successes, origin, bucket_bugcode_description)

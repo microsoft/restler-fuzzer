@@ -71,10 +71,10 @@ class DemoChecker(CheckerBase):
         # Add the sent prefix requests for replay
         checked_seq.set_sent_requests_for_replay(new_seq.sent_request_data_list)
         # Create a placeholder sent data, so it can be replaced below when bugs are detected for replays
-        checked_seq.append_data_to_sent_list("GET /", None,  HttpResponse(), max_async_wait_time=req_async_wait)
+        checked_seq.append_data_to_sent_list("-", "GET /", None,  HttpResponse(), max_async_wait_time=req_async_wait)
 
         # Render the current request combination
-        rendered_data, parser, tracked_parameters, updated_writer_variables = \
+        rendered_data, parser, tracked_parameters, updated_writer_variables, replay_blocks = \
             next(last_request.render_iter(self._req_collection.candidate_values_pool,
                                           skip=last_request._current_combination_id - 1,
                                           preprocessing=False))
@@ -105,7 +105,9 @@ class DemoChecker(CheckerBase):
                                                                                    responses=responses_to_parse)
 
         if response and self._rule_violation(checked_seq, response, valid_response_is_violation=True):
-            checked_seq.replace_last_sent_request_data(rendered_data, parser, response, max_async_wait_time=req_async_wait)
+            checked_seq.replace_last_sent_request_data(request_hash,
+                                                       rendered_data, parser, response, max_async_wait_time=req_async_wait,
+                                                       replay_blocks=replay_blocks)
             self._print_suspect_sequence(checked_seq, response)
             BugBuckets.Instance().update_bug_buckets(checked_seq, response.status_code, origin=self.__class__.__name__)
             self.bugs_reported += 1
