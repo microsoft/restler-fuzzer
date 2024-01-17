@@ -14,7 +14,7 @@
             "required": true,
             "in": "body",
             "schema": {
-              "$ref": "#/definitions~1Escape~0Characters"
+              "$ref": "#/definitions/Escape~0Characters"
             }
           }
         ],
@@ -22,7 +22,7 @@
           "200": {
             "description": "Success",
             "schema": {
-              "$ref": "#/definitions~1Escape~0Characters"
+              "$ref": "#/definitions/Escape~0Characters"
             }
           }
         }
@@ -45,7 +45,7 @@
           "200": {
             "description": "Success",
             "schema": {
-              "$ref": "#/definitions/~01EscapeCharacters"
+              "$ref": "#/definitions/~1Escape~1Characters"
             }
           }
         }
@@ -96,6 +96,13 @@
     "~1EscapeCharacters": {
       "properties": {
         "escape_characters2": {
+          "type": "string"
+        }
+      }
+    },
+    "/Escape/Characters": {
+      "properties": {
+        "escape_characters3": {
           "type": "string"
         }
       }
