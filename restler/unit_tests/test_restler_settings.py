@@ -316,7 +316,7 @@ class RestlerSettingsTest(unittest.TestCase):
                      'target_ip': '192.168.0.1',
                      'token_refresh_cmd': 'some command'}
         settings = RestlerSettings(user_args)
-        with self.assertRaisesRegexp(OptionValidationError, "Must specify refresh period"):
+        with self.assertRaisesRegex(OptionValidationError, "Must specify refresh period"):
             settings.validate_options()
 
     def test_refresh_module_no_interval(self):
@@ -349,7 +349,7 @@ class RestlerSettingsTest(unittest.TestCase):
                         }
                      }}
         settings = RestlerSettings(user_args)
-        with self.assertRaisesRegexp(OptionValidationError, "module file does not exist"):
+        with self.assertRaisesRegex(OptionValidationError, "module file does not exist"):
             settings.validate_options()
 
     def test_multiple_auth_options(self):
@@ -373,7 +373,7 @@ class RestlerSettingsTest(unittest.TestCase):
                         },
                      }}
         settings = RestlerSettings(user_args)
-        with self.assertRaisesRegexp(OptionValidationError, "Must specify only one token authentication mechanism"):
+        with self.assertRaisesRegex(OptionValidationError, "Must specify only one token authentication mechanism"):
             settings.validate_options()
 
     def test_refresh_location_no_interval(self):
@@ -386,7 +386,7 @@ class RestlerSettingsTest(unittest.TestCase):
                         }
                      }}
         settings = RestlerSettings(user_args)
-        with self.assertRaisesRegexp(OptionValidationError, "Must specify refresh period"):
+        with self.assertRaisesRegex(OptionValidationError, "Must specify refresh period"):
             settings.validate_options()
 
     def test_refresh_interval_no_method(self):
@@ -394,7 +394,7 @@ class RestlerSettingsTest(unittest.TestCase):
                      'target_ip': '192.168.0.1',
                      'token_refresh_interval': 30}
         settings = RestlerSettings(user_args)
-        with self.assertRaisesRegexp(OptionValidationError, "Must specify token refresh method"):
+        with self.assertRaisesRegex(OptionValidationError, "Must specify token refresh method"):
             settings.validate_options()
 
     def test_throttling_multiple_fuzzing_jobs(self):
@@ -573,7 +573,7 @@ class RestlerSettingsTest(unittest.TestCase):
         self.assertFalse(settings.connection_settings.use_ssl)
         self.assertTrue(settings.connection_settings.disable_cert_validation)
         self.assertTrue(settings.no_tokens_in_logs)
-        self.assertEqual('(\w*)/blog/posts(\w*)', settings.path_regex)
+        self.assertEqual(r'(\w*)/blog/posts(\w*)', settings.path_regex)
         self.assertEqual(500, settings.request_throttle_ms)
         self.assertEqual('100.100.100.100', settings.connection_settings.target_ip)
         self.assertEqual(500, settings.connection_settings.target_port)
