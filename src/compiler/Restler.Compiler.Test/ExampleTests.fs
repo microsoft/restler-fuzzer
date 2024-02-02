@@ -444,7 +444,7 @@ module Examples =
                             ResolveBodyDependencies = true
                             ResolveQueryDependencies = true
                             UseBodyExamples = Some true
-                            SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, "swagger", "DependencyTests", "ip_configurations_get.json"))]
+                            SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, "swagger", "dependencyTests", "ip_configurations_get.json"))]
                             CustomDictionaryFilePath = None
                          }
             Restler.Workflow.generateRestlerGrammar config
