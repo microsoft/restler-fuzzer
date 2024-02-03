@@ -45,7 +45,7 @@ def get_posts(page: int = Query(default=10), per_page: int = Query(default=5),
     if per_page < 2:
         raise HTTPException(status_code=400, detail=f"per_page must be at least 2.")
 
-    query = select(BlogPost).offset(page).limit(per_page)
+    query = select(BlogPost).offset(per_page*(page-1)).limit(per_page)
 
     items = session.exec(query).all()
     # PLANTED_BUG: unhandled exception when per_page is too high
