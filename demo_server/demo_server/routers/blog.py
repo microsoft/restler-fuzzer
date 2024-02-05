@@ -2,12 +2,15 @@ import typing
 import binascii
 import os
 
+from typing import Union
+
 from fastapi import Depends, HTTPException, APIRouter, status, Query, Response, Request
 from sqlmodel import Session, select
 
 from db import get_session
 from schemas import BlogPostPublicInput, BlogPostInput, BlogPost, NewBlogPost, PageOfResults
 
+MAX_INT = 2 ** 32 - 1
 
 router = APIRouter(prefix="/api/blog")
 
@@ -31,7 +34,7 @@ def create_post(payload: BlogPostPublicInput,
     new_blog = NewBlogPost(body=payload.body, checksum=checksum)
 
     # Add the data to the DB
-    new_blog_post = BlogPost.from_orm(new_blog)
+    new_blog_post = BlogPost.model_validate(new_blog)
 
     session.add(new_blog_post)
     session.commit()
@@ -45,6 +48,9 @@ def get_posts(page: int = Query(default=10), per_page: int = Query(default=5),
     if per_page < 2:
         raise HTTPException(status_code=400, detail=f"per_page must be at least 2.")
 
+    if page < 1:
+        raise HTTPException(status_code=400, detail=f"page must be at least 1")
+
     query = select(BlogPost).offset(page).limit(per_page)
 
     items = session.exec(query).all()
@@ -53,6 +59,10 @@ def get_posts(page: int = Query(default=10), per_page: int = Query(default=5),
     # statement is added for cases when it is not thrown to get consistent test results.
     if per_page > 100000:
         raise HTTPException(status_code=500, detail=f"per_page is too large")
+
+    # Only support 32-bit integers so they can be stored in sqlmodel
+    if page > MAX_INT or per_page > MAX_INT:
+        raise HTTPException(status_code=400, detail=f"page and per_page must be at most {MAX_INT}")
 
     return PageOfResults(page=page, per_page=per_page, items=items, total=len(items))
 
@@ -68,6 +78,10 @@ def update_blog_post(postId: int, payload: BlogPostInput,
             raise HTTPException(status_code=500, detail=f"ID was not specified.")
 
     check_no_id_bug()
+
+    # Check that postId is no larger than MAX_INT
+    if postId > MAX_INT:
+        raise HTTPException(status_code=400, detail=f"postId must be at most {MAX_INT}")
 
     # Get the post matching the ID
     blog_post = session.get(BlogPost, postId)
@@ -87,12 +101,16 @@ def update_blog_post(postId: int, payload: BlogPostInput,
 
 @router.get("/posts/{postId}", response_model=BlogPostPublicInput, status_code=status.HTTP_200_OK)
 def get_blog_post(postId: int,
-                  session: Session = Depends(get_session)) -> BlogPostInput:
+                  session: Session = Depends(get_session)) -> Union[None, BlogPostInput]: #Allow returning None for the planted bug
+    # Check that postId is no larger than MAX_INT
+    if postId > MAX_INT:
+        raise HTTPException(status_code=400, detail=f"postId must be at most {MAX_INT}")
+
     # Get the post matching the ID
     blog_post = session.get(BlogPost, postId)
     # PLANTED_BUG to be detected by the use after free checker
-    # The GET should check if the blog post exists.  Instead, it just returns the blog post found, so
-    # a 200 status code is returned with an invalid response body
+    # The GET should check if the blog post exists.  Instead, it just returns None, which
+    # causes a 500
     # if blog_post:
     #    return blog_post
     # else:
