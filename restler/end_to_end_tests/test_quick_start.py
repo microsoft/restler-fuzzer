@@ -128,8 +128,8 @@ def test_fuzzlean_task(restler_working_dir, swagger_path, restler_drop_dir):
         'Attempted requests: 6 / 6',
         'Bugs were found!' ,
         'InvalidDynamicObjectChecker_20x: 2',
-        'PayloadBodyChecker_500: 2',
-        'UseAfterFreeChecker_20x: 1',
+        'PayloadBodyChecker_500: 1',
+        'UseAfterFreeChecker_500: 1',
         'InvalidValueChecker_500: 1',
         'Task FuzzLean succeeded.'
     ]
