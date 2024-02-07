@@ -6,7 +6,7 @@ import itertools
 from datetime import datetime
 import sys
 
-MAX_SIZE = 8400 # https://jira.devtools.intel.com/browse/CVS-110647
+MAX_SIZE = 8400 # max_size limited by libevent CVS-110647
 
 random_seed=time.time()
 global random_gen
@@ -51,7 +51,8 @@ def gen_restler_fuzzable_string(**kwargs):
             yield ex[:ex_k] + new_values + ex[ex_k:]
 
         yield ''.join(random_gen.choices(string.ascii_letters + string.digits, k=size))
-        yield ''.join(random_gen.choices(string.ascii_letters + string.digits + string.punctuation, k=size)) # whitespaces are not supported by OVMS https://jira.devtools.intel.com/browse/CVS-108702
+        yield ''.join(random_gen.choices(string.ascii_letters + string.digits + string.punctuation,
+                                         k=size)) # whitespaces not supported CVS-108702
 
 def placeholder_value_generator():
     for bv in get_boundary_values():
