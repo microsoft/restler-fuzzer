@@ -12,6 +12,7 @@ import multiprocessing
 from multiprocessing.dummy import Pool as ThreadPool
 
 import utils.formatting as formatting
+from utils.logging.trace_db import SequenceTracker
 from restler_settings import Settings
 
 class ResourceTypeQuotaExceededException(Exception):
@@ -613,6 +614,7 @@ class GarbageCollectorThread(threading.Thread):
         @rtype : None
 
         """
+        SequenceTracker.set_origin('gc')
         def _should_stop():
             if self._finishing:
                 elapsed_time = time.time() - self._cleanup_start_time

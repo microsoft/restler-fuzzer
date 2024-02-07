@@ -58,7 +58,7 @@
     <Content Include="baselines\grammarTests\required_params_grammar.py">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="baselines\grammarTests\required_params_grammar_requiredOnly.py">
+    <Content Include="baselines\grammarTests\required_params_grammar_requiredonly.py">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="baselines\dictionaryTests\quoted_primitives_grammar.py">
@@ -244,70 +244,70 @@
     <Content Include="swagger\dictionaryTests\serializationTestDict.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="swagger\DependencyTests\lowercase_paths.json">
+    <Content Include="swagger\dependencyTests\lowercase_paths.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="swagger\DependencyTests\response_headers.json">
+    <Content Include="swagger\dependencyTests\response_headers.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="swagger\DependencyTests\response_headers_annotations.json">
+    <Content Include="swagger\dependencyTests\response_headers_annotations.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="swagger\DependencyTests\header_deps.json">
+    <Content Include="swagger\dependencyTests\header_deps.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="swagger\DependencyTests\simple_crud_api.json">
+    <Content Include="swagger\dependencyTests\simple_crud_api.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-	  <Content Include="swagger\DependencyTests\simple_crud_api_annotations.json">
+	  <Content Include="swagger\dependencyTests\simple_crud_api_annotations.json">
 		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </Content>
-    <Content Include="swagger\DependencyTests\simple_api_soft_delete.json">
+    <Content Include="swagger\dependencyTests\simple_api_soft_delete.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-	  <Content Include="swagger\DependencyTests\simple_api_soft_delete_annotations1.json">
+	  <Content Include="swagger\dependencyTests\simple_api_soft_delete_annotations1.json">
 		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </Content>
-	  <Content Include="swagger\DependencyTests\simple_api_soft_delete_annotations2.json">
+	  <Content Include="swagger\dependencyTests\simple_api_soft_delete_annotations2.json">
 		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </Content>
-	  <Content Include="swagger\DependencyTests\ordering_test.json">
+	  <Content Include="swagger\dependencyTests\ordering_test.json">
 		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </Content>
-	  <Content Include="swagger\DependencyTests\ordering_test_annotations.json">
+	  <Content Include="swagger\dependencyTests\ordering_test_annotations.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="swagger\DependencyTests\header_deps_annotations.json">
+    <Content Include="swagger\dependencyTests\header_deps_annotations.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="swagger\DependencyTests\inconsistent_casing_paths.json">
+    <Content Include="swagger\dependencyTests\inconsistent_casing_paths.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="swagger\DependencyTests\body_dependency_cycles.json">
+    <Content Include="swagger\dependencyTests\body_dependency_cycles.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="swagger\DependencyTests\frontend_port_id.json">
+    <Content Include="swagger\dependencyTests\frontend_port_id.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="swagger\DependencyTests\ip_configurations_get.json">
+    <Content Include="swagger\dependencyTests\ip_configurations_get.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="swagger\DependencyTests\subnet_id.json">
+    <Content Include="swagger\dependencyTests\subnet_id.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="swagger\DependencyTests\nested_objects_naming.json">
+    <Content Include="swagger\dependencyTests\nested_objects_naming.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-	  <Content Include="swagger\ExampleTests\optional_params.json">
+	  <Content Include="swagger\exampleTests\optional_params.json">
 		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </Content>
-	  <Content Include="swagger\ExampleTests\optional_params_example.json">
+	  <Content Include="swagger\exampleTests\optional_params_example.json">
 		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </Content>
-	  <Content Include="swagger\ExampleTests\body_param.json">
+	  <Content Include="swagger\exampleTests\body_param.json">
 		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </Content>
-	  <Content Include="swagger\ExampleTests\body_param_example.json">
+	  <Content Include="swagger\exampleTests\body_param_example.json">
 		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </Content>
 	  <Content Include="swagger\get_path_dependencies.json">
@@ -380,22 +380,22 @@
     <Content Include="swagger\demo_server.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="swagger\DependencyTests\examples\create_network_interface.json">
+    <Content Include="swagger\dependencyTests\examples\create_network_interface.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="swagger\examples\inline_payload_examples.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="swagger\DependencyTests\examples\create_application_gateway.json">
+    <Content Include="swagger\dependencyTests\examples\create_application_gateway.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="swagger\examples\headers_example.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="swagger\DependencyTests\examples\create_subnet.json">
+    <Content Include="swagger\dependencyTests\examples\create_subnet.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="swagger\DependencyTests\examples\create_vnet_with_subnet.json">
+    <Content Include="swagger\dependencyTests\examples\create_vnet_with_subnet.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="swagger\examples\make_order2.json">

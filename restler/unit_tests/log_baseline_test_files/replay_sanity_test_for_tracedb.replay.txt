@@ -1,0 +1,7 @@
+-> PUT /B/B HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nAuthorization: valid_unit_test_token\r\n\r\n
+! producer_timing_delay 0
+! max_async_wait_time 20
+
+-> PUT /A/A HTTP/1.1\r\nAccept: application/json\r\nHost: unittest\r\nContent-Type: application/json\r\nAuthorization: valid_unit_test_token\r\n\r\n
+! producer_timing_delay 0
+! max_async_wait_time 20
