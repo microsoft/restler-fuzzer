@@ -78,6 +78,7 @@ req_collection = requests.RequestCollection([])
 
 request = requests.Request([
     primitives.restler_static_string("PUT "),
+    primitives.restler_basepath(""),
     primitives.restler_static_string("/A/A"),
     primitives.restler_static_string(" HTTP/1.1\r\n"),
     primitives.restler_static_string("Accept: application/json\r\n"),
@@ -103,6 +104,7 @@ req_collection.add_request(request)
 
 request = requests.Request([
     primitives.restler_static_string("PUT "),
+    primitives.restler_basepath(""),
     primitives.restler_static_string("/B/B"),
     primitives.restler_static_string(" HTTP/1.1\r\n"),
     primitives.restler_static_string("Accept: application/json\r\n"),
@@ -128,6 +130,7 @@ req_collection.add_request(request)
 
 request = requests.Request([
     primitives.restler_static_string("GET "),
+    primitives.restler_basepath(""),
     primitives.restler_static_string("/C"),
     primitives.restler_static_string(" HTTP/1.1\r\n"),
     primitives.restler_static_string("Accept: application/json\r\n"),
@@ -150,6 +153,7 @@ req_collection.add_request(request)
 
 request = requests.Request([
     primitives.restler_static_string("PUT "),
+    primitives.restler_basepath(""),
     primitives.restler_static_string("/D/D"),
     primitives.restler_static_string(" HTTP/1.1\r\n"),
     primitives.restler_static_string("Accept: application/json\r\n"),
@@ -184,6 +188,7 @@ req_collection.add_request(request)
 
 request = requests.Request([
     primitives.restler_static_string("GET "),
+    primitives.restler_basepath(""),
     primitives.restler_static_string("/E"),
     primitives.restler_static_string(" HTTP/1.1\r\n"),
     primitives.restler_static_string("Accept: application/json\r\n"),

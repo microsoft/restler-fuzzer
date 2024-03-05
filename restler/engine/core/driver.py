@@ -566,7 +566,7 @@ def compute_request_goal_seq(request, req_collection):
                              f"\nbecause a sequence satisfying all dependencies was not found.\n", True)
     return req_list
 
-def find_request_id(definition_blocks, fuzzing_requests):
+def find_request_id(definition_block_data, fuzzing_requests, candidate_values_pool):
     """ Find the requestId of the request in the definition blocks.
     Currently, 'requestId' is the path of the request as defined in the Swagger/OpenAPI spec.
 
@@ -574,6 +574,8 @@ def find_request_id(definition_blocks, fuzzing_requests):
     @type  definition_blocks: List
     @param fuzzing_requests: The collection of requests to fuzz.
     @type  fuzzing_requests: FuzzingRequestCollection.
+    @param candidate_values_pool: The candidate values pool.
+    @type  candidate_values_pool: CandidateValuesPool
 
     @return: The request id of the request in the definition blocks.
     @rtype : Str
@@ -593,7 +595,16 @@ def find_request_id(definition_blocks, fuzzing_requests):
             path_without_query = path
         return path_without_query, method
 
-    path_only, method = extract_http_path_and_method(definition_blocks)
+    if 'request_text' in definition_block_data and definition_block_data['request_text'] is not None:
+        request_text = definition_block_data['request_text']
+    else:
+        # render the request from the definition blocks
+        blocks = definition_block_data['request_blocks']
+        # Get the path and method from the blocks
+        tmp_request = requests.Request(definition=blocks, requestId="temp_request")
+        request_text, _, _, _, _ = next(tmp_request.render_iter(candidate_values_pool))
+
+    path_only, method = extract_http_path_and_method(request_text)
     # remove the basepath from the path
     # TODO: support different base paths during the recording vs. replay
     # The code below assumes the basepath at time of the recording is the same as the current basepath
@@ -609,6 +620,8 @@ def find_request_id(definition_blocks, fuzzing_requests):
 
         request_id_parts = fuzzing_request.endpoint_no_dynamic_objects.split("/")
         request_basepath = fuzzing_request.basepath
+        # Note: for legacy grammars or hand-crafted grammars without a basepath element, the code below
+        # will not be able to correctly retrieve the fuzzing request from the grammar.
         if path_only.startswith(request_basepath):
             path_only = path_only[len(request_basepath):]
             definition_parts = path_only.split("/")
@@ -624,8 +637,8 @@ def find_request_id(definition_blocks, fuzzing_requests):
         else:
             return fuzzing_request
 
-    # If no request ID could be determined, simply use the path from the request definition blocks.
-    return requests.Request(definition=[definition_blocks], requestId=path_only)
+    # If no request ID could be determined, use the rendered request text.
+    return requests.Request(definition=[request_text], requestId=path_only)
 
 def generate_sequences(fuzzing_requests, checkers, fuzzing_jobs=1, garbage_collector=None):
     """ Implements core restler algorithm.
@@ -719,7 +732,9 @@ def generate_sequences(fuzzing_requests, checkers, fuzzing_jobs=1, garbage_colle
             for seq in request_block_sequences:
                 req_list = []
                 for definition_block_data in seq:
-                    request_in_collection = find_request_id(definition_block_data['request_text'], fuzzing_requests)
+                    request_in_collection = find_request_id(definition_block_data,
+                                                            fuzzing_requests,
+                                                            GrammarRequestCollection().candidate_values_pool)
                     req_copy = copy.copy(request_in_collection)
                     if 'request_blocks' in definition_block_data:
                         req_copy._definition = definition_block_data['request_blocks']
@@ -735,6 +750,14 @@ def generate_sequences(fuzzing_requests, checkers, fuzzing_jobs=1, garbage_colle
                     # combinations
                     req_copy._total_feasible_combinations = 0
                     req_list.append(req_copy)
+
+                # Make the combination IDs match what they would have been if this sequence was rendered fully by RESTler
+                # The logic below modifies the combination IDs to reflect that the prefix of the sequence
+                # was already rendered.
+                for req in req_list:
+                    req._current_combination_id = 1
+                req_list[-1]._current_combination_id = 0
+
                 specific_target_sequences.append(sequences.Sequence(req_list))
 
         if specific_target_sequences is not None:
