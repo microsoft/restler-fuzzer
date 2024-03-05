@@ -14,7 +14,7 @@ open Microsoft.FSharpLu.Diagnostics.Process
 open Restler.Telemetry
 
 [<Literal>]
-let CurrentVersion = "9.2.3"
+let CurrentVersion = "9.2.4"
 let EngineErrorCode = -2
 
 let exitRestler status =
