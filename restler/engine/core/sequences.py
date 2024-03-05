@@ -36,12 +36,22 @@ AUTHORIZATION_TOKEN_PLACEHOLDER = 'AUTHORIZATION TOKEN'
 
 class SentRequestData(object):
     """ SentRequestData class """
-    def __init__(self, rendered_data, parser, response="", producer_timing_delay=0, max_async_wait_time=0):
+    def __init__(self, method_endpoint_hex_definition, rendered_data, parser, response="", producer_timing_delay=0,
+                 max_async_wait_time=0, replay_blocks=None):
+        self.method_endpoint_hex_definition = method_endpoint_hex_definition
         self.rendered_data = rendered_data
         self.parser = parser
         self.response = response
         self.producer_timing_delay = producer_timing_delay
         self.max_async_wait_time = max_async_wait_time
+        self.replay_blocks = replay_blocks
+
+    def find_matching_request(self, requests):
+        """ Find the request in the given list of requests that corresponds to this SentRequestData"""
+        for req in requests:
+            if req.method_endpoint_hex_definition == self.method_endpoint_hex_definition:
+                return req
+        return None
 
 class RenderedSequence(object):
     """ RenderedSequence class """
@@ -328,6 +338,85 @@ class Sequence(object):
                     RAW_LOGGING(f'Dynamic object {var_name} is set to None!')
             return "".join(data)
 
+
+    def send_rendered_request(self, request, rendered_data, parser, tracked_parameters, updated_writer_variables,
+                              replay_blocks, lock):
+
+        """ Sends the next rendered request in the sequence.
+
+        @param request: The request object corresponding to the rendered data to send
+        @type  request: Request
+
+        @param rendered_data: The rendered data to send
+        @type  rendered_data: Str
+
+        @param parser: The parser for the response
+        @type  parser: Func
+
+        @param tracked_parameters: The tracked parameters for the request
+        @type  tracked_parameters: Dict
+
+        @param updated_writer_variables: The updated writer variables for the request
+        @type  updated_writer_variables: Dict
+
+        @param replay_blocks: The replay blocks for the request
+        @type  replay_blocks: List
+
+        @param lock: Lock object used for sync of more than one fuzzing jobs.
+        @type  lock: thread.Lock object
+
+        @param preprocessing: Set to true if rendering during preprocessing
+        @type  preprocessing: Bool
+
+        """
+        # substitute reference placeholders with resolved values
+        if not Settings().ignore_dependencies:
+            rendered_data =\
+                self.resolve_dependencies(rendered_data)
+
+        req_async_wait = Settings().get_max_async_resource_creation_time(request.request_id)
+        producer_timing_delay = Settings().get_producer_timing_delay(request.request_id)
+
+        SequenceTracker.initialize_request_trace(combination_id=self.combination_id,
+                                                 request_id=request.hex_definition,
+                                                 replay_blocks=replay_blocks)
+
+        response = request_utilities.send_request_data(rendered_data)
+        if response.has_valid_code():
+            for name,v in updated_writer_variables.items():
+                dependencies.set_variable(name, v)
+
+        responses_to_parse, resource_error, async_waited = async_request_utilities.try_async_poll(
+            rendered_data, response, req_async_wait)
+        parser_threw_exception = False
+
+        # Record the time at which the response was received
+        REQUEST_DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
+        datetime_now = datetime.datetime.now(datetime.timezone.utc)
+        response_datetime_str = datetime_now.strftime(REQUEST_DATETIME_FORMAT)
+        timestamp_micro = int(datetime_now.timestamp()*10**6)
+
+        # Response may not exist if there was an error sending the request or a timeout
+        if parser and responses_to_parse:
+            parser_threw_exception = not request_utilities.call_response_parser(parser, None, request=request,
+                                                                                responses=responses_to_parse)
+        # If the async logic waited for the resource, this wait already included the required
+        # producer timing delay. Here, set the producer timing delay to zero, so this wait is
+        # skipped both below for this request and during replay
+        if async_waited:
+            producer_timing_delay = 0
+        else:
+            req_async_wait = 0
+
+        self.append_data_to_sent_list(request.method_endpoint_hex_definition,
+                                      rendered_data, parser, response,
+                                      producer_timing_delay, req_async_wait, replay_blocks=replay_blocks)
+        SequenceTracker.clear_request_trace(combination_id=self.combination_id)
+
+        timing_delay = producer_timing_delay if request.is_resource_generator() else 0
+
+        return response, resource_error, parser_threw_exception, timing_delay, response_datetime_str, timestamp_micro
+
     def render(self, candidate_values_pool, lock, preprocessing=False, postprocessing=False):
         """ Core routine that performs the rendering of restler sequences. In
         principle, all requests of a sequence are being constantly rendered with
@@ -382,71 +471,46 @@ class Sequence(object):
 
             sequence_failed = False
 
-            current_request = None
             prev_request = None
             prev_response = None
             response_datetime_str = None
             for i in range(len(self.requests) - 1):
-                last_tested_request_idx = i
                 prev_request = self.requests[i]
-                prev_rendered_data, prev_parser, tracked_parameters, updated_writer_variables =\
-                    prev_request.render_current(candidate_values_pool,
-                    preprocessing=preprocessing, use_last_cached_rendering=True)
-
+                prev_rendered_data, prev_parser, tracked_parameters, updated_writer_variables, replay_blocks =\
+                                prev_request.render_current(candidate_values_pool,
+                                                            preprocessing=preprocessing,
+                                                            use_last_cached_rendering=True)
+                # Update the tracked parameters for the last request.  This is needed because
+                # querying the tracked parameter values associated with the last request enables
+                # analyzing the result of that request in the context of the previously tested values
+                # in the sequence.
                 request.update_tracked_parameters(tracked_parameters)
 
-                # substitute reference placeholders with resolved values
-                if not Settings().ignore_dependencies:
-                    prev_rendered_data =\
-                        self.resolve_dependencies(prev_rendered_data)
+                prev_response, resource_error, parser_threw_exception, timing_delay, response_datetime_str, timestamp_micro = \
+                    self.send_rendered_request(prev_request, prev_rendered_data, prev_parser, tracked_parameters,
+                                               updated_writer_variables, replay_blocks,
+                                               lock)
 
-                prev_req_async_wait = Settings().get_max_async_resource_creation_time(prev_request.request_id)
-                prev_producer_timing_delay = Settings().get_producer_timing_delay(prev_request.request_id)
+                # register latest client/server interaction
+                self.status_codes.append(status_codes_monitor.RequestExecutionStatus(timestamp_micro,
+                                                                                     request.hex_definition,
+                                                                                     prev_response.status_code,
+                                                                                     prev_response.has_valid_code(),
+                                                                                     False))
 
-                SequenceTracker.initialize_request_trace(combination_id=self.combination_id,
-                                                         request_id=request.hex_definition)
-
-                prev_response = request_utilities.send_request_data(prev_rendered_data)
-                if prev_response.has_valid_code():
-                    for name,v in updated_writer_variables.items():
-                        dependencies.set_variable(name, v)
-
-                prev_responses_to_parse, resource_error, async_waited = async_request_utilities.try_async_poll(
-                    prev_rendered_data, prev_response, prev_req_async_wait)
-                prev_parser_threw_exception = False
-                # Response may not exist if there was an error sending the request or a timeout
-                if prev_parser and prev_responses_to_parse:
-                    prev_parser_threw_exception = not request_utilities.call_response_parser(prev_parser, None, request=prev_request, responses=prev_responses_to_parse)
-                prev_status_code = prev_response.status_code
-
-                # If the async logic waited for the resource, this wait already included the required
-                # producer timing delay. Here, set the producer timing delay to zero, so this wait is
-                # skipped both below for this request and during replay
-                if async_waited:
-                    prev_producer_timing_delay = 0
-                else:
-                    prev_req_async_wait = 0
-
-                self.append_data_to_sent_list(prev_rendered_data, prev_parser, prev_response, prev_producer_timing_delay, prev_req_async_wait)
-                SequenceTracker.clear_request_trace(combination_id=self.combination_id)
-
-                # Record the time at which the response was received
-                datetime_now = datetime.datetime.now(datetime.timezone.utc)
-                response_datetime_str = datetime_now.strftime(datetime_format)
-                timestamp_micro = int(datetime_now.timestamp()*10**6)
-
-                if not prev_status_code:
+                if not prev_response.status_code:
                     logger.write_to_main(f"Error: Failed to get status code during valid sequence re-rendering.\n")
                     sequence_failed = True
                     break
 
                 if prev_response.has_bug_code():
                     BugBuckets.Instance().update_bug_buckets(
-                        self, prev_status_code, reproduce=False, lock=lock)
+                        self, prev_response.status_code, reproduce=True, lock=lock)
+
                     sequence_failed = True
                     break
 
-                if prev_parser_threw_exception:
+                if parser_threw_exception:
                     logger.write_to_main("Error: Parser exception occurred during valid sequence re-rendering.\n")
                     sequence_failed = True
                     break
@@ -456,7 +520,7 @@ class Sequence(object):
                    sequence_failed = True
                    break
 
-                rendering_is_valid = not prev_parser_threw_exception\
+                rendering_is_valid = not parser_threw_exception\
                     and not resource_error\
                     and prev_response.has_valid_code()
 
@@ -468,16 +532,9 @@ class Sequence(object):
                 # If the previous request is a resource generator and we did not perform an async resource
                 # creation wait, then wait for the specified duration in order for the backend to have a
                 # chance to create the resource.
-                if prev_producer_timing_delay > 0 and prev_request.is_resource_generator():
-                    print(f"Pausing for {prev_producer_timing_delay} seconds, request is a generator...")
-                    time.sleep(prev_producer_timing_delay)
-
-                # register latest client/server interaction
-                self.status_codes.append(status_codes_monitor.RequestExecutionStatus(timestamp_micro,
-                                                                prev_request.hex_definition,
-                                                                prev_status_code,
-                                                                prev_response.has_valid_code(),
-                                                                False))
+                if timing_delay > 0:
+                    print(f"Pausing for {timing_delay} seconds, request is a generator...")
+                    time.sleep(timing_delay)
 
             self.rendered_prefix_status = RenderedPrefixStatus.INVALID if sequence_failed else RenderedPrefixStatus.VALID
             if sequence_failed:
@@ -518,10 +575,9 @@ class Sequence(object):
 
         self._sent_request_data_list = []
 
-        datetime_format = "%Y-%m-%d %H:%M:%S"
         response_datetime_str = None
         timestamp_micro = None
-        for rendered_data, parser, tracked_parameters, updated_writer_variables in\
+        for rendered_data, parser, tracked_parameters, updated_writer_variables, replay_blocks in\
                 request.render_iter(candidate_values_pool,
                                     skip=request._current_combination_id,
                                     preprocessing=preprocessing):
@@ -559,7 +615,6 @@ class Sequence(object):
             finally:
                 dependencies.stop_saving_local_dyn_objects()
 
-
             if self.rendered_prefix_status == RenderedPrefixStatus.INVALID:
                 # A failure to re-render a previously successful sequence prefix may be a
                 # transient issue.  Reset the prefix state so it is re-rendered again
@@ -574,79 +629,32 @@ class Sequence(object):
             # Step B: Dynamic template rendering
             # substitute reference placeholders with resolved values
             # for the last request
-            if not Settings().ignore_dependencies:
-                rendered_data = self.resolve_dependencies(rendered_data)
+            response, resource_error, parser_exception_occurred, timing_delay, response_datetime_str, timestamp_micro = \
+                self.send_rendered_request(request, rendered_data, parser, tracked_parameters,
+                                           updated_writer_variables, replay_blocks, lock)
+            if response.has_bug_code():
+                BugBuckets.Instance().update_bug_buckets(
+                    self, response.status_code, lock=lock)
 
-            req_async_wait = Settings().get_max_async_resource_creation_time(request.request_id)
-            req_producer_timing_delay = Settings().get_producer_timing_delay(request.request_id)
-            SequenceTracker.initialize_request_trace(combination_id=self.combination_id,
-                                                     request_id=request.hex_definition)
+            # register latest client/server interaction
+            self.status_codes.append(status_codes_monitor.RequestExecutionStatus(timestamp_micro,
+                                                                                 request.hex_definition,
+                                                                                 response.status_code,
+                                                                                 response.has_valid_code(),
+                                                                                 False))
 
-            response = request_utilities.send_request_data(rendered_data)
-            if response.has_valid_code():
-                for name,v in updated_writer_variables.items():
-                    dependencies.set_variable(name, v)
-
-            responses_to_parse, resource_error, async_waited = async_request_utilities.try_async_poll(
-                rendered_data, response, req_async_wait)
-            parser_exception_occurred = False
-
-            # If the async logic waited for the resource, this wait already included the required
-            # producer timing delay. Here, set the producer timing delay to zero, so this wait is
-            # skipped both below for this request and during replay
-            if async_waited:
-                req_producer_timing_delay = 0
-            else:
-                req_async_wait = 0
-
-            # If the request is a resource generator and we did not perform an async resource
-            # creation wait, then wait for the specified duration in order for the backend to have a
-            # chance to create the resource.
-            # One case where this is important is if the garbage collector cannot delete the resource
-            # because it is still in a 'creating' state.
-
-            if req_producer_timing_delay > 0 and request.is_resource_generator():
-                print(f"Pausing for {req_producer_timing_delay} seconds, request is a generator...")
-                time.sleep(req_producer_timing_delay)
-
-            # Response may not exist if there was an error sending the request or a timeout
-            if parser and responses_to_parse:
-                parser_exception_occurred = not request_utilities.call_response_parser(parser, None, request=request, responses=responses_to_parse)
-            status_code = response.status_code
-
-            self.append_data_to_sent_list(rendered_data, parser, response,
-                                          producer_timing_delay=req_producer_timing_delay,
-                                          max_async_wait_time=req_async_wait)
             self.executed_requests_count = self.executed_requests_count + 1
             SequenceTracker.clear_sequence_trace()
 
-            if not status_code:
+            if not response.status_code:
                 duplicate = copy_self()
                 return RenderedSequence(duplicate, valid=False,
                                         failure_info=FailureInformation.MISSING_STATUS_CODE,
                                         final_request_response=response)
 
-
-            rendering_is_valid = not parser_exception_occurred\
+            rendering_is_valid = not parser_exception_occurred \
                 and not resource_error\
                 and response.has_valid_code()
-
-            # Record the time at which the response was received
-            datetime_now = datetime.datetime.now(datetime.timezone.utc)
-            response_datetime_str=datetime_now.strftime(datetime_format)
-            timestamp_micro = int(datetime_now.timestamp()*10**6)
-
-            self.status_codes.append(status_codes_monitor.RequestExecutionStatus(timestamp_micro,
-                                                                     request.hex_definition,
-                                                                     status_code,
-                                                                     rendering_is_valid,
-                                                                     False))
-
-            # add sequence's error codes to bug buckets.
-            if response.has_bug_code():
-                BugBuckets.Instance().update_bug_buckets(
-                    self, status_code, lock=lock
-                )
 
             Monitor().update_status_codes_monitor(self, self.status_codes, lock)
 
@@ -703,7 +711,9 @@ class Sequence(object):
 
         return RenderedSequence(None)
 
-    def append_data_to_sent_list(self, rendered_data, parser, response, producer_timing_delay=0, max_async_wait_time=0):
+    def append_data_to_sent_list(self, req_method_endpoint_hex_definition,
+                                 rendered_data, parser, response, producer_timing_delay=0, max_async_wait_time=0,
+                                 replay_blocks=None):
         """ Appends rendered data to the sent-request-data list.
 
         @param rendered_data: A request's rendered data. This is a data string whose
@@ -722,11 +732,14 @@ class Sequence(object):
         rendered_data = request_utilities.replace_auth_token(rendered_data, f'{AUTHORIZATION_TOKEN_PLACEHOLDER}')
         self._sent_request_data_list.append(
             SentRequestData(
-                rendered_data, parser, response.to_str, producer_timing_delay, max_async_wait_time
+                req_method_endpoint_hex_definition,
+                rendered_data, parser, response.to_str, producer_timing_delay, max_async_wait_time, replay_blocks
             )
         )
 
-    def replace_last_sent_request_data(self, rendered_data, parser, response, producer_timing_delay=0, max_async_wait_time=0):
+    def replace_last_sent_request_data(self, req_method_endpoint_hex_definition,
+                                       rendered_data, parser, response, producer_timing_delay=0, max_async_wait_time=0,
+                                       replay_blocks=None):
         """ Replaces the final sent request with new rendered data
 
         @param rendered_data: A request's rendered data. This is a data string whose
@@ -743,7 +756,10 @@ class Sequence(object):
 
         """
         self._sent_request_data_list = self._sent_request_data_list[:-1]
-        self.append_data_to_sent_list(rendered_data, parser, response, producer_timing_delay, max_async_wait_time)
+        self.append_data_to_sent_list(req_method_endpoint_hex_definition,
+                                      rendered_data, parser, response,
+                                      producer_timing_delay, max_async_wait_time, replay_blocks)
+
 
     def get_request_data_with_token(self, data):
         """ Returns an updated request data string with the appropriate authorization token
@@ -778,7 +794,7 @@ class Sequence(object):
         """
         self._sent_request_data_list = sent_request_data_list
 
-    def replay_sequence(self):
+    def replay_sequence(self, candidate_values_pool=None):
         """ Replays the previously rendered data belonging to this sequence.
 
         Each time this sequence is rendered, each of its request's rendered
@@ -789,33 +805,80 @@ class Sequence(object):
         @rtype : Str
 
         """
-        def send_and_parse(request_data):
-            """ Gets the token, sends the requst, performs async wait, parses response, returns status code """
-            rendered_data = self.get_request_data_with_token(request_data.rendered_data)
-            response = request_utilities.send_request_data(rendered_data, reconnect=True)
-            responses_to_parse, _, _ = async_request_utilities.try_async_poll(
-                rendered_data, response, request_data.max_async_wait_time)
-            if request_data.parser:
-                request_utilities.call_response_parser(request_data.parser, None, responses=responses_to_parse)
-            return response.status_code
+        def send_and_parse(replay_sequence, request_data, request_in_collection):
+            # If there are replay blocks, then use them.  Otherwise, use the sent request data list.
+            if request_data.replay_blocks is not None and request_in_collection is not None:
+                if candidate_values_pool is None:
+                    raise Exception("Candidate values pool must be provided for replay with replay blocks")
 
-        # TODO: when replaying from the trace DB is supported, the combination ID should be available, since
-        # the sequence object will be available.  It may also be useful to provide the original combination ID
-        # for the sequence, so that the replay can be associated with the original rendering.
-        SequenceTracker.initialize_sequence_trace(None, tags={'origin': 'replay'})
+                # Construct the request in the same way as during replay, and set the replay blocks
+                # so they are written to the database
+                req_copy = copy.copy(request_in_collection)
+                # The first combination of the replay blocks must be rendered
+                req_copy._current_combination_id = 0
+                req_copy._definition = copy.copy(request_data.replay_blocks)
 
-        # Send all but the last request in the sequence
-        for request_data in self._sent_request_data_list[:-1]:
-            rendered_data = self.get_request_data_with_token(request_data.rendered_data)
-            if not send_and_parse(request_data):
-                return None
+                # Add the parser to make sure GC works
+                metadata = request_in_collection.metadata
+                if metadata:
+                    req_copy._definition.append(metadata)
+
+                # render the request
+                # Note: use_last_cached_rendering MUST be set to false here, since the replay blocks
+                # contain different values than the cached rendering
+                rendered_data, parser, tracked_parameters, updated_writer_variables, replay_blocks =\
+                    req_copy.render_current(candidate_values_pool, preprocessing=False, use_last_cached_rendering=False)
+
+                response, resource_error, parser_exception_occurred, timing_delay, response_datetime_str, timestamp_micro = \
+                    replay_sequence.send_rendered_request(req_copy, rendered_data, parser, tracked_parameters,
+                                                          updated_writer_variables, replay_blocks, lock=None)
+
+                # In replay mode, even if requests in the sequence prefix fail, replay the entire sequence
+                # Therefore, do not check for failure here and move to the next request
+            else:
+                rendered_data = replay_sequence.get_request_data_with_token(request_data.rendered_data)
+                response = request_utilities.send_request_data(rendered_data, reconnect=True)
+                responses_to_parse, _, _ = async_request_utilities.try_async_poll(
+                    rendered_data, response, request_data.max_async_wait_time)
+                if request_data.parser:
+                    request_utilities.call_response_parser(request_data.parser, None, responses=responses_to_parse)
+                if not response.status_code:
+                    return None
+
             if request_data.producer_timing_delay > 0:
                 print(f"Pausing for {request_data.producer_timing_delay} seconds, request is a generator...")
                 time.sleep(request_data.producer_timing_delay)
 
+            return response.status_code
+
+        # The replay sequence must be a new sequence.
+        SequenceTracker.clear_sequence_trace()
+
+        replay_sequence = Sequence(self.requests)
+
+        # TODO: when replaying from the trace DB is supported, the combination ID should be available, since
+        # the sequence object will be available.  It may also be useful to provide the original combination ID
+        # for the sequence, so that the replay can be associated with the original rendering.
+        # Note: this combination ID must be the same as the sequence that invokes 'send_rendered_request' above.
+        combination_id = replay_sequence.combination_id if self.requests else None
+        SequenceTracker.initialize_sequence_trace(combination_id, tags={'origin': 'replay'})
+
+        # If the sent replay blocks are populated, use these for the replay.
+        # Otherwise, use the sent request data list.
+        for _, request_data in enumerate(self._sent_request_data_list[:-1]):
+            # Find the request corresponding to the payload in the sent request data list
+            request_in_collection = request_data.find_matching_request(replay_sequence.requests)
+            if request_in_collection is None:
+                print("WARNING: replay request not found in sequence request collection")
+            _ = send_and_parse(replay_sequence, request_data, request_in_collection)
+
         final_request_data = self._sent_request_data_list[-1]
+        request_in_collection = final_request_data.find_matching_request(replay_sequence.requests)
+        if request_in_collection is None:
+            print("WARNING: replay request not found in sequence request collection")
+
         # Send final request and return its status code
-        status_code = send_and_parse(final_request_data)
+        status_code = send_and_parse(replay_sequence, final_request_data, request_in_collection)
         SequenceTracker.clear_sequence_trace()
         return status_code
 

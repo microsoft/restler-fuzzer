@@ -25,6 +25,7 @@ class TraceDbTextWriter(TraceLogWriterBase):
         data["sent_timestamp"]=None
         data["received_timestamp"]=None
         data["sequence_id"]=None
+        data["replay_blocks"]=None
         if "tags" in data:
             x = data["tags"]
             x["sequence_id"]=None

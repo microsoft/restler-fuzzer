@@ -18,12 +18,13 @@ from random import Random
 
 from restler_settings import Settings
 import utils.logger as logger
-from utils.logging.trace_db import SequenceTracker
+from utils.logging.trace_db import SequenceTracker, get_sequences_from_db
 import utils.saver as saver
 import utils.formatting as formatting
 import engine.dependencies as dependencies
 import engine.core.sequences as sequences
 import engine.core.requests as requests
+import engine.primitives as primitives
 import engine.core.fuzzing_monitor as fuzzing_monitor
 from engine.core.fuzzing_requests import FuzzingRequestCollection
 from engine.core.requests import GrammarRequestCollection
@@ -149,6 +150,8 @@ def apply_checkers(checkers, renderings, global_lock):
         try:
             if checker.enabled:
                 RAW_LOGGING(f"Checker: {checker.__class__.__name__} kicks in\n")
+                # Clear the sequence trace since each checker will have its own sequence trace
+                SequenceTracker.clear_sequence_trace()
                 SequenceTracker.set_origin(checker.__class__.__name__)
                 checker.apply(renderings, global_lock)
                 RAW_LOGGING(f"Checker: {checker.__class__.__name__} kicks out\n")
@@ -232,7 +235,7 @@ def render_one(seq_to_render, ith, checkers, generation, global_lock, garbage_co
             break
 
         # If in smoke test mode, log the spec coverage for the invalid rendering.
-        if Settings().in_smoke_test_mode() and\
+        if Settings().in_smoke_test_mode() and \
                 current_seq.last_request._current_combination_id < Settings().max_logged_request_combinations:
             renderings.sequence.last_request.stats.set_all_stats(renderings)
             logger.print_request_coverage(rendered_sequence=renderings, log_rendered_hash=True)
@@ -250,7 +253,11 @@ def render_one(seq_to_render, ith, checkers, generation, global_lock, garbage_co
 
     # for random-walk and cheap fuzzing, one valid rendering is enough.
     # for directed smoke test mode, only a single valid rendering is needed.
-    if Settings().fuzzing_mode in ['random-walk',  'bfs-cheap', 'bfs-minimal', 'directed-smoke-test']:
+    # For scenario replay mode, only the first rendering should be used
+    if Settings().fuzzing_mode in ['random-walk',
+                                   'bfs-cheap',
+                                   'bfs-minimal',
+                                   'directed-smoke-test'] or Settings().in_scenario_replay_mode():
         if renderings.valid:
             valid_renderings.append(renderings.sequence)
 
@@ -402,8 +409,9 @@ def render_with_cache(seq_collection, fuzzing_pool, checkers, generation, global
                     current_seq.last_request.stats.valid = 0
                     current_seq.last_request.stats.invalid_due_to_sequence_failure = 1
                     current_seq.last_request.stats.set_matching_prefix(failed_prefix=first_found)
-                    logger.print_request_coverage(request=current_seq.last_request,
-                                                  log_rendered_hash=False)
+                    if Settings().in_smoke_test_mode():
+                        logger.print_request_coverage(request=current_seq.last_request,
+                                                    log_rendered_hash=False)
 
                     # Print information about the attempt to render this request to main.txt
                     print_rendering_to_main_txt(current_seq)
@@ -558,6 +566,67 @@ def compute_request_goal_seq(request, req_collection):
                              f"\nbecause a sequence satisfying all dependencies was not found.\n", True)
     return req_list
 
+def find_request_id(definition_blocks, fuzzing_requests):
+    """ Find the requestId of the request in the definition blocks.
+    Currently, 'requestId' is the path of the request as defined in the Swagger/OpenAPI spec.
+
+    @param definition_blocks: The definition blocks of the request.
+    @type  definition_blocks: List
+    @param fuzzing_requests: The collection of requests to fuzz.
+    @type  fuzzing_requests: FuzzingRequestCollection.
+
+    @return: The request id of the request in the definition blocks.
+    @rtype : Str
+
+    """
+    def extract_http_path_and_method(http_request):
+        lines = http_request.split('\\r\\n')
+        # The first line of the HTTP request contains the method, path, and HTTP version
+        first_line = lines[0]
+        parts = first_line.split(' ')
+        method = parts[0]
+        path = parts[1]
+        if '?' in path:
+            path_without_query = path.split('?')[0]
+        else:
+            # The path does not contain any query parameters
+            path_without_query = path
+        return path_without_query, method
+
+    path_only, method = extract_http_path_and_method(definition_blocks)
+    # remove the basepath from the path
+    # TODO: support different base paths during the recording vs. replay
+    # The code below assumes the basepath at time of the recording is the same as the current basepath
+    #
+    definition_parts = path_only.split("/")
+    # For each request ID in 'fuzzing_requests', split it into parts.
+    # Walk the parts to find the matching request ID
+    for fuzzing_request in fuzzing_requests:
+        if method != fuzzing_request.method:
+            continue
+        if fuzzing_request.endpoint_no_dynamic_objects is None:
+            continue
+
+        request_id_parts = fuzzing_request.endpoint_no_dynamic_objects.split("/")
+        request_basepath = fuzzing_request.basepath
+        if path_only.startswith(request_basepath):
+            path_only = path_only[len(request_basepath):]
+            definition_parts = path_only.split("/")
+
+        if len(request_id_parts) != len(definition_parts):
+            continue
+
+        for i in range(len(request_id_parts)):
+            if request_id_parts[i].startswith("{"):
+                continue
+            if definition_parts[i] != request_id_parts[i]:
+                break
+        else:
+            return fuzzing_request
+
+    # If no request ID could be determined, simply use the path from the request definition blocks.
+    return requests.Request(definition=[definition_blocks], requestId=path_only)
+
 def generate_sequences(fuzzing_requests, checkers, fuzzing_jobs=1, garbage_collector=None):
     """ Implements core restler algorithm.
 
@@ -630,24 +699,58 @@ def generate_sequences(fuzzing_requests, checkers, fuzzing_jobs=1, garbage_colle
         # When in smoke test mode, calculate the specific sequences that should
         # be executed.  The 'seq_constraints_by_generation' dictionary contains, for
         # each generation, the only sequences that should be rendered for that generation.
+        # Likewise, if a replay scenario is specified, only the sequences from the replay
+        # scenario should be rendered.
         seq_constraints_by_generation={}
         extended_requests=[]
-        max_seq_len = max(max_len, fuzzing_requests.size)
 
-        for i in range(1, max_seq_len + 1):
-            seq_constraints_by_generation[i] = []
-
+        specific_target_sequences = None
         if Settings().in_smoke_test_mode():
-            max_len = 0
-            for i in range(1, max_seq_len):
-                seq_constraints_by_generation[i].append(sequences.Sequence([]))
+            specific_target_sequences = []
             for request in fuzzing_requests:
                 req_list = compute_request_goal_seq(request, fuzzing_requests)
                 if req_list:
-                    generation_idx = len(req_list)
-                    seq_constraints_by_generation[generation_idx].append(sequences.Sequence(req_list))
-                    if max_len < generation_idx:
-                        max_len = generation_idx
+                    specific_target_sequences.append(sequences.Sequence(req_list))
+
+        if Settings().in_scenario_replay_mode():
+            specific_target_sequences = []
+            request_block_sequences = get_sequences_from_db(Settings().trace_db_replay_file,
+                                                            Settings().trace_db_replay_include_origins)
+            for seq in request_block_sequences:
+                req_list = []
+                for definition_block_data in seq:
+                    request_in_collection = find_request_id(definition_block_data['request_text'], fuzzing_requests)
+                    req_copy = copy.copy(request_in_collection)
+                    if 'request_blocks' in definition_block_data:
+                        req_copy._definition = definition_block_data['request_blocks']
+                    else:
+                        str = primitives.restler_static_string(definition_block_data['request_text'])
+                        req_copy._definition = [str]
+                    # Add the parser to enable GC to work
+                    metadata = request_in_collection.metadata
+                    if metadata:
+                        req_copy._definition.append(metadata)
+                    # Update the total number of request combinations
+                    # This prevents confusing logging later on that is based on a different number of feasible
+                    # combinations
+                    req_copy._total_feasible_combinations = 0
+                    req_list.append(req_copy)
+                specific_target_sequences.append(sequences.Sequence(req_list))
+
+        if specific_target_sequences is not None:
+            max_seq_len = max(max_len, fuzzing_requests.size)
+
+            for i in range(1, max_seq_len + 1):
+                seq_constraints_by_generation[i] = []
+
+            max_len = 0
+            for i in range(1, max_seq_len):
+                seq_constraints_by_generation[i].append(sequences.Sequence([]))
+            for seq in specific_target_sequences:
+                generation_idx = seq.length
+                seq_constraints_by_generation[generation_idx].append(seq)
+                if max_len < generation_idx:
+                    max_len = generation_idx
                 # Else an error message was printed and we skip this request
             max_len = max_len + 1
 
@@ -670,7 +773,7 @@ def generate_sequences(fuzzing_requests, checkers, fuzzing_jobs=1, garbage_colle
             fuzzing_mode = fuzzing_schedule[length]
 
             # extend sequences with new request templates
-            if seq_constraints_by_generation[generation]:
+            if specific_target_sequences is not None and seq_constraints_by_generation[generation]:
                 # Only execute the sequences specified for this generation
                 seq_collection = []
                 extended_requests=[]
@@ -698,12 +801,13 @@ def generate_sequences(fuzzing_requests, checkers, fuzzing_jobs=1, garbage_colle
             try:
                 seq_collection_exhausted = False
 
-                if seq_constraints_by_generation[generation]:
+                if not Settings().in_scenario_replay_mode() and specific_target_sequences is not None and \
+                    seq_constraints_by_generation[generation]:
                     # This assignment of seq_collection is performed only for logging purposes.
                     # It will get reset on the next loop iteration.
                     seq_collection = render_with_cache(seq_collection, fuzzing_pool, checkers,
-                                                       generation, global_lock, seq_rendering_cache,
-                                                       garbage_collector)
+                                                    generation, global_lock, seq_rendering_cache,
+                                                    garbage_collector)
                 else:
                     seq_collection = render(seq_collection, fuzzing_pool, checkers, generation, global_lock,
                                             garbage_collector)
@@ -819,7 +923,7 @@ def replay_sequence_from_log(replay_log_filename, token_refresh_cmd):
 
                 # Append the request data to the list
                 # None is for the parser, which does not currently run during replays.
-                send_data.append(sequences.SentRequestData(line, None))
+                send_data.append(sequences.SentRequestData("-", line, None))
             elif line.startswith(logger.BUG_LOG_NOTIFICATION_ICON):
                 line = line.lstrip(logger.BUG_LOG_NOTIFICATION_ICON)
                 if line.startswith('producer_timing_delay'):
@@ -839,8 +943,4 @@ def replay_sequence_from_log(replay_log_filename, token_refresh_cmd):
         execute_token_refresh_cmd(token_refresh_cmd)
 
     # Send the requests
-    try:
-        SequenceTracker.set_origin('replay')
-        sequence.replay_sequence()
-    finally:
-        SequenceTracker.clear_origin()
+    sequence.replay_sequence()

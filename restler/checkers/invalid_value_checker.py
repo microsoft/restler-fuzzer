@@ -245,11 +245,11 @@ class InvalidValueChecker(CheckerBase):
         # Add the sent prefix requests for replay
         checked_seq.set_sent_requests_for_replay(new_seq.sent_request_data_list)
         # Create a placeholder sent data, so it can be replaced below when bugs are detected for replays
-        checked_seq.append_data_to_sent_list("GET /", None,  HttpResponse(), max_async_wait_time=req_async_wait)
+        checked_seq.append_data_to_sent_list("-", "GET /", None,  HttpResponse(), max_async_wait_time=req_async_wait)
 
         # Render the current request combination, but get the list of primitive
         # values before they are concatenated.
-        rendered_values, parser, tracked_parameters, updated_writer_variables = \
+        rendered_values, parser, tracked_parameters, updated_writer_variables, replay_blocks = \
             next(last_request.render_iter(self._req_collection.candidate_values_pool,
                                            skip=last_request._current_combination_id - 1,
                                            preprocessing=False,
@@ -310,7 +310,8 @@ class InvalidValueChecker(CheckerBase):
                     if not isinstance(fuzzed_value, str):
                         print("not a string!")
                     rendered_data = "".join(rendered_values)
-
+                    # Get the replay blocks that contain the value currently being fuzzed
+                    fuzzed_replay_blocks = request_utilities.get_replay_blocks(last_request.definition, rendered_values)
                     # Check time budget
                     if Monitor().remaining_time_budget <= 0:
                         raise TimeOutException('Exceed Timeout')
@@ -339,7 +340,10 @@ class InvalidValueChecker(CheckerBase):
                     status_code = response.status_code
 
                     if response and self._rule_violation(checked_seq, response, valid_response_is_violation=False):
-                        checked_seq.replace_last_sent_request_data(rendered_data, parser, response, max_async_wait_time=req_async_wait)
+                        checked_seq.replace_last_sent_request_data(last_request.method_endpoint_hex_definition,
+                                                                   rendered_data, parser, response,
+                                                                   max_async_wait_time=req_async_wait,
+                                                                   replay_blocks=fuzzed_replay_blocks)
                         self._print_suspect_sequence(checked_seq, response)
                         BugBuckets.Instance().update_bug_buckets(checked_seq, response.status_code, origin=self.__class__.__name__)
 

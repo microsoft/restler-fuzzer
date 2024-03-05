@@ -28,7 +28,7 @@ Any resources that were created during the replay will NOT be automatically dele
 unless the replaying sequence itself deletes the resource.
 Any resources created should be removed manually.
 
-## Replay log format
+### Replay log format
 
 The replay log is created anytime a new bug bucket is reported.
 This replay log consists of the full sequence of requests that were sent to create the bug.
@@ -60,7 +60,7 @@ You may notice that content-length and user-agent are not included in the replay
 These fields are populated automatically by RESTler when the request is sent to the server,
 so they are not needed (and shouldn't exist) in the log.
 
-## Using replay logs to send custom sequences
+### Using replay logs to send custom sequences
 While the main purpose of replay logs are to re-test bugs previously found,
 it is also possible to use these files as a way to send custom sequences to RESTler, similar to how you may send a request through *curl* or *Postman*.
 
@@ -84,4 +84,25 @@ while max_async_wait_time will attempt to perform an asynchronous polling-wait b
 with a maximum resource-creation-wait-time of the max_async_wait_time setting.
 
 
-##
+## Using the Trace Database
+
+Previously executed RESTler sequences may be re-played by configuring a trace database to be written during `test` or `fuzz` tasks, then specifying it as the replay file for the `replay` task.
+
+For example:
+
+1. Generate the trace database by adding the following to the engine settings:
+    ```json
+    {
+        "use_trace_database": true,
+        "trace_database": {
+            "root_dir": "/path/to/trace_databases",
+        },
+    }
+    ```
+
+2. Replay the same sequences of requests (in the same order) from the replay log.  The below command specifies to run the RESTler `replay` task.  The grammar, dictionary, and engine settings files must be specified to enable generating unique dynamic object names and garbage collection as in the original run (note: custom payloads from the specified dictionary will not currently be used for replay).  If the grammar and dictionary are omitted, the replay will execute the same request text as sent
+in the original run, and GC will not be triggered.
+
+    >restler.exe replay --replay_log /path/to/trace_databases/trace_data.ndjson --grammar_file ./Compile/grammar.py --dictionary_file ./Compile/dict.json --host localhost --target_port 8888  --settings ./Compile/engine_settings.json
+
+Replaying sequences from checkers is enabled for experimental purposes, but is not fully supported at this time.

@@ -385,6 +385,21 @@ Dictionary containing settings for the trace database.
 
 `cleanup_time` float (default 10): The maximum amount of time, in seconds, to wait for the data serialization to be complete before exiting.
 
+### replay: dict (default empty)
+
+Dictionary containing replay settings.
+
+`trace_database_file_path` str (default None):  The path to the trace database from which to replay requests.
+Overrides the value of `--replay_file` if specified on the command line.
+
+`include_origins` list (default empty list=No filtering):  When replaying requests from the trace database, specify a list of origin values to use.  For example:
+
+```json
+  "replay": {
+    "include_origins": ["main_driver", "InvalidValueChecker"]
+  }
+```
+
 ### request_throttle_ms: float (default None)
 The time, in milliseconds, to throttle each request being sent.
 This is here for special cases where the server will block requests from connections that arrive too quickly.

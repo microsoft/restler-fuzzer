@@ -1122,7 +1122,7 @@ class PayloadBodyChecker(CheckerBase):
         cnt = 0
 
         # iterate through different value combinations
-        for rendered_data, parser,_,updated_writer_variables in new_request.render_iter(
+        for rendered_data, parser,_,updated_writer_variables, replay_blocks in new_request.render_iter(
             self._req_collection.candidate_values_pool
         ):
             # check time budget
@@ -1230,7 +1230,8 @@ class PayloadBodyChecker(CheckerBase):
             # analyze response -- error
             if self._rule_violation(seq, response, valid_is_violation):
                 # Append the new request to the sequence before filing the bug
-                seq.replace_last_sent_request_data(rendered_data, parser, response)
+                seq.replace_last_sent_request_data(request.method_endpoint_hex_definition,
+                                                   rendered_data, parser, response)
                 err_seq = sequences.Sequence(seq.requests[:-1] + [new_request])
                 err_seq.set_sent_requests_for_replay(seq.sent_request_data_list)
                 self._print_suspect_sequence(err_seq, response)

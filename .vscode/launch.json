@@ -17,7 +17,7 @@
             "request": "launch",
             "program": "${workspaceFolder}\\restler\\end_to_end_tests\\test_quick_start.py",
             "args": [
-                "d:\\restlerdrop\\main",
+                "d:\\restlerdrop\\tracedb2",
             ]
         },
         {
@@ -96,6 +96,48 @@
                 "d:\\test\\demo_server\\Compile\\dict.json",
                 "--settings",
                 "d:\\test\\demo_server\\Compile\\engine_settings.json",
+                "--no_ssl",
+                "--host",
+                "localhost",
+                "--target_port",
+                "8888",
+                "--garbage_collection_interval",
+                "30"
+            ],
+            "justMyCode": false
+        },
+        {
+            "name": "Python: replay mode with grammar",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}\\restler\\restler.py",
+            "args": [
+                "--replay_log",
+                "D:\\test\\demo_server\\replaytests3\\replay_trace_data.ndjson",
+                "--restler_grammar",
+                "d:\\test\\demo_server\\replaytests3\\Compile\\grammar.py",
+                "--custom_mutations",
+                "d:\\test\\demo_server\\replaytests3\\Compile\\dict.json",
+                "--settings",
+                "d:\\test\\demo_server\\replaytests3\\Compile\\engine_settings.json",
+                "--no_ssl",
+                "--host",
+                "localhost",
+                "--target_port",
+                "8888",
+                "--garbage_collection_interval",
+                "30"
+            ],
+            "justMyCode": false
+        },
+        {
+            "name": "Python: replay mode no grammar",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}\\restler\\restler.py",
+            "args": [
+                "--replay_log",
+                "D:\\test\\demo_server\\replaytests\\replay_trace_data.ndjson",
                 "--no_ssl",
                 "--host",
                 "localhost",

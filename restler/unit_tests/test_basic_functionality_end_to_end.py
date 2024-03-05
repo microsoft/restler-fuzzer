@@ -1347,7 +1347,7 @@ class FunctionalityTests(unittest.TestCase):
                 else:
                     baseline_trace_db_path = os.path.join(Test_File_Directory, "trace_data_baseline_checkers.ndjson")
 
-                print(f"Comparing trace DB to baseline: {baseline_trace_db_path}")
+                print(f"Comparing trace DB {trace_db_path} to baseline: {baseline_trace_db_path}")
 
                 baseline_deserializer = trace_db.JsonTraceLogReader(log_file_paths=[baseline_trace_db_path])
                 actual_deserializer = trace_db.JsonTraceLogReader(log_file_paths=[trace_db_path])
@@ -1419,7 +1419,7 @@ class FunctionalityTests(unittest.TestCase):
         """ This test executes a replay file with the setting to produce a trace database enabled,
         then checks the database against a checked-in baseline.  Both databases are deserialized, and the
         contents are compared, excluding timestamps and ids.
-   
+
         The main purpose of this test is to have a short sanity run with a small baseline that can be manually inspected.
         """
 

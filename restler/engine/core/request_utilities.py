@@ -11,6 +11,7 @@ import uuid
 import types
 import threading
 import os
+import copy
 
 from engine.errors import ResponseParsingException
 from engine.errors import TransportLayerException
@@ -332,6 +333,81 @@ def resolve_dynamic_primitives(values, candidate_values_pool):
                 values[i] = ""
 
     return values
+
+def get_replay_blocks(req_definition, rendered_values):
+    """ After dynamic primitives are resolved, get the blocks that should be saved for replay.
+        The following modifications should be made to the original request definition:
+        - all primitives must be replaced with a static string containing the payload value.
+        In particular, values obtained from value generators should be constants,
+        since those specific values may have triggered bugs that are being reproduced.
+        - dynamic objects must be tracked (to enable generating unique IDs and in
+        order for GC to work).
+
+    @param req_definition: The pool of values for primitive types.
+    @type  req_definition: List [Tuple]
+    @param rendered_values: List of primitive type payloads.
+    @type rendered_values: List
+
+    @return: List of definition blocks that should be used for replay.
+    @rtype : List [Tuple]
+
+    """
+    # Only generate the replay blocks if writing the trace database
+    if not Settings().use_trace_database:
+        return None
+
+    if len(rendered_values) != len(req_definition):
+        raise Exception("The value list does not match the request definition.")
+
+    req_definition_copy = copy.copy(req_definition)
+    for i in range(len(rendered_values)):
+        request_block = req_definition_copy[i]
+        request_block = list(request_block)
+        block_value = rendered_values[i]
+        primitive_type = request_block[0]
+
+        # Handling dynamic primitives that need fresh rendering every time
+        if primitive_type == primitives.FUZZABLE_UUID4:
+            # No change needed - new GUID should be generated.
+            pass
+        # Handle enums that have a list of values instead of one default val
+        elif primitive_type == primitives.FUZZABLE_GROUP:
+            # replace default with concrete rendered value
+            request_block[2] = [block_value]
+            # Remove examples
+            request_block[4] = []
+        # Handle static whose value is the field name
+        elif primitive_type == primitives.STATIC_STRING:
+            # keep the element the same
+            pass
+        # Handle multipart form data
+        elif primitive_type == primitives.FUZZABLE_MULTIPART_FORMDATA:
+            # replace the default with the concrete rendered value
+            request_block[1] = block_value
+        # Handle custom (user defined) payloads
+        elif primitive_type == primitives.CUSTOM_PAYLOAD or\
+                primitive_type == primitives.CUSTOM_PAYLOAD_HEADER or\
+                primitive_type == primitives.CUSTOM_PAYLOAD_QUERY:
+            # Change it to a static string, leaving everything else the same
+            request_block[0] = primitives.STATIC_STRING
+            request_block[1] = block_value
+
+        # Handle custom (user defined) static payload with uuid4 suffix
+        elif primitive_type == primitives.CUSTOM_PAYLOAD_UUID4_SUFFIX:
+            # Leave as is - a new unique name should be generated.
+            pass
+        elif primitive_type == primitives.REFRESHABLE_AUTHENTICATION_TOKEN:
+            values = [primitives.restler_refreshable_authentication_token]
+        # Handle all the rest
+        else:
+            # Make it a static string with the concrete rendered value
+            request_block[0] = primitives.STATIC_STRING
+            request_block[1] = block_value
+            # Because the rendered value is already quoted, set 'is_quoted' to False
+            request_block[2] = False
+
+        req_definition_copy[i] = tuple(request_block)
+    return req_definition_copy
 
 def send_request_data(rendered_data, req_timeout_sec=None, reconnect=None, http_sock=None):
     """ Helper that sends a request's rendered data to the server

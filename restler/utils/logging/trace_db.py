@@ -56,7 +56,7 @@ class SequenceTracker:
                                             sequence_tags=tags)
 
     @staticmethod
-    def initialize_request_trace(request_id=None, combination_id=None, tags={}):
+    def initialize_request_trace(request_id=None, combination_id=None, tags={}, replay_blocks=None):
         """Initialize trace log for the request."""
         trace = _get_trace()
 
@@ -71,6 +71,7 @@ class SequenceTracker:
 
         sequence_trace.request_id = request_id
         sequence_trace.tags = tags
+        sequence_trace.replay_blocks = replay_blocks
 
     @staticmethod
     def clear_sequence_trace():
@@ -107,6 +108,48 @@ class SequenceTracker:
             return None
         return trace['origin']
 
+def get_sequences_from_db(db_file_path, include_origins=None):
+    """Gets the sequences from the trace database.
+    @param db_file_path: The path to the trace database.
+    @type  db_file_path: String
+    @param include_origins: The list of origin values to include.  If None, no filtering is done.
+    @type  include_origins: List
+
+    @return: The sequences from the trace database.  Each sequence contains a list of requests.  Each request is
+                a dictionary containing the request text and replay blocks, if available.
+    @rtype : List[List[Dict]]
+    """
+    log_reader = JsonTraceLogReader(log_file_paths=[db_file_path])
+    trace_messages = log_reader.load()
+    sequences = [] # the sequences should be replayed in the same order as they were generated
+    current_sequence_id = None
+    current_req_list = []
+    # First, collect the requests by sequence ID.  For a particular origin, they should not be interleaved.
+    for i, x in enumerate(trace_messages):
+        if x.request is not None:
+            if include_origins is not None and x.origin not in include_origins:
+                continue
+            if current_sequence_id is None:
+                current_sequence_id = x.sequence_id
+            elif current_sequence_id != x.sequence_id:
+                # This is a new sequence
+                sequences.append(current_req_list)
+                current_req_list = []
+                current_sequence_id = x.sequence_id
+
+            # Handle cases where data in the database may have been written during multiple runs,
+            # only some of which supplied 'replay_blocks'.
+            replay_data={}
+            # Always save the request text, since it is used to find the request ID
+            replay_data['request_text'] = x.request
+            if hasattr(x, 'replay_blocks') and x.replay_blocks is not None:
+                replay_data['request_blocks'] = x.replay_blocks
+            current_req_list.append(replay_data)
+
+    # Append the last sequence
+    if len(current_req_list) > 0:
+        sequences.append(current_req_list)
+    return sequences
 
 class TraceDatabase:
     """ This class enables structured storage and retrieval of RESTler logs.
@@ -137,7 +180,10 @@ class TraceDatabase:
                                             sequence_id=tls_trace_log.sequence_id,
                                             combination_id=tls_trace_log.combination_id,
                                             sequence_tags=tls_trace_log.sequence_tags,
-                                            tags=tls_trace_log.tags)
+                                            tags=tls_trace_log.tags,
+                                            # Only log the replay blocks for sent requests
+                                            replay_blocks=None if request is None else tls_trace_log.replay_blocks)
+
             trace_log.origin = SequenceTracker.get_origin()
             if request:
                 trace_log.request = request
@@ -149,9 +195,11 @@ class TraceDatabase:
                     trace_log.received_timestamp = timestamp
             if tags:
                 trace_log.tags.update(tags)
-            if 'origin' not in trace_log.tags and trace_log.origin is None:
+
+            if 'origin' not in trace_log.tags and 'origin' not in trace_log.sequence_tags and trace_log.origin is None:
                 raise Exception(f"Missing origin: request: {trace_log.request_id}, sequence: {trace_log.sequence_id}")
-            self.log(trace_log.to_dict())
+            record = trace_log.to_dict()
+            self.log(record)
         except Exception as error:
             # print the callstack
             import traceback

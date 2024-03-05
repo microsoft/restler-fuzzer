@@ -104,8 +104,8 @@ class SchemaParserTest(unittest.TestCase):
         # TODO: enums equal
 
         # Payloads equal
-        original_rendered_data,_,_,_ = next(original_req.render_iter(req_collection.candidate_values_pool))
-        generated_rendered_data,_,_,_ = next(generated_req.render_iter(req_collection.candidate_values_pool))
+        original_rendered_data,_,_,_,_ = next(original_req.render_iter(req_collection.candidate_values_pool))
+        generated_rendered_data,_,_,_,_ = next(generated_req.render_iter(req_collection.candidate_values_pool))
 
         original_rendered_data = original_rendered_data.replace("\r\n", "")
 
@@ -370,7 +370,7 @@ class SchemaParserTest(unittest.TestCase):
 
         combinations_count = 0
         for x, is_example in req_with_body.get_schema_combinations(use_grammar_py_schema=False):
-            rendered_data,_,_,_ = next(x.render_iter(request_collection.candidate_values_pool))
+            rendered_data,_,_,_,_ = next(x.render_iter(request_collection.candidate_values_pool))
             self.assertTrue("\"id\"" not in rendered_data)
             self.assertTrue("\"person\"" in rendered_data)
             self.assertTrue("\"name\"" in rendered_data)
