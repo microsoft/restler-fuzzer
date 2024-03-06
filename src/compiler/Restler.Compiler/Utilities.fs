@@ -57,8 +57,7 @@ module JsonSerialization =
                 JsonSerializerSettings(
                     NullValueHandling = NullValueHandling.Ignore,
                     MissingMemberHandling = MissingMemberHandling.Error,
-                    DateParseHandling = DateParseHandling.None,
-                    ContractResolver = Compact.Strict.RequireNonOptionalPropertiesContractResolver()
+                    DateParseHandling = DateParseHandling.None
                 )
             settings.Converters.Add(CompactUnionJsonConverter(true, true))
             settings
