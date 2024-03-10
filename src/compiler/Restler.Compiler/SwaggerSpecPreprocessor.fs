@@ -86,8 +86,7 @@ module EscapeCharacters =
     let refRegex = Regex("(?<![/])/")
 
     let getRefParts refPath =
-        let r = replaceSwaggerEscapeCharacters refPath
-        refRegex.Split(r) |> Array.skip 1
+        refRegex.Split(refPath) |> Array.skip 1 |> Array.map replaceSwaggerEscapeCharacters
 
 /// Find the object at 'refPath' in the specified file.
 let getObjInFile filePath (refPath:string) (jsonSpecs:Dictionary<string, JObject>) =
