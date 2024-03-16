@@ -72,6 +72,29 @@ class TimeOutException(Exception):
         return repr(self.parameter)
 
 
+class TerminateOnBugFoundException(Exception):
+    def __init__(self, value):
+        """ Initializes error object when a bug is found.
+
+        @param value: The error string.
+        @type  value: Str
+
+        @return: None
+        @rtype : None
+
+        """
+        self.parameter = value
+
+    def __str__(self):
+        """ Return printable object.
+
+        @return: Error message.
+        @rtype : Str
+
+        """
+        return repr(self.parameter)
+
+
 class ExhaustSeqCollectionException(Exception):
     def __init__(self, value):
         """ Initializes error object when running out or renderings.

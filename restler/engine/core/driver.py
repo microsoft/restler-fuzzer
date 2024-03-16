@@ -33,10 +33,11 @@ from engine.core.request_utilities import execute_token_refresh_cmd
 from engine.core.request_utilities import get_hostname_from_line
 from engine.core.fuzzing_monitor import Monitor
 from engine.errors import TimeOutException
-from engine.errors import ExhaustSeqCollectionException
+from engine.errors import ExhaustSeqCollectionException, TerminateOnBugFoundException
 from engine.errors import InvalidDictionaryException
 from engine.transport_layer import messaging
 from utils.logger import raw_network_logging as RAW_LOGGING
+from engine.bug_bucketing import BugBuckets
 
 def validate_dependencies(consumer_req, producer_seq):
     """ Validates that the dependencies required by a consumer are a subset of
@@ -293,6 +294,13 @@ def render_one(seq_to_render, ith, checkers, generation, global_lock, garbage_co
 
     # Release any saved dynamic objects
     dependencies.clear_saved_local_dyn_objects()
+
+    # Check if run should be terminated after finding a bug
+    if Settings().stop_on_bug_found:
+        bug_counts = BugBuckets.Instance().num_bug_buckets()
+        if bug_counts:
+            raise TerminateOnBugFoundException("")
+
     return valid_renderings
 
 def render_parallel(seq_collection, fuzzing_pool, checkers, generation, global_lock, garbage_collector):
@@ -806,8 +814,8 @@ def generate_sequences(fuzzing_requests, checkers, fuzzing_jobs=1, garbage_colle
                     # This assignment of seq_collection is performed only for logging purposes.
                     # It will get reset on the next loop iteration.
                     seq_collection = render_with_cache(seq_collection, fuzzing_pool, checkers,
-                                                    generation, global_lock, seq_rendering_cache,
-                                                    garbage_collector)
+                                                       generation, global_lock, seq_rendering_cache,
+                                                       garbage_collector)
                 else:
                     seq_collection = render(seq_collection, fuzzing_pool, checkers, generation, global_lock,
                                             garbage_collector)
@@ -826,6 +834,11 @@ def generate_sequences(fuzzing_requests, checkers, fuzzing_jobs=1, garbage_colle
                 logger.write_to_main("Exhausted collection...")
                 seq_collection = []
                 seq_collection_exhausted = True
+
+            except TerminateOnBugFoundException:
+                logger.write_to_main("Bug found, terminating...")
+                seq_collection = []
+                terminate_on_bug_found = True
 
             logger.write_to_main(
                 f"{formatting.timestamp()}: Generation: {generation} / "
@@ -850,10 +863,13 @@ def generate_sequences(fuzzing_requests, checkers, fuzzing_jobs=1, garbage_colle
                 global_lock
             )
 
-            if timeout_reached or seq_collection_exhausted:
+            if timeout_reached or seq_collection_exhausted or terminate_on_bug_found:
                 if timeout_reached:
                     should_stop = True
                     print("timeout reached")
+                elif terminate_on_bug_found:
+                    should_stop = True
+                    print("bug found")
                 else:
                     print("seq collection exhausted")
                 break

@@ -532,6 +532,9 @@ class RestlerSettings(object):
         if self._generate_random_seed.val:
             self._random_seed.val = time.time()
 
+        ## Stop on bug found
+        self._stop_on_bug_found = SettingsArg('stop_on_bug_found', bool, False, user_args)
+
         self._connection_settings = ConnectionSettings(self._target_ip.val,
                                                        self._target_port.val,
                                                        not self._no_ssl.val,
@@ -758,6 +761,10 @@ class RestlerSettings(object):
     @property
     def random_seed(self):
         return self._random_seed.val
+
+    @property
+    def stop_on_bug_found(self):
+        return self._stop_on_bug_found.val
 
     @property
     def generate_random_seed(self):
