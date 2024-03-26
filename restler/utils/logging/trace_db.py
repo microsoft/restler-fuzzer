@@ -126,7 +126,7 @@ def get_sequences_from_db(db_file_path, include_origins=None):
     current_req_list = []
     # First, collect the requests by sequence ID.  For a particular origin, they should not be interleaved.
     for i, x in enumerate(trace_messages):
-        if x.request is not None:
+        if x.request is not None or x.replay_blocks is not None:
             if include_origins is not None and x.origin not in include_origins:
                 continue
             if current_sequence_id is None:
@@ -198,7 +198,7 @@ class TraceDatabase:
 
             if 'origin' not in trace_log.tags and 'origin' not in trace_log.sequence_tags and trace_log.origin is None:
                 raise Exception(f"Missing origin: request: {trace_log.request_id}, sequence: {trace_log.sequence_id}")
-            record = trace_log.to_dict()
+            record = trace_log.to_dict(omit_request_text=Settings().trace_db_omit_request_text)
             self.log(record)
         except Exception as error:
             # print the callstack

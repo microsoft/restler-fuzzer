@@ -634,6 +634,10 @@ class RestlerSettings(object):
         return self._replay_settings.val.get('trace_database_file_path')
 
     @property
+    def trace_db_omit_request_text(self):
+        return self._trace_db_settings.val.get('omit_request_text')
+
+    @property
     def trace_db_replay_include_origins(self):
         if 'include_origins' in self._replay_settings.val:
             include_origins = self._replay_settings.val['include_origins']

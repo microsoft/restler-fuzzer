@@ -90,7 +90,7 @@ class FunctionalityTests(unittest.TestCase):
 
     def run_abc_smoke_test(self, test_file_dir, grammar_file_name, fuzzing_mode, settings_file=None, dictionary_file_name=None,
                            failure_expected=False, common_settings=Common_Settings,
-                           enable_checkers=None):
+                           enable_checkers=None, replay_file_path=None):
         grammar_file_path = os.path.join(test_file_dir, grammar_file_name)
         if dictionary_file_name is None:
             dictionary_file_name = "abc_dict.json"
@@ -102,6 +102,9 @@ class FunctionalityTests(unittest.TestCase):
         ]
         if enable_checkers is not None:
             args = args + ['--enable_checkers', f'{enable_checkers}']
+        if replay_file_path is not None:
+            args = args + ['--replay_log', f"{replay_file_path}"]
+
         if settings_file:
             if Path(settings_file).exists():
                 settings_file_path = settings_file
@@ -1436,8 +1439,8 @@ class FunctionalityTests(unittest.TestCase):
         # run restler engine with replay file
         replay_file_path = os.path.join(Test_File_Directory, "replay_sanity_test_for_tracedb.replay.txt")
         args = Common_Settings + [
-        '--replay_log', f"{replay_file_path}",
-        '--settings', f'{new_settings_file_path}'
+            '--replay_log', f"{replay_file_path}",
+            '--settings', f'{new_settings_file_path}'
         ]
         self.run_restler_engine(args)
 
@@ -1478,3 +1481,83 @@ class FunctionalityTests(unittest.TestCase):
             if x != y:
                 message = f"different baseline log \n{json.dumps(x.to_dict(), indent=4)} \nto actual log \n{json.dumps(y.to_dict(), indent=4)}"
                 self.fail(f"Trace DBs do not match: {message}")
+
+    def test_trace_database_ndjson_replay_blocks(self):
+        """ This test executes a replay ndjson file with the setting to produce a trace database enabled,
+        then checks the database against a checked-in baseline.  Both databases are deserialized, and the
+        contents are compared, excluding timestamps and ids.
+
+        The main purpose of this test is to confirm that an ndjson containing only replay blocks (without 
+        the request text) can be used for replay.
+        """
+        def run_test(omit_request_text=True):
+
+            # create a settings file with the trace database enabled
+            new_settings_file_path = os.path.join(Test_File_Directory, f"tmp_trace_db_settings.json")
+            if os.path.exists(new_settings_file_path):
+                os.remove(new_settings_file_path)
+            settings = {}
+            settings["use_trace_database"] = True
+            settings["include_unique_sequence_id"] = False
+            settings["trace_database"] = {}
+            settings["trace_database"]["omit_request_text"] = omit_request_text
+
+            with open(new_settings_file_path, "w") as outfile:
+                outfile.write(json.dumps(settings, indent=4))
+
+            # Run 'test' mode to produce the trace database
+            self.run_abc_smoke_test(Test_File_Directory, "abc_test_grammar.py", "directed-smoke-test", 
+                                    settings_file=new_settings_file_path)
+            
+            trace_db_path = os.path.join(self.get_experiments_dir(), "trace_data.ndjson")
+
+            # run 'replay' mode with the above trace DB
+            # Copy the DB so it is easy to identify both for debugging
+            replay_file_path = os.path.join(self.get_experiments_dir(), "trace_data_for_replay.ndjson")
+            shutil.copyfile(trace_db_path, replay_file_path)
+            os.remove(trace_db_path)
+            self.run_abc_smoke_test(Test_File_Directory, "abc_test_grammar.py", "directed-smoke-test", 
+                                    settings_file=new_settings_file_path, 
+                                    replay_file_path=replay_file_path)
+
+            # Compare actual trace file with baseline
+            # The trace that's being replayed should be the same as the trace written during replay
+            baseline_trace_db_path = replay_file_path
+            trace_db_path = os.path.join(self.get_experiments_dir(), "trace_data.ndjson")
+
+            print(f"Comparing trace DB to baseline: {baseline_trace_db_path}")
+
+            baseline_deserializer = trace_db.JsonTraceLogReader(log_file_paths=[baseline_trace_db_path])
+            actual_deserializer = trace_db.JsonTraceLogReader(log_file_paths=[trace_db_path])
+
+            baseline_trace_messages = baseline_deserializer.load()
+            actual_trace_messages = actual_deserializer.load()
+
+            # compare origin before normalization (tags are cleared as part of normalize())
+            if len(baseline_trace_messages) != len(actual_trace_messages):
+                for i, x in enumerate(actual_trace_messages):
+                    print(f"Actual trace message[{i}]: {json.dumps(x.to_dict(), indent=4)}")
+                message = f"Prior to normalization, baseline log count {len(baseline_trace_messages)} != actual log count {len(actual_trace_messages)}"
+                self.fail(f"Trace DBs do not match: {message}")
+
+            for i, x in enumerate(baseline_trace_messages):
+                y = actual_trace_messages[i]
+                if x.request is not None:
+                    if y.origin is None:
+                        self.fail("Request is missing origin")
+                    if x.origin != y.origin:
+                        self.fail(f"Actual origin: {y.origin} does not match expected origin: {x.origin}")
+
+            normalized_baseline = [log.normalize() for log in baseline_trace_messages]
+            normalized_actual = [log.normalize() for log in actual_trace_messages]
+            if len(normalized_baseline) != len(normalized_actual):
+                message = f"baseline log count {len(normalized_baseline)} != actual log count {len(normalized_actual)}"
+                self.fail(f"Trace DBs do not match: {message}")
+            for i, x in enumerate(normalized_baseline):
+                y = normalized_actual[i]
+                if x != y:
+                    message = f"different baseline log \n{json.dumps(x.to_dict(), indent=4)} \nto actual log \n{json.dumps(y.to_dict(), indent=4)}"
+                    self.fail(f"Trace DBs do not match: {message}")
+        
+        run_test(omit_request_text=True)
+        run_test(omit_request_text=False)
