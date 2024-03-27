@@ -698,7 +698,7 @@ module private XMsPaths =
 /// Given a list of the parameters found in the spec and the dictionary,
 /// determines which additional injected parameters are specified in the dictionary
 /// and creates the corresponding payloads.
-let private getInjectedCustomPayloadParameters (dictionary:MutationsDictionary) customPayloadType parametersFoundInSpec =
+let private getInjectedCustomPayloadParameters (dictionary:MutationsDictionary) customPayloadType excludedParameters =
     let parameterNames =
         let parameterNamesSpecifiedAsCustomPayloads =
             match customPayloadType with
@@ -709,7 +709,7 @@ let private getInjectedCustomPayloadParameters (dictionary:MutationsDictionary) 
             | _ ->
                 raise (invalidArg "customPayloadType" (sprintf "%A is not supported in this context." customPayloadType))
         parameterNamesSpecifiedAsCustomPayloads
-        |> Seq.filter (fun name -> not (parametersFoundInSpec |> List.contains name))
+        |> Seq.filter (fun name -> not (excludedParameters |> List.contains name))
 
     parameterNames
         |> Seq.map (fun headerName ->
@@ -858,15 +858,59 @@ let generateRequestPrimitives (requestId:RequestId)
         else
             requestParameter, false
 
+    /// Get the injected parameters for the request.
+    /// These are the parameters that are specified in the dictionary, which are not part of the Swagger/OpenAPI spec
+    let getInjectedHeaderOrQueryParameters (specParameters:string list) customPayloadType = 
+        
+        // Filter out any parameters that are request-specific and refer to a different request        
+        let excludedRequestSpecificParameters = 
+            let prefix = dictionary.getRequestTypePayloadPrefix requestId.endpoint (requestId.method.ToString())
+            let parametersSpecifiedAsCustomPayloads = 
+                match customPayloadType with
+                | CustomPayloadType.Header ->
+                    dictionary.getCustomPayloadHeaderParameterNames()
+                | CustomPayloadType.Query ->
+                    dictionary.getCustomPayloadQueryParameterNames()
+                | _ ->
+                    raise (invalidArg "customPayloadType" (sprintf "%A is not supported in this context." customPayloadType))
+            
+            let isRequestSpecificName (name:string) = 
+                // Request-specific custom payloads are of the form <endpoint>/<method>/<parameter name>
+                name.StartsWith('/') &&
+                    SupportedOperationMethods |> Array.exists (fun method -> name.ToLower().Contains(sprintf "/%s/" method))
+
+            parametersSpecifiedAsCustomPayloads 
+            |> Seq.filter (fun name -> isRequestSpecificName name && not (name.StartsWith(prefix)))
+            |> Seq.toList
+
+        // Filter out the spec parameters
+        // Filter out Content-Type, because this is handled separately later, in order to be able to fuzz or replace the content type
+        // Filter both the global content-type and the one for this specific request.
+        let excludedContentTypeParameterNamesInCustomPayload =
+            ["Content-Type" ; (dictionary.getRequestTypePayloadName requestId.endpoint (requestId.method.ToString()) "Content-Type")]
+
+        let injectedCustomPayloadParameters = 
+            getInjectedCustomPayloadParameters dictionary customPayloadType
+                                               (specParameters @ excludedContentTypeParameterNamesInCustomPayload @ excludedRequestSpecificParameters)
+        injectedCustomPayloadParameters
+
     // Generate header parameters.
     // Do not compute dependencies for header parameters unless resolveHeaderDependencies (from config) is true.
     let requestHeaderParameters =
         let headersSpecifiedAsCustomPayloads = dictionary.getCustomPayloadHeaderParameterNames()
         match requestParameters.header with
         | [] ->
-            // Filter out Content-Type, because this is handled separately below
-            let injectedCustomPayloadHeaderParameters = getInjectedCustomPayloadParameters dictionary CustomPayloadType.Header ["Content-Type"]
+            // No headers in Swagger
+            let injectedCustomPayloadHeaderParameters = getInjectedHeaderOrQueryParameters [] CustomPayloadType.Header
             [(ParameterPayloadSource.DictionaryCustomPayload, ParameterList (injectedCustomPayloadHeaderParameters |> seq))]
+        | [(Schema, ParameterList y)] when y |> Seq.isEmpty ->
+            // No headers in Swagger
+            let injectedCustomPayloadHeaderParameters = getInjectedHeaderOrQueryParameters [] CustomPayloadType.Header
+            if injectedCustomPayloadHeaderParameters |> Seq.isEmpty then
+                // TODO: remove this branch and update grammar.py test baselines
+                [(ParameterPayloadSource.Schema, ParameterList [])]
+            else
+                [(ParameterPayloadSource.DictionaryCustomPayload, ParameterList (injectedCustomPayloadHeaderParameters |> seq))]
         | _ ->
             requestParameters.header
             |> List.map
@@ -900,12 +944,16 @@ let generateRequestPrimitives (requestId:RequestId)
 
                         let parameterList =
                             parameterList
-                            // Filter out the 'Content-Length' parameter if it is specified in the spec.
-                            // This parameter must be computed by the engine, and should not be fuzzed.
-                            |> Seq.filter (fun rp -> rp.name <> "Content-Length")
+                            |> Seq.filter (fun rp -> 
+                                // Filter out the 'Content-Length' parameter if it is specified in the spec.
+                                // This parameter must be computed by the engine, and should not be fuzzed.
+                                rp.name <> "Content-Length" &&
+                                // Filter out the 'Content-Type' parameter if it is specified in the spec.
+                                // This parameter is handled separately below in order to enable fuzzing it.
+                                rp.name <> "Content-Type")
                             |> Seq.map (fun requestParameter ->
-                                            replaceCustomPayloads CustomPayloadType.Header headersSpecifiedAsCustomPayloads requestParameter
-                                            |> fst )
+                                replaceCustomPayloads CustomPayloadType.Header headersSpecifiedAsCustomPayloads requestParameter
+                                |> fst )
 
                         let specHeaderParameterNames =
                             parameterList
@@ -913,7 +961,7 @@ let generateRequestPrimitives (requestId:RequestId)
                             |> Seq.toList
 
                         // Get the additional custom payload header parameters that should be injected
-                        let injectedCustomPayloadHeaderParameters = getInjectedCustomPayloadParameters dictionary CustomPayloadType.Header specHeaderParameterNames
+                        let injectedCustomPayloadHeaderParameters = getInjectedHeaderOrQueryParameters specHeaderParameterNames CustomPayloadType.Header
 
                         let allHeaderParameters =
                             [
@@ -938,8 +986,17 @@ let generateRequestPrimitives (requestId:RequestId)
     let requestQueryParameters =
         match requestQueryParameters with
         | [] ->
-            let injectedCustomPayloadQueryParameters = getInjectedCustomPayloadParameters dictionary CustomPayloadType.Query []
+            // No query parameters in Swagger
+            let injectedCustomPayloadQueryParameters = getInjectedHeaderOrQueryParameters [] CustomPayloadType.Query
             [(ParameterPayloadSource.DictionaryCustomPayload, ParameterList (injectedCustomPayloadQueryParameters |> seq))]
+        | [(Schema, ParameterList y)] when y |> Seq.isEmpty ->
+            // No query parameters in Swagger
+            let injectedCustomPayloadQueryParameters = getInjectedHeaderOrQueryParameters [] CustomPayloadType.Query
+            if injectedCustomPayloadQueryParameters |> Seq.isEmpty then
+                // TODO: remove this branch and update grammar.py test baselines
+                [(ParameterPayloadSource.Schema, ParameterList [])]
+            else
+                [(ParameterPayloadSource.DictionaryCustomPayload, ParameterList (injectedCustomPayloadQueryParameters |> seq))]
         | _ ->
             requestQueryParameters
             |> List.map (fun (payloadSource, requestQuery) ->
@@ -966,7 +1023,7 @@ let generateRequestPrimitives (requestId:RequestId)
                                 |> Seq.toList
 
                             // Get the additional custom payload query parameters that should be injected
-                            let injectedCustomPayloadQueryParameters = getInjectedCustomPayloadParameters dictionary CustomPayloadType.Query specQueryParameterNames
+                            let injectedCustomPayloadQueryParameters = getInjectedHeaderOrQueryParameters specQueryParameterNames CustomPayloadType.Query
                             let allQueryParameters = [ parameterList ; injectedCustomPayloadQueryParameters |> seq ] |> Seq.concat
                             payloadSource, ParameterList allQueryParameters)
 
@@ -1036,8 +1093,8 @@ let generateRequestPrimitives (requestId:RequestId)
                 | Some xMsPath -> xMsPath.getEndpoint()
 
             let contentType =
-                match dictionary.findRequestTypeCustomPayload endpoint (requestId.method.ToString()) ContentTypeHeaderName with
-                | Some x ->
+                match dictionary.findRequestTypeCustomPayload endpoint (requestId.method.ToString()) ContentTypeHeaderName ParameterKind.Header with
+                | Some (x, payloadType) ->
                     let leafNode =
                         Tree.LeafNode
                             {
@@ -1045,7 +1102,7 @@ let generateRequestPrimitives (requestId:RequestId)
                                 LeafProperty.payload =
                                     FuzzingPayload.Custom
                                         {
-                                            payloadType = CustomPayloadType.String
+                                            payloadType = payloadType
                                             primitiveType = PrimitiveType.String
                                             payloadValue = x
                                             isObject = false

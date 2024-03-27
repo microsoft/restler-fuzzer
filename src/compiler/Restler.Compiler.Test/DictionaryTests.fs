@@ -126,7 +126,15 @@ module Dictionary =
             Assert.True((numFuzzableStrings2 = 1))
 
         [<Fact>]
-        /// Test that you can replace the content type of the request payload
+        /// Test replacing the content type of the request payload
+        /// The test checks 3 paths: 
+        /// - /stores/{storeId}/order - body of type json, query parameters, no headers.
+        /// - /stores/{storeId}/order2 - body of type json, headers, no Content-Type header defined.
+        /// - /stores/{storeId}/order3 - body of type json, with Content-Type header defined.
+        /// - /stores/{storeId}/order4 - body of type json, with Content-Type header defined.
+        /// The first three cases will have content-type defined in custom payload and custom payload header (in
+        /// different dictionary tests).  The last one will not have any custom payload and Content-Type should be json.
+        /// The results are compared against a grammar baseline.
         let ``content type can be modified via custom_payload_header`` () =
             let grammarOutputDirPath = ctx.testRootDirPath
             let config = { Restler.Config.SampleConfig with
@@ -136,18 +144,42 @@ module Dictionary =
                              ResolveQueryDependencies = true
                              UseBodyExamples = Some false
                              UseQueryExamples = Some false
-                             SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, "swagger", "dictionaryTests", "customPayloadSwagger.json"))]
-                             CustomDictionaryFilePath = Some (Path.Combine(Environment.CurrentDirectory, "swagger", "dictionaryTests", "customPayloadRequestTypeDict.json"))
+                             SwaggerSpecFilePath = Some [(Path.Combine(Environment.CurrentDirectory, "swagger", "dictionaryTests", 
+                                                                       "customPayloadContentTypeSwagger.json"))]
+                             CustomDictionaryFilePath = None
                          }
-            Restler.Workflow.generateRestlerGrammar config
+            let runTest dictionaryFilePath expectedGrammarFilePath = 
+                // Now test the same spec with custom payload headers in the dictionary
+                let config = {config with 
+                                    CustomDictionaryFilePath = dictionaryFilePath }
 
-            let grammarFilePath = Path.Combine(grammarOutputDirPath,
-                                               Restler.Workflow.Constants.DefaultRestlerGrammarFileName)
-            let grammar = File.ReadAllText(grammarFilePath)
+                Restler.Workflow.generateRestlerGrammar config
 
-            Assert.True(grammar.Contains("""primitives.restler_static_string("Content-Type: "),"""))
-            Assert.True(grammar.Contains("""primitives.restler_static_string("application/json"),"""))
-            Assert.True(grammar.Contains("""primitives.restler_custom_payload("/stores/{storeId}/order/post/Content-Type", quoted=False),"""))
+                let actualGrammarFilePath = Path.Combine(grammarOutputDirPath,
+                                                     Restler.Workflow.Constants.DefaultRestlerGrammarFileName)
+                let grammarDiff = getLineDifferences expectedGrammarFilePath actualGrammarFilePath
+                let message = sprintf "Grammar Does not match baseline.  First difference: %A" grammarDiff
+                Assert.True(grammarDiff.IsNone, message)
+
+            //// test restler_custom_payload
+            let customDictionaryFilePath = Some (Path.Combine(Environment.CurrentDirectory, "swagger", "dictionaryTests", 
+                                                         "customPayloadRequestTypeDict.json"))
+
+            let expectedGrammarFilePath = Path.Combine(Environment.CurrentDirectory,
+                                                       "baselines", "dictionaryTests", "customPayloadContentType_grammar.py")
+            runTest customDictionaryFilePath expectedGrammarFilePath
+
+            // test restler_custom_payload_header
+            let customDictionaryFilePath = Some (Path.Combine(Environment.CurrentDirectory, "swagger", "dictionaryTests", 
+                                                         "customPayloadHeaderRequestTypeDict.json"))
+
+            let expectedGrammarFilePath = Path.Combine(Environment.CurrentDirectory,
+                                                       "baselines", "dictionaryTests", "customPayloadHeaderContentType_grammar.py")
+            runTest customDictionaryFilePath expectedGrammarFilePath
+
+
+
+
 
         [<Fact>]
         /// Baseline test for the dynamic value generators template

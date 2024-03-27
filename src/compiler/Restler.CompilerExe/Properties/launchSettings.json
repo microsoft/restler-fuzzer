@@ -2,7 +2,7 @@
   "profiles": {
     "Restler.CompilerExe": {
       "commandName": "Project",
-      "commandLineArgs": "d:\\test\\exformat\\config.json"
+      "commandLineArgs": "D:\\test\\demo_server\\xml\\restlerConfig\\config.json"
     }
   }
 }

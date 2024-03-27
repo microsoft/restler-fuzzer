@@ -3,9 +3,9 @@
 
 module Restler.Grammar
 
-open System.IO
 open AccessPaths
 open Restler.XMsPaths
+open FSharp.Reflection
 
 /// Tree utilities.
 /// Reference: https://fsharpforfunandprofit.com/posts/recursive-types-and-folds/
@@ -95,6 +95,13 @@ let getOperationMethodFromString (m:string) =
     | "HEAD" -> OperationMethod.Head
     | "TRACE" -> OperationMethod.Trace
     | _ -> OperationMethod.NotSupported
+
+let SupportedOperationMethods = 
+    let t = typeof<OperationMethod>
+    let cases = FSharpType.GetUnionCases(t)
+    cases
+    |> Array.map (fun case -> case.Name.ToLower())
+    |> Array.filter(fun m -> m <> "NotSupported")
 
 type ParameterKind =
     | Path
