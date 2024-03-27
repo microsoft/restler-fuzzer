@@ -109,13 +109,15 @@ def get_variable(type):
 
     # Make sure the value is properly escaped for being sent
     value = tlb[type]
+    if not Settings().encode_dynamic_objects:
+        return value
+
     encoded_value = json.dumps(value)
     if isinstance(value, (str)):
         encoded_value = encoded_value[1:-1]
 
     # thread_id = threading.current_thread().ident
     # print("Getting: {} / Value: {} ({})".format(type, encoded_value, thread_id))
-
     return encoded_value
 
 def __add_variable_to_dyn_cache(type, value, obj_cache, cache_lock):

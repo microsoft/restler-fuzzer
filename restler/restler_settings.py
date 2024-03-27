@@ -532,6 +532,9 @@ class RestlerSettings(object):
         if self._generate_random_seed.val:
             self._random_seed.val = time.time()
 
+        ## Do not encode dynamic objects (workaround for incorrect encoding for headers)
+        self._encode_dynamic_objects = SettingsArg('encode_dynamic_objects', bool, True, user_args)
+
         self._connection_settings = ConnectionSettings(self._target_ip.val,
                                                        self._target_port.val,
                                                        not self._no_ssl.val,
@@ -766,6 +769,10 @@ class RestlerSettings(object):
     @property
     def generate_random_seed(self):
         return self._generate_random_seed.val
+
+    @property
+    def encode_dynamic_objects(self):
+        return self._encode_dynamic_objects.val
 
     @property
     def no_tokens_in_logs(self):
