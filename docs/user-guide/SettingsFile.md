@@ -453,9 +453,10 @@ The IP address of the target webserver.
 ### target_port: int (default None)
 The port of the target webserver.
 
-### time_budget: float (default 1 hour)
+### time_budget: float (default 168)
 Once this time is reached, the fuzzing will stop.
 Time is in hours.
+The default is 7 days.  
 
 ### token_refresh_cmd: str (default None)
 The command to execute in order to refresh the authentication token.

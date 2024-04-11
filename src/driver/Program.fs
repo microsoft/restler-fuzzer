@@ -197,7 +197,7 @@ module Compile =
 
 module Fuzz =
 
-    let DefaultFuzzingDurationHours = 1.0
+    let DefaultFuzzingDurationHours = 168.0
 
     let SupportedCheckers =
         [
