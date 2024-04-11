@@ -23,6 +23,14 @@ RESTler is described in these peer-reviewed research papers:
 
 If you use RESTler in your research, please cite the (default) ICSE'2019 paper ([BibTeX](./docs/user-guide/icse2019.bib)).
 
+RESTler includes multiple test generation strategies.  In order to get a comprehensive comparative view w.r.t. to (i) efficiency 
+(i.e., how quickly can RESTler find crashes) and (ii) effectiveness 
+(i.e., how many crashes can RESTler find in a give time frame), 
+we recommend comparing against all documented `fuzzing_mode(s)`
+because each one provides a different trade-off between breadth and depth of state space exploration.
+We also recommend running `test` mode before any fuzzing, as described below, 
+to discover and fix setup issues (e.g. adding required pre-requisite parameter values to the dictionary) prior to fuzzing.
+
 RESTler was created at Microsoft Research and is still under active development.
 
 For an overview and demo on how to get started, see [Webinar - Fuzzing to Improve the Security and Reliability of Cloud Services](https://www.youtube.com/watch?v=FYmiPoRwEbE).
