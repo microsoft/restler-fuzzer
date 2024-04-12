@@ -3,6 +3,9 @@
 In *Fuzz-lean* mode, RESTler executes once every endpoint+method in a compiled RESTler grammar with a default set of checkers to see if bugs can be found quickly.
 
 In *Fuzz* mode, RESTler will fuzz the service under test during a longer period of time with the goal of finding more bugs and issues (resource leaks, perf degradation, backend corruptions, etc.). **Warning:** The Fuzz mode is the more aggressive and may create outages in the service under test if the service is poorly implemented.
+**Warning** By default, RESTler will not fuzz all value combinations in `fuzz` mode.  You must change the `fuzzing_mode` to `bfs` in order to test all combinations of values provided 
+in the dictionary, enum values, etc.
+
 
 Inputs: (same as for test)
 

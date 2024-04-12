@@ -419,7 +419,7 @@ module Fuzz =
 
         let fuzzingMode =
             if parameters.searchStrategy.IsNone then
-                "bfs-fast"
+                "bfs-cheap"
             else parameters.searchStrategy.Value
 
         let fuzzingParameters =
