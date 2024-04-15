@@ -62,11 +62,12 @@ type MutationsDictionary =
             sprintf "%s/%s/" endpoint (method.ToLower())
 
         member x.getRequestTypePayloadName endpoint (method:string) propertyNameOrPath = 
-            sprintf "%s/%s/%s" endpoint (method.ToLower()) propertyNameOrPath
+            let prefix = x.getRequestTypePayloadPrefix endpoint method
+            sprintf "%s%s" prefix propertyNameOrPath
 
         member x.isRequestTypePayloadName endpoint (method:string) (propertyValue:string) = 
-             let prefix = sprintf "%s/%s" endpoint (method.ToLower())
-             propertyValue.StartsWith(prefix)
+            let prefix = x.getRequestTypePayloadPrefix endpoint method
+            propertyValue.StartsWith(prefix)
 
         member x.findBodyCustomPayload endpoint (method:string) =
             let bodyPayloadName = x.getRequestTypePayloadName endpoint method "__body__" 
