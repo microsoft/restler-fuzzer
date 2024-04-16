@@ -67,7 +67,13 @@
     <Content Include="baselines\dictionaryTests\customPayloadDict_ValueGeneratorTemplate.py">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="baselines\exampleTests\array_example_grammar.py">
+	  <Content Include="baselines\dictionaryTests\customPayloadContentType_grammar.py">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
+	  <Content Include="baselines\dictionaryTests\customPayloadHeaderContentType_grammar.py">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
+	  <Content Include="baselines\exampleTests\array_example_grammar.py">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
 	  <Content Include="swagger\exampleTests\example_int_openapi3.yml">
@@ -235,13 +241,19 @@
 	  <Content Include="swagger\dictionaryTests\customPayloadSwagger.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="swagger\dictionaryTests\customPayloadDict.json">
+	  <Content Include="swagger\dictionaryTests\customPayloadContentTypeSwagger.json">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
+	  <Content Include="swagger\dictionaryTests\customPayloadDict.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="swagger\dictionaryTests\customPayloadRequestTypeDict.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="swagger\dictionaryTests\serializationTestDict.json">
+	  <Content Include="swagger\dictionaryTests\customPayloadHeaderRequestTypeDict.json">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
+	  <Content Include="swagger\dictionaryTests\serializationTestDict.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="swagger\dependencyTests\lowercase_paths.json">

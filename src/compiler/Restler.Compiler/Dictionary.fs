@@ -58,8 +58,19 @@ type MutationsDictionary =
                 m |> Map.tryFind entryName
             | None -> None
 
+        member x.getRequestTypePayloadPrefix endpoint (method:string) = 
+            sprintf "%s/%s/" endpoint (method.ToLower())
+
+        member x.getRequestTypePayloadName endpoint (method:string) propertyNameOrPath = 
+            let prefix = x.getRequestTypePayloadPrefix endpoint method
+            sprintf "%s%s" prefix propertyNameOrPath
+
+        member x.isRequestTypePayloadName endpoint (method:string) (propertyValue:string) = 
+            let prefix = x.getRequestTypePayloadPrefix endpoint method
+            propertyValue.StartsWith(prefix)
+
         member x.findBodyCustomPayload endpoint (method:string) =
-            let bodyPayloadName = sprintf "%s/%s/__body__" endpoint (method.ToLower())
+            let bodyPayloadName = x.getRequestTypePayloadName endpoint method "__body__" 
             match x.findPayloadEntry x.restler_custom_payload bodyPayloadName with
             | Some _ -> Some bodyPayloadName
             | None -> None
@@ -69,11 +80,23 @@ type MutationsDictionary =
         /// Examples:
         ///   - Specify values for the parameter 'blogId' anywhere in the payload
         ///         (path parameter will be replaced):  /blog/{blogId}/get/blogId
-        member x.findRequestTypeCustomPayload endpoint (method:string) propertyNameOrPath =
-            let requestTypePayloadName = sprintf "%s/%s/%s" endpoint (method.ToLower()) propertyNameOrPath
+        ///   - Substitute the Content-Type of the request
+        member x.findRequestTypeCustomPayload endpoint (method:string) propertyNameOrPath parameterKind =
+            let requestTypePayloadName = x.getRequestTypePayloadName endpoint method propertyNameOrPath
             match x.findPayloadEntry x.restler_custom_payload requestTypePayloadName with
-            | Some _ -> Some requestTypePayloadName
-            | None -> None
+            | Some _ -> Some (requestTypePayloadName, CustomPayloadType.String)
+            | None -> 
+                match parameterKind with
+                | ParameterKind.Header ->
+                    match x.findPayloadEntry x.restler_custom_payload_header requestTypePayloadName with
+                    | Some _ -> Some (requestTypePayloadName, CustomPayloadType.Header)
+                    | None -> None
+                | ParameterKind.Query ->
+                    match x.findPayloadEntry x.restler_custom_payload_query requestTypePayloadName with
+                    | Some _ -> Some (requestTypePayloadName, CustomPayloadType.Query)
+                    | None -> None
+                | _ ->
+                    raise (invalidArg "parameterKind" "only Query or Header is valid in this context")
 
         // Note: per-endpoint dictionaries allow restricting a payload to a specific endpoint.
         member x.getParameterForCustomPayload consumerResourceName (accessPathParts: AccessPath) primitiveType parameterKind =
