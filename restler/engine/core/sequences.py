@@ -581,6 +581,10 @@ class Sequence(object):
                 request.render_iter(candidate_values_pool,
                                     skip=request._current_combination_id,
                                     preprocessing=preprocessing):
+
+            if Monitor().remaining_time_budget <= 0 and not postprocessing:
+                raise TimeOutException("Exceeded Timeout")
+
             # Hold the lock (because other workers may be rendering the same
             # request) and check whether the current rendering is known from the
             # past to lead to invalid status codes. If so, skip the current
@@ -664,9 +668,6 @@ class Sequence(object):
             Monitor().update_renderings_monitor(request, rendering_is_valid)
             if lock is not None:
                 lock.release()
-
-            if Monitor().remaining_time_budget <= 0 and not postprocessing:
-                raise TimeOutException("Exceeded Timeout")
 
             if lock is not None:
                 lock.acquire()
