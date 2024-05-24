@@ -56,6 +56,10 @@ In the root of this repo, run
 docker build -t restler .
 ```
 
+The resulting docker container will have RESTler available in directory `/RESTler/restler` with main binary `Restler`. 
+
+You can then use this docker image as basis to add the application under test to execute fuzzing inside isolated docker containers.
+
 #### Local
 
 Prerequisites: Install [Python 3.8.2](https://www.python.org/downloads/) and
