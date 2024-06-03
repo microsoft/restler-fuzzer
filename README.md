@@ -78,14 +78,6 @@ Note: if you get nuget error NU1403 when building, a quick workaround is to clea
 ```dotnet nuget locals all --clear```
 
 
-### **Binary-drop instructions**
-
-RESTler binary drops are coming soon.
-
-Prerequisites: Install [Python 3.8.2](https://www.python.org/downloads/) and
-[.NET 6.0](https://dotnet.microsoft.com/download/dotnet-core?utm_source=getdotnetcorecli&utm_medium=referral) or higher, for your appropriate OS.
-
-
 ## Using RESTler
 
 RESTler runs in 4 main modes (in order):
