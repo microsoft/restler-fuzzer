@@ -850,7 +850,7 @@ class ParamArray(ParamBase):
 
         """
         new_check = check_value
-        if not isinstance(check_value, list):
+        if not isinstance(check_value, list) or not self._values:
             return self.tag
         elif check_value:
             new_check = check_value[0]
