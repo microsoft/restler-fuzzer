@@ -13,7 +13,7 @@ import logging
 
 from restler_settings import Settings
 from utils.logging.serializer_base import *
-
+import utils.logger as logger
 
 class CustomRotatingFileHandler(RotatingFileHandler):
     def rotation_filename(self, default_name):
@@ -120,6 +120,7 @@ class RequestTraceLog():
         tags.update(self.tags)
         tags.update(self.sequence_tags)
         request_text = None if omit_request_text == True else self.request
+        request_text = logger.remove_tokens_from_logs(request_text) if Settings().no_tokens_in_logs else request_text
         
         return {
             'sent_timestamp': self.sent_timestamp,
