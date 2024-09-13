@@ -106,7 +106,7 @@ class RequestTraceLog():
     def response(self, value):
         self._response = value
 
-    def to_dict(self, omit_request_text=None):
+    def to_dict(self, omit_request_text=None, remove_tokens_from_logs=True):
         tags = {}
         if self.request_id is not None:
             tags["request_id"] = self.request_id
@@ -120,7 +120,7 @@ class RequestTraceLog():
         tags.update(self.tags)
         tags.update(self.sequence_tags)
         request_text = None if omit_request_text == True else self.request
-        request_text = logger.remove_tokens_from_logs(request_text) if Settings().no_tokens_in_logs else request_text
+        request_text = logger.remove_tokens_from_logs(request_text) if remove_tokens_from_logs else request_text
         
         return {
             'sent_timestamp': self.sent_timestamp,
