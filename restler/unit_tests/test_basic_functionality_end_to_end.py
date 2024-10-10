@@ -1498,6 +1498,7 @@ class FunctionalityTests(unittest.TestCase):
                 os.remove(new_settings_file_path)
             settings = {}
             settings["use_trace_database"] = True
+            settings["no_tokens_in_logs"] = remove_tokens_from_logs
             settings["include_unique_sequence_id"] = False
             settings["trace_database"] = {}
             settings["trace_database"]["omit_request_text"] = omit_request_text
@@ -1526,7 +1527,7 @@ class FunctionalityTests(unittest.TestCase):
             baseline_trace_db_path = replay_file_path
             trace_db_path = os.path.join(self.get_experiments_dir(), "trace_data.ndjson")
 
-            print(f"Comparing trace DB to baseline: {baseline_trace_db_path}")
+            print(f"Comparing trace DB {trace_db_path} to baseline: {baseline_trace_db_path}")
 
             baseline_deserializer = trace_db.JsonTraceLogReader(log_file_paths=[baseline_trace_db_path])
             actual_deserializer = trace_db.JsonTraceLogReader(log_file_paths=[trace_db_path])
