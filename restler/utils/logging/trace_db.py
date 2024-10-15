@@ -198,7 +198,7 @@ class TraceDatabase:
 
             if 'origin' not in trace_log.tags and 'origin' not in trace_log.sequence_tags and trace_log.origin is None:
                 raise Exception(f"Missing origin: request: {trace_log.request_id}, sequence: {trace_log.sequence_id}")
-            record = trace_log.to_dict(omit_request_text=Settings().trace_db_omit_request_text)
+            record = trace_log.to_dict(omit_request_text=Settings().trace_db_omit_request_text, remove_tokens_from_logs=Settings().no_tokens_in_logs)
             self.log(record)
         except Exception as error:
             # print the callstack

@@ -1490,7 +1490,7 @@ class FunctionalityTests(unittest.TestCase):
         The main purpose of this test is to confirm that an ndjson containing only replay blocks (without 
         the request text) can be used for replay.
         """
-        def run_test(omit_request_text=True):
+        def run_test(omit_request_text=True, remove_tokens_from_logs=True):
 
             # create a settings file with the trace database enabled
             new_settings_file_path = os.path.join(Test_File_Directory, f"tmp_trace_db_settings.json")
@@ -1498,9 +1498,11 @@ class FunctionalityTests(unittest.TestCase):
                 os.remove(new_settings_file_path)
             settings = {}
             settings["use_trace_database"] = True
+            settings["no_tokens_in_logs"] = remove_tokens_from_logs
             settings["include_unique_sequence_id"] = False
             settings["trace_database"] = {}
             settings["trace_database"]["omit_request_text"] = omit_request_text
+            settings["trace_database"]["remove_tokens_from_logs"] = remove_tokens_from_logs
 
             with open(new_settings_file_path, "w") as outfile:
                 outfile.write(json.dumps(settings, indent=4))
@@ -1525,7 +1527,7 @@ class FunctionalityTests(unittest.TestCase):
             baseline_trace_db_path = replay_file_path
             trace_db_path = os.path.join(self.get_experiments_dir(), "trace_data.ndjson")
 
-            print(f"Comparing trace DB to baseline: {baseline_trace_db_path}")
+            print(f"Comparing trace DB {trace_db_path} to baseline: {baseline_trace_db_path}")
 
             baseline_deserializer = trace_db.JsonTraceLogReader(log_file_paths=[baseline_trace_db_path])
             actual_deserializer = trace_db.JsonTraceLogReader(log_file_paths=[trace_db_path])
@@ -1559,5 +1561,7 @@ class FunctionalityTests(unittest.TestCase):
                     message = f"different baseline log \n{json.dumps(x.to_dict(), indent=4)} \nto actual log \n{json.dumps(y.to_dict(), indent=4)}"
                     self.fail(f"Trace DBs do not match: {message}")
         
-        run_test(omit_request_text=True)
-        run_test(omit_request_text=False)
+        run_test(omit_request_text=True, remove_tokens_from_logs=True)
+        run_test(omit_request_text=False, remove_tokens_from_logs=True)
+        run_test(omit_request_text=True, remove_tokens_from_logs=False)
+        run_test(omit_request_text=False, remove_tokens_from_logs=False)
