@@ -7,6 +7,8 @@ import ssl
 import socket
 import time
 import threading
+import os
+import socks
 from importlib import util
 from utils.logging.trace_db import (DB as TraceDatabase,
                                     SequenceTracker)
@@ -74,6 +76,21 @@ class HttpSock(object):
         self.ignore_decoding_failures = Settings().ignore_decoding_failures
         self._connected = False
         self._sock = None
+
+        proxy=os.environ.get('RESTLER_PROXY')                                                                                                                                                                                                  
+        if proxy:                                                                                                                                                                                                                              
+            import re
+            pptype,username,password,addr,port=re.search('(?:([^:]+)://)?(?:([^:]+)(?::([^:]+)?)?@)?([^:]+)(?::(\d{1,5}))?', proxy, re.IGNORECASE).groups()
+            ptypes={
+                "http":socks.HTTP,
+                "socks4":socks.SOCKS4,
+                "socks5":socks.SOCKS5,
+            }
+            ptype=ptypes.get(pptype,socks.HTTP)
+            port=int(port)
+            print(f'proxy {ptype} {addr} {port}')
+            socks.set_default_proxy(proxy_type=ptype, addr=addr, port=port, rdns=True, username=username, password=password)
+            socket.socket = socks.socksocket
 
     def __del__(self):
         """ Destructor - Closes socket
