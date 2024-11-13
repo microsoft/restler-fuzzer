@@ -235,6 +235,30 @@ class RestlerSettingsTest(unittest.TestCase):
         self.assertEqual(None, settings.get_checker_arg('leakage_rule_mode', 'mode'))
         self.assertEqual(None, settings.get_checker_arg('resource_hierarchy_rule_mode', 'mode'))
 
+    def test_validate_string_values_in_candidate_values(self):
+        candidate_values = primitives.CandidateValuesPool()
+        
+        invalid_dict = {
+            "restler_fuzzable_int": [
+                1  # Invalid as it's not a string
+            ]
+        }
+
+        with self.assertRaises(ValueError):
+            candidate_values.set_candidate_values(invalid_dict)
+
+        valid_dict = {
+            "restler_fuzzable_int": [
+                "1"  # Valid as it's a string
+            ]
+        }
+
+        # No error should since input is valid
+        try:
+            candidate_values.set_candidate_values(valid_dict)
+        except ValueError as e:
+            self.fail(f"ValueError raised unexpectedly: {e}")
+
     def test_invalid_entries(self):
         user_args = {
             'max_sequence_length': '10'

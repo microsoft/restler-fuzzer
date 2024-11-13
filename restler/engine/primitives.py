@@ -471,6 +471,15 @@ class CandidateValuesPool(object):
         @rtype : None
 
         """
+
+        def validate_string_values(dictionary):
+            """ Validates that all values in the provided dictionary are strings. """
+            for key, values in dictionary.items():
+                if not all(isinstance(value, str) for value in values):
+                    raise ValueError(f"All values for '{key}' must be strings, but found: {values}")
+
+        validate_string_values(custom_values)
+
         # Set default primitives
         self.candidate_values = self._set_custom_values(self.candidate_values, custom_values)
         if not self._dates_added:
