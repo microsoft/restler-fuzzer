@@ -26,7 +26,7 @@ jobs:
         uses: ./.github/actions/restlerfullbuild
         with:
           build_configuration: ${{ env.BUILD_CONFIGURATION }}
-          version_number: ${{ env.VERSION_MAJOR }}.${{ env.VERSION_MINOR }}.${{ github.run_id }}
+          version_number: ${{ env.VERSION_MAJOR }}.${{ env.VERSION_MINOR }}.${{ env.DEV_REVISION }}
           build_platform: ${{ env.BUILD_PLATFORM }}
 
       - name: Run Compiler Functional Tests
