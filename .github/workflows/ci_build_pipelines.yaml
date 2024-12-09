@@ -1,0 +1,37 @@
+name: CI Build Pipelines
+
+on:
+  push:
+    branches:
+      - '*'
+  pull_request:
+    branches:
+      - '*'
+
+env:
+  BUILD_CONFIGURATION: Release
+  VERSION_MAJOR: 9
+  VERSION_MINOR: 2
+  DEV_REVISION: 4
+  BUILD_PLATFORM: 'Any CPU'
+
+jobs:
+  build:
+    runs-on: windows-2022
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Run RESTler Full Build
+        uses: ./.github/actions/restlerfullbuild
+        with:
+          build_configuration: ${{ env.BUILD_CONFIGURATION }}
+          version_number: ${{ env.VERSION_MAJOR }}.${{ env.VERSION_MINOR }}.${{ github.run_id }}
+          build_platform: ${{ env.BUILD_PLATFORM }}
+
+      - name: Run Compiler Functional Tests
+        uses: ./.github/actions/compilerfunctionaltests
+        with:
+          build_configuration: ${{ env.BUILD_CONFIGURATION }}
+          build_platform: ${{ env.BUILD_PLATFORM }}
+          

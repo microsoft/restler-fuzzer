@@ -1,0 +1,28 @@
+name: 'Compiler Functional Tests'
+description: 'Run compiler functional tests'
+inputs:
+  build_configuration:
+    description: 'Build configuration'
+    required: true
+  build_platform:
+    description: 'Build platform'
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Clean solution for functional tests
+      run: dotnet clean src/compiler/Restler.Compiler.Test/Restler.Compiler.Test.fsproj -c ${{ inputs.build_configuration }}
+
+    - name: Build functional tests
+      run: dotnet build src/compiler/Restler.Compiler.Test/Restler.Compiler.Test.fsproj --no-restore -c ${{ inputs.build_configuration }}
+
+    - name: Run functional tests
+      run: dotnet test src/compiler/Restler.Compiler.Test/Restler.Compiler.Test.fsproj -c ${{ inputs.build_configuration }} --no-build --logger "trx;LogFileName=test_results.trx"
+
+    - name: Publish test results
+      if: always()
+      uses: actions/upload-artifact@v2
+      with:
+        name: test-results
+        path: test_results.trx
