@@ -24,7 +24,7 @@ runs:
       shell: ${{ inputs.shell }}
 
     - name: Run functional tests
-      run: dotnet test src/compiler/Restler.Compiler.Test/Restler.Compiler.Test.fsproj -c ${{ inputs.build_configuration }} --no-build --logger "trx;LogFileName=test_results.trx"
+      run: dotnet test src/compiler/Restler.Compiler.Test/Restler.Compiler.Test.fsproj -c ${{ inputs.build_configuration }} --no-build --logger "trx;LogFileName=src/TestResults/test_results.trx"
       shell: ${{ inputs.shell }}
 
     - name: Publish test results
@@ -32,12 +32,12 @@ runs:
       uses: actions/upload-artifact@v4
       with:
         name: test-results
-        path: test_results.trx
+        path: src/TestResults/test_results.trx
 
     - name: Report test results
       if: always()
       uses: dorny/test-reporter@v1
       with:
         name: .NET Tests
-        path: test_results.trx
+        path: src/TestResults/test_results.trx
         reporter: dotnet-trx
