@@ -40,10 +40,8 @@ runs:
         name: test-results
         path: ${{ env.TEST_RESULTS_DIR }}/test_results.trx
 
-    - name: Report test results
+    - name: Display test summary
       if: always()
-      uses: dorny/test-reporter@v1
+      uses: test-summary/action@v2
       with:
-        name: .NET Tests
-        path: ${{ env.TEST_RESULTS_DIR }}/test_results.trx
-        reporter: dotnet-trx
+        paths: ${{ env.TEST_RESULTS_DIR }}/test_results.trx
