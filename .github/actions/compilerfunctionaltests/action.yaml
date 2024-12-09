@@ -7,18 +7,25 @@ inputs:
   build_platform:
     description: 'Build platform'
     required: true
+  shell:
+    description: 'Shell to use for run steps'
+    required: true
+    default: 'pwsh'
 
 runs:
   using: 'composite'
   steps:
     - name: Clean solution for functional tests
       run: dotnet clean src/compiler/Restler.Compiler.Test/Restler.Compiler.Test.fsproj -c ${{ inputs.build_configuration }}
+      shell: ${{ inputs.shell }}
 
     - name: Build functional tests
       run: dotnet build src/compiler/Restler.Compiler.Test/Restler.Compiler.Test.fsproj --no-restore -c ${{ inputs.build_configuration }}
+      shell: ${{ inputs.shell }}
 
     - name: Run functional tests
       run: dotnet test src/compiler/Restler.Compiler.Test/Restler.Compiler.Test.fsproj -c ${{ inputs.build_configuration }} --no-build --logger "trx;LogFileName=test_results.trx"
+      shell: ${{ inputs.shell }}
 
     - name: Publish test results
       if: always()

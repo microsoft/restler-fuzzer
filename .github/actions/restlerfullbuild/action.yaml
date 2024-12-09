@@ -10,6 +10,10 @@ inputs:
   build_platform:
     description: 'Build platform'
     required: true
+  shell:
+    description: 'Shell to use for run steps'
+    required: true
+    default: 'pwsh'
 
 runs:
   using: 'composite'
@@ -26,15 +30,19 @@ runs:
 
     - name: Restore NuGet packages
       run: nuget restore **\Restler.sln
+      shell: ${{ inputs.shell }}
 
     - name: Clean solution
       run: dotnet clean src/compiler/Restler.CompilerExe/Restler.CompilerExe.fsproj src/driver/Restler.Driver.fsproj src/ResultsAnalyzer/ResultsAnalyzer.fsproj -c ${{ inputs.build_configuration }}
+      shell: ${{ inputs.shell }}
 
     - name: Publish RESTler dotnet core projects
       run: dotnet publish src/compiler/Restler.CompilerExe/Restler.CompilerExe.fsproj src/driver/Restler.Driver.fsproj src/ResultsAnalyzer/ResultsAnalyzer.fsproj --no-restore -c ${{ inputs.build_configuration }} /p:version=${{ inputs.version_number }} /p:Platform=${{ inputs.build_platform }}
+      shell: ${{ inputs.shell }}
 
     - name: Build unit tests
       run: dotnet build src/compiler/Restler.Compiler.Test/Restler.Compiler.Test.fsproj --no-restore -c ${{ inputs.build_configuration }}
+      shell: ${{ inputs.shell }}
 
     - name: Set up Python 3.8
       uses: actions/setup-python@v2
