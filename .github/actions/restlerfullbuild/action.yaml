@@ -32,17 +32,23 @@ runs:
       uses: actions/setup-dotnet@v2
       with:
         dotnet-version: '6.0.x'
-        
+
     - name: Restore NuGet packages
       run: nuget restore src/Restler.sln
       shell: ${{ inputs.shell }}
 
     - name: Clean solution
-      run: dotnet clean src/compiler/Restler.CompilerExe/Restler.CompilerExe.fsproj src/driver/Restler.Driver.fsproj src/ResultsAnalyzer/ResultsAnalyzer.fsproj -c ${{ inputs.build_configuration }}
+      run: | 
+        dotnet clean src/compiler/Restler.CompilerExe/Restler.CompilerExe.fsproj -c ${{ inputs.build_configuration }}
+        dotnet clean src/driver/Restler.Driver.fsproj -c ${{ inputs.build_configuration }}
+        dotnet clean src/ResultsAnalyzer/ResultsAnalyzer.fsproj -c ${{ inputs.build_configuration }}
       shell: ${{ inputs.shell }}
 
     - name: Publish RESTler dotnet core projects
-      run: dotnet publish src/compiler/Restler.CompilerExe/Restler.CompilerExe.fsproj src/driver/Restler.Driver.fsproj src/ResultsAnalyzer/ResultsAnalyzer.fsproj --no-restore -c ${{ inputs.build_configuration }} /p:version=${{ inputs.version_number }} /p:Platform=${{ inputs.build_platform }}
+      run: | 
+        dotnet publish src/compiler/Restler.CompilerExe/Restler.CompilerExe.fsproj --no-restore -c ${{ inputs.build_configuration }} /p:version=${{ inputs.version_number }} /p:Platform=${{ inputs.build_platform }}
+        dotnet publish src/driver/Restler.Driver.fsproj --no-restore -c ${{ inputs.build_configuration }} /p:version=${{ inputs.version_number }} /p:Platform=${{ inputs.build_platform }}
+        dotnet publish src/ResultsAnalyzer/ResultsAnalyzer.fsproj --no-restore -c ${{ inputs.build_configuration }} /p:version=${{ inputs.version_number }} /p:Platform=${{ inputs.build_platform }}
       shell: ${{ inputs.shell }}
 
     - name: Build unit tests
