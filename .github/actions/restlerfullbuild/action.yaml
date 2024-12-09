@@ -29,7 +29,7 @@ runs:
         nuget-version: '5.8.0'
 
     - name: Restore NuGet packages
-      run: nuget restore **/Restler.sln
+      run: nuget restore src/Restler.sln
       shell: ${{ inputs.shell }}
 
     - name: Clean solution
