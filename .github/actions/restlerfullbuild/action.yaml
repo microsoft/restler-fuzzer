@@ -46,13 +46,13 @@ runs:
 
     - name: Publish RESTler dotnet core projects
       run: | 
-        dotnet publish src/compiler/Restler.CompilerExe/Restler.CompilerExe.fsproj --no-restore -c ${{ inputs.build_configuration }} /p:version=${{ inputs.version_number }} /p:Platform=${{ inputs.build_platform }}
-        dotnet publish src/driver/Restler.Driver.fsproj --no-restore -c ${{ inputs.build_configuration }} /p:version=${{ inputs.version_number }} /p:Platform=${{ inputs.build_platform }}
-        dotnet publish src/ResultsAnalyzer/ResultsAnalyzer.fsproj --no-restore -c ${{ inputs.build_configuration }} /p:version=${{ inputs.version_number }} /p:Platform=${{ inputs.build_platform }}
+        dotnet publish src/compiler/Restler.CompilerExe/Restler.CompilerExe.fsproj --no-restore -c ${{ inputs.build_configuration }} /p:version=${{ inputs.version_number }} /p:Platform='${{ inputs.build_platform }}'
+        dotnet publish src/driver/Restler.Driver.fsproj --no-restore -c ${{ inputs.build_configuration }} /p:version=${{ inputs.version_number }} /p:Platform='${{ inputs.build_platform }}'
+        dotnet publish src/ResultsAnalyzer/ResultsAnalyzer.fsproj --no-restore -c ${{ inputs.build_configuration }} /p:version=${{ inputs.version_number }} /p:Platform='${{ inputs.build_platform }}'
       shell: ${{ inputs.shell }}
 
     - name: Build unit tests
-      run: dotnet build src/compiler/Restler.Compiler.Test/Restler.Compiler.Test.fsproj --no-restore -c ${{ inputs.build_configuration }}
+      run: dotnet build src/compiler/Restler.Compiler.Test/Restler.Compiler.Test.fsproj --no-restore -c ${{ inputs.build_configuration }} /p:Platform='${{ inputs.build_platform }}'
       shell: ${{ inputs.shell }}
 
     - name: Set up Python 3.8
