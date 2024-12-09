@@ -28,6 +28,11 @@ runs:
       with:
         nuget-version: '5.8.0'
 
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v2
+      with:
+        dotnet-version: '6.0.x'
+        
     - name: Restore NuGet packages
       run: nuget restore src/Restler.sln
       shell: ${{ inputs.shell }}
