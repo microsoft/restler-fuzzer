@@ -33,3 +33,11 @@ runs:
       with:
         name: test-results
         path: test_results.trx
+
+    - name: Report test results
+      if: always()
+      uses: dorny/test-reporter@v1
+      with:
+        name: .NET Tests
+        path: test_results.trx
+        reporter: dotnet-trx
