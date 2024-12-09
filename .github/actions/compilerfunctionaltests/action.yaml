@@ -23,8 +23,14 @@ runs:
       run: dotnet build src/compiler/Restler.Compiler.Test/Restler.Compiler.Test.fsproj --no-restore -c ${{ inputs.build_configuration }}
       shell: ${{ inputs.shell }}
 
+    - name: Create TestResults directory
+      run: |
+        mkdir -p ${{ github.workspace }}/src/TestResults
+        echo "TEST_RESULTS_DIR=${{ github.workspace }}/src/TestResults" >> $GITHUB_ENV
+      shell: ${{ inputs.shell }}
+
     - name: Run functional tests
-      run: dotnet test src/compiler/Restler.Compiler.Test/Restler.Compiler.Test.fsproj -c ${{ inputs.build_configuration }} --no-build --logger "trx;LogFileName=src/TestResults/test_results.trx"
+      run: dotnet test src/compiler/Restler.Compiler.Test/Restler.Compiler.Test.fsproj -c ${{ inputs.build_configuration }} --no-build --logger "trx;LogFileName=${{ env.TEST_RESULTS_DIR }}/test_results.trx"
       shell: ${{ inputs.shell }}
 
     - name: Publish test results
@@ -32,12 +38,12 @@ runs:
       uses: actions/upload-artifact@v4
       with:
         name: test-results
-        path: src/TestResults/test_results.trx
+        path: ${{ env.TEST_RESULTS_DIR }}/test_results.trx
 
     - name: Report test results
       if: always()
       uses: dorny/test-reporter@v1
       with:
         name: .NET Tests
-        path: src/TestResults/test_results.trx
+        path: ${{ env.TEST_RESULTS_DIR }}/test_results.trx
         reporter: dotnet-trx
