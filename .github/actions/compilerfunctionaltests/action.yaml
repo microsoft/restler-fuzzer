@@ -40,8 +40,3 @@ runs:
         name: test-results
         path: ${{ env.TEST_RESULTS_DIR }}/test_results.trx
 
-    - name: Display test summary
-      if: always()
-      uses: test-summary/action@v2
-      with:
-        paths: ${{ env.TEST_RESULTS_DIR }}/test_results.trx

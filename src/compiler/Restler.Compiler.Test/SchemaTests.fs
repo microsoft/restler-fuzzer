@@ -55,6 +55,7 @@ module ApiSpecSchema =
         [<Fact>]
         let ``required header is parsed successfully`` () =
             compileSpec (Path.Combine("swagger", "schemaTests", "requiredHeader.yml"))
+            Assert.True(false) // temporary to see how tests fail in GH actions
 
         [<Fact>]
         let ``spec with x-ms-paths is parsed successfully`` () =
