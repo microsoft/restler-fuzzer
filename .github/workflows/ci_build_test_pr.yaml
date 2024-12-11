@@ -1,0 +1,172 @@
+name: CI Build Pipeline PR validation
+
+on:
+  push:
+    branches:
+      - '*'
+  pull_request:
+    branches:
+      - '*'
+
+env:
+  BUILD_CONFIGURATION: Release
+  BUILD_PLATFORM: 'Any CPU'
+  RESTLER_VERSION: '9.2.4'
+  PYTHON_VERSION: '3.8'
+  DOTNET_VERSION: '6.0.x'
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        
+      - name: Print environment variables
+        run: printenv
+
+      - name: Setup .NET ${{ env.DOTNET_VERSION }}
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore NuGet packages
+        run: dotnet restore src/Restler.sln
+
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install engine (Python) dependencies
+        run: |
+          pip install -r ./restler/requirements.txt
+      
+      - name: Build RESTler drop
+        run: |
+          python ./build-restler.py --dest_dir ${{ github.workspace }}/${{ runner.os }}/restlerdrop/${{ env.RESTLER_VERSION }} 2>stderr.log
+          python ./.github/actions/utilities/check_stderr.py stderr.log
+
+      - name: Build unit tests
+        run: dotnet build src/compiler/Restler.Compiler.Test/Restler.Compiler.Test.fsproj --no-restore -c ${{ env.BUILD_CONFIGURATION }} /p:Platform='${{ env.BUILD_PLATFORM }}'
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: restler-drop-${{ env.RESTLER_VERSION }}-${{ runner.os }}
+          path: ${{ github.workspace }}/${{ runner.os }}/restlerdrop/${{ env.RESTLER_VERSION }}
+
+
+
+  test-compiler:
+    needs: build
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+ 
+      - name: Setup .NET ${{ env.DOTNET_VERSION }}
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore NuGet packages
+        run: dotnet restore src/Restler.sln
+
+      - name: Clean build for functional tests
+        run: |
+          dotnet clean src/compiler/Restler.Compiler.Test/Restler.Compiler.Test.fsproj -c ${{ env.BUILD_CONFIGURATION }}
+          dotnet build src/compiler/Restler.Compiler.Test/Restler.Compiler.Test.fsproj --no-restore -c ${{ env.BUILD_CONFIGURATION }}
+
+      - name: Create TestResults directory
+        id: set_test_results_dir
+        run: |
+          mkdir -p ${{ github.workspace }}/src/TestResults
+          echo "::set-output name=test_results_dir::${{ github.workspace }}/src/TestResults"
+
+      - name: Run functional tests
+        run: |
+          dotnet test src/compiler/Restler.Compiler.Test/Restler.Compiler.Test.fsproj -c ${{ env.BUILD_CONFIGURATION }} --no-build --logger "trx;LogFileName=${{ steps.set_test_results_dir.outputs.test_results_dir }}/test_results.trx"
+
+      - name: Publish test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ runner.os }}
+          path: ${{ steps.set_test_results_dir.outputs.test_results_dir }}/test_results.trx
+
+  test-engine:
+    needs: build
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install engine (Python) dependencies
+        run: |
+          pip install -r ./restler/requirements.txt
+
+      - name: Upgrade pytest
+        run: |
+          pip install --upgrade pytest
+          pytest --version
+
+      - name: Run Engine tests (Python unit tests)
+        run: | 
+          python -m pytest ./unit_tests/
+        working-directory: ./restler
+
+  test-endtoend:
+    needs: build
+
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Download RESTler drop
+        uses: actions/download-artifact@v4
+        with:
+          name: restler-drop-${{ env.RESTLER_VERSION }}-${{ runner.os }}
+          path: ${{ github.workspace }}/restlerDrop
+
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Setup .NET ${{ env.DOTNET_VERSION }}
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Install demo_server (Python) dependencies
+        run: |
+          pip install -r ./demo_server/requirements.txt
+
+      - name: Run end to end tests
+        run: |
+          python ./restler/end_to_end_tests/test_quick_start.py ${{ github.workspace }}/restlerDrop
+
