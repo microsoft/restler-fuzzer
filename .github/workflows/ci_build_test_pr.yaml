@@ -8,6 +8,13 @@ on:
     branches:
       - '*'
 
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to run the workflow on'
+        required: true
+        default: 'main'
+
 env:
   BUILD_CONFIGURATION: Release
   BUILD_PLATFORM: 'Any CPU'
