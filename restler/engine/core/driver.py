@@ -17,6 +17,7 @@ import re
 from random import Random
 
 from restler_settings import Settings
+from restler_settings import TokenAuthMethod
 import utils.logger as logger
 from utils.logging.trace_db import SequenceTracker, get_sequences_from_db
 import utils.saver as saver
@@ -29,7 +30,7 @@ import engine.core.fuzzing_monitor as fuzzing_monitor
 from engine.core.fuzzing_requests import FuzzingRequestCollection
 from engine.core.requests import GrammarRequestCollection
 from engine.core.requests import FailureInformation
-from engine.core.request_utilities import execute_token_refresh_cmd
+from engine.core.request_utilities import execute_token_refresh
 from engine.core.request_utilities import get_hostname_from_line
 from engine.core.fuzzing_monitor import Monitor
 from engine.errors import TimeOutException
@@ -963,7 +964,7 @@ def replay_sequence_from_log(replay_log_filename, token_refresh_cmd):
 
     if token_refresh_cmd:
         # Set the authorization tokens in the data
-        execute_token_refresh_cmd(token_refresh_cmd)
+        execute_token_refresh({"token_auth_method": TokenAuthMethod.CMD, "token_refresh_cmd": token_refresh_cmd})
 
     # Send the requests
     sequence.replay_sequence()
