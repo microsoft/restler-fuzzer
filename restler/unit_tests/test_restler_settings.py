@@ -236,6 +236,7 @@ class RestlerSettingsTest(unittest.TestCase):
         self.assertEqual(None, settings.get_checker_arg('resource_hierarchy_rule_mode', 'mode'))
 
     def test_validate_string_values_in_candidate_values(self):
+        _ = RestlerSettings({})
         candidate_values = primitives.CandidateValuesPool()
         
         invalid_dict = {
