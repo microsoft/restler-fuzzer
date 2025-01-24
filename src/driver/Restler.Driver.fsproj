@@ -2,10 +2,13 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <AssemblyName>Restler</AssemblyName>
     <NoWarn>NU1603</NoWarn>
     <DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
+	  <RestoreLockedMode>true</RestoreLockedMode>
+	  <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <OtherFlags></OtherFlags>
@@ -21,7 +24,8 @@
     <Compile Include="SpecCoverage.fs" />
     <Compile Include="TaskResults.fs" />
     <Compile Include="Program.fs" />
-    <Content Include="packages.lock.json" />
+	  <Content Include="packages.lock.json" />
+
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.FSharpLu" Version="0.11.7" />

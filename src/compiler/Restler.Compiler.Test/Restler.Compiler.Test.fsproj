@@ -1,9 +1,12 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <NoWarn>NU1603;FS0988</NoWarn>
     <DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
+	  <RestoreLockedMode>true</RestoreLockedMode>
+	  <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="TestUtilities.fs" />
@@ -17,8 +20,9 @@
     <Compile Include="SchemaTests.fs" />
     <Compile Include="JsonGrammarTests.fs" />
     <Compile Include="RealWorldTests.fs" />
-    <Content Include="packages.lock.json" />
-    <Content Include="swagger\example_config_file.json">
+	  <Content Include="packages.lock.json" />
+
+	  <Content Include="swagger\example_config_file.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="swagger\exactCopy\array_example.json">
@@ -442,8 +446,8 @@
 	  <PackageReference Include="NJsonSchema" Version="10.7.2" />
 	  <PackageReference Include="NSwag.Core" Version="13.16.1" />
 	  <PackageReference Include="xunit" Version="2.4.1" />
-	  <PackageReference Include="Microsoft.net.test.sdk" Version="16.9.1"/>
-	  <PackageReference Include="xunit.runner.console" Version="2.4.1" >
+	  <PackageReference Include="Microsoft.net.test.sdk" Version="16.9.1" />
+	  <PackageReference Include="xunit.runner.console" Version="2.4.1">
 			  <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>

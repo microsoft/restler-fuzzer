@@ -20,7 +20,7 @@ env:
   BUILD_PLATFORM: 'Any CPU'
   RESTLER_VERSION: '9.2.4'
   PYTHON_VERSION: '3.8'
-  DOTNET_VERSION: '6.0.x'
+  DOTNET_VERSION: '8.0.x'
 
 jobs:
   build:

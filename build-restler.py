@@ -179,7 +179,7 @@ def publish_dotnet_apps(dirs, configuration, dotnet_package_source):
 
             sys.exit(-1)
         try:
-            subprocess.run(f"dotnet publish \"{proj_file_path}\" --no-restore -o \"{proj_output_dir}\" -c {configuration} -f net6.0", shell=True, stderr=subprocess.PIPE, check=True)
+            subprocess.run(f"dotnet publish \"{proj_file_path}\" --no-restore -o \"{proj_output_dir}\" -c {configuration} -f net8.0", shell=True, stderr=subprocess.PIPE, check=True)
         except subprocess.CalledProcessError as e:
             print("Build failed!")
             print(f"Exit code: {e.returncode}")
