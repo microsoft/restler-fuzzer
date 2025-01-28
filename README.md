@@ -63,7 +63,7 @@ You can then use this docker image as basis to add the application under test to
 #### Local
 
 Prerequisites: Install [Python 3.8.2](https://www.python.org/downloads/) and
-[.NET 6.0](https://dotnet.microsoft.com/download/dotnet-core?utm_source=getdotnetcorecli&utm_medium=referral), for your appropriate OS.
+[.NET 8.0](https://dotnet.microsoft.com/download/dotnet-core?utm_source=getdotnetcorecli&utm_medium=referral), for your appropriate OS.
 
 Create a directory where you'd like to place the RESTler binaries:
 

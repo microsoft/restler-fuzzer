@@ -1,7 +1,7 @@
 {
   "version": 1,
   "dependencies": {
-    "net6.0": {
+    "net8.0": {
       "DiffPlex": {
         "type": "Direct",
         "requested": "[1.4.4, )",
@@ -1125,15 +1125,15 @@
       "restler.compiler": {
         "type": "Project",
         "dependencies": {
-          "FSharp.Core": "4.7.2",
-          "Microsoft.ApplicationInsights": "2.14.0",
-          "Microsoft.FSharpLu": "0.11.7",
-          "Microsoft.FSharpLu.Json": "0.11.7",
-          "NJsonSchema": "10.7.2",
-          "NSwag.Core": "13.16.1",
-          "NSwag.Core.Yaml": "13.16.1",
-          "Newtonsoft.Json": "13.0.1",
-          "Pluralize.NET.Core": "1.0.0"
+          "FSharp.Core": "[4.7.2, )",
+          "Microsoft.ApplicationInsights": "[2.14.0, )",
+          "Microsoft.FSharpLu": "[0.11.7, )",
+          "Microsoft.FSharpLu.Json": "[0.11.7, )",
+          "NJsonSchema": "[10.7.2, )",
+          "NSwag.Core": "[13.16.1, )",
+          "NSwag.Core.Yaml": "[13.16.1, )",
+          "Newtonsoft.Json": "[13.0.1, )",
+          "Pluralize.NET.Core": "[1.0.0, )"
         }
       }
     }

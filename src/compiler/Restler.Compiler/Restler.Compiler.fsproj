@@ -1,9 +1,12 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <NoWarn>NU1603</NoWarn>
     <DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
+	  <RestoreLockedMode>true</RestoreLockedMode>
+	  <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <OtherFlags></OtherFlags>
@@ -33,7 +36,8 @@
     <Compile Include="Compiler.fs" />
     <Compile Include="CodeGenerator.fs" />
     <Compile Include="Workflow.fs" />
-    <Content Include="packages.lock.json" />
+	  <Content Include="packages.lock.json" />
+
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.ApplicationInsights" Version="2.14.0" />
