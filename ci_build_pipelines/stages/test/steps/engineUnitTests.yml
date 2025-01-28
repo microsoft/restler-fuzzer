@@ -1,8 +1,8 @@
 steps:
   - task: UsePythonVersion@0
-    displayName: Use Python version 3.8.
+    displayName: Use Python version 3.12.
     inputs:
-      versionSpec: '3.8'
+      versionSpec: '3.12'
     name: pyTools
 
   - script: pip install -r ./restler/requirements.txt
