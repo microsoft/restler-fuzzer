@@ -41,9 +41,9 @@ steps:
       arguments: '--no-restore -c $(buildConfiguration)'
 
   - task: UsePythonVersion@0
-    displayName: Use Python version 3.8.
+    displayName: Use Python version 3.12
     inputs:
-      versionSpec: '3.8'
+      versionSpec: '3.12'
     name: pyTools
 
   - script: |
