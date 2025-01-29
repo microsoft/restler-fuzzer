@@ -1,4 +1,4 @@
-fastapi==0.111.0
-uvicorn==0.18.1
-sqlmodel==0.0.14
+fastapi==0.115.7
+uvicorn==0.34.0
+sqlmodel==0.0.22
 idna==3.7
