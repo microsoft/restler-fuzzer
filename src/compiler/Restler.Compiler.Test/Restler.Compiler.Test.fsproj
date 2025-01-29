@@ -442,9 +442,11 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.FSharpLu" Version="0.11.7" />
     <PackageReference Include="Microsoft.FSharpLu.Json" Version="0.11.7" />
-	  <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-	  <PackageReference Include="NJsonSchema" Version="10.7.2" />
-	  <PackageReference Include="NSwag.Core" Version="13.16.1" />
+	  <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+	  <PackageReference Include="NJsonSchema" Version="11.1.0" />
+	  <PackageReference Include="NJsonSchema.Annotations" Version="11.1.0" />
+
+	  <PackageReference Include="NSwag.Core" Version="14.2.0" />
 	  <PackageReference Include="xunit" Version="2.4.1" />
 	  <PackageReference Include="Microsoft.net.test.sdk" Version="16.9.1" />
 	  <PackageReference Include="xunit.runner.console" Version="2.4.1">
