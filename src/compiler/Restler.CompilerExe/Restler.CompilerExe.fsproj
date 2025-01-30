@@ -25,8 +25,9 @@
   <ItemGroup>
     <ProjectReference Include="..\Restler.Compiler\Restler.Compiler.fsproj" />
     <PackageReference Include="Microsoft.FSharpLu.Json" Version="0.11.7" />
-	  <PackageReference Include="NJsonSchema" Version="10.7.2" />
-	  <PackageReference Include="NSwag.Core" Version="13.16.1" />
+	  <PackageReference Include="NJsonSchema" Version="11.1.0" />
+	  <PackageReference Include="NJsonSchema.Annotations" Version="11.1.0" />
+	  <PackageReference Include="NSwag.Core" Version="14.2.0" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Update="FSharp.Core" Version="4.7.2" />
