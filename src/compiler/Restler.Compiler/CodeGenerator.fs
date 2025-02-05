@@ -207,8 +207,45 @@ let generatePythonParameter includeOptionalParameters parameterSource parameterK
                         | Property -> "")
             ]
 
-    let formatQueryObjectParameters (parameterName:string) (innerProperties:RequestPrimitiveType list seq) =
-        raise (NotImplementedException("Objects in query parameters are not supported yet."))
+
+    let makeQuoted (x : RequestPrimitiveType) : RequestPrimitiveType = 
+        match x with
+        | Restler_fuzzable_string (data, writer) ->
+            Restler_fuzzable_string ({data with isQuoted = true},writer)
+        | x -> x
+           
+
+    let pairTransform (x: RequestPrimitiveType List): RequestPrimitiveType List =
+        if x.Length <> 2 then
+           x
+        else
+            [x.[0]; makeQuoted x.[1]]
+
+
+    let makeCorrectName (x : RequestPrimitiveType) (name: String) : RequestPrimitiveType = 
+        match x with
+        | Restler_static_string_constant (str) ->
+            Restler_static_string_constant (name + "=")
+        | x -> x
+           
+
+    let setCorrectName (list: RequestPrimitiveType List) (name: String) =
+        match list with
+        | [] -> [] 
+        | head :: tail -> ( makeCorrectName head name) :: tail 
+
+
+    let formatQueryPropertyParamaters (parameterName:string) (innerProperties:RequestPrimitiveType list seq) (name: string): RequestPrimitiveType List =
+        let list = Seq.exactlyOne innerProperties
+        setCorrectName list name
+
+    let formatQueryObjectParameters (parameterName:string) (innerProperties:RequestPrimitiveType list seq): RequestPrimitiveType List =
+        let augmented: RequestPrimitiveType list seq  = Seq.map pairTransform innerProperties
+        let innerElems = Seq.reduce (fun sum cur -> sum @ [Restler_static_string_constant ","] @ cur) augmented
+        let param_name = Restler_static_string_constant (parameterName + "=")
+        let begin_brace = Restler_static_string_constant "{"
+        let end_brace = Restler_static_string_constant "}"
+        [param_name; begin_brace] @ innerElems @ [ end_brace]
 
     let formatHeaderObjectParameters (parameterName:string) (innerProperties:RequestPrimitiveType list seq) =
         // The default is "style: simple, explode: false"
@@ -306,7 +343,8 @@ let generatePythonParameter includeOptionalParameters parameterSource parameterK
     let formatNestedQueryParameter (parameterName:string)
                                    (propertyType:NestedType)
                                    (namePayloadSeq:RequestPrimitiveType list option)
-                                   (innerProperties:RequestPrimitiveType list seq) =
+                                   (innerProperties:RequestPrimitiveType list seq)
+                                   (name: String) =
         match namePayloadSeq with
         | Some nps -> nps
         | None ->
@@ -316,8 +354,7 @@ let generatePythonParameter includeOptionalParameters parameterSource parameterK
                 | Array ->
                     formatQueryArrayParameters parameterName innerProperties
                 | Property ->
-                    let message = sprintf "Nested properties in query parameters are not supported yet. Property name: %s." parameterName
-                    raise (NotImplementedException(message))
+                    formatQueryPropertyParamaters parameterName innerProperties name
 
     let visitLeaf level (p:LeafProperty) =
         let rec isPrimitiveTypeQuoted primitiveType isNullValue =
@@ -436,7 +473,7 @@ let generatePythonParameter includeOptionalParameters parameterSource parameterK
             | ParameterKind.Body ->
                 formatJsonBodyParameter p.name p.propertyType nameAndCustomPayloadSeq innerProperties level
             | ParameterKind.Query ->
-                formatNestedQueryParameter parameterName p.propertyType nameAndCustomPayloadSeq innerProperties
+                formatNestedQueryParameter parameterName p.propertyType nameAndCustomPayloadSeq innerProperties p.name
             | ParameterKind.Header ->
                 formatNestedHeaderParameter parameterName p.propertyType nameAndCustomPayloadSeq innerProperties
 
