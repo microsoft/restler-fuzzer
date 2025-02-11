@@ -285,7 +285,8 @@ if __name__ == '__main__':
 
     if bool(args.settings):
         try:
-            settings_file = json.load(open(args.settings))
+            with open(args.settings, encoding='utf-8') as fp:
+                settings_file = json.load(fp)
         except Exception as error:
             print(f"Error: Failed to load settings file: {error!s}")
             sys.exit(-1)
@@ -559,7 +560,7 @@ if __name__ == '__main__':
     grammar_path = settings.grammar_schema
     if os.path.exists(grammar_path):
         try:
-            with open(grammar_path, 'r') as grammar:
+            with open(grammar_path, 'r', encoding='utf-8') as grammar:
                 schema_json = json.load(grammar)
         except Exception as err:
             logger.write_to_main(f"Failed to process grammar file: {grammar_path}; {err!s}", print_to_console=True)
