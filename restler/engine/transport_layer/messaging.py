@@ -192,7 +192,8 @@ class HttpSock(object):
 
         if "Content-Length: " not in message:
             try:
-                contentlen = len(message[_get_start_of_body(message):])
+                body = message[_get_start_of_body(message):]
+                contentlen = len(body.encode(UTF8))
                 message = _append_to_header(message, f"Content-Length: {contentlen}")
             except Exception as error:
                 RAW_LOGGING(f'Failed to append Content-Length header to message: {message!r}\n')
