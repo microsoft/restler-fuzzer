@@ -1,2 +1,3 @@
 applicationinsights
 pytest
+pysocks
