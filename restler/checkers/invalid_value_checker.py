@@ -328,7 +328,7 @@ class InvalidValueChecker(CheckerBase):
                             dependencies.set_variable(name, v)
 
                     responses_to_parse, resource_error, _ = async_request_utilities.try_async_poll(
-                        rendered_data, response, req_async_wait)
+                        rendered_data, response, req_async_wait, poll_delete_status=Settings().wait_for_async_delete_completion)
                     parser_exception_occurred = False
                     # Response may not exist if there was an error sending the request or a timeout
                     if parser and responses_to_parse:

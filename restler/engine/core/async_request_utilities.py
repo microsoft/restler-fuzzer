@@ -142,7 +142,9 @@ def try_async_poll(request_data, response, max_async_wait_time, poll_delete_stat
     @param max_async_wait_time: The maximum amount of time we will wait (in
                                 seconds) for the resource to become available
     @type  max_async_wait_time: Int
-
+    @param poll_delete_status: A boolean that indicates whether or not to poll the status of a DELETE request.
+    @type  poll_delete_status: Bool
+    
     @return: A tuple containing:
              - The list of responses for parsing, which will either contain the @response
              passed to this function, or in the case of an async request, the
