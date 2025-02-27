@@ -38,6 +38,18 @@ def compile_spec(api_spec_path, restler_dll_path):
         os.makedirs(RESTLER_TEMP_DIR)
 
     with usedir(RESTLER_TEMP_DIR):
+
+        # Check that the executable exists
+        if not os.path.exists(restler_dll_path):
+            print(f"RESTler dll not found when compiling at {restler_dll_path}")
+            exit(-1)
+
+        # Check that the file paths specified in required parameters exist,
+        # and print an informative message that includes the function name
+        if not os.path.exists(api_spec_path):
+            print(f"API spec not found at {api_spec_path}")
+            exit(-1)
+
         command=f"dotnet \"{restler_dll_path}\" compile --api_spec \"{api_spec_path}\""
         print(f"command: {command}")
         subprocess.run(command, shell=True)
@@ -144,6 +156,11 @@ if __name__ == '__main__':
     args = parser.parse_args()
     restler_dll_path = Path(os.path.abspath(args.restler_drop_dir)).joinpath('restler', 'Restler.dll')
     print(f"\nrestler_dll_path: {restler_dll_path}\n")
+
+    # Check that the RESTler dll exists
+    if not os.path.exists(restler_dll_path):
+        print(f"RESTler dll not found at {restler_dll_path}")
+        exit(-1)
 
     if args.task == "replay":
         replay_from_dir(args.ip, args.port, args.host, args.use_ssl, restler_dll_path.absolute(), args.replay_bug_buckets_dir)
