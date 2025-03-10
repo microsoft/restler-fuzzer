@@ -900,6 +900,11 @@ class RestlerSettings(object):
     def wait_for_async_resource_creation(self):
         return self._wait_for_async_resource_creation.val
 
+    @property
+    def authentication(self):
+        """Returns the authentication settings dictionary"""
+        return self._authentication_settings.val
+
     def include_request(self, endpoint, method):
         """"Returns whether the specified endpoint and method should be tested according to
         the include/exclude settings
