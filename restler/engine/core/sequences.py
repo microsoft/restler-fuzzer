@@ -387,7 +387,7 @@ class Sequence(object):
                 dependencies.set_variable(name, v)
 
         responses_to_parse, resource_error, async_waited = async_request_utilities.try_async_poll(
-            rendered_data, response, req_async_wait)
+            rendered_data, response, req_async_wait, poll_delete_status=Settings().wait_for_async_delete_completion)
         parser_threw_exception = False
 
         # Record the time at which the response was received
@@ -840,7 +840,7 @@ class Sequence(object):
                 rendered_data = replay_sequence.get_request_data_with_token(request_data.rendered_data)
                 response = request_utilities.send_request_data(rendered_data, reconnect=True)
                 responses_to_parse, _, _ = async_request_utilities.try_async_poll(
-                    rendered_data, response, request_data.max_async_wait_time)
+                    rendered_data, response, request_data.max_async_wait_time,  poll_delete_status=Settings().wait_for_async_delete_completion)
                 if request_data.parser:
                     request_utilities.call_response_parser(request_data.parser, None, responses=responses_to_parse)
                 if not response.status_code:

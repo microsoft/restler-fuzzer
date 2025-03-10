@@ -523,6 +523,8 @@ class RestlerSettings(object):
         self._version = SettingsArg('set_version', str, DEFAULT_VERSION, user_args)
         ## If set, poll for async resource creation before continuing
         self._wait_for_async_resource_creation = SettingsArg('wait_for_async_resource_creation', bool, True, user_args)
+        ## If set, poll for async delete status before continuing
+        self._poll_async_delete_status = SettingsArg('wait_for_async_delete_completion', bool, False, user_args)
 
         ## The random seed to use (may be overridden by checker-specific random seeds)
         self._random_seed = SettingsArg('random_seed', int, 12345, user_args, minval=0)
@@ -899,6 +901,10 @@ class RestlerSettings(object):
     @property
     def wait_for_async_resource_creation(self):
         return self._wait_for_async_resource_creation.val
+
+    @property
+    def wait_for_async_delete_completion(self):
+        return self._poll_async_delete_status.val
 
     def include_request(self, endpoint, method):
         """"Returns whether the specified endpoint and method should be tested according to

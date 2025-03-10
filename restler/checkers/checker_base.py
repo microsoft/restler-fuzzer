@@ -141,7 +141,7 @@ class CheckerBase:
 
         if check_async:
             responses_to_parse, _, _ = async_request_utilities.try_async_poll(
-                rendered_data, response, async_wait)
+                rendered_data, response, async_wait, poll_delete_status=Settings().wait_for_async_delete_completion)
         request_utilities.call_response_parser(parser, None, responses=responses_to_parse)
         seq.append_data_to_sent_list(request.method_endpoint_hex_definition,
                                      rendered_data, parser, response, producer_timing_delay=0,
