@@ -208,6 +208,43 @@ class HttpSock(object):
             if sequence_id is not None:
                 message = _append_to_header(message, f"x-restler-sequence-id: {sequence_id}")
 
+        # Add request signing if enabled in authentication settings
+        if Settings().authentication and Settings().authentication.get('module', {}).get('signing'):
+            try:
+                auth_module = Settings().authentication['module']
+                signing_function = auth_module.get('function', 'sign_request')
+                signing_module = __import__(auth_module['name'], fromlist=[signing_function])
+                sign_request = getattr(signing_module, signing_function)
+                
+                # Extract request components needed for signing
+                method = self._get_method_from_message(message)
+                headers_end = _get_end_of_header(message)
+                headers_str = message[:headers_end]
+                body = message[_get_start_of_body(message):]
+                
+                # Convert headers string to dictionary
+                headers = {}
+                for line in headers_str.split('\r\n')[1:]:  # Skip first line (HTTP method line)
+                    if ': ' in line:
+                        key, value = line.split(': ', 1)
+                        headers[key] = value
+
+                # Call signing function with request components
+                signed_headers = sign_request(
+                    method=method,
+                    headers=headers,
+                    body=body,
+                    auth_data=auth_module.get('data', {})
+                )
+
+                # Update message with signed headers
+                for header_name, header_value in signed_headers.items():
+                    message = _append_to_header(message, f"{header_name}: {header_value}")
+
+            except Exception as error:
+                RAW_LOGGING(f'Failed to sign request: {error!s}\n')
+                raise TransportLayerException(f"Request signing failed: {error!s}")
+
         # Attempt to throttle the request if necessary
         self._begin_throttle_request()
 
