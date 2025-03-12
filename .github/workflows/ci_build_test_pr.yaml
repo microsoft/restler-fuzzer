@@ -53,13 +53,25 @@ jobs:
         run: |
           pip install -r ./restler/requirements.txt
       
+      - name: Print .NET SDK info
+        run: |
+          dotnet --info
+          dotnet --list-sdks
+          dotnet --list-runtimes
+
       - name: Build RESTler drop
+        shell: pwsh
         run: |
           python ./build-restler.py --dest_dir ${{ github.workspace }}/${{ runner.os }}/restlerdrop/${{ env.RESTLER_VERSION }} 2>stderr.log
+          if ($LASTEXITCODE -ne 0) { exit 1 }
           python ./.github/actions/utilities/check_stderr.py stderr.log
+          if ($LASTEXITCODE -ne 0) { exit 1 }
 
       - name: Build unit tests
-        run: dotnet build src/compiler/Restler.Compiler.Test/Restler.Compiler.Test.fsproj --no-restore -c ${{ env.BUILD_CONFIGURATION }} /p:Platform='${{ env.BUILD_PLATFORM }}'
+        shell: pwsh
+        run: | 
+          dotnet build src/compiler/Restler.Compiler.Test/Restler.Compiler.Test.fsproj --no-restore -c ${{ env.BUILD_CONFIGURATION }} /p:Platform='${{ env.BUILD_PLATFORM }}'
+          if ($LASTEXITCODE -ne 0) { exit 1 }
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
@@ -158,6 +170,11 @@ jobs:
         with:
           name: restler-drop-${{ env.RESTLER_VERSION }}-${{ runner.os }}
           path: ${{ github.workspace }}/restlerDrop
+
+      - name: Output contents of the RESTler drop directory
+        run: |
+          echo "Contents of the RESTler drop directory:"
+          ls ${{ github.workspace }}/restlerDrop
 
       - name: Set up Python ${{ env.PYTHON_VERSION }}
         uses: actions/setup-python@v4

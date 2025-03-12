@@ -21,10 +21,17 @@ from threading import Thread
 
 RESTLER_WORKING_DIR = 'restler_working_dir'
 
+QUICK_START_SCRIPT_ABS_PATH = os.path.abspath('./restler-quick-start.py')
+startup_cwd = os.getcwd()
+
 class QuickStartFailedException(Exception):
     pass
 
 def check_output_errors(output):
+    print(f"Command return code: {output.returncode}")
+    print(f"Output: {output.stdout}")
+    print(f"Error: {output.stderr}")  
+
     if output.stderr:
         raise QuickStartFailedException(f"Failing because stderr was detected after running restler-quick-start:\n{output.stderr!s}")
     try:
@@ -54,10 +61,23 @@ def check_expected_output(restler_working_dir, expected_strings, output, task_di
 
 def test_test_task(restler_working_dir, swagger_path, restler_drop_dir):
     # Run the quick start script
+    swagger_abs_path = os.path.abspath(swagger_path)
+    if not os.path.exists(swagger_abs_path):
+        raise QuickStartFailedException(f"Failing because swagger path does not exist: {swagger_abs_path}")
+
+    command = f'{sys.executable} {QUICK_START_SCRIPT_ABS_PATH} --api_spec_path {swagger_abs_path} --restler_drop_dir {restler_drop_dir} --task test'
+    print(f'Command: {command}')
+    print(f'Startup CWD: {startup_cwd}')
+
+    # Check that the quick start script path exists
+    if not os.path.exists(QUICK_START_SCRIPT_ABS_PATH):
+        raise QuickStartFailedException(f"Failing because quick start script path does not exist: {QUICK_START_SCRIPT_ABS_PATH}")
+
     output = subprocess.run(
-        f'python ./restler-quick-start.py --api_spec_path {swagger_path} --restler_drop_dir {restler_drop_dir} --task test',
+        f'{sys.executable} {QUICK_START_SCRIPT_ABS_PATH} --api_spec_path {swagger_abs_path} --restler_drop_dir {restler_drop_dir} --task test',
         shell=True, capture_output=True
     )
+
     expected_strings = [
         'Request coverage (successful / total): 6 / 6',
         'Attempted requests: 6 / 6',
@@ -84,7 +104,7 @@ def test_test_task_low_coverage(restler_working_dir, swagger_path, restler_drop_
 
         # Run the quick start script
         output = subprocess.run(
-            f'python ./restler-quick-start.py --api_spec_path {new_swagger_path} --restler_drop_dir {restler_drop_dir} --task test',
+            f'python {QUICK_START_SCRIPT_ABS_PATH} --api_spec_path {new_swagger_path} --restler_drop_dir {restler_drop_dir} --task test',
             shell=True, capture_output=True
         )
         expected_strings = [
@@ -120,7 +140,7 @@ def test_test_task_low_coverage(restler_working_dir, swagger_path, restler_drop_
 def test_fuzzlean_task(restler_working_dir, swagger_path, restler_drop_dir):
     # Run the quick start script
     output = subprocess.run(
-        f'python ./restler-quick-start.py --api_spec_path {swagger_path} --restler_drop_dir {restler_drop_dir} --task fuzz-lean',
+        f'python {QUICK_START_SCRIPT_ABS_PATH} --api_spec_path {swagger_path} --restler_drop_dir {restler_drop_dir} --task fuzz-lean',
         shell=True, capture_output=True
     )
     expected_strings = [
@@ -156,7 +176,7 @@ def test_fuzz_task(restler_working_dir, swagger_path, restler_drop_dir):
         'Task Fuzz succeeded.'
     ]
     output = subprocess.run(
-        f'python ./restler-quick-start.py --api_spec_path {swagger_path} --restler_drop_dir {restler_drop_dir} --task fuzz',
+        f'python {QUICK_START_SCRIPT_ABS_PATH} --api_spec_path {swagger_path} --restler_drop_dir {restler_drop_dir} --task fuzz',
         shell=True, capture_output=True
     )
     check_output_errors(output)
@@ -166,7 +186,7 @@ def test_replay_task(restler_working_dir, task_output_dir, restler_drop_dir):
     # Run the quick start script
     print(f"Testing replay for bugs found in task output dir: {task_output_dir}")
     output = subprocess.run(
-        f'python ./restler-quick-start.py --replay_bug_buckets_dir {task_output_dir} --restler_drop_dir {restler_drop_dir} --task replay',
+        f'python {QUICK_START_SCRIPT_ABS_PATH} --replay_bug_buckets_dir {task_output_dir} --restler_drop_dir {restler_drop_dir} --task replay',
         shell=True, capture_output=True
     )
     check_output_errors(output)

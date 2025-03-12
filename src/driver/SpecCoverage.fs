@@ -15,7 +15,6 @@ type RequestResponseText =
     }
 
 /// If a request is invalid (not covered), the reason for the failure
-[<Flags>]
 type RequestFailureInformation =
     /// The request was not executed, because an earlier dependency failed
     | SequenceFailure

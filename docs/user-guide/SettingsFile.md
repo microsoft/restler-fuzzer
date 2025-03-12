@@ -468,6 +468,9 @@ in seconds.
 ### wait_for_async_resource_creation: bool (default True)
 When set, polls for async resource creation before continuing
 
+### wait_for_async_delete_completion: bool (default False)
+When set, polls for async delete to complete before continuing
+
 ### ignore_decoding_failures: bool (default False)
 Set to True to ignore socked data decoding failures
 See: https://github.com/microsoft/restler-fuzzer/issues/164

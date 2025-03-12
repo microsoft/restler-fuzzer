@@ -1210,7 +1210,7 @@ class PayloadBodyChecker(CheckerBase):
 
             async_wait = Settings().get_max_async_resource_creation_time(request.request_id)
             responses_to_parse, _, _ = async_request_utilities.try_async_poll(
-                rendered_data, response, async_wait)
+                rendered_data, response, async_wait, poll_delete_status=Settings().wait_for_async_delete_completion)
             request_utilities.call_response_parser(parser, None, responses=responses_to_parse)
 
             self._set_refresh_req(request, response)
