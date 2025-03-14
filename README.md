@@ -37,6 +37,14 @@ For an overview and demo on how to get started, see [Webinar - Fuzzing to Improv
 
 ![RESTler architecture](./docs/user-guide/RESTler-arch.png)
 
+## Maintainer Away Notice
+
+Hello Everyone,
+
+I (the primary maintainer) am currently on leave and expect to return in August 2025. During this time, I won't be able to review pull requests or issues. If you are a Microsoft employee and need immediate assistance, please contact my manager. 
+
+Thank you for your understanding.
+
 ## Build Status
 
 [![Build Status](https://dev.azure.com/ms/restler-fuzzer/_apis/build/status/restler-build-validation?branchName=main)](https://dev.azure.com/ms/restler-fuzzer/_build/latest?definitionId=422&branchName=main)
