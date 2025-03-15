@@ -1,3 +1,5 @@
+#messaging.py
+
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
@@ -18,6 +20,7 @@ from restler_settings import Settings
 from engine.transport_layer.response import *
 if util.find_spec("test_servers"):
     from test_servers.test_socket import TestSocket
+import traceback
 
 DELIM = "\r\n\r\n"
 TERMINATING_CHUNK_DELIM = "0\r\n\r\n"
@@ -208,6 +211,57 @@ class HttpSock(object):
             if sequence_id is not None:
                 message = _append_to_header(message, f"x-restler-sequence-id: {sequence_id}")
 
+        # Add request signing if enabled in authentication settings    
+        if Settings().authentication and Settings().authentication.get('module', {}).get('signing'):
+            try:
+                # print("Reached try block")
+                auth_module = Settings().authentication['module']
+                # print(f"Auth module: {auth_module}")
+                signing_function = auth_module.get('function', 'sign_request')
+                # print(f"Signing function: {signing_function}")
+                signing_module = __import__(auth_module['name'], fromlist=[signing_function])
+                # print(f"Signing module reached")
+                sign_request = getattr(signing_module, signing_function)
+                # print(f"Sign request reached")
+
+                # Extract request components needed for signing
+                method = self._get_method_from_message(message)
+                headers_end = _get_end_of_header(message)
+                headers_str = message[:headers_end]
+                body = message[_get_start_of_body(message):]
+
+                # Convert headers string to dictionary
+                headers = {}
+                print(f"\nHeaders string: {headers_str}")
+                for line in headers_str.split('\r\n')[1:]:  # Skip first line (HTTP method line)
+                    if 'x-amz-expected-bucket-owner' in line or 'x-amz-security-token' in line:
+                        continue
+                    if ': ' in line:
+                        key, value = line.split(': ', 1)
+                        headers[key] = value
+
+                print(f"\nHeaders: {headers}")
+                # print(f"\nBody: {body}")
+                # Call signing function with request components
+                signed_headers = sign_request(
+                    method=method,
+                    headers=headers,
+                    body=body,
+                    auth_data=auth_module.get('data', {})
+                )
+                print(f"\nSigned headers: {signed_headers}")
+                # Update message with signed headers
+                for header_name, header_value in signed_headers.items():
+                    message = _append_to_header(message, f"{header_name}: {header_value}")
+                print("THE MESSAGE IS : ", message)
+            except Exception as e:
+                print(e)
+                print(traceback.format_exc())
+
+            # except Exception as error:
+            #     RAW_LOGGING(f'Failed to sign request: {error!s}\n')
+            #     raise TransportLayerException(f"Request signing failed: {error!s}")
+
         # Attempt to throttle the request if necessary
         self._begin_throttle_request()
 
@@ -361,3 +415,5 @@ class HttpSock(object):
             self._sock.close()
         except Exception as error:
                 raise TransportLayerException(f"Exception: {error!s}")
+
+
