@@ -905,6 +905,11 @@ class RestlerSettings(object):
     @property
     def wait_for_async_delete_completion(self):
         return self._poll_async_delete_status.val
+    
+    @property
+    def authentication(self):
+        """Returns the authentication settings dictionary"""
+        return self._authentication_settings.val
 
     def include_request(self, endpoint, method):
         """"Returns whether the specified endpoint and method should be tested according to
