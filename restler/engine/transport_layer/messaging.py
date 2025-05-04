@@ -180,6 +180,11 @@ class HttpSock(object):
         @rtype : None
 
         """
+        import os
+        import datetime
+        import hashlib
+        import hmac
+
         def _get_end_of_header(message):
             return message.index(DELIM)
 
@@ -201,16 +206,82 @@ class HttpSock(object):
         if self.connection_settings.user_agent is not None:
             message = _append_to_header(message, f"User-Agent: {self.connection_settings.user_agent}")
         elif self.connection_settings.include_user_agent:
-            # Send the RESTler user agent only if a custom user agent is not specified
             message = _append_to_header(message, f"User-Agent: restler/{Settings().version}")
         if self.connection_settings.include_unique_sequence_id:
             sequence_id = SequenceTracker().get_sequence_id()
             if sequence_id is not None:
                 message = _append_to_header(message, f"x-restler-sequence-id: {sequence_id}")
 
-        # Attempt to throttle the request if necessary
-        self._begin_throttle_request()
+        # --- BEGIN AWS SigV4 Signing ---
+        signing_enabled = Settings().authentication_settings.get("module", {}).get("signing", False)
+        if signing_enabled:
+            try:
+                request_line, headers_body = message.split('\r\n', 1)
+                headers, body = headers_body.split('\r\n\r\n', 1)
+                method, canonical_uri, _ = request_line.split(' ')
 
+                AWS_ACCESS_KEY = os.environ.get('AWS_ACCESS_KEY_ID')
+                AWS_SECRET_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
+                REGION = os.environ.get('AWS_REGION', 'us-east-1')
+                SERVICE = os.environ.get('AWS_SERVICE', 's3')
+
+                if not AWS_ACCESS_KEY or not AWS_SECRET_KEY:
+                    raise TransportLayerException("Missing AWS credentials in environment.")
+
+                now = datetime.datetime.utcnow()
+                amz_date = now.strftime('%Y%m%dT%H%M%SZ')
+                date_stamp = now.strftime('%Y%m%d')
+
+                host = ''
+                for line in headers.split('\r\n'):
+                    if line.lower().startswith('host:'):
+                        host = line.split(':', 1)[1].strip()
+
+                def sign(key, msg):
+                    return hmac.new(key, msg.encode('utf-8'), hashlib.sha256).digest()
+
+                def get_signature_key(key, date_stamp, region_name, service_name):
+                    k_date = sign(('AWS4' + key).encode('utf-8'), date_stamp)
+                    k_region = sign(k_date, region_name)
+                    k_service = sign(k_region, service_name)
+                    return sign(k_service, 'aws4_request')
+
+                canonical_headers = f'host:{host}\n' + f'x-amz-date:{amz_date}\n'
+                signed_headers = 'host;x-amz-date'
+                payload_hash = hashlib.sha256(body.encode('utf-8')).hexdigest()
+
+                canonical_request = '\n'.join([
+                    method,
+                    canonical_uri,
+                    '',
+                    canonical_headers,
+                    signed_headers,
+                    payload_hash
+                ])
+
+                credential_scope = f'{date_stamp}/{REGION}/{SERVICE}/aws4_request'
+                string_to_sign = '\n'.join([
+                    'AWS4-HMAC-SHA256',
+                    amz_date,
+                    credential_scope,
+                    hashlib.sha256(canonical_request.encode('utf-8')).hexdigest()
+                ])
+
+                signing_key = get_signature_key(AWS_SECRET_KEY, date_stamp, REGION, SERVICE)
+                signature = hmac.new(signing_key, string_to_sign.encode('utf-8'), hashlib.sha256).hexdigest()
+
+                authorization_header = (
+                    f'AWS4-HMAC-SHA256 Credential={AWS_ACCESS_KEY}/{credential_scope}, '
+                    f'SignedHeaders={signed_headers}, Signature={signature}'
+                )
+
+                headers += f'\r\nx-amz-date: {amz_date}\r\nAuthorization: {authorization_header}'
+                message = request_line + '\r\n' + headers + '\r\n\r\n' + body
+            except Exception as e:
+                raise TransportLayerException(f"SigV4 signing failed: {e}")
+        # --- END AWS SigV4 Signing ---
+
+        self._begin_throttle_request()
         try:
             RAW_LOGGING(f'Sending: {message!r}\n')
             if Settings().use_trace_database:
