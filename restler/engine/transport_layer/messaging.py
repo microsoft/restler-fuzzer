@@ -26,6 +26,38 @@ DELIM = "\r\n\r\n"
 TERMINATING_CHUNK_DELIM = "0\r\n\r\n"
 UTF8 = 'utf-8'
 
+def encode_request_path(path):
+    """Encodes special characters in the request path while preserving structure"""
+    special_chars = {
+        '#': '%23',
+        '&': '%26',
+        '?': '%3F',
+        '=': '%3D',
+        '+': '%2B',
+        ' ': '%20'
+    }
+    encoded_path = path
+    for char, encoded in special_chars.items():
+        encoded_path = encoded_path.replace(char, encoded)
+    return encoded_path
+
+def remove_fragment_from_path(path):
+    """Removes fragment part and merges query parameters correctly"""
+    # Split on # first
+    if '#' in path:
+        base_path, fragment = path.split('#', 1)
+        
+        # Handle query parameters
+        if '?' in fragment:
+            fragment_part, fragment_query = fragment.split('?', 1)
+            if '?' in base_path:
+                # Merge queries with &
+                base_path = f"{base_path}&{fragment_query}"
+            else:
+                # Add query with ?
+                base_path = f"{base_path}?{fragment_query}"
+        return base_path
+    return path
 
 class HttpSock(object):
     __last_request_sent_time = time.time()
@@ -233,13 +265,33 @@ class HttpSock(object):
                 # Convert headers string to dictionary
                 headers = {}
                 print(f"\nHeaders string: {headers_str}")
+                # Get the first line which contains the HTTP method, path and version
+                first_line = headers_str.split('\r\n')[0]
+                # Extract and encode the path portion
+                request_path = first_line.split(' ')[1] if ' ' in first_line else '/'
+                
+                # encoded_path = encode_request_path(request_path)                
+                encoded_path = remove_fragment_from_path(request_path)
+
+                print("Encoded path: ", encoded_path)
+
+
+                print("\nThe OLD message is: ", message)
+                # Modify the original message with encoded path
+                message = message.replace(f" {request_path} ", f" {encoded_path} ", 1)
+
+                print("\nThe NEW message is: ", message)
+
+                # Store the encoded path in headers
+                headers['Request-Line'] = encoded_path
+
+
                 for line in headers_str.split('\r\n')[1:]:  # Skip first line (HTTP method line)
-                    if 'x-amz-expected-bucket-owner' in line or 'x-amz-security-token' in line:
+                    if 'x-amz-expected-bucket-owner' in line or 'x-amz-security-token' in line or 'Content-Type' in line or 'Date' in line:
                         continue
                     if ': ' in line:
                         key, value = line.split(': ', 1)
                         headers[key] = value
-
                 print(f"\nHeaders: {headers}")
                 # print(f"\nBody: {body}")
                 # Call signing function with request components
