@@ -59,15 +59,11 @@ def sign_request(method, headers, body, auth_data):
             content_hash = hashlib.sha256(body.encode('utf-8') if isinstance(body, str) else body or b'').hexdigest()
             headers_to_sign['X-Amz-Content-SHA256'] = content_hash
         
-        print(f"\nheaders to sign are:  {headers_to_sign}")
-
         logging.debug(f"Headers before signing: {headers_to_sign}")
         
         request_path = headers.get('Request-Line', '/')
         
         full_url = f"{endpoint.rstrip('/')}{request_path}"
-
-        print(f"The full url is, {full_url}")
 
         # Create request with parsed URL components to maintain encoding
         request = AWSRequest(
@@ -76,8 +72,6 @@ def sign_request(method, headers, body, auth_data):
             data=body,
             headers=headers_to_sign
         )
-        
-        print(f"\nrequest to sign is: {request}")
         
         logging.debug(f"Created AWSRequest: {request}")
 
@@ -89,8 +83,6 @@ def sign_request(method, headers, body, auth_data):
         signed_headers = dict(request.headers)
 
         logging.debug(f"Signed headers: {signed_headers}")
-
-        print(f"\nsigned AFTER REQUEST headers are:  {signed_headers}")
 
         for key, value in signed_headers.items():
             headers[key] = value

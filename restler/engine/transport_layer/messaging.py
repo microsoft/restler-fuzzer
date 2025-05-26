@@ -264,7 +264,7 @@ class HttpSock(object):
 
                 # Convert headers string to dictionary
                 headers = {}
-                print(f"\nHeaders string: {headers_str}")
+
                 # Get the first line which contains the HTTP method, path and version
                 first_line = headers_str.split('\r\n')[0]
                 # Extract and encode the path portion
@@ -273,18 +273,11 @@ class HttpSock(object):
                 # encoded_path = encode_request_path(request_path)                
                 encoded_path = remove_fragment_from_path(request_path)
 
-                print("Encoded path: ", encoded_path)
-
-
-                print("\nThe OLD message is: ", message)
                 # Modify the original message with encoded path
                 message = message.replace(f" {request_path} ", f" {encoded_path} ", 1)
 
-                print("\nThe NEW message is: ", message)
-
                 # Store the encoded path in headers
                 headers['Request-Line'] = encoded_path
-
 
                 for line in headers_str.split('\r\n')[1:]:  # Skip first line (HTTP method line)
                     if 'x-amz-expected-bucket-owner' in line or 'x-amz-security-token' in line or 'Content-Type' in line or 'Date' in line:
@@ -301,18 +294,12 @@ class HttpSock(object):
                     body=body,
                     auth_data=auth_module.get('data', {})
                 )
-                print(f"\nSigned headers: {signed_headers}")
                 # Update message with signed headers
                 for header_name, header_value in signed_headers.items():
                     message = _append_to_header(message, f"{header_name}: {header_value}")
-                print("THE MESSAGE IS : ", message)
             except Exception as e:
                 print(e)
                 print(traceback.format_exc())
-
-            # except Exception as error:
-            #     RAW_LOGGING(f'Failed to sign request: {error!s}\n')
-            #     raise TransportLayerException(f"Request signing failed: {error!s}")
 
         # Attempt to throttle the request if necessary
         self._begin_throttle_request()
