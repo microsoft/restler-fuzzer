@@ -1,5 +1,3 @@
-#messaging.py
-
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
@@ -25,39 +23,6 @@ import traceback
 DELIM = "\r\n\r\n"
 TERMINATING_CHUNK_DELIM = "0\r\n\r\n"
 UTF8 = 'utf-8'
-
-def encode_request_path(path):
-    """Encodes special characters in the request path while preserving structure"""
-    special_chars = {
-        '#': '%23',
-        '&': '%26',
-        '?': '%3F',
-        '=': '%3D',
-        '+': '%2B',
-        ' ': '%20'
-    }
-    encoded_path = path
-    for char, encoded in special_chars.items():
-        encoded_path = encoded_path.replace(char, encoded)
-    return encoded_path
-
-def remove_fragment_from_path(path):
-    """Removes fragment part and merges query parameters correctly"""
-    # Split on # first
-    if '#' in path:
-        base_path, fragment = path.split('#', 1)
-        
-        # Handle query parameters
-        if '?' in fragment:
-            fragment_part, fragment_query = fragment.split('?', 1)
-            if '?' in base_path:
-                # Merge queries with &
-                base_path = f"{base_path}&{fragment_query}"
-            else:
-                # Add query with ?
-                base_path = f"{base_path}?{fragment_query}"
-        return base_path
-    return path
 
 class HttpSock(object):
     __last_request_sent_time = time.time()
@@ -245,16 +210,11 @@ class HttpSock(object):
 
         # Add request signing if enabled in authentication settings    
         if Settings().authentication and Settings().authentication.get('module', {}).get('signing'):
-            try:
-                # print("Reached try block")
+            try:                
                 auth_module = Settings().authentication['module']
-                # print(f"Auth module: {auth_module}")
                 signing_function = auth_module.get('function', 'sign_request')
-                # print(f"Signing function: {signing_function}")
                 signing_module = __import__(auth_module['name'], fromlist=[signing_function])
-                # print(f"Signing module reached")
                 sign_request = getattr(signing_module, signing_function)
-                # print(f"Sign request reached")
 
                 # Extract request components needed for signing
                 method = self._get_method_from_message(message)
@@ -262,35 +222,11 @@ class HttpSock(object):
                 headers_str = message[:headers_end]
                 body = message[_get_start_of_body(message):]
 
-                # Convert headers string to dictionary
-                headers = {}
-
-                # Get the first line which contains the HTTP method, path and version
-                first_line = headers_str.split('\r\n')[0]
-                # Extract and encode the path portion
-                request_path = first_line.split(' ')[1] if ' ' in first_line else '/'
-                
-                # encoded_path = encode_request_path(request_path)                
-                encoded_path = remove_fragment_from_path(request_path)
-
-                # Modify the original message with encoded path
-                message = message.replace(f" {request_path} ", f" {encoded_path} ", 1)
-
-                # Store the encoded path in headers
-                headers['Request-Line'] = encoded_path
-
-                for line in headers_str.split('\r\n')[1:]:  # Skip first line (HTTP method line)
-                    if 'x-amz-expected-bucket-owner' in line or 'x-amz-security-token' in line or 'Content-Type' in line or 'Date' in line:
-                        continue
-                    if ': ' in line:
-                        key, value = line.split(': ', 1)
-                        headers[key] = value
-                print(f"\nHeaders: {headers}")
-                # print(f"\nBody: {body}")
-                # Call signing function with request components
                 signed_headers = sign_request(
                     method=method,
-                    headers=headers,
+                    message=message,
+                    headers_end = headers_end,
+                    headers_str=headers_str,
                     body=body,
                     auth_data=auth_module.get('data', {})
                 )
@@ -298,7 +234,6 @@ class HttpSock(object):
                 for header_name, header_value in signed_headers.items():
                     message = _append_to_header(message, f"{header_name}: {header_value}")
             except Exception as e:
-                print(e)
                 print(traceback.format_exc())
 
         # Attempt to throttle the request if necessary
