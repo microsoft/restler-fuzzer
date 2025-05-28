@@ -18,11 +18,11 @@ from restler_settings import Settings
 from engine.transport_layer.response import *
 if util.find_spec("test_servers"):
     from test_servers.test_socket import TestSocket
-import traceback
 
 DELIM = "\r\n\r\n"
 TERMINATING_CHUNK_DELIM = "0\r\n\r\n"
 UTF8 = 'utf-8'
+
 
 class HttpSock(object):
     __last_request_sent_time = time.time()
@@ -234,6 +234,7 @@ class HttpSock(object):
                 for header_name, header_value in signed_headers.items():
                     message = _append_to_header(message, f"{header_name}: {header_value}")
             except Exception as e:
+                import traceback
                 print(traceback.format_exc())
 
         # Attempt to throttle the request if necessary
@@ -389,5 +390,3 @@ class HttpSock(object):
             self._sock.close()
         except Exception as error:
                 raise TransportLayerException(f"Exception: {error!s}")
-
-

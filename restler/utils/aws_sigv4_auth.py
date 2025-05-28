@@ -1,3 +1,27 @@
+#
+# This module is used to sign requests for AWS services using SigV4.
+# The `engine_settings.json` file must be configured in the following matter in order to use this signing method.
+# The `headers_to_sign` must be modified with respect to your needs.
+# Add all the parameters you want to retreive in the `data` dictionary, example is given below
+# {
+#   "per_resource_settings": {},
+#   "max_combinations": 20,  
+#   "authentication": {
+#       "module": {
+#           "name": "utils.aws_sig4_auth",
+#           "function": "sign_request",
+#           "data": {
+#               "access_key": "YOUR_ACCESS_KEY", 
+#               "secret_key": "YOUR_SECRET_KEY",
+#               "region": "default",
+#               "service": "s3",
+#               "host": "localhost:8000"
+#           },
+#           "signing": true
+#       }
+#   }
+# }
+
 import boto3
 from botocore.auth import SigV4Auth
 from botocore.awsrequest import AWSRequest
@@ -5,9 +29,11 @@ from botocore.credentials import Credentials
 from urllib.parse import urlparse
 import logging 
 
+# Set up logging file location
+FILE_PATH = "/home/suyash/Downloads/boto.log"
 
 logging.basicConfig(
-    filename="/home/suyash/Downloads/boto.log",
+    filename=FILE_PATH,
     level=logging.DEBUG,
     format="%(asctime)s - %(levelname)s - %(message)s"
 )
@@ -39,7 +65,7 @@ def sign_request(method, message, headers_end, headers_str, body, auth_data):
         endpoint = auth_data.get('endpoint', '')
         ACCESS_KEY = auth_data.get('access_key')
         SECRET_KEY = auth_data.get('secret_key')
-
+        host = auth_data.get('host')
         logging.debug(f"Service: {service}, Region: {region}, Endpoint: {endpoint}")        
 
         # Create credentials
@@ -50,7 +76,7 @@ def sign_request(method, message, headers_end, headers_str, body, auth_data):
         
         # Convert headers string to dictionary
         headers = {}
-        print(f"\nHeaders string: {headers_str}")
+        logging.debug(f"\nHeaders string: {headers_str}")
         # Get the first line which contains the HTTP method, path and version
         first_line = headers_str.split('\r\n')[0]
         # Extract and encode the path portion
@@ -58,14 +84,14 @@ def sign_request(method, message, headers_end, headers_str, body, auth_data):
         
         encoded_path = remove_fragment_from_path(request_path)
 
-        print("Encoded path: ", encoded_path)
+        logging.debug(f"Encoded path: {encoded_path}")
 
+        logging.debug(f"\nThe OLD message is: {message}")
 
-        print("\nThe OLD message is: ", message)
         # Modify the original message with encoded path
         message = message.replace(f" {request_path} ", f" {encoded_path} ", 1)
-
-        print("\nThe NEW message is: ", message)
+        
+        logging.debug(f"\nThe NEW message is: {message}")
 
         # Store the encoded path in headers
         headers['Request-Line'] = encoded_path
@@ -74,21 +100,12 @@ def sign_request(method, message, headers_end, headers_str, body, auth_data):
             if ': ' in line:
                 key, value = line.split(': ', 1)
                 headers[key] = value
-        print(f"\nHeaders: {headers}")
-        # print(f"\nBody: {body}")
-        # Call signing function with request components
+        logging.debug(f"\nHeaders: {headers}")
 
-
-        # Copy headers to avoid modifying the original
+        # Specify the headers to sign
         headers_to_sign = {}        
-        # Headers to exclude from signing (typical AWS CLI behavior)
-                         
-        include_in_signing = [
-            'host',         
-            'x-amz-date',
-        ]
-
-        headers_to_sign["Host"] = "localhost:8000"
+        
+        headers_to_sign["Host"] = host
 
         # Include content hash if not already present
         if 'X-Amz-Content-SHA256' not in headers_to_sign:
@@ -96,15 +113,13 @@ def sign_request(method, message, headers_end, headers_str, body, auth_data):
             content_hash = hashlib.sha256(body.encode('utf-8') if isinstance(body, str) else body or b'').hexdigest()
             headers_to_sign['X-Amz-Content-SHA256'] = content_hash
         
-        print(f"\nheaders to sign are:  {headers_to_sign}")
-
         logging.debug(f"Headers before signing: {headers_to_sign}")
         
         request_path = headers.get('Request-Line', '/')
         
         full_url = f"{endpoint.rstrip('/')}{request_path}"
 
-        print(f"The full url is, {full_url}")
+        logging.debug(f"The full url is, {full_url}")
 
         # Create request with parsed URL components to maintain encoding
         request = AWSRequest(
@@ -113,9 +128,7 @@ def sign_request(method, message, headers_end, headers_str, body, auth_data):
             data=body,
             headers=headers_to_sign
         )
-        
-        print(f"\nrequest to sign is: {request}")
-        
+                
         logging.debug(f"Created AWSRequest: {request}")
 
         # Sign the request
@@ -126,8 +139,6 @@ def sign_request(method, message, headers_end, headers_str, body, auth_data):
         signed_headers = dict(request.headers)
 
         logging.debug(f"Signed headers: {signed_headers}")
-
-        print(f"\nsigned AFTER REQUEST headers are:  {signed_headers}")
 
         for key, value in signed_headers.items():
             headers[key] = value
