@@ -884,14 +884,15 @@ let generateRequestPrimitives (requestId:RequestId)
             |> Seq.toList
 
         // Filter out the spec parameters
-        // Filter out Content-Type, because this is handled separately later, in order to be able to fuzz or replace the content type
-        // Filter both the global content-type and the one for this specific request.
-        let excludedContentTypeParameterNamesInCustomPayload =
-            ["Content-Type" ; (dictionary.getRequestTypePayloadName requestId.endpoint (requestId.method.ToString()) "Content-Type")]
+        // Filter out Content-Type and Accept, because these are handled separately later, in order to be able to fuzz or replace them
+        // Filter both the global headers and the ones for this specific request.
+        let excludedHeaderNamesInCustomPayload =
+            ["Content-Type" ; (dictionary.getRequestTypePayloadName requestId.endpoint (requestId.method.ToString()) "Content-Type");
+             "Accept" ; (dictionary.getRequestTypePayloadName requestId.endpoint (requestId.method.ToString()) "Accept")]
 
         let injectedCustomPayloadParameters = 
             getInjectedCustomPayloadParameters dictionary customPayloadType
-                                               (specParameters @ excludedContentTypeParameterNamesInCustomPayload @ excludedRequestSpecificParameters)
+                                               (specParameters @ excludedHeaderNamesInCustomPayload @ excludedRequestSpecificParameters)
         injectedCustomPayloadParameters
 
     // Generate header parameters.
@@ -945,12 +946,10 @@ let generateRequestPrimitives (requestId:RequestId)
                         let parameterList =
                             parameterList
                             |> Seq.filter (fun rp -> 
-                                // Filter out the 'Content-Length' parameter if it is specified in the spec.
-                                // This parameter must be computed by the engine, and should not be fuzzed.
-                                rp.name <> "Content-Length" &&
-                                // Filter out the 'Content-Type' parameter if it is specified in the spec.
-                                // This parameter is handled separately below in order to enable fuzzing it.
-                                rp.name <> "Content-Type")
+                                // Filter out specific parameters if they are specified in the spec.
+                                // Content-Length must be computed by the engine, and should not be fuzzed.
+                                // Content-Type and Accept are handled separately below in order to enable fuzzing them.
+                                not (List.contains rp.name ["Content-Length"; "Content-Type"; "Accept"]))
                             |> Seq.map (fun requestParameter ->
                                 replaceCustomPayloads CustomPayloadType.Header headersSpecifiedAsCustomPayloads requestParameter
                                 |> fst )
@@ -1076,6 +1075,52 @@ let generateRequestPrimitives (requestId:RequestId)
                                 result, newParameterSetDict)
                           dictionary
 
+    // Helper function to get custom payload header or use default value
+    let getCustomPayloadHeader headerName defaultValue =
+        let endpoint =
+            match requestId.xMsPath with
+            | None -> requestId.endpoint
+            | Some xMsPath -> xMsPath.getEndpoint()
+
+        match dictionary.findRequestTypeCustomPayload endpoint (requestId.method.ToString()) headerName ParameterKind.Header with
+        | Some (x, payloadType) ->
+            let leafNode =
+                Tree.LeafNode
+                    {
+                        LeafProperty.name = ""
+                        LeafProperty.payload =
+                            FuzzingPayload.Custom
+                                {
+                                    payloadType = payloadType
+                                    primitiveType = PrimitiveType.String
+                                    payloadValue = x
+                                    isObject = false
+                                    dynamicObject = None
+                                }
+                        LeafProperty.isRequired = true
+                        LeafProperty.isReadOnly = false
+                    }
+            {
+                name = headerName
+                payload = leafNode
+                serialization = None
+            }
+        | None ->
+            let leafNode =
+                Tree.LeafNode
+                    {
+                        LeafProperty.name = ""
+                        LeafProperty.payload =
+                            FuzzingPayload.Constant (PrimitiveType.String, defaultValue)
+                        LeafProperty.isRequired = true
+                        LeafProperty.isReadOnly = false
+                    }
+            {
+                name = headerName
+                payload = leafNode
+                serialization = None
+            }
+
     let contentTypeHeader =
         let requestHasBody = match (requestParameters.body |> Seq.head |> snd) with
                              | ParameterList p -> p |> Seq.length > 0
@@ -1086,58 +1131,19 @@ let generateRequestPrimitives (requestId:RequestId)
             // Check if the custom dictionary overrides the content type for this request body
             // If so, construct a payload
             let ContentTypeHeaderName = "Content-Type"
-            // Check if the body is being replaced by a custom payload
-            let endpoint =
-                match requestId.xMsPath with
-                | None -> requestId.endpoint
-                | Some xMsPath -> xMsPath.getEndpoint()
-
-            let contentType =
-                match dictionary.findRequestTypeCustomPayload endpoint (requestId.method.ToString()) ContentTypeHeaderName ParameterKind.Header with
-                | Some (x, payloadType) ->
-                    let leafNode =
-                        Tree.LeafNode
-                            {
-                                LeafProperty.name = ""
-                                LeafProperty.payload =
-                                    FuzzingPayload.Custom
-                                        {
-                                            payloadType = payloadType
-                                            primitiveType = PrimitiveType.String
-                                            payloadValue = x
-                                            isObject = false
-                                            dynamicObject = None
-                                        }
-                                LeafProperty.isRequired = true
-                                LeafProperty.isReadOnly = false
-                            }
-                    {
-                        name = ContentTypeHeaderName
-                        payload =  leafNode
-                        serialization = None
-                    }
-                | None ->
-                    let leafNode =
-                        Tree.LeafNode
-                            {
-                                LeafProperty.name = ""
-                                LeafProperty.payload =
-                                    FuzzingPayload.Constant (PrimitiveType.String, "application/json")
-                                LeafProperty.isRequired = true
-                                LeafProperty.isReadOnly = false
-                            }
-                    {
-                        name = ContentTypeHeaderName
-                        payload =  leafNode
-                        serialization = None
-                    }
+            let contentType = getCustomPayloadHeader ContentTypeHeaderName "application/json"
 
             [ contentType ]
         else []
 
+    // Get the Accept header, supporting custom payload from dictionary
+    let AcceptHeaderName = "Accept"
+    let acceptHeader = 
+        let acceptType = getCustomPayloadHeader AcceptHeaderName "application/json"
+        [ acceptType ]
+
     let headers =
-        ([ ("Accept", "application/json")
-           ("Host", host)])
+        ([ ("Host", host) ])
     {
         id = requestId
         Request.method = method
@@ -1145,8 +1151,10 @@ let generateRequestPrimitives (requestId:RequestId)
         Request.path = path
         queryParameters = requestQueryParameters
         headerParameters = requestHeaderParameters @
-                                [(ParameterPayloadSource.DictionaryCustomPayload,
-                                  RequestParametersPayload.ParameterList contentTypeHeader)]
+                           [(ParameterPayloadSource.DictionaryCustomPayload,
+                             RequestParametersPayload.ParameterList contentTypeHeader)] @
+                           [(ParameterPayloadSource.DictionaryCustomPayload,
+                             RequestParametersPayload.ParameterList acceptHeader)]
         httpVersion = "1.1"
         headers = headers
         token = TokenKind.Refreshable
