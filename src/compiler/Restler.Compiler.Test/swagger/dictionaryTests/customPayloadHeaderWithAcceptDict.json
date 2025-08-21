@@ -1,0 +1,12 @@
+{
+  "restler_custom_payload": {
+    "/stores/{storeId}/order2/post/Accept": [ "application/custom+xml" ]
+},
+  "restler_custom_payload_header": {
+    "/stores/{storeId}/order/post/Content-Type": [ "application/xml" ],
+    "/stores/{storeId}/order2/post/Content-Type": [ "application/yyy" ],
+    "/stores/{storeId}/order3/post/Content-Type": [ "application/zzz" ],
+    "/stores/{storeId}/order/post/Accept": [ "application/custom+json" ],
+    "/stores/{storeId}/order3/post/Accept": [ "text/plain" ]
+  }
+}
