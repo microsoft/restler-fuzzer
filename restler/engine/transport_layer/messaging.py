@@ -258,6 +258,8 @@ class HttpSock(object):
 
         @param req_timeout_sec: The time, in seconds, to wait for request to complete
         @type req_timeout_sec : Int
+        @param method_name: The HTTP method name from the request
+        @type method_name : Str 
 
         @return: Data received on current socket.
         @rtype : Str
@@ -267,7 +269,7 @@ class HttpSock(object):
         global TERMINATING_CHUNK_DELIM
         data = ''
 
-        def decode_buf (buf):
+        def decode_buf(buf):
             try:
                 return buf.decode(UTF8)
             except Exception as ex:
@@ -332,21 +334,22 @@ class HttpSock(object):
             except Exception as error:
                 content_len = 2**20
 
-        bytes_remain = content_len - bytes_received + header_len
-
+        # Calculate how much data we've already received in the body
+        body_bytes_received = bytes_received - header_len
+        bytes_remain = max(0, content_len - body_bytes_received)
 
         # get rest of socket data
         while bytes_remain > 0:
             try:
-                buf = self._sock.recv(2**20)
+                buf = self._sock.recv(min(bytes_remain, 2**20))
             except Exception as error:
                 raise TransportLayerException(f"Exception: {error!s}")
 
             if len(buf) == 0:
                 return data
 
-            bytes_remain -= len(buf)
             data += decode_buf(buf)
+            bytes_remain -= len(buf)
 
         return data
 
