@@ -37,7 +37,7 @@ module Log =
         match line with
         | Regex "^Generation-\d+: Rendering Sequence-\d+" [] ->
             Some SequenceBeginning
-        | Regex "^([^']*): Sending: '(.*)'" [ date; request ] ->
+        | Regex "^([^']*): Sending: ('.*'|\".*\")" [ date; request ] ->
             let date = parseDateTime date
             let parsedRequest =
                 request
@@ -57,7 +57,7 @@ module Log =
                     }
                 Some (Sending (date, r))
             | Some request -> Some (Sending (date, request))
-        | Regex "^([^']*): Received: '(.*)'" [ date; response ] ->
+        | Regex "^([^']*): Received: ('.*'|\".*\")" [ date; response ] ->
             let date = parseDateTime date
             let parsedResponse =
                 response
