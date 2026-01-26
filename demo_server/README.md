@@ -8,7 +8,7 @@ Installation
 
 Downloading Python
 ------------------
-Install python 3.8.2 for your appropriate OS from https://www.python.org/downloads/
+Install python 3.12.8 for your appropriate OS from https://www.python.org/downloads/
 
 Setting up Python environment
 -----------------------------

@@ -1,4 +1,4 @@
 fastapi==0.115.7
 uvicorn==0.34.0
-sqlmodel==0.0.22
+sqlmodel==0.0.27
 idna==3.7
