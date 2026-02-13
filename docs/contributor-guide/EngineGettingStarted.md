@@ -4,23 +4,23 @@
 
 *  https://code.visualstudio.com/download
 
-## Step 2: Install Python 3.8.2
+## Step 2: Install Python 3.12
 
 * https://www.python.org/downloads/windows/
 
 ## Step 3: Make sure VSCode points to the right version of python
 
 * In your settings.json file add the path to your virtual environment's python.exe (recommended)
-or the Python38 python.exe:
+or the Python312 python.exe:
   * "python.pythonPath": [path to your virtual environment's python.exe]
-  * "python.pythonPath": "C:\Python38\python.exe"
+  * "python.pythonPath": "C:\Python312\python.exe"
 
 ## Step 4: Make this version of python your default
 
  Adding the following two paths as the first paths to your windows user environment __PATH__ variable
 
-* C:\Python38\Scripts
-* C:\Python38
+* C:\Python312\Scripts
+* C:\Python312
 
 ## Step 5: Create a working directory
 
