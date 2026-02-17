@@ -177,6 +177,15 @@ module Dictionary =
                                                        "baselines", "dictionaryTests", "customPayloadHeaderContentType_grammar.py")
             runTest customDictionaryFilePath expectedGrammarFilePath
 
+            // test restler_custom_payload_header with Accept header
+            let customDictionaryFilePath = Some (Path.Combine(Environment.CurrentDirectory, "swagger", "dictionaryTests", 
+                                                         "customPayloadHeaderWithAcceptDict.json"))
+
+            // test both Content-Type and Accept headers can be customized
+            let expectedGrammarFilePath = Path.Combine(Environment.CurrentDirectory,
+                                                       "baselines", "dictionaryTests", "customPayloadHeaderAccept_grammar.py")
+            runTest customDictionaryFilePath expectedGrammarFilePath
+
 
 
 
