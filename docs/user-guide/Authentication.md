@@ -1,6 +1,6 @@
 # Authentication
 
-RESTler supports token-based and certificate based authentication.
+RESTler supports token-based, certificate based, and request signing authentication.
 
 **Token based authentication**
 
@@ -72,3 +72,7 @@ RESTler has logic to prevent token values from being written to the network logs
 **Certificate based authentication**
 
 A Certificate and corresponding keys can be used as an authentication mechanism. See the SettingsFile.md for the settings that should be used to specify a certificate. If both the keyfile and certificate path are valid, RESTler will attempt to use it during the SSL handshake.
+
+**Request signing authentication**
+
+RESTler supports custom request signing mechanisms through user-provided Python modules. This is useful for APIs that require signature-based authentication like AWS SigV4. The signing module should implement a function that takes request components and returns signed headers to be added to the request.

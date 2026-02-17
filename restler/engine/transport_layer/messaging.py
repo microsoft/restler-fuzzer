@@ -12,6 +12,7 @@ from utils.logging.trace_db import (DB as TraceDatabase,
                                     SequenceTracker)
 from utils.formatting import iso_timestamp
 from utils.logger import raw_network_logging as RAW_LOGGING
+from utils.import_utilities import import_attr
 from engine.errors import TransportLayerException
 from restler_settings import ConnectionSettings
 from restler_settings import Settings
@@ -207,6 +208,35 @@ class HttpSock(object):
             sequence_id = SequenceTracker().get_sequence_id()
             if sequence_id is not None:
                 message = _append_to_header(message, f"x-restler-sequence-id: {sequence_id}")
+
+        # Add request signing if enabled in authentication settings    
+        if Settings().authentication and Settings().authentication.get('signing', {}).get('module'):
+            try:                
+                signing_config = Settings().authentication['signing']
+                signing_module_config = signing_config['module']
+                signing_function = signing_module_config.get('function', 'sign_request')
+                sign_request = import_attr(signing_module_config['file'], signing_function)
+
+                # Extract request components needed for signing
+                method = self._get_method_from_message(message)
+                headers_end = _get_end_of_header(message)
+                headers_str = message[:headers_end]
+                body = message[_get_start_of_body(message):]
+
+                signed_headers = sign_request(
+                    method=method,
+                    message=message,
+                    headers_end = headers_end,
+                    headers_str=headers_str,
+                    body=body,
+                    auth_data=signing_module_config.get('data', {})
+                )
+                # Update message with signed headers
+                for header_name, header_value in signed_headers.items():
+                    message = _append_to_header(message, f"{header_name}: {header_value}")
+            except Exception as error:
+                RAW_LOGGING(f'Failed to sign request with authentication module: {error!s}\n')
+                raise error
 
         # Attempt to throttle the request if necessary
         self._begin_throttle_request()

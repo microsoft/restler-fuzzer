@@ -103,6 +103,33 @@ __client_certificate_key_path__ str (default None):  Path to your key file in a 
 }
 ```
 
+#### _signing_ dict (Default empty): Can optionally provide request signing module
+
+__module__ dict (Default None): Dictionary containing settings for RESTler to invoke user-specified module to sign requests
+
+```json
+"authentication": {
+    "signing": {
+        "module": {
+            "file": "/path/to/signing_module.py",
+            "function": "sign_request",
+            "data": {
+                "access_key": "YOUR_ACCESS_KEY",
+                "secret_key": "YOUR_SECRET_KEY",
+                "region": "us-east-1",
+                "service": "s3"
+            }
+        }
+    }
+}
+```
+
+```file``` str (default None): File path to python file containing function that signs requests
+
+```function``` str (default "sign_request"): Name of function in file that signs requests. The function must accept parameters for method, message, headers_end, headers_str, body, and auth_data
+
+```data``` dict (Default None): Optional data payload to provide to signing function. If data is included, RESTler will pass it to the signing function as auth_data parameter
+
 ### custom_bug_codes: list(str)
 List of status codes that will be flagged as bugs.
 
