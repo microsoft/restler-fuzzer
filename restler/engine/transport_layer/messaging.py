@@ -8,8 +8,7 @@ import socket
 import time
 import threading
 from importlib import util
-from utils.logging.trace_db import (DB as TraceDatabase,
-                                    SequenceTracker)
+import utils.logging.trace_db as trace_db
 from utils.formatting import iso_timestamp
 from utils.logger import raw_network_logging as RAW_LOGGING
 from engine.errors import TransportLayerException
@@ -124,7 +123,7 @@ class HttpSock(object):
                 response = self._sock.recv()
             RAW_LOGGING(f'Received: {response.to_str!r}\n')
             if Settings().use_trace_database:
-                TraceDatabase().log_request_response(
+                trace_db.DB().log_request_response(
                     response=response.to_str,
                     timestamp=iso_timestamp()
                 )
@@ -204,7 +203,7 @@ class HttpSock(object):
             # Send the RESTler user agent only if a custom user agent is not specified
             message = _append_to_header(message, f"User-Agent: restler/{Settings().version}")
         if self.connection_settings.include_unique_sequence_id:
-            sequence_id = SequenceTracker().get_sequence_id()
+            sequence_id = trace_db.SequenceTracker().get_sequence_id()
             if sequence_id is not None:
                 message = _append_to_header(message, f"x-restler-sequence-id: {sequence_id}")
 
@@ -277,8 +276,24 @@ class HttpSock(object):
                     RAW_LOGGING(f'Failed to decode data due to {ex}. \
                         Trying again while ignoring offending bytes.')
                     return buf.decode(UTF8, "ignore")
+                elif DELIM in data:
+                    RAW_LOGGING(f'Failed to decode body data due to {ex}. \
+                        Trying again while replacing offending bytes.')
+                    return buf.decode(UTF8, "replace")
+                elif b"\r\n\r\n" in buf:
+                    delim_idx = buf.index(b"\r\n\r\n") + 4
+                    header_bytes = buf[:delim_idx]
+                    body_bytes = buf[delim_idx:]
+                    try:
+                        decoded_header = header_bytes.decode(UTF8)
+                    except Exception:
+                        decoded_header = header_bytes.decode(UTF8, "ignore")
+                    RAW_LOGGING(f'Failed to decode body data following headers due to {ex}. \
+                        Trying again while replacing offending bytes.')
+                    decoded_body = body_bytes.decode(UTF8, "replace")
+                    return decoded_header + decoded_body
                 else:
-                    raise
+                    raise TransportLayerException(f"Failed to decode data: {ex}")
 
         # get the data of header (and maybe more)
         bytes_received = 0
